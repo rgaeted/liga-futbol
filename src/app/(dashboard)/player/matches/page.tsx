@@ -1,0 +1,56 @@
+import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+
+export default async function PlayerMatchesPage() {
+  const session = await auth()
+  if (!session) redirect('/login')
+
+  const player = await db.player.findUnique({
+    where: { userId: session.user.id },
+    include: {
+      callUps: {
+        include: {
+          match: {
+            include: { homeTeam: true, awayTeam: true },
+          },
+        },
+        orderBy: { match: { scheduledAt: 'desc' } },
+      },
+    },
+  })
+
+  if (!player) redirect('/player')
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Mis Partidos</h1>
+      {player.callUps.length === 0 ? (
+        <p className="text-slate-400">Todavía no fuiste citado a ningún partido.</p>
+      ) : (
+        player.callUps.map(({ match, isStarter }) => (
+          <div key={match.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+            <div className="flex justify-between">
+              <div>
+                <p className="font-semibold">
+                  {match.homeTeam.name} vs {match.awayTeam.name}
+                </p>
+                <p className="text-sm text-slate-400">
+                  {new Date(match.scheduledAt).toLocaleString('es-AR')} · {isStarter ? 'Titular' : 'Suplente'}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-mono">{match.homeScore} - {match.awayScore}</p>
+                <p className="text-xs text-slate-400">{match.status}</p>
+                {match.status === 'LIVE' && (
+                  <Link href={`/live/${match.id}`} className="text-xs text-red-400">EN VIVO</Link>
+                )}
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
