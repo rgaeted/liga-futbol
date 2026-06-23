@@ -26,11 +26,11 @@ export function SeasonForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900 p-4 md:grid-cols-4">
-      <input name="name" placeholder="Nombre temporada" required className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" />
-      <input name="startDate" type="date" required className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" />
-      <input name="endDate" type="date" required className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" />
-      <button type="submit" disabled={loading} className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold hover:bg-emerald-500 disabled:opacity-50">
+    <form onSubmit={handleSubmit} className="grid gap-3 rounded-xl border border-kelme-border bg-kelme-surface p-4 md:grid-cols-4">
+      <input name="name" placeholder="Nombre temporada" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
+      <input name="startDate" type="date" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
+      <input name="endDate" type="date" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
+      <button type="submit" disabled={loading} className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50">
         Crear temporada
       </button>
     </form>

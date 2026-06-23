@@ -54,7 +54,7 @@ export function CallUpForm({
     <div className="space-y-4">
       <ul className="space-y-2">
         {players.map((player) => (
-          <li key={player.id} className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900 p-3">
+          <li key={player.id} className="flex items-center gap-3 rounded-lg border border-kelme-border bg-kelme-surface p-3">
             <input
               type="checkbox"
               checked={selected.includes(player.id)}
@@ -64,7 +64,7 @@ export function CallUpForm({
               #{player.jerseyNumber ?? '—'} {player.user.name}
             </span>
             {selected.includes(player.id) && (
-              <label className="flex items-center gap-2 text-sm text-slate-400">
+              <label className="flex items-center gap-2 text-sm text-kelme-gray-400">
                 <input
                   type="checkbox"
                   checked={starters.includes(player.id)}
@@ -79,7 +79,7 @@ export function CallUpForm({
       <button
         onClick={handleSubmit}
         disabled={loading}
-        className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold hover:bg-emerald-500 disabled:opacity-50"
+        className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50"
       >
         Guardar citación ({selected.length} jugadores)
       </button>

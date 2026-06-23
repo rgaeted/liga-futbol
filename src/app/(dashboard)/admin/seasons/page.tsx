@@ -6,11 +6,11 @@ export default async function AdminSeasonsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Temporadas</h1>
+      <h1 className="font-display text-2xl font-bold">Temporadas</h1>
       <SeasonForm />
-      <div className="overflow-x-auto rounded-lg border border-slate-800">
+      <div className="overflow-x-auto rounded-lg border border-kelme-border">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-900">
+          <thead className="bg-kelme-surface">
             <tr>
               <th className="p-3">Nombre</th>
               <th className="p-3">Inicio</th>
@@ -20,7 +20,7 @@ export default async function AdminSeasonsPage() {
           </thead>
           <tbody>
             {seasons.map((season) => (
-              <tr key={season.id} className="border-t border-slate-800">
+              <tr key={season.id} className="border-t border-kelme-border">
                 <td className="p-3">{season.name}</td>
                 <td className="p-3">{season.startDate.toLocaleDateString('es-AR')}</td>
                 <td className="p-3">{season.endDate.toLocaleDateString('es-AR')}</td>

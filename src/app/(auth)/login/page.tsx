@@ -3,6 +3,7 @@
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -33,35 +34,26 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4 rounded-xl bg-slate-900 p-8 shadow-lg"
-      >
-        <h1 className="text-2xl font-bold text-white">Liga Fútbol</h1>
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          required
-          className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white"
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Contraseña"
-          required
-          className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white"
-        />
-        {error && <p className="text-sm text-red-400">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
-        >
-          {loading ? 'Entrando...' : 'Ingresar'}
-        </button>
-      </form>
+    <main className="flex min-h-screen items-center justify-center bg-kelme-bg px-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 flex justify-center">
+          <KelmeLogo size="lg" />
+        </div>
+        <form onSubmit={handleSubmit} className="card-kelme space-y-4 p-8 shadow-sm">
+          <div className="text-center">
+            <h1 className="font-display text-xl font-bold text-kelme-gray-900">Ingresar</h1>
+            <p className="mt-1 font-ui text-sm text-kelme-gray-400">
+              Accedé a tu panel de Torneos Kelme
+            </p>
+          </div>
+          <input name="email" type="email" placeholder="Email" required className="input-kelme" />
+          <input name="password" type="password" placeholder="Contraseña" required className="input-kelme" />
+          {error && <p className="font-ui text-sm text-kelme-red">{error}</p>}
+          <button type="submit" disabled={loading} className="btn-kelme w-full">
+            {loading ? 'Entrando...' : 'Ingresar'}
+          </button>
+        </form>
+      </div>
     </main>
   )
 }

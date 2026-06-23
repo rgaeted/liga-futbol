@@ -18,7 +18,7 @@ export default async function CoachEvaluationsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Evaluaciones</h1>
+      <h1 className="font-display text-2xl font-bold">Evaluaciones</h1>
       <EvaluationForm players={team.players} />
     </div>
   )

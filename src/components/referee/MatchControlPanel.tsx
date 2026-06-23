@@ -16,16 +16,16 @@ type Props = {
 }
 
 const QUICK_EVENTS = [
-  { type: EventType.KICKOFF, label: '▶ Inicio', color: 'bg-emerald-600' },
+  { type: EventType.KICKOFF, label: '▶ Inicio', color: 'bg-kelme-red' },
   { type: EventType.GOAL, label: '⚽ Gol', color: 'bg-green-600' },
   { type: EventType.YELLOW_CARD, label: '🟨 Amarilla', color: 'bg-yellow-500 text-black' },
   { type: EventType.RED_CARD, label: '🟥 Roja', color: 'bg-red-600' },
   { type: EventType.SHOT_ON_TARGET, label: '🎯 Tiro al arco', color: 'bg-blue-600' },
-  { type: EventType.SHOT_OFF_TARGET, label: '↗ Tiro fuera', color: 'bg-slate-600' },
+  { type: EventType.SHOT_OFF_TARGET, label: '↗ Tiro fuera', color: 'bg-kelme-gray-600' },
   { type: EventType.SUBSTITUTION, label: '🔄 Cambio', color: 'bg-purple-600' },
   { type: EventType.FOUL, label: '⚠ Falta', color: 'bg-orange-600' },
-  { type: EventType.HALFTIME, label: '⏸ Entretiempo', color: 'bg-slate-700' },
-  { type: EventType.FULLTIME, label: '⏹ Final', color: 'bg-slate-800' },
+  { type: EventType.HALFTIME, label: '⏸ Entretiempo', color: 'bg-kelme-gray-600' },
+  { type: EventType.FULLTIME, label: '⏹ Final', color: 'bg-kelme-gray-900' },
 ] as const
 
 export function MatchControlPanel({
@@ -87,15 +87,15 @@ export function MatchControlPanel({
   }
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 text-white">
+    <div className="mx-auto max-w-lg space-y-6 text-kelme-gray-900">
       <div className="text-center">
-        <p className="text-sm uppercase tracking-widest text-red-400">
-          {status === 'LIVE' ? 'EN VIVO' : status}
+        <p className="font-ui text-sm uppercase tracking-widest text-kelme-red">
+          {status === 'LIVE' ? '● EN VIVO' : status}
         </p>
-        <p className="text-5xl font-bold tabular-nums">
+        <p className="font-display text-5xl font-extrabold tabular-nums">
           {homeScore} - {awayScore}
         </p>
-        <p className="text-slate-400">
+        <p className="text-kelme-gray-400">
           {homeTeam.name} vs {awayTeam.name}
         </p>
       </div>
@@ -108,7 +108,7 @@ export function MatchControlPanel({
           max={130}
           value={minute}
           onChange={(e) => setMinute(Number(e.target.value))}
-          className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-center text-xl font-bold"
+          className="w-20 rounded-lg border border-kelme-border bg-kelme-surface px-3 py-2 text-center text-xl font-bold"
         />
       </div>
 
@@ -116,14 +116,14 @@ export function MatchControlPanel({
         <button
           type="button"
           onClick={() => setSelectedTeam('home')}
-          className={`flex-1 rounded-lg py-2 ${selectedTeam === 'home' ? 'bg-emerald-600' : 'bg-slate-800'}`}
+          className={`flex-1 rounded-lg py-2 ${selectedTeam === 'home' ? 'bg-kelme-red' : 'bg-kelme-gray-100'}`}
         >
           {homeTeam.name}
         </button>
         <button
           type="button"
           onClick={() => setSelectedTeam('away')}
-          className={`flex-1 rounded-lg py-2 ${selectedTeam === 'away' ? 'bg-emerald-600' : 'bg-slate-800'}`}
+          className={`flex-1 rounded-lg py-2 ${selectedTeam === 'away' ? 'bg-kelme-red' : 'bg-kelme-gray-100'}`}
         >
           {awayTeam.name}
         </button>
@@ -132,7 +132,7 @@ export function MatchControlPanel({
       <select
         value={selectedPlayer}
         onChange={(e) => setSelectedPlayer(e.target.value)}
-        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3"
+        className="w-full rounded-lg border border-kelme-border bg-kelme-surface px-4 py-3"
       >
         <option value="">Seleccionar jugador...</option>
         {activeTeam.players.map((p) => (

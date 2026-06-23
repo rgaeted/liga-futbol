@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#020617"/>
-  <circle cx="256" cy="256" r="120" fill="none" stroke="#059669" stroke-width="24"/>
-  <path d="M256 136 L256 376 M136 256 L376 256" stroke="#059669" stroke-width="16"/>
-  <circle cx="256" cy="256" r="24" fill="#059669"/>
+  <rect width="512" height="512" rx="96" fill="#CD212A"/>
+  <rect x="64" y="64" width="384" height="384" rx="72" fill="none" stroke="#FFFFFF" stroke-width="16"/>
+  <path d="M160 340 C160 240, 220 180, 300 180 C360 180, 400 220, 400 270 C400 320, 360 360, 300 380 L256 400 L212 380 C180 365, 160 350, 160 340 Z" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="330" cy="250" r="18" fill="#FFFFFF"/>
+  <text x="256" y="468" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="48" fill="#FFFFFF" letter-spacing="4">KELME</text>
 </svg>

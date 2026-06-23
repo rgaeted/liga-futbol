@@ -28,8 +28,8 @@ export default async function CoachDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{team.name}</h1>
-      <p className="text-slate-400">{team.players.length} jugadores en plantilla</p>
+      <h1 className="font-display text-2xl font-bold">{team.name}</h1>
+      <p className="text-kelme-gray-400">{team.players.length} jugadores en plantilla</p>
       <section>
         <h2 className="mb-3 text-lg font-semibold">Partidos</h2>
         <div className="space-y-3">
@@ -37,18 +37,18 @@ export default async function CoachDashboardPage() {
             <Link
               key={match.id}
               href={`/coach/callups/${match.id}`}
-              className="block rounded-xl border border-slate-800 bg-slate-900 p-4 hover:border-emerald-600"
+              className="block rounded-xl border border-kelme-border bg-kelme-surface p-4 hover:border-kelme-red"
             >
               <p className="font-semibold">
                 {match.homeTeam.name} vs {match.awayTeam.name}
               </p>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-kelme-gray-400">
                 {match.scheduledAt.toLocaleString('es-AR')} · {match.status}
               </p>
             </Link>
           ))}
           {matches.length === 0 && (
-            <p className="text-slate-500">No hay partidos programados.</p>
+            <p className="text-kelme-gray-400">No hay partidos programados.</p>
           )}
         </div>
       </section>

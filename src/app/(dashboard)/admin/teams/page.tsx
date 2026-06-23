@@ -9,11 +9,11 @@ export default async function AdminTeamsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Equipos</h1>
+      <h1 className="font-display text-2xl font-bold">Equipos</h1>
       <TeamForm />
-      <div className="overflow-x-auto rounded-lg border border-slate-800">
+      <div className="overflow-x-auto rounded-lg border border-kelme-border">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-900">
+          <thead className="bg-kelme-surface">
             <tr>
               <th className="p-3">Nombre</th>
               <th className="p-3">DT</th>
@@ -22,7 +22,7 @@ export default async function AdminTeamsPage() {
           </thead>
           <tbody>
             {teams.map((team) => (
-              <tr key={team.id} className="border-t border-slate-800">
+              <tr key={team.id} className="border-t border-kelme-border">
                 <td className="p-3">{team.name}</td>
                 <td className="p-3">{team.coach?.name ?? '—'}</td>
                 <td className="p-3">{team._count.players}</td>

@@ -1,21 +1,22 @@
 import { auth, signOut } from '@/lib/auth'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Role } from '@prisma/client'
+import { DashboardShell } from '@/components/kelme/DashboardShell'
+
+const REFEREE_NAV = [{ href: '/referee', label: 'Mis Partidos' }]
 
 export default async function RefereeLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   if (!session || session.user.role !== Role.REFEREE) redirect('/login')
 
+  async function handleSignOut() {
+    'use server'
+    await signOut({ redirectTo: '/login' })
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <nav className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
-        <Link href="/referee" className="font-bold text-emerald-400">Árbitro</Link>
-        <form action={async () => { 'use server'; await signOut({ redirectTo: '/login' }) }}>
-          <button type="submit" className="text-sm text-slate-400 hover:text-white">Salir</button>
-        </form>
-      </nav>
-      <main className="p-6">{children}</main>
-    </div>
+    <DashboardShell nav={REFEREE_NAV} signOutAction={handleSignOut}>
+      {children}
+    </DashboardShell>
   )
 }

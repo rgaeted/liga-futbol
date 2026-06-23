@@ -25,24 +25,24 @@ export default async function PlayerMatchesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Mis Partidos</h1>
+      <h1 className="font-display text-2xl font-bold">Mis Partidos</h1>
       {player.callUps.length === 0 ? (
-        <p className="text-slate-400">Todavía no fuiste citado a ningún partido.</p>
+        <p className="text-kelme-gray-400">Todavía no fuiste citado a ningún partido.</p>
       ) : (
         player.callUps.map(({ match, isStarter }) => (
-          <div key={match.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+          <div key={match.id} className="rounded-xl border border-kelme-border bg-kelme-surface p-4">
             <div className="flex justify-between">
               <div>
                 <p className="font-semibold">
                   {match.homeTeam.name} vs {match.awayTeam.name}
                 </p>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-kelme-gray-400">
                   {new Date(match.scheduledAt).toLocaleString('es-AR')} · {isStarter ? 'Titular' : 'Suplente'}
                 </p>
               </div>
               <div className="text-right">
                 <p className="font-mono">{match.homeScore} - {match.awayScore}</p>
-                <p className="text-xs text-slate-400">{match.status}</p>
+                <p className="text-xs text-kelme-gray-400">{match.status}</p>
                 {match.status === 'LIVE' && (
                   <Link href={`/live/${match.id}`} className="text-xs text-red-400">EN VIVO</Link>
                 )}

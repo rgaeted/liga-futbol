@@ -1,26 +1,95 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --kelme-red: #CD212A;
+  --kelme-red-dark: #A7144C;
+  --kelme-red-bright: #FF1E00;
+  --kelme-green: #008C45;
+  --kelme-black: #000000;
+  --kelme-white: #FFFFFF;
+  --gray-900: #3D3D3D;
+  --gray-600: #54595F;
+  --gray-400: #7A7A7A;
+  --gray-100: #F5F5F5;
+  --border: #E5E5E5;
+  --background: #F5F5F5;
+  --foreground: #3D3D3D;
+  --surface: #FFFFFF;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-kelme-red: #CD212A;
+  --color-kelme-red-dark: #A7144C;
+  --color-kelme-red-bright: #FF1E00;
+  --color-kelme-green: #008C45;
+  --color-kelme-black: #000000;
+  --color-kelme-white: #FFFFFF;
+  --color-kelme-gray-900: #3D3D3D;
+  --color-kelme-gray-600: #54595F;
+  --color-kelme-gray-400: #7A7A7A;
+  --color-kelme-gray-100: #F5F5F5;
+  --color-kelme-border: #E5E5E5;
+  --color-kelme-surface: #FFFFFF;
+  --color-kelme-bg: #F5F5F5;
+  --color-kelme-live-bg: #0D0D0D;
+  --color-kelme-live-surface: #1A1A1A;
+  --font-display: var(--font-montserrat);
+  --font-ui: var(--font-poppins);
+  --font-body: var(--font-roboto);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-roboto), Roboto, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-montserrat), Montserrat, sans-serif;
+}
+
+.font-ui {
+  font-family: var(--font-poppins), Poppins, sans-serif;
+}
+
+.btn-kelme {
+  @apply rounded-lg bg-kelme-red px-4 py-2 font-ui font-semibold text-white transition-colors hover:bg-kelme-red-dark disabled:opacity-50;
+}
+
+.btn-kelme-outline {
+  @apply rounded-lg border border-kelme-red px-4 py-2 font-ui font-semibold text-kelme-red transition-colors hover:bg-kelme-red/5 disabled:opacity-50;
+}
+
+.input-kelme {
+  @apply w-full rounded-lg border border-kelme-border bg-kelme-white px-4 py-2 text-kelme-gray-900 outline-none focus:border-kelme-red focus:ring-2 focus:ring-kelme-red/20;
+}
+
+.card-kelme {
+  @apply rounded-xl border border-kelme-border bg-kelme-surface;
+}
+
+.table-kelme thead {
+  @apply bg-kelme-gray-100 text-kelme-gray-600;
+}
+
+.table-kelme th,
+.table-kelme td {
+  @apply border-t border-kelme-border p-3;
+}
+
+.link-nav {
+  @apply font-ui text-sm font-medium text-kelme-gray-600 transition-colors hover:text-kelme-red;
+}
+
+.link-nav-active {
+  @apply font-ui text-sm font-semibold text-kelme-red underline decoration-2 underline-offset-4;
+}
+
+@keyframes kelme-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.live-pulse {
+  animation: kelme-pulse 1.4s ease-in-out infinite;
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getSocket, joinMatchRoom } from '@/lib/socket-client'
+import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 
 type LiveMatchPayload = {
   matchId: string
@@ -44,9 +45,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
         homeScore: payload.homeScore,
         awayScore: payload.awayScore,
         status: payload.status,
-        events: payload.event
-          ? [...prev.events, payload.event]
-          : prev.events,
+        events: payload.event ? [...prev.events, payload.event] : prev.events,
       }))
     }
 
@@ -56,40 +55,57 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
     }
   }, [match.id])
 
+  const isLive = match.status === 'LIVE'
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-kelme-live-bg text-white">
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <p className="mb-2 text-center text-sm uppercase tracking-widest text-red-400">
-          {match.status === 'LIVE' ? '● EN VIVO' : match.status}
+        <div className="mb-6 flex justify-center">
+          <KelmeLogo size="sm" variant="dark" />
+        </div>
+
+        <p className="mb-2 text-center font-ui text-sm uppercase tracking-widest text-kelme-red">
+          {isLive ? (
+            <span className="live-pulse inline-flex items-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-kelme-red" />
+              EN VIVO
+            </span>
+          ) : (
+            match.status
+          )}
         </p>
 
-        <div className="mb-8 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900 p-8">
+        <div className="mb-8 flex items-center justify-between rounded-2xl border border-white/10 bg-kelme-live-surface p-8">
           <div className="flex-1 text-center">
-            <p className="text-lg font-semibold">{match.homeTeam.name}</p>
-            <p className="text-6xl font-bold tabular-nums text-emerald-400">{match.homeScore}</p>
+            <p className="font-ui text-lg font-semibold">{match.homeTeam.name}</p>
+            <p className="font-display text-6xl font-extrabold tabular-nums text-white">{match.homeScore}</p>
           </div>
-          <p className="px-4 text-2xl text-slate-500">vs</p>
+          <p className="px-4 font-ui text-2xl text-white/40">vs</p>
           <div className="flex-1 text-center">
-            <p className="text-lg font-semibold">{match.awayTeam.name}</p>
-            <p className="text-6xl font-bold tabular-nums text-emerald-400">{match.awayScore}</p>
+            <p className="font-ui text-lg font-semibold">{match.awayTeam.name}</p>
+            <p className="font-display text-6xl font-extrabold tabular-nums text-white">{match.awayScore}</p>
           </div>
         </div>
 
-        <h2 className="mb-4 text-lg font-semibold">Cronología</h2>
+        <h2 className="mb-4 font-display text-lg font-bold">Cronología</h2>
         <ul className="space-y-2">
           {[...match.events].reverse().map((event) => (
             <li
               key={event.id}
-              className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900 px-4 py-3"
+              className="flex items-center gap-3 rounded-lg border border-white/10 bg-kelme-live-surface px-4 py-3"
             >
-              <span className="w-10 font-mono text-emerald-400">{event.minute}&apos;</span>
-              <span>{formatEvent(event.type)}</span>
+              <span className="w-10 font-mono text-kelme-red">{event.minute}&apos;</span>
+              <span className="font-ui">{formatEvent(event.type)}</span>
               {event.player && (
-                <span className="ml-auto text-slate-400">{event.player.user.name}</span>
+                <span className="ml-auto font-ui text-sm text-white/50">{event.player.user.name}</span>
               )}
             </li>
           ))}
         </ul>
+
+        <p className="mt-10 text-center font-ui text-xs uppercase tracking-widest text-white/30">
+          Torneos Kelme
+        </p>
       </div>
     </div>
   )

@@ -24,17 +24,17 @@ export default async function AdminMatchesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Partidos</h1>
+      <h1 className="font-display text-2xl font-bold">Partidos</h1>
       <MatchForm seasons={seasons} teams={teams} referees={referees} />
       <div className="space-y-3">
         {matches.map((match) => (
-          <div key={match.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+          <div key={match.id} className="rounded-xl border border-kelme-border bg-kelme-surface p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="font-semibold">
                   {match.homeTeam.name} vs {match.awayTeam.name}
                 </p>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-kelme-gray-400">
                   {match.season.name} · {match.scheduledAt.toLocaleString('es-AR')}
                   {match.referee ? ` · ${match.referee.name}` : ''}
                 </p>
@@ -43,8 +43,8 @@ export default async function AdminMatchesPage() {
                 <span className="font-mono text-lg">
                   {match.homeScore} - {match.awayScore}
                 </span>
-                <span className="rounded-full bg-slate-800 px-3 py-1 text-xs">{match.status}</span>
-                <Link href={`/live/${match.id}`} className="text-sm text-emerald-400 hover:underline">
+                <span className="rounded-full bg-kelme-gray-100 px-3 py-1 text-xs">{match.status}</span>
+                <Link href={`/live/${match.id}`} className="text-sm text-kelme-red hover:underline">
                   Ver en vivo
                 </Link>
               </div>

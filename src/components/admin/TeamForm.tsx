@@ -28,12 +28,12 @@ export function TeamForm() {
         onChange={(e) => setName(e.target.value)}
         placeholder="Nombre del equipo"
         required
-        className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2"
+        className="rounded-lg border border-kelme-border bg-kelme-surface px-4 py-2"
       />
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold hover:bg-emerald-500 disabled:opacity-50"
+        className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50"
       >
         Crear equipo
       </button>

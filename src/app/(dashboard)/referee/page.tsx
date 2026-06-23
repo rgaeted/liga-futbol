@@ -14,24 +14,24 @@ export default async function RefereeDashboardPage() {
   })
 
   return (
-    <div className="space-y-4 text-white">
-      <h1 className="text-2xl font-bold">Mis partidos</h1>
+    <div className="space-y-4 text-kelme-gray-900">
+      <h1 className="font-display text-2xl font-bold">Mis partidos</h1>
       {matches.map((match) => (
         <Link
           key={match.id}
           href={`/referee/match/${match.id}`}
-          className="block rounded-xl border border-slate-800 bg-slate-900 p-4 hover:border-emerald-600"
+          className="block rounded-xl border border-kelme-border bg-kelme-surface p-4 hover:border-kelme-red"
         >
           <p className="font-semibold">
             {match.homeTeam.name} vs {match.awayTeam.name}
           </p>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-kelme-gray-400">
             {match.scheduledAt.toLocaleString('es-AR')} · {match.status}
           </p>
         </Link>
       ))}
       {matches.length === 0 && (
-        <p className="text-slate-500">No tenés partidos asignados.</p>
+        <p className="text-kelme-gray-400">No tenés partidos asignados.</p>
       )}
     </div>
   )

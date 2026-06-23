@@ -3,8 +3,8 @@ import Link from 'next/link'
 export default function AdminHomePage() {
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Panel de Administración</h1>
-      <p className="text-slate-400">Gestioná equipos, jugadores, temporadas y partidos.</p>
+      <h1 className="font-display text-2xl font-bold">Panel de Administración</h1>
+      <p className="text-kelme-gray-400">Gestioná equipos, jugadores, temporadas y partidos.</p>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[
           { href: '/admin/teams', label: 'Equipos' },
@@ -15,7 +15,7 @@ export default function AdminHomePage() {
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-xl border border-slate-800 bg-slate-900 p-6 hover:border-emerald-600"
+            className="rounded-xl border border-kelme-border bg-kelme-surface p-6 hover:border-kelme-red"
           >
             {item.label}
           </Link>

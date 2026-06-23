@@ -15,11 +15,11 @@ export default async function AdminPlayersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Jugadores</h1>
+      <h1 className="font-display text-2xl font-bold">Jugadores</h1>
       <PlayerForm teams={teams} />
-      <div className="overflow-x-auto rounded-lg border border-slate-800">
+      <div className="overflow-x-auto rounded-lg border border-kelme-border">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-900">
+          <thead className="bg-kelme-surface">
             <tr>
               <th className="p-3">Nombre</th>
               <th className="p-3">Email</th>
@@ -30,7 +30,7 @@ export default async function AdminPlayersPage() {
           </thead>
           <tbody>
             {players.map((player) => (
-              <tr key={player.id} className="border-t border-slate-800">
+              <tr key={player.id} className="border-t border-kelme-border">
                 <td className="p-3">{player.user.name}</td>
                 <td className="p-3">{player.user.email}</td>
                 <td className="p-3">{player.team?.name ?? '—'}</td>

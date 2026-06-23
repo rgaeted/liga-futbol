@@ -1,11 +1,11 @@
 {
-  "name": "Liga Fútbol",
-  "short_name": "Liga",
-  "description": "Gestión de liga de fútbol con marcador en vivo",
+  "name": "Torneos Kelme",
+  "short_name": "Torneos Kelme",
+  "description": "Plataforma oficial de gestión de torneos KELME con marcador en vivo",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#020617",
-  "theme_color": "#059669",
+  "background_color": "#FFFFFF",
+  "theme_color": "#CD212A",
   "orientation": "portrait",
   "icons": [
     {
