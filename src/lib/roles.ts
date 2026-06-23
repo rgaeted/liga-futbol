@@ -1,4 +1,11 @@
-import { Role } from '@prisma/client'
+export const Role = {
+  PLAYER: 'PLAYER',
+  ADMIN: 'ADMIN',
+  COACH: 'COACH',
+  REFEREE: 'REFEREE',
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
 
 type RouteArea = 'admin' | 'player' | 'coach' | 'referee' | 'live'
 

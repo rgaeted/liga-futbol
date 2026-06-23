@@ -8,7 +8,9 @@
     "start": "tsx server.ts",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:clear:demo": "tsx prisma/clear-demo.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

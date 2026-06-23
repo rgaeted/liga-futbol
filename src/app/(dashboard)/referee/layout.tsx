@@ -1,6 +1,6 @@
 import { auth, signOut } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { Role } from '@prisma/client'
+import { Role } from '@/lib/roles'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
 
 const REFEREE_NAV = [{ href: '/referee', label: 'Mis Partidos' }]

@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Torneos Kelme — Liga Fútbol
 
-## Getting Started
+Aplicación web multi-rol para gestionar una liga de fútbol de marca: administración de equipos y partidos, citaciones y evaluaciones del DT, control en vivo del árbitro y marcador público.
 
-First, run the development server:
+## Requisitos
+
+- Node.js 20+
+- PostgreSQL (Docker recomendado)
+
+## Configuración
+
+1. Copia las variables de entorno:
+
+```bash
+cp .env.example .env
+```
+
+2. Levanta PostgreSQL (puerto **5433** en el ejemplo):
+
+```bash
+docker run -d --name liga-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=liga_futbol -p 5433:5432 postgres:16
+```
+
+3. Instala dependencias y aplica el schema:
+
+```bash
+npm install
+npx prisma migrate dev
+npx prisma db seed
+```
+
+El seed base crea usuarios mínimos para cada rol (password: `password123`):
+
+| Rol     | Email              |
+|---------|--------------------|
+| Admin   | admin@liga.com     |
+| DT      | dt@liga.com        |
+| Jugador | jugador@liga.com   |
+| Árbitro | arbitro@liga.com   |
+
+## Desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000). El servidor usa Next.js + Socket.io (`server.ts`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run test    # tests
+npm run lint    # ESLint
+npm run build   # build de producción
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Datos demo (pruebas)
 
-## Learn More
+Para probar todas las funcionalidades con un escenario completo y borrable:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run db:seed:demo   # cargar datos de ejemplo
+npm run db:clear:demo  # eliminar solo datos demo
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Los datos demo se identifican por IDs con prefijo `demo-` y emails `@demo.torneoskelme.cl`. **No afectan** a los usuarios base (`admin@liga.com`, etc.).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Contenido del dataset demo
 
-## Deploy on Vercel
+| Área          | Detalle                                              |
+|---------------|------------------------------------------------------|
+| Equipos       | Kelme Norte FC, Kelme Sur FC (8 jugadores c/u)       |
+| Temporada     | Torneos Kelme 2026 (activa)                          |
+| Partidos      | Finalizado, en vivo y programado                     |
+| Citaciones    | Convocatorias para los 3 partidos                    |
+| Evaluaciones  | Notas del DT sobre jugadores                         |
+| Eventos       | Goles, tarjetas, tiros, etc.                         |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Credenciales demo (password: `password123`)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Rol     | Email                                  |
+|---------|----------------------------------------|
+| Admin   | demo-admin@demo.torneoskelme.cl        |
+| DT Norte| demo-dt-norte@demo.torneoskelme.cl     |
+| DT Sur  | demo-dt-sur@demo.torneoskelme.cl       |
+| Árbitro | demo-arbitro@demo.torneoskelme.cl      |
+| Jugador | demo-norte-10@demo.torneoskelme.cl     |
+
+### Rutas útiles con datos demo
+
+| Escenario   | URL / acción                                      |
+|-------------|---------------------------------------------------|
+| Marcador    | `/live/demo-match-finished` (finalizado)          |
+| En vivo     | `/live/demo-match-live`                           |
+| Citaciones  | `/coach` (iniciar sesión como DT Norte o Sur)     |
+| Árbitro     | `/referee` (iniciar sesión como árbitro demo)     |
+| Admin       | `/admin` (equipos, jugadores, temporadas, partidos)|
+
+### Archivos
+
+- `prisma/seed-demo.ts` — carga de datos demo
+- `prisma/clear-demo.ts` — limpieza selectiva
+- `prisma/lib/db-client.ts` — cliente Prisma y constantes demo
+
+## Roles
+
+- **Admin** — CRUD equipos, jugadores, temporadas y partidos
+- **Jugador** — dashboard, partidos y estadísticas
+- **DT (Coach)** — citaciones y evaluaciones
+- **Árbitro** — control de partido en vivo
+- **Público** — marcador en `/live/[matchId]` (sin login)

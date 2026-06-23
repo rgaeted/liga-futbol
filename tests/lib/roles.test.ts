@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { Role } from '@prisma/client'
+import { Role } from '@/lib/roles'
 import { canAccess, getDashboardPath } from '@/lib/roles'
 
 describe('roles', () => {

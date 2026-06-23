@@ -1,7 +1,9 @@
-import { auth } from '@/lib/auth'
+import NextAuth from 'next-auth'
 import { NextResponse } from 'next/server'
-import { canAccess, getDashboardPath } from '@/lib/roles'
-import { Role } from '@prisma/client'
+import authConfig from '@/lib/auth.config'
+import { canAccess, getDashboardPath, type Role } from '@/lib/roles'
+
+const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
