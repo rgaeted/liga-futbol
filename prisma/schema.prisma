@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  PLAYER
+  ADMIN
+  COACH
+  REFEREE
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  HALFTIME
+  FINISHED
+  CANCELLED
+}
+
+enum EventType {
+  GOAL
+  OWN_GOAL
+  YELLOW_CARD
+  RED_CARD
+  SHOT_ON_TARGET
+  SHOT_OFF_TARGET
+  SUBSTITUTION
+  FOUL
+  KICKOFF
+  HALFTIME
+  FULLTIME
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  role          Role
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  player        Player?
+  coachedTeam   Team?    @relation("TeamCoach")
+  refereeMatches Match[] @relation("MatchReferee")
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  logoUrl   String?
+  coachId   String?  @unique
+  coach     User?    @relation("TeamCoach", fields: [coachId], references: [id])
+  players   Player[]
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Player {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  teamId       String?
+  team         Team?    @relation(fields: [teamId], references: [id])
+  jerseyNumber Int?
+  position     String?
+  goals        Int      @default(0)
+  assists      Int      @default(0)
+  yellowCards  Int      @default(0)
+  redCards     Int      @default(0)
+  callUps      CallUp[]
+  evaluations  PlayerEvaluation[]
+  matchEvents  MatchEvent[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Season {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+  matches   Match[]
+  createdAt DateTime @default(now())
+}
+
+model Match {
+  id           String      @id @default(cuid())
+  seasonId     String
+  season       Season      @relation(fields: [seasonId], references: [id])
+  homeTeamId   String
+  homeTeam     Team        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId   String
+  awayTeam     Team        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  refereeId    String?
+  referee      User?       @relation("MatchReferee", fields: [refereeId], references: [id])
+  scheduledAt  DateTime
+  venue        String?
+  status       MatchStatus @default(SCHEDULED)
+  homeScore    Int         @default(0)
+  awayScore    Int         @default(0)
+  events       MatchEvent[]
+  callUps      CallUp[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model MatchEvent {
+  id          String    @id @default(cuid())
+  matchId     String
+  match       Match     @relation(fields: [matchId], references: [id])
+  type        EventType
+  minute      Int
+  playerId    String?
+  player      Player?   @relation(fields: [playerId], references: [id])
+  teamId      String?
+  description String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+}
+
+model CallUp {
+  id        String   @id @default(cuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id])
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id])
+  isStarter Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, playerId])
+}
+
+model PlayerEvaluation {
+  id        String   @id @default(cuid())
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id])
+  coachId   String
+  matchId   String?
+  rating    Int
+  notes     String?
+  createdAt DateTime @default(now())
+}
