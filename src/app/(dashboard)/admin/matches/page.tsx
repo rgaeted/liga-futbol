@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { MatchForm } from '@/components/admin/MatchForm'
+import { MatchActions } from '@/components/admin/MatchActions'
 import Link from 'next/link'
 import { Role } from '@prisma/client'
 
@@ -47,6 +48,18 @@ export default async function AdminMatchesPage() {
                 <Link href={`/live/${match.id}`} className="text-sm text-kelme-red hover:underline">
                   Ver en vivo
                 </Link>
+                <MatchActions
+                  match={{
+                    id: match.id,
+                    label: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
+                    refereeId: match.refereeId,
+                    venue: match.venue,
+                    status: match.status,
+                    date: match.scheduledAt.toISOString().slice(0, 10),
+                    time: match.scheduledAt.toISOString().slice(11, 16),
+                  }}
+                  referees={referees}
+                />
               </div>
             </div>
           </div>
