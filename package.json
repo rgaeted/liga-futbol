@@ -2,6 +2,9 @@
   "name": "liga-futbol",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20 <23"
+  },
   "scripts": {
     "dev": "tsx server.ts",
     "build": "next build",
@@ -28,6 +31,7 @@
     "react-hook-form": "^7.80.0",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
+    "tsx": "^4.20.3",
     "zod": "^4.4.3"
   },
   "prisma": {
@@ -47,7 +51,6 @@
     "prisma": "^7.8.0",
     "sharp": "^0.35.3",
     "tailwindcss": "^4",
-    "tsx": "^4.20.3",
     "typescript": "^5",
     "vitest": "^4.1.9"
   }
