@@ -1,38 +1,38 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
-import { updateTeamSchema } from '@/lib/validations/team'
+import { updateMatchSchema } from '@/lib/validations/match'
 import { Role } from '@prisma/client'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireRole([Role.ADMIN])
   const { id } = await params
-  const parsed = updateTeamSchema.safeParse(await req.json())
+  const parsed = updateMatchSchema.safeParse(await req.json())
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const team = await db.team.update({ where: { id }, data: parsed.data })
-  return NextResponse.json(team)
+  const { scheduledAt, ...rest } = parsed.data
+  const match = await db.match.update({
+    where: { id },
+    data: {
+      ...rest,
+      ...(scheduledAt ? { scheduledAt: new Date(scheduledAt) } : {}),
+    },
+    include: { homeTeam: true, awayTeam: true },
+  })
+  return NextResponse.json(match)
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireRole([Role.ADMIN])
   const { id } = await params
 
-  const matchCount = await db.match.count({
-    where: { OR: [{ homeTeamId: id }, { awayTeamId: id }] },
-  })
-  if (matchCount > 0) {
-    return NextResponse.json(
-      { error: `El equipo tiene ${matchCount} partido(s). Eliminalos primero.` },
-      { status: 409 }
-    )
-  }
-
   await db.$transaction([
-    db.player.updateMany({ where: { teamId: id }, data: { teamId: null } }),
-    db.team.delete({ where: { id } }),
+    db.matchEvent.deleteMany({ where: { matchId: id } }),
+    db.callUp.deleteMany({ where: { matchId: id } }),
+    db.playerEvaluation.deleteMany({ where: { matchId: id } }),
+    db.match.delete({ where: { id } }),
   ])
   return NextResponse.json({ ok: true })
 }
