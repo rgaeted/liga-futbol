@@ -27,7 +27,7 @@ export default async function PlayerMatchesPage() {
     <div className="space-y-4">
       <h1 className="font-display text-2xl font-bold">Mis Partidos</h1>
       {player.callUps.length === 0 ? (
-        <p className="text-kelme-gray-400">Todavía no fuiste citado a ningún partido.</p>
+        <p className="text-kelme-gray-400">Aún no has sido citado a ningún partido.</p>
       ) : (
         player.callUps.map(({ match, isStarter }) => (
           <div key={match.id} className="rounded-xl border border-kelme-border bg-kelme-surface p-4">
@@ -37,7 +37,7 @@ export default async function PlayerMatchesPage() {
                   {match.homeTeam.name} vs {match.awayTeam.name}
                 </p>
                 <p className="text-sm text-kelme-gray-400">
-                  {new Date(match.scheduledAt).toLocaleString('es-AR')} · {isStarter ? 'Titular' : 'Suplente'}
+                  {new Date(match.scheduledAt).toLocaleString('es-CL')} · {isStarter ? 'Titular' : 'Suplente'}
                 </p>
               </div>
               <div className="text-right">

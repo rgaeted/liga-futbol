@@ -30,7 +30,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params
 
   if (session.user.id === id) {
-    return NextResponse.json({ error: 'No podés eliminar tu propio usuario' }, { status: 409 })
+    return NextResponse.json({ error: 'No puedes eliminar tu propio usuario' }, { status: 409 })
   }
 
   const user = await db.user.findUnique({
@@ -42,7 +42,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   }
   if (user.player) {
     return NextResponse.json(
-      { error: 'Es un jugador: eliminalo desde la sección Jugadores' },
+      { error: 'Es un jugador: elimínalo desde la sección Jugadores' },
       { status: 409 }
     )
   }

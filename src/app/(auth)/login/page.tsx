@@ -43,7 +43,7 @@ export default function LoginPage() {
           <div className="text-center">
             <h1 className="font-display text-xl font-bold text-kelme-gray-900">Ingresar</h1>
             <p className="mt-1 font-ui text-sm text-kelme-gray-400">
-              Accedé a tu panel de Torneos Kelme
+              Accede a tu panel de Torneos Kelme
             </p>
           </div>
           <input name="email" type="email" placeholder="Email" required className="input-kelme" />

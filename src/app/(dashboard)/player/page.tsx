@@ -54,7 +54,7 @@ export default async function PlayerDashboardPage() {
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Partidos jugados</h2>
-        <MatchList items={played.slice(0, 5)} emptyText="Aún no jugaste partidos." />
+        <MatchList items={played.slice(0, 5)} emptyText="Aún no has jugado partidos." />
       </section>
 
       <Link href="/player/matches" className="text-kelme-red hover:underline">
@@ -102,7 +102,7 @@ function MatchList({
             <span className="font-mono">
               {match.status === 'FINISHED'
                 ? `${match.homeScore} - ${match.awayScore}`
-                : new Date(match.scheduledAt).toLocaleDateString('es-AR')}
+                : new Date(match.scheduledAt).toLocaleDateString('es-CL')}
             </span>
           </div>
           {match.status === 'LIVE' && (

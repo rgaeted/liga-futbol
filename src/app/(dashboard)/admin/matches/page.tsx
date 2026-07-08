@@ -36,7 +36,7 @@ export default async function AdminMatchesPage() {
                   {match.homeTeam.name} vs {match.awayTeam.name}
                 </p>
                 <p className="text-sm text-kelme-gray-400">
-                  {match.season.name} · {match.scheduledAt.toLocaleString('es-AR')}
+                  {match.season.name} · {match.scheduledAt.toLocaleString('es-CL')}
                   {match.referee ? ` · ${match.referee.name}` : ''}
                 </p>
               </div>

@@ -15,7 +15,7 @@ export default async function CoachDashboardPage() {
   })
 
   if (!team) {
-    return <p>No tenés un equipo asignado.</p>
+    return <p>No tienes un equipo asignado.</p>
   }
 
   const matches = await db.match.findMany({
@@ -43,7 +43,7 @@ export default async function CoachDashboardPage() {
                 {match.homeTeam.name} vs {match.awayTeam.name}
               </p>
               <p className="text-sm text-kelme-gray-400">
-                {match.scheduledAt.toLocaleString('es-AR')} · {match.status}
+                {match.scheduledAt.toLocaleString('es-CL')} · {match.status}
               </p>
             </Link>
           ))}

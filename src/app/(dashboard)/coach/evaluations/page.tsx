@@ -14,7 +14,7 @@ export default async function CoachEvaluationsPage() {
     },
   })
 
-  if (!team) return <p>No tenés un equipo asignado.</p>
+  if (!team) return <p>No tienes un equipo asignado.</p>
 
   return (
     <div className="space-y-6">

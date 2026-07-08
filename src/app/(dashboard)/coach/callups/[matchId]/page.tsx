@@ -38,7 +38,7 @@ export default async function CoachCallUpPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Citación</h1>
       <p className="text-slate-400">
-        {match.homeTeam.name} vs {match.awayTeam.name} · {match.scheduledAt.toLocaleString('es-AR')}
+        {match.homeTeam.name} vs {match.awayTeam.name} · {match.scheduledAt.toLocaleString('es-CL')}
       </p>
       <CallUpForm matchId={matchId} players={team.players} />
     </div>

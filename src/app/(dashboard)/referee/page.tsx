@@ -26,12 +26,12 @@ export default async function RefereeDashboardPage() {
             {match.homeTeam.name} vs {match.awayTeam.name}
           </p>
           <p className="text-sm text-kelme-gray-400">
-            {match.scheduledAt.toLocaleString('es-AR')} · {match.status}
+            {match.scheduledAt.toLocaleString('es-CL')} · {match.status}
           </p>
         </Link>
       ))}
       {matches.length === 0 && (
-        <p className="text-kelme-gray-400">No tenés partidos asignados.</p>
+        <p className="text-kelme-gray-400">No tienes partidos asignados.</p>
       )}
     </div>
   )
