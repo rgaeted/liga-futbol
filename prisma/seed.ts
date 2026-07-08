@@ -25,10 +25,10 @@ async function main() {
 
   const team = await prisma.team.upsert({
     where: { id: 'seed-team-1' },
-    update: {},
+    update: { name: 'Kelme FC' },
     create: {
       id: 'seed-team-1',
-      name: 'Equipo Marca FC',
+      name: 'Kelme FC',
     },
   })
 

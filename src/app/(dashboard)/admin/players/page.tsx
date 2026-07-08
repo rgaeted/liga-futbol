@@ -1,12 +1,13 @@
 import { db } from '@/lib/db'
 import { PlayerForm } from '@/components/admin/PlayerForm'
+import { PlayersTable } from '@/components/admin/PlayersTable'
 
 export default async function AdminPlayersPage() {
   const [players, teams] = await Promise.all([
     db.player.findMany({
       include: {
         user: { select: { name: true, email: true } },
-        team: { select: { name: true } },
+        team: { select: { id: true, name: true } },
       },
       orderBy: { user: { name: 'asc' } },
     }),
@@ -17,30 +18,18 @@ export default async function AdminPlayersPage() {
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold">Jugadores</h1>
       <PlayerForm teams={teams} />
-      <div className="overflow-x-auto rounded-lg border border-kelme-border">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-kelme-surface">
-            <tr>
-              <th className="p-3">Nombre</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Equipo</th>
-              <th className="p-3">Dorsal</th>
-              <th className="p-3">Posición</th>
-            </tr>
-          </thead>
-          <tbody>
-            {players.map((player) => (
-              <tr key={player.id} className="border-t border-kelme-border">
-                <td className="p-3">{player.user.name}</td>
-                <td className="p-3">{player.user.email}</td>
-                <td className="p-3">{player.team?.name ?? '—'}</td>
-                <td className="p-3">{player.jerseyNumber ?? '—'}</td>
-                <td className="p-3">{player.position ?? '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <PlayersTable
+        players={players.map((p) => ({
+          id: p.id,
+          name: p.user.name,
+          email: p.user.email,
+          teamId: p.team?.id ?? null,
+          teamName: p.team?.name ?? null,
+          jerseyNumber: p.jerseyNumber,
+          position: p.position,
+        }))}
+        teams={teams.map((t) => ({ id: t.id, name: t.name }))}
+      />
     </div>
   )
 }

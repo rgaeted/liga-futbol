@@ -11,6 +11,7 @@ export default function AdminHomePage() {
           { href: '/admin/players', label: 'Jugadores' },
           { href: '/admin/seasons', label: 'Temporadas' },
           { href: '/admin/matches', label: 'Partidos' },
+          { href: '/admin/users', label: 'Usuarios' },
         ].map((item) => (
           <Link
             key={item.href}

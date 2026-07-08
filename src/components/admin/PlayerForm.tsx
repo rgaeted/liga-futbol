@@ -2,33 +2,37 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { submitJson } from './submit'
 
 type Team = { id: string; name: string }
 
 export function PlayerForm({ teams }: { teams: Team[] }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const formEl = e.currentTarget
     setLoading(true)
-    const form = new FormData(e.currentTarget)
-    await fetch('/api/players', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: form.get('email'),
-        name: form.get('name'),
-        password: form.get('password'),
-        teamId: form.get('teamId') || undefined,
-        jerseyNumber: form.get('jerseyNumber')
-          ? Number(form.get('jerseyNumber'))
-          : undefined,
-        position: form.get('position') || undefined,
-      }),
+    setError('')
+    const form = new FormData(formEl)
+    const result = await submitJson('/api/players', 'POST', {
+      email: form.get('email'),
+      name: form.get('name'),
+      password: form.get('password'),
+      teamId: form.get('teamId') || undefined,
+      jerseyNumber: form.get('jerseyNumber')
+        ? Number(form.get('jerseyNumber'))
+        : undefined,
+      position: form.get('position') || undefined,
     })
     setLoading(false)
-    e.currentTarget.reset()
+    if (!result.ok) {
+      setError(result.message)
+      return
+    }
+    formEl.reset()
     router.refresh()
   }
 
@@ -52,8 +56,9 @@ export function PlayerForm({ teams }: { teams: Team[] }) {
         disabled={loading}
         className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50 md:col-span-3"
       >
-        Crear jugador
+        {loading ? 'Creando…' : 'Crear jugador'}
       </button>
+      {error && <p className="text-sm text-kelme-red md:col-span-3">{error}</p>}
     </form>
   )
 }

@@ -2,26 +2,30 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { submitJson } from './submit'
 
 export function SeasonForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const formEl = e.currentTarget
     setLoading(true)
-    const form = new FormData(e.currentTarget)
-    await fetch('/api/seasons', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: form.get('name'),
-        startDate: new Date(form.get('startDate') as string).toISOString(),
-        endDate: new Date(form.get('endDate') as string).toISOString(),
-      }),
+    setError('')
+    const form = new FormData(formEl)
+    const result = await submitJson('/api/seasons', 'POST', {
+      name: form.get('name'),
+      startDate: new Date(form.get('startDate') as string).toISOString(),
+      endDate: new Date(form.get('endDate') as string).toISOString(),
     })
     setLoading(false)
-    e.currentTarget.reset()
+    if (!result.ok) {
+      setError(result.message)
+      return
+    }
+    formEl.reset()
     router.refresh()
   }
 
@@ -31,8 +35,9 @@ export function SeasonForm() {
       <input name="startDate" type="date" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
       <input name="endDate" type="date" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
       <button type="submit" disabled={loading} className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50">
-        Crear temporada
+        {loading ? 'Creando…' : 'Crear temporada'}
       </button>
+      {error && <p className="text-sm text-kelme-red md:col-span-4">{error}</p>}
     </form>
   )
 }
