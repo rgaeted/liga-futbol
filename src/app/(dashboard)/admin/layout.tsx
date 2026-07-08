@@ -9,6 +9,7 @@ const ADMIN_NAV = [
   { href: '/admin/players', label: 'Jugadores' },
   { href: '/admin/matches', label: 'Partidos' },
   { href: '/admin/seasons', label: 'Temporadas' },
+  { href: '/admin/users', label: 'Usuarios' },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
