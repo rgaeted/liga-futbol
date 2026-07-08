@@ -158,7 +158,7 @@ export function MatchControlPanel({
 
       {pendingEvent && (
         <p className="text-center text-yellow-400">
-          Seleccioná un jugador para registrar este evento.
+          Selecciona un jugador para registrar este evento.
         </p>
       )}
     </div>

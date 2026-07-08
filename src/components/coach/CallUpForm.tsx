@@ -37,7 +37,7 @@ export function CallUpForm({
 
   async function handleSubmit() {
     if (selected.length < 7) {
-      alert('Seleccioná al menos 7 jugadores')
+      alert('Selecciona al menos 7 jugadores')
       return
     }
     setLoading(true)
