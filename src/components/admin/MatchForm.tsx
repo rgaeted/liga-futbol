@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { submitJson } from './submit'
 
 type Option = { id: string; name: string }
 
@@ -14,27 +15,30 @@ type Props = {
 export function MatchForm({ seasons, teams, referees }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const formEl = e.currentTarget
     setLoading(true)
-    const form = new FormData(e.currentTarget)
+    setError('')
+    const form = new FormData(formEl)
     const date = form.get('date') as string
     const time = form.get('time') as string
-    await fetch('/api/matches', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        seasonId: form.get('seasonId'),
-        homeTeamId: form.get('homeTeamId'),
-        awayTeamId: form.get('awayTeamId'),
-        refereeId: form.get('refereeId') || undefined,
-        venue: form.get('venue') || undefined,
-        scheduledAt: new Date(`${date}T${time}`).toISOString(),
-      }),
+    const result = await submitJson('/api/matches', 'POST', {
+      seasonId: form.get('seasonId'),
+      homeTeamId: form.get('homeTeamId'),
+      awayTeamId: form.get('awayTeamId'),
+      refereeId: form.get('refereeId') || undefined,
+      venue: form.get('venue') || undefined,
+      scheduledAt: new Date(`${date}T${time}`).toISOString(),
     })
     setLoading(false)
-    e.currentTarget.reset()
+    if (!result.ok) {
+      setError(result.message)
+      return
+    }
+    formEl.reset()
     router.refresh()
   }
 
@@ -68,8 +72,9 @@ export function MatchForm({ seasons, teams, referees }: Props) {
       <input name="time" type="time" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
       <input name="venue" placeholder="Cancha" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2" />
       <button type="submit" disabled={loading} className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50">
-        Crear partido
+        {loading ? 'Creando…' : 'Crear partido'}
       </button>
+      {error && <p className="text-sm text-kelme-red md:col-span-3">{error}</p>}
     </form>
   )
 }
