@@ -1,8 +1,9 @@
-'use client'
+﻿'use client'
 
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 
 export default function LoginPage() {
@@ -52,6 +53,12 @@ export default function LoginPage() {
           <button type="submit" disabled={loading} className="btn-kelme w-full">
             {loading ? 'Entrando...' : 'Ingresar'}
           </button>
+          <p className="text-center font-ui text-sm text-kelme-gray-400">
+            ¿No tienes cuenta?{' '}
+            <Link href="/register" className="font-medium text-kelme-red hover:underline">
+              Regístrate
+            </Link>
+          </p>
         </form>
       </div>
     </main>
