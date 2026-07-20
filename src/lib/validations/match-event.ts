@@ -1,11 +1,15 @@
 import { z } from 'zod'
 import { EventType } from '@prisma/client'
 
+const id = z.string().min(1)
+
 export const createMatchEventSchema = z.object({
   type: z.nativeEnum(EventType),
   minute: z.number().int().min(0).max(130),
-  playerId: z.string().cuid().optional(),
-  teamId: z.string().cuid().optional(),
+  playerId: id.optional(),
+  teamId: id.optional(),
+  friendlyPlayerId: id.optional(),
+  side: z.enum(['A', 'B']).optional(),
   description: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 })

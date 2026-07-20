@@ -20,4 +20,22 @@ describe('match event validation', () => {
     })
     expect(result.success).toBe(false)
   })
+
+  it('accepts friendly goal with friendlyPlayerId and side', () => {
+    const result = createMatchEventSchema.safeParse({
+      type: EventType.GOAL,
+      minute: 12,
+      friendlyPlayerId: 'fp-1',
+      side: 'A',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts kickoff without player fields', () => {
+    const result = createMatchEventSchema.safeParse({
+      type: EventType.KICKOFF,
+      minute: 0,
+    })
+    expect(result.success).toBe(true)
+  })
 })

@@ -1,7 +1,12 @@
 import { db } from '@/lib/db'
-import { EventType, MatchStatus } from '@prisma/client'
+import { EventType, MatchStatus, MatchType } from '@prisma/client'
 import { emitMatchUpdate } from '@/server/socket'
 import type { CreateMatchEventInput } from '@/lib/validations/match-event'
+
+const eventInclude = {
+  player: { include: { user: { select: { name: true } } } },
+  friendlyPlayer: { select: { firstName: true, lastName: true } },
+} as const
 
 export async function registerMatchEvent(matchId: string, input: CreateMatchEventInput) {
   const match = await db.match.findUniqueOrThrow({
@@ -15,20 +20,33 @@ export async function registerMatchEvent(matchId: string, input: CreateMatchEven
       ...rest,
       ...(metadata !== undefined ? { metadata: metadata as object } : {}),
     },
+    include: eventInclude,
   })
 
   let homeScore = match.homeScore
   let awayScore = match.awayScore
   let status = match.status
 
-  if (input.type === EventType.GOAL && input.teamId) {
-    if (input.teamId === match.homeTeamId) homeScore += 1
-    if (input.teamId === match.awayTeamId) awayScore += 1
+  if (match.matchType === MatchType.FRIENDLY) {
+    if (input.type === EventType.GOAL && input.side) {
+      if (input.side === 'A') homeScore += 1
+      if (input.side === 'B') awayScore += 1
+    }
+    if (input.type === EventType.OWN_GOAL && input.side) {
+      if (input.side === 'A') awayScore += 1
+      if (input.side === 'B') homeScore += 1
+    }
+  } else {
+    if (input.type === EventType.GOAL && input.teamId) {
+      if (input.teamId === match.homeTeamId) homeScore += 1
+      if (input.teamId === match.awayTeamId) awayScore += 1
+    }
+    if (input.type === EventType.OWN_GOAL && input.teamId) {
+      if (input.teamId === match.homeTeamId) awayScore += 1
+      if (input.teamId === match.awayTeamId) homeScore += 1
+    }
   }
-  if (input.type === EventType.OWN_GOAL && input.teamId) {
-    if (input.teamId === match.homeTeamId) awayScore += 1
-    if (input.teamId === match.awayTeamId) homeScore += 1
-  }
+
   if (input.type === EventType.KICKOFF) status = MatchStatus.LIVE
   if (input.type === EventType.HALFTIME) status = MatchStatus.HALFTIME
   if (input.type === EventType.FULLTIME) status = MatchStatus.FINISHED
@@ -38,7 +56,7 @@ export async function registerMatchEvent(matchId: string, input: CreateMatchEven
     data: { homeScore, awayScore, status },
   })
 
-  if (input.playerId) {
+  if (match.matchType === MatchType.LEAGUE && input.playerId) {
     if (input.type === EventType.GOAL) {
       await db.player.update({
         where: { id: input.playerId },
