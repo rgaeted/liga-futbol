@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { matchDisplayName } from '@/lib/match-label'
 
 export default async function PlayerMatchesPage() {
   const session = await auth()
@@ -11,6 +12,7 @@ export default async function PlayerMatchesPage() {
     where: { userId: session.user.id },
     include: {
       callUps: {
+        where: { match: { matchType: 'LEAGUE' } },
         include: {
           match: {
             include: { homeTeam: true, awayTeam: true },
@@ -34,7 +36,7 @@ export default async function PlayerMatchesPage() {
             <div className="flex justify-between">
               <div>
                 <p className="font-semibold">
-                  {match.homeTeam.name} vs {match.awayTeam.name}
+                  {matchDisplayName(match)}
                 </p>
                 <p className="text-sm text-kelme-gray-400">
                   {new Date(match.scheduledAt).toLocaleString('es-CL')} · {isStarter ? 'Titular' : 'Suplente'}

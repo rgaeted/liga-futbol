@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { matchDisplayName } from '@/lib/match-label'
 
 export default async function PlayerDashboardPage() {
   const session = await auth()
@@ -12,6 +13,7 @@ export default async function PlayerDashboardPage() {
     include: {
       team: true,
       callUps: {
+        where: { match: { matchType: 'LEAGUE' } },
         include: {
           match: {
             include: { homeTeam: true, awayTeam: true },
@@ -81,8 +83,11 @@ function MatchList({
     match: {
       id: string
       scheduledAt: Date
-      homeTeam: { name: string }
-      awayTeam: { name: string }
+      homeTeam: { name: string } | null
+      awayTeam: { name: string } | null
+      matchType: 'LEAGUE' | 'FRIENDLY'
+      sideAName: string | null
+      sideBName: string | null
       homeScore: number
       awayScore: number
       status: string
@@ -97,7 +102,7 @@ function MatchList({
         <li key={match.id} className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
           <div className="flex justify-between">
             <span>
-              {match.homeTeam.name} vs {match.awayTeam.name}
+              {matchDisplayName(match)}
             </span>
             <span className="font-mono">
               {match.status === 'FINISHED'

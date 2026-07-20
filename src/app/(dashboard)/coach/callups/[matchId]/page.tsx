@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import { CallUpForm } from '@/components/coach/CallUpForm'
+import { matchDisplayName } from '@/lib/match-label'
 
 export default async function CoachCallUpPage({
   params,
@@ -30,6 +31,7 @@ export default async function CoachCallUpPage({
   })
 
   if (!match) notFound()
+  if (match.matchType === 'FRIENDLY') notFound()
   if (match.homeTeamId !== team.id && match.awayTeamId !== team.id) {
     redirect('/coach')
   }
@@ -38,7 +40,7 @@ export default async function CoachCallUpPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Citación</h1>
       <p className="text-slate-400">
-        {match.homeTeam.name} vs {match.awayTeam.name} · {match.scheduledAt.toLocaleString('es-CL')}
+        {matchDisplayName(match)} · {match.scheduledAt.toLocaleString('es-CL')}
       </p>
       <CallUpForm matchId={matchId} players={team.players} />
     </div>

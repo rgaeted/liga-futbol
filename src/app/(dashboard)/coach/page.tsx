@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { matchDisplayName } from '@/lib/match-label'
 
 export default async function CoachDashboardPage() {
   const session = await auth()
@@ -20,6 +21,7 @@ export default async function CoachDashboardPage() {
 
   const matches = await db.match.findMany({
     where: {
+      matchType: 'LEAGUE',
       OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }],
     },
     include: { homeTeam: true, awayTeam: true },
@@ -40,7 +42,7 @@ export default async function CoachDashboardPage() {
               className="block rounded-xl border border-kelme-border bg-kelme-surface p-4 hover:border-kelme-red"
             >
               <p className="font-semibold">
-                {match.homeTeam.name} vs {match.awayTeam.name}
+                {matchDisplayName(match)}
               </p>
               <p className="text-sm text-kelme-gray-400">
                 {match.scheduledAt.toLocaleString('es-CL')} · {match.status}
