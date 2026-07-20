@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
+import { matchSideNames } from '@/lib/match-label'
 import { notFound } from 'next/navigation'
 
 export default async function LiveMatchPage({
@@ -15,7 +16,10 @@ export default async function LiveMatchPage({
       homeTeam: true,
       awayTeam: true,
       events: {
-        include: { player: { include: { user: { select: { name: true } } } } },
+        include: {
+          player: { include: { user: { select: { name: true } } } },
+          friendlyPlayer: { select: { firstName: true, lastName: true } },
+        },
         orderBy: { minute: 'asc' },
       },
     },
@@ -23,5 +27,26 @@ export default async function LiveMatchPage({
 
   if (!match) notFound()
 
-  return <LiveScoreboard initialMatch={match} />
+  const sides = matchSideNames(match)
+
+  return (
+    <LiveScoreboard
+      initialMatch={{
+        id: match.id,
+        homeTeam: { name: sides.home },
+        awayTeam: { name: sides.away },
+        homeScore: match.homeScore,
+        awayScore: match.awayScore,
+        status: match.status,
+        events: match.events.map((e) => ({
+          id: e.id,
+          type: e.type,
+          minute: e.minute,
+          playerName: e.friendlyPlayer
+            ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
+            : (e.player?.user.name ?? null),
+        })),
+      }}
+    />
+  )
 }

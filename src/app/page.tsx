@@ -5,6 +5,7 @@ import { Role } from '@/lib/roles'
 import { LandingPage } from '@/components/kelme/LandingPage'
 import { db } from '@/lib/db'
 import { MatchStatus } from '@prisma/client'
+import { matchSideNames } from '@/lib/match-label'
 
 export default async function HomePage() {
   const session = await auth()
@@ -24,17 +25,20 @@ export default async function HomePage() {
 
   return (
     <LandingPage
-      liveMatches={liveMatches.map((match) => ({
-        id: match.id,
-        homeTeam: match.homeTeam.name,
-        awayTeam: match.awayTeam.name,
-        homeScore: match.homeScore,
-        awayScore: match.awayScore,
-        status: match.status,
-        venue: match.venue,
-        scheduledAt: match.scheduledAt.toISOString(),
-        seasonName: match.season.name,
-      }))}
+      liveMatches={liveMatches.map((match) => {
+        const sides = matchSideNames(match)
+        return {
+          id: match.id,
+          homeTeam: sides.home,
+          awayTeam: sides.away,
+          homeScore: match.homeScore,
+          awayScore: match.awayScore,
+          status: match.status,
+          venue: match.venue,
+          scheduledAt: match.scheduledAt.toISOString(),
+          seasonName: match.season?.name ?? 'Amistoso',
+        }
+      })}
     />
   )
 }

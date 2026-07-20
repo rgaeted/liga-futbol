@@ -4,17 +4,27 @@ import { useEffect, useState } from 'react'
 import { getSocket, joinMatchRoom } from '@/lib/socket-client'
 import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 
+type RawSocketEvent = {
+  id: string
+  type: string
+  minute: number
+  player?: { user: { name: string } } | null
+  friendlyPlayer?: { firstName: string; lastName: string } | null
+}
+
 type LiveMatchPayload = {
   matchId: string
   homeScore: number
   awayScore: number
   status: string
-  event?: {
-    id: string
-    type: string
-    minute: number
-    player?: { user: { name: string } } | null
-  }
+  event?: RawSocketEvent
+}
+
+type MatchEvent = {
+  id: string
+  type: string
+  minute: number
+  playerName: string | null
 }
 
 type Match = {
@@ -24,12 +34,14 @@ type Match = {
   homeScore: number
   awayScore: number
   status: string
-  events: Array<{
-    id: string
-    type: string
-    minute: number
-    player?: { user: { name: string } } | null
-  }>
+  events: MatchEvent[]
+}
+
+function eventPlayerName(event: RawSocketEvent): string | null {
+  if (event.friendlyPlayer) {
+    return `${event.friendlyPlayer.firstName} ${event.friendlyPlayer.lastName}`
+  }
+  return event.player?.user.name ?? null
 }
 
 export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
@@ -45,7 +57,17 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
         homeScore: payload.homeScore,
         awayScore: payload.awayScore,
         status: payload.status,
-        events: payload.event ? [...prev.events, payload.event] : prev.events,
+        events: payload.event
+          ? [
+              ...prev.events,
+              {
+                id: payload.event.id,
+                type: payload.event.type,
+                minute: payload.event.minute,
+                playerName: eventPlayerName(payload.event),
+              },
+            ]
+          : prev.events,
       }))
     }
 
@@ -96,8 +118,8 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
             >
               <span className="w-10 font-mono text-kelme-red">{event.minute}&apos;</span>
               <span className="font-ui">{formatEvent(event.type)}</span>
-              {event.player && (
-                <span className="ml-auto font-ui text-sm text-white/50">{event.player.user.name}</span>
+              {event.playerName && (
+                <span className="ml-auto font-ui text-sm text-white/50">{event.playerName}</span>
               )}
             </li>
           ))}
@@ -120,7 +142,7 @@ function formatEvent(type: string): string {
     SHOT_ON_TARGET: '🎯 Tiro al arco',
     SHOT_OFF_TARGET: 'Tiro desviado',
     SUBSTITUTION: '🔄 Cambio',
-    FOUL: '⚠ Falta',
+    FOUL: '⚠️ Falta',
     KICKOFF: '▶ Inicio del partido',
     HALFTIME: '⏸ Entretiempo',
     FULLTIME: '⏹ Final del partido',
