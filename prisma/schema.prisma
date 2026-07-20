@@ -35,6 +35,16 @@ enum EventType {
   FULLTIME
 }
 
+enum MatchType {
+  LEAGUE
+  FRIENDLY
+}
+
+enum FriendlySide {
+  A
+  B
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -44,6 +54,7 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   player        Player?
+  friendlyPlayer FriendlyPlayer?
   coachedTeam   Team?    @relation("TeamCoach")
   refereeMatches Match[] @relation("MatchReferee")
 }
@@ -92,12 +103,15 @@ model Season {
 
 model Match {
   id           String      @id @default(cuid())
-  seasonId     String
-  season       Season      @relation(fields: [seasonId], references: [id])
-  homeTeamId   String
-  homeTeam     Team        @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeamId   String
-  awayTeam     Team        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  matchType    MatchType   @default(LEAGUE)
+  seasonId     String?
+  season       Season?     @relation(fields: [seasonId], references: [id])
+  homeTeamId   String?
+  homeTeam     Team?       @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId   String?
+  awayTeam     Team?       @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  sideAName    String?
+  sideBName    String?
   refereeId    String?
   referee      User?       @relation("MatchReferee", fields: [refereeId], references: [id])
   scheduledAt  DateTime
@@ -107,6 +121,7 @@ model Match {
   awayScore    Int         @default(0)
   events       MatchEvent[]
   callUps      CallUp[]
+  friendlyPlayers FriendlyMatchPlayer[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
@@ -119,6 +134,9 @@ model MatchEvent {
   minute      Int
   playerId    String?
   player      Player?   @relation(fields: [playerId], references: [id])
+  friendlyPlayerId String?
+  friendlyPlayer   FriendlyPlayer? @relation(fields: [friendlyPlayerId], references: [id])
+  side             FriendlySide?
   teamId      String?
   description String?
   metadata    Json?
@@ -146,4 +164,30 @@ model PlayerEvaluation {
   rating    Int
   notes     String?
   createdAt DateTime @default(now())
+}
+
+model FriendlyPlayer {
+  id             String                @id @default(cuid())
+  firstName      String
+  lastName       String
+  userId         String?               @unique
+  user           User?                 @relation(fields: [userId], references: [id])
+  participations FriendlyMatchPlayer[]
+  matchEvents    MatchEvent[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+}
+
+model FriendlyMatchPlayer {
+  id               String         @id @default(cuid())
+  matchId          String
+  match            Match          @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  friendlyPlayerId String
+  friendlyPlayer   FriendlyPlayer @relation(fields: [friendlyPlayerId], references: [id])
+  side             FriendlySide
+  paid             Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@unique([matchId, friendlyPlayerId])
 }
