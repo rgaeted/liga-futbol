@@ -5,7 +5,7 @@ export default async function RegisterPage() {
   const available = await db.friendlyPlayer.findMany({
     where: { userId: null },
     orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
-    select: { id: true, firstName: true, lastName: true },
+    select: { id: true, firstName: true, lastName: true, primaryPosition: true },
   })
 
   return <RegisterForm available={available} />

@@ -28,7 +28,7 @@ export default async function AdminMatchesPage() {
     }),
     db.friendlyPlayer.findMany({
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
-      select: { id: true, firstName: true, lastName: true },
+      select: { id: true, firstName: true, lastName: true, primaryPosition: true },
     }),
   ])
 

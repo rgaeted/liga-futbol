@@ -21,7 +21,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { firstName, lastName, email, password } = parsed.data
+  const { firstName, lastName, email, password, dominantFoot, primaryPosition, secondaryPosition } =
+    parsed.data
 
   const player = await db.$transaction(async (tx) => {
     let userId: string | undefined
@@ -42,7 +43,14 @@ export async function POST(req: Request) {
     }
 
     return tx.friendlyPlayer.create({
-      data: { firstName, lastName, userId },
+      data: {
+        firstName,
+        lastName,
+        dominantFoot,
+        primaryPosition,
+        secondaryPosition,
+        userId,
+      },
       include: { user: { select: { id: true, email: true } } },
     })
   })

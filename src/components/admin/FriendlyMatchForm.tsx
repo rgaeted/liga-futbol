@@ -5,7 +5,12 @@ import { useState } from 'react'
 import { submitJson } from './submit'
 
 type Referee = { id: string; name: string }
-type FriendlyPlayer = { id: string; firstName: string; lastName: string }
+type FriendlyPlayer = {
+  id: string
+  firstName: string
+  lastName: string
+  primaryPosition?: string | null
+}
 
 type Props = {
   referees: Referee[]
@@ -13,7 +18,8 @@ type Props = {
 }
 
 function playerLabel(p: FriendlyPlayer) {
-  return `${p.firstName} ${p.lastName}`.trim()
+  const name = `${p.firstName} ${p.lastName}`.trim()
+  return p.primaryPosition ? `${name} (${p.primaryPosition})` : name
 }
 
 export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {

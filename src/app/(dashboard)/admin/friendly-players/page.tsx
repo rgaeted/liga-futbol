@@ -18,6 +18,9 @@ export default async function AdminFriendlyPlayersPage() {
           firstName: p.firstName,
           lastName: p.lastName,
           email: p.user?.email ?? null,
+          dominantFoot: p.dominantFoot,
+          primaryPosition: p.primaryPosition,
+          secondaryPosition: p.secondaryPosition,
         }))}
       />
     </div>

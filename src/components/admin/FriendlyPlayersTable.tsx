@@ -4,12 +4,21 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
+import { formatDominantFoot } from '@/lib/friendly-player-options'
+import {
+  FriendlyPlayerProfileFields,
+  friendlyPlayerProfilePayload,
+} from './FriendlyPlayerProfileFields'
+import type { DominantFoot } from '@prisma/client'
 
 export type FriendlyPlayerRow = {
   id: string
   firstName: string
   lastName: string
   email: string | null
+  dominantFoot: DominantFoot | null
+  primaryPosition: string | null
+  secondaryPosition: string | null
 }
 
 export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[] }) {
@@ -17,6 +26,9 @@ export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[]
   const [editingId, setEditingId] = useState<string | null>(null)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [dominantFoot, setDominantFoot] = useState('')
+  const [primaryPosition, setPrimaryPosition] = useState('')
+  const [secondaryPosition, setSecondaryPosition] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -24,6 +36,9 @@ export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[]
     setEditingId(player.id)
     setFirstName(player.firstName)
     setLastName(player.lastName)
+    setDominantFoot(player.dominantFoot ?? '')
+    setPrimaryPosition(player.primaryPosition ?? '')
+    setSecondaryPosition(player.secondaryPosition ?? '')
     setError('')
   }
 
@@ -33,6 +48,7 @@ export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[]
     const result = await submitJson(`/api/friendly-players/${playerId}`, 'PUT', {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      ...friendlyPlayerProfilePayload(dominantFoot, primaryPosition, secondaryPosition),
     })
     setSaving(false)
     if (!result.ok) {
@@ -50,6 +66,9 @@ export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[]
           <tr>
             <th className="p-3">Nombre</th>
             <th className="p-3">Apellido</th>
+            <th className="p-3">Pie</th>
+            <th className="p-3">Posición</th>
+            <th className="p-3">2.ª posición</th>
             <th className="p-3">Cuenta</th>
             <th className="p-3">Acciones</th>
           </tr>
@@ -74,6 +93,19 @@ export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[]
                       required
                       className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
                     />
+                  </td>
+                  <td className="p-3" colSpan={3}>
+                    <div className="grid gap-2 md:grid-cols-3">
+                      <FriendlyPlayerProfileFields
+                        compact
+                        dominantFoot={dominantFoot}
+                        primaryPosition={primaryPosition}
+                        secondaryPosition={secondaryPosition}
+                        onDominantFootChange={setDominantFoot}
+                        onPrimaryPositionChange={setPrimaryPosition}
+                        onSecondaryPositionChange={setSecondaryPosition}
+                      />
+                    </div>
                   </td>
                   <td className="p-3">{player.email ?? 'Sin cuenta'}</td>
                   <td className="p-3">
@@ -101,6 +133,9 @@ export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[]
                 <>
                   <td className="p-3">{player.firstName}</td>
                   <td className="p-3">{player.lastName}</td>
+                  <td className="p-3">{formatDominantFoot(player.dominantFoot)}</td>
+                  <td className="p-3">{player.primaryPosition ?? '—'}</td>
+                  <td className="p-3">{player.secondaryPosition ?? '—'}</td>
                   <td className="p-3">{player.email ?? 'Sin cuenta'}</td>
                   <td className="p-3">
                     <span className="inline-flex items-center gap-2">

@@ -45,6 +45,12 @@ enum FriendlySide {
   B
 }
 
+enum DominantFoot {
+  RIGHT
+  LEFT
+  BOTH
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -170,6 +176,9 @@ model FriendlyPlayer {
   id             String                @id @default(cuid())
   firstName      String
   lastName       String
+  dominantFoot   DominantFoot?
+  primaryPosition   String?
+  secondaryPosition String?
   userId         String?               @unique
   user           User?                 @relation(fields: [userId], references: [id])
   participations FriendlyMatchPlayer[]

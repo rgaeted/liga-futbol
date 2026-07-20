@@ -6,10 +6,13 @@ import { useState } from 'react'
 import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 import { submitJson } from '@/components/admin/submit'
 
+import { formatFriendlyPlayerLabel } from '@/lib/friendly-player-options'
+
 export type AvailableFriendlyPlayer = {
   id: string
   firstName: string
   lastName: string
+  primaryPosition: string | null
 }
 
 type Props = {
@@ -82,7 +85,7 @@ export function RegisterForm({ available }: Props) {
               </option>
               {available.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.lastName}, {p.firstName}
+                  {formatFriendlyPlayerLabel(p)}
                 </option>
               ))}
             </select>

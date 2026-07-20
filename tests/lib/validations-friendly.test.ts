@@ -17,6 +17,27 @@ describe('friendly player validations', () => {
     expect(result.success).toBe(true)
   })
 
+  it('accepts profile fields', () => {
+    const result = createFriendlyPlayerSchema.safeParse({
+      firstName: 'Juan',
+      lastName: 'Pérez',
+      dominantFoot: 'RIGHT',
+      primaryPosition: 'Delantero',
+      secondaryPosition: 'Extremo derecho',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects duplicate primary and secondary position', () => {
+    const result = createFriendlyPlayerSchema.safeParse({
+      firstName: 'Juan',
+      lastName: 'Pérez',
+      primaryPosition: 'Delantero',
+      secondaryPosition: 'Delantero',
+    })
+    expect(result.success).toBe(false)
+  })
+
   it('accepts optional account fields together', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
