@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { createMatchSchema } from '@/lib/validations/match'
@@ -34,16 +34,53 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  if (parsed.data.homeTeamId === parsed.data.awayTeamId) {
-    return NextResponse.json({ error: 'Home and away team must differ' }, { status: 400 })
+  const data = parsed.data
+
+  if (data.matchType === 'LEAGUE') {
+    if (data.homeTeamId === data.awayTeamId) {
+      return NextResponse.json({ error: 'Home and away team must differ' }, { status: 400 })
+    }
+    const match = await db.match.create({
+      data: {
+        matchType: 'LEAGUE',
+        seasonId: data.seasonId,
+        homeTeamId: data.homeTeamId,
+        awayTeamId: data.awayTeamId,
+        refereeId: data.refereeId,
+        venue: data.venue,
+        scheduledAt: new Date(data.scheduledAt),
+      },
+      include: { homeTeam: true, awayTeam: true },
+    })
+    return NextResponse.json(match, { status: 201 })
   }
 
-  const match = await db.match.create({
-    data: {
-      ...parsed.data,
-      scheduledAt: new Date(parsed.data.scheduledAt),
-    },
-    include: { homeTeam: true, awayTeam: true },
+  const match = await db.$transaction(async (tx) => {
+    const created = await tx.match.create({
+      data: {
+        matchType: 'FRIENDLY',
+        sideAName: data.sideAName,
+        sideBName: data.sideBName,
+        refereeId: data.refereeId,
+        venue: data.venue,
+        scheduledAt: new Date(data.scheduledAt),
+      },
+    })
+    await tx.friendlyMatchPlayer.createMany({
+      data: data.players.map((p) => ({
+        matchId: created.id,
+        friendlyPlayerId: p.friendlyPlayerId,
+        side: p.side,
+      })),
+    })
+    return tx.match.findUniqueOrThrow({
+      where: { id: created.id },
+      include: {
+        friendlyPlayers: { include: { friendlyPlayer: true } },
+        referee: { select: { id: true, name: true } },
+      },
+    })
   })
+
   return NextResponse.json(match, { status: 201 })
 }
