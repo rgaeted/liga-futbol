@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from './submit'
+import { FriendlyPlayerAvatar } from './FriendlyPlayerAvatar'
 
 type Referee = { id: string; name: string }
 type FriendlyPlayer = {
@@ -10,6 +11,7 @@ type FriendlyPlayer = {
   firstName: string
   lastName: string
   primaryPosition?: string | null
+  hasPhoto?: boolean
 }
 
 type Props = {
@@ -146,6 +148,13 @@ export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
                       disabled={sideBIds.has(p.id)}
                       onChange={(ev) => toggleSide('A', p.id, ev.target.checked)}
                     />
+                    <FriendlyPlayerAvatar
+                      id={p.id}
+                      firstName={p.firstName}
+                      lastName={p.lastName}
+                      hasPhoto={Boolean(p.hasPhoto)}
+                      size="sm"
+                    />
                     {playerLabel(p)}
                   </label>
                 </li>
@@ -167,6 +176,13 @@ export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
                       checked={sideBIds.has(p.id)}
                       disabled={sideAIds.has(p.id)}
                       onChange={(ev) => toggleSide('B', p.id, ev.target.checked)}
+                    />
+                    <FriendlyPlayerAvatar
+                      id={p.id}
+                      firstName={p.firstName}
+                      lastName={p.lastName}
+                      hasPhoto={Boolean(p.hasPhoto)}
+                      size="sm"
                     />
                     {playerLabel(p)}
                   </label>

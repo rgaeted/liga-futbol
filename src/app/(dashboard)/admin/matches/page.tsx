@@ -28,7 +28,7 @@ export default async function AdminMatchesPage() {
     }),
     db.friendlyPlayer.findMany({
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
-      select: { id: true, firstName: true, lastName: true, primaryPosition: true },
+      select: { id: true, firstName: true, lastName: true, primaryPosition: true, photoMimeType: true },
     }),
   ])
 
@@ -36,7 +36,13 @@ export default async function AdminMatchesPage() {
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold">Partidos</h1>
       <MatchForm seasons={seasons} teams={teams} referees={referees} />
-      <FriendlyMatchForm referees={referees} friendlyPlayers={friendlyPlayers} />
+      <FriendlyMatchForm
+        referees={referees}
+        friendlyPlayers={friendlyPlayers.map((p) => ({
+          ...p,
+          hasPhoto: Boolean(p.photoMimeType),
+        }))}
+      />
       <div className="space-y-3">
         {matches.map((match) => {
           const title = matchDisplayName(match)

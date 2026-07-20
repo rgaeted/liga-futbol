@@ -179,6 +179,8 @@ model FriendlyPlayer {
   dominantFoot   DominantFoot?
   primaryPosition   String?
   secondaryPosition String?
+  photoMimeType  String?
+  photoData      Bytes?
   userId         String?               @unique
   user           User?                 @relation(fields: [userId], references: [id])
   participations FriendlyMatchPlayer[]

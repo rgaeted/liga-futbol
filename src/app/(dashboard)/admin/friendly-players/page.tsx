@@ -4,8 +4,17 @@ import { FriendlyPlayersTable } from '@/components/admin/FriendlyPlayersTable'
 
 export default async function AdminFriendlyPlayersPage() {
   const players = await db.friendlyPlayer.findMany({
-    include: { user: { select: { email: true } } },
     orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      dominantFoot: true,
+      primaryPosition: true,
+      secondaryPosition: true,
+      photoMimeType: true,
+      user: { select: { email: true } },
+    },
   })
 
   return (
@@ -18,6 +27,7 @@ export default async function AdminFriendlyPlayersPage() {
           firstName: p.firstName,
           lastName: p.lastName,
           email: p.user?.email ?? null,
+          hasPhoto: Boolean(p.photoMimeType),
           dominantFoot: p.dominantFoot,
           primaryPosition: p.primaryPosition,
           secondaryPosition: p.secondaryPosition,

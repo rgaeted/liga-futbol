@@ -9,6 +9,7 @@ import {
   FriendlyPlayerProfileFields,
   friendlyPlayerProfilePayload,
 } from './FriendlyPlayerProfileFields'
+import { FriendlyPlayerPhotoUpload } from './FriendlyPlayerPhotoUpload'
 import type { DominantFoot } from '@prisma/client'
 
 export type FriendlyPlayerRow = {
@@ -16,6 +17,7 @@ export type FriendlyPlayerRow = {
   firstName: string
   lastName: string
   email: string | null
+  hasPhoto: boolean
   dominantFoot: DominantFoot | null
   primaryPosition: string | null
   secondaryPosition: string | null
@@ -64,6 +66,7 @@ export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[]
       <table className="w-full text-left text-sm">
         <thead className="bg-kelme-surface">
           <tr>
+            <th className="p-3">Foto</th>
             <th className="p-3">Nombre</th>
             <th className="p-3">Apellido</th>
             <th className="p-3">Pie</th>
@@ -76,6 +79,14 @@ export function FriendlyPlayersTable({ players }: { players: FriendlyPlayerRow[]
         <tbody>
           {players.map((player) => (
             <tr key={player.id} className="border-t border-kelme-border">
+              <td className="p-3 align-top">
+                <FriendlyPlayerPhotoUpload
+                  playerId={player.id}
+                  firstName={player.firstName}
+                  lastName={player.lastName}
+                  hasPhoto={player.hasPhoto}
+                />
+              </td>
               {editingId === player.id ? (
                 <>
                   <td className="p-3">
