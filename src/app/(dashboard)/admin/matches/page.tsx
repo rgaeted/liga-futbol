@@ -104,6 +104,12 @@ export default async function AdminMatchesPage() {
                   >
                     Ver en vivo
                   </Link>
+                  <Link
+                    href={`/admin/matches/${match.id}/timeline`}
+                    className="text-sm text-kelme-gray-600 hover:underline"
+                  >
+                    Cronología
+                  </Link>
                   <MatchActions
                     match={{
                       id: match.id,

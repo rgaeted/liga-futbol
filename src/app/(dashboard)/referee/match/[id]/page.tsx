@@ -46,6 +46,12 @@ export default async function RefereeMatchPage({
     initialHomeScore: match.homeScore,
     initialAwayScore: match.awayScore,
     initialStatus: match.status,
+    initialClock: {
+      status: match.status,
+      clockStartedAt: match.clockStartedAt?.toISOString() ?? null,
+      secondHalfStartedAt: match.secondHalfStartedAt?.toISOString() ?? null,
+      halftimeAt: match.halftimeAt?.toISOString() ?? null,
+    },
   }
 
   if (match.matchType === 'FRIENDLY') {

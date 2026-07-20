@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { EventType } from '@prisma/client'
+import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
+import type { SerializableClockState } from '@/hooks/useMatchClock'
 
 type RosterPlayer = { id: string; label: string }
 type SideRoster = { id: string; name: string; players: RosterPlayer[] }
@@ -14,6 +16,7 @@ type Props = {
   initialHomeScore: number
   initialAwayScore: number
   initialStatus: string
+  initialClock: SerializableClockState
 }
 
 const QUICK_EVENTS = [
@@ -29,6 +32,11 @@ const QUICK_EVENTS = [
   { type: EventType.FULLTIME, label: '⏹ Final', color: 'bg-kelme-gray-900' },
 ] as const
 
+function toIso(value: Date | string | null | undefined): string | null {
+  if (!value) return null
+  return value instanceof Date ? value.toISOString() : value
+}
+
 export function MatchControlPanel({
   matchId,
   matchType,
@@ -37,17 +45,37 @@ export function MatchControlPanel({
   initialHomeScore,
   initialAwayScore,
   initialStatus,
+  initialClock,
 }: Props) {
-  const [minute, setMinute] = useState(0)
   const [homeScore, setHomeScore] = useState(initialHomeScore)
   const [awayScore, setAwayScore] = useState(initialAwayScore)
   const [status, setStatus] = useState(initialStatus)
+  const [clock, setClock] = useState(initialClock)
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away'>('home')
   const [selectedPlayer, setSelectedPlayer] = useState('')
   const [pendingEvent, setPendingEvent] = useState<EventType | null>(null)
   const [loading, setLoading] = useState(false)
 
   const activeTeam = selectedTeam === 'home' ? homeTeam : awayTeam
+
+  function updateFromMatchResponse(match: {
+    homeScore: number
+    awayScore: number
+    status: string
+    clockStartedAt?: Date | string | null
+    secondHalfStartedAt?: Date | string | null
+    halftimeAt?: Date | string | null
+  }) {
+    setHomeScore(match.homeScore)
+    setAwayScore(match.awayScore)
+    setStatus(match.status)
+    setClock({
+      status: match.status,
+      clockStartedAt: toIso(match.clockStartedAt),
+      secondHalfStartedAt: toIso(match.secondHalfStartedAt),
+      halftimeAt: toIso(match.halftimeAt),
+    })
+  }
 
   async function submitEvent(type: EventType) {
     const needsPlayer = (
@@ -71,13 +99,11 @@ export function MatchControlPanel({
       matchType === 'FRIENDLY'
         ? {
             type,
-            minute,
             friendlyPlayerId: selectedPlayer || undefined,
             side: selectedTeam === 'home' ? ('A' as const) : ('B' as const),
           }
         : {
             type,
-            minute,
             playerId: selectedPlayer || undefined,
             teamId: activeTeam.id,
           }
@@ -90,12 +116,18 @@ export function MatchControlPanel({
     })
     const data = await res.json()
     if (data.match) {
-      setHomeScore(data.match.homeScore)
-      setAwayScore(data.match.awayScore)
-      setStatus(data.match.status)
+      updateFromMatchResponse(data.match)
     }
     setPendingEvent(null)
     setLoading(false)
+  }
+
+  function eventLabel(type: EventType, defaultLabel: string) {
+    if (type === EventType.KICKOFF) {
+      if (status === 'HALFTIME') return '▶ 2.º tiempo'
+      return '▶ Inicio'
+    }
+    return defaultLabel
   }
 
   return (
@@ -104,24 +136,13 @@ export function MatchControlPanel({
         <p className="font-ui text-sm uppercase tracking-widest text-kelme-red">
           {status === 'LIVE' ? '● EN VIVO' : status}
         </p>
+        <MatchClockDisplay clock={{ ...clock, status }} className="text-kelme-gray-900" />
         <p className="font-display text-5xl font-extrabold tabular-nums">
           {homeScore} - {awayScore}
         </p>
         <p className="text-kelme-gray-400">
           {homeTeam.name} vs {awayTeam.name}
         </p>
-      </div>
-
-      <div className="flex items-center justify-center gap-4">
-        <label className="text-sm">Minuto</label>
-        <input
-          type="number"
-          min={0}
-          max={130}
-          value={minute}
-          onChange={(e) => setMinute(Number(e.target.value))}
-          className="w-20 rounded-lg border border-kelme-border bg-kelme-surface px-3 py-2 text-center text-xl font-bold"
-        />
       </div>
 
       <div className="flex gap-2">
@@ -163,13 +184,13 @@ export function MatchControlPanel({
             onClick={() => submitEvent(ev.type)}
             className={`rounded-xl py-4 text-lg font-bold ${ev.color} disabled:opacity-50`}
           >
-            {ev.label}
+            {eventLabel(ev.type, ev.label)}
           </button>
         ))}
       </div>
 
       {pendingEvent && (
-        <p className="text-center text-yellow-400">
+        <p className="text-center text-yellow-600">
           Selecciona un jugador para registrar este evento.
         </p>
       )}

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { getSocket, joinMatchRoom } from '@/lib/socket-client'
 import { KelmeLogo } from '@/components/kelme/KelmeLogo'
+import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
+import type { SerializableClockState } from '@/hooks/useMatchClock'
 
 type RawSocketEvent = {
   id: string
@@ -17,6 +19,9 @@ type LiveMatchPayload = {
   homeScore: number
   awayScore: number
   status: string
+  clockStartedAt?: string | Date | null
+  secondHalfStartedAt?: string | Date | null
+  halftimeAt?: string | Date | null
   event?: RawSocketEvent
 }
 
@@ -34,6 +39,7 @@ type Match = {
   homeScore: number
   awayScore: number
   status: string
+  clock: SerializableClockState
   events: MatchEvent[]
 }
 
@@ -42,6 +48,11 @@ function eventPlayerName(event: RawSocketEvent): string | null {
     return `${event.friendlyPlayer.firstName} ${event.friendlyPlayer.lastName}`
   }
   return event.player?.user.name ?? null
+}
+
+function toIso(value: Date | string | null | undefined): string | null {
+  if (!value) return null
+  return value instanceof Date ? value.toISOString() : value
 }
 
 export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
@@ -57,6 +68,14 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
         homeScore: payload.homeScore,
         awayScore: payload.awayScore,
         status: payload.status,
+        clock: {
+          status: payload.status,
+          clockStartedAt: toIso(payload.clockStartedAt ?? prev.clock.clockStartedAt),
+          secondHalfStartedAt: toIso(
+            payload.secondHalfStartedAt ?? prev.clock.secondHalfStartedAt
+          ),
+          halftimeAt: toIso(payload.halftimeAt ?? prev.clock.halftimeAt),
+        },
         events: payload.event
           ? [
               ...prev.events,
@@ -96,6 +115,10 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
             match.status
           )}
         </p>
+
+        <div className="mb-4 flex justify-center">
+          <MatchClockDisplay clock={{ ...match.clock, status: match.status }} />
+        </div>
 
         <div className="mb-8 flex items-center justify-between rounded-2xl border border-white/10 bg-kelme-live-surface p-8">
           <div className="flex-1 text-center">

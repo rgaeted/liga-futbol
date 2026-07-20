@@ -2,22 +2,43 @@ import { db } from '@/lib/db'
 import { EventType, MatchStatus, MatchType } from '@prisma/client'
 import { emitMatchUpdate } from '@/server/socket'
 import type { CreateMatchEventInput } from '@/lib/validations/match-event'
+import { getMatchMinute } from '@/lib/match-clock'
+import { syncLeaguePlayerStats } from '@/lib/match-reconcile'
 
 const eventInclude = {
   player: { include: { user: { select: { name: true } } } },
   friendlyPlayer: { select: { firstName: true, lastName: true } },
 } as const
 
-export async function registerMatchEvent(matchId: string, input: CreateMatchEventInput) {
+const GAME_EVENT_TYPES: EventType[] = [
+  EventType.GOAL,
+  EventType.OWN_GOAL,
+  EventType.YELLOW_CARD,
+  EventType.RED_CARD,
+  EventType.SHOT_ON_TARGET,
+  EventType.SHOT_OFF_TARGET,
+  EventType.SUBSTITUTION,
+  EventType.FOUL,
+]
+
+export async function registerMatchEvent(
+  matchId: string,
+  input: CreateMatchEventInput,
+  options?: { minuteOverride?: number }
+) {
   const match = await db.match.findUniqueOrThrow({
     where: { id: matchId },
   })
 
+  const now = new Date()
+  const minute = options?.minuteOverride ?? getMatchMinute(match, now)
   const { metadata, ...rest } = input
+
   const event = await db.matchEvent.create({
     data: {
       matchId,
       ...rest,
+      minute,
       ...(metadata !== undefined ? { metadata: metadata as object } : {}),
     },
     include: eventInclude,
@@ -47,34 +68,36 @@ export async function registerMatchEvent(matchId: string, input: CreateMatchEven
     }
   }
 
-  if (input.type === EventType.KICKOFF) status = MatchStatus.LIVE
-  if (input.type === EventType.HALFTIME) status = MatchStatus.HALFTIME
-  if (input.type === EventType.FULLTIME) status = MatchStatus.FINISHED
+  const clockUpdate: {
+    clockStartedAt?: Date
+    secondHalfStartedAt?: Date
+    halftimeAt?: Date
+  } = {}
+
+  if (input.type === EventType.KICKOFF) {
+    if (match.status === MatchStatus.SCHEDULED) {
+      clockUpdate.clockStartedAt = now
+      status = MatchStatus.LIVE
+    } else if (match.status === MatchStatus.HALFTIME) {
+      clockUpdate.secondHalfStartedAt = now
+      status = MatchStatus.LIVE
+    }
+  }
+  if (input.type === EventType.HALFTIME) {
+    clockUpdate.halftimeAt = now
+    status = MatchStatus.HALFTIME
+  }
+  if (input.type === EventType.FULLTIME) {
+    status = MatchStatus.FINISHED
+  }
 
   const updatedMatch = await db.match.update({
     where: { id: matchId },
-    data: { homeScore, awayScore, status },
+    data: { homeScore, awayScore, status, ...clockUpdate },
   })
 
   if (match.matchType === MatchType.LEAGUE && input.playerId) {
-    if (input.type === EventType.GOAL) {
-      await db.player.update({
-        where: { id: input.playerId },
-        data: { goals: { increment: 1 } },
-      })
-    }
-    if (input.type === EventType.YELLOW_CARD) {
-      await db.player.update({
-        where: { id: input.playerId },
-        data: { yellowCards: { increment: 1 } },
-      })
-    }
-    if (input.type === EventType.RED_CARD) {
-      await db.player.update({
-        where: { id: input.playerId },
-        data: { redCards: { increment: 1 } },
-      })
-    }
+    await syncLeaguePlayerStats(input.playerId)
   }
 
   emitMatchUpdate({
@@ -82,8 +105,13 @@ export async function registerMatchEvent(matchId: string, input: CreateMatchEven
     homeScore: updatedMatch.homeScore,
     awayScore: updatedMatch.awayScore,
     status: updatedMatch.status,
+    clockStartedAt: updatedMatch.clockStartedAt,
+    secondHalfStartedAt: updatedMatch.secondHalfStartedAt,
+    halftimeAt: updatedMatch.halftimeAt,
     event,
   })
 
   return { event, match: updatedMatch }
 }
+
+export { GAME_EVENT_TYPES }

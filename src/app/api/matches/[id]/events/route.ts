@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { createMatchEventSchema } from '@/lib/validations/match-event'
-import { registerMatchEvent } from '@/lib/match-events'
-import { EventType, MatchType, Role } from '@prisma/client'
+import { GAME_EVENT_TYPES, registerMatchEvent } from '@/lib/match-events'
+import { EventType, MatchStatus, MatchType, Role } from '@prisma/client'
 
 const PLAYER_EVENT_TYPES: EventType[] = [
   EventType.GOAL,
@@ -17,6 +17,10 @@ const PLAYER_EVENT_TYPES: EventType[] = [
 
 function eventNeedsPlayer(type: EventType) {
   return PLAYER_EVENT_TYPES.includes(type)
+}
+
+function isGameEvent(type: EventType) {
+  return GAME_EVENT_TYPES.includes(type)
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +43,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const match = await db.match.findUniqueOrThrow({ where: { id: matchId } })
 
   if (session.user.role === Role.REFEREE && match.refereeId !== session.user.id) {
-    return NextResponse.json({ error: 'Not assigned referee' }, { status: 403 })
+    return NextResponse.json({ error: 'No eres el árbitro asignado' }, { status: 403 })
   }
 
   const parsed = createMatchEventSchema.safeParse(await req.json())
@@ -48,21 +52,35 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const data = parsed.data
+  const isAdmin = session.user.role === Role.ADMIN
+
+  if (
+    session.user.role === Role.REFEREE &&
+    isGameEvent(data.type) &&
+    match.status !== MatchStatus.LIVE
+  ) {
+    return NextResponse.json({ error: 'El partido no está en juego' }, { status: 400 })
+  }
 
   if (match.matchType === MatchType.FRIENDLY) {
     if (eventNeedsPlayer(data.type) && (!data.friendlyPlayerId || !data.side)) {
       return NextResponse.json(
-        { error: 'Los eventos con jugador en partidos amistosos requieren friendlyPlayerId y side' },
-        { status: 400 },
+        {
+          error: 'Los eventos con jugador en partidos amistosos requieren friendlyPlayerId y side',
+        },
+        { status: 400 }
       )
     }
   } else if (data.friendlyPlayerId) {
     return NextResponse.json(
       { error: 'friendlyPlayerId no aplica en partidos de liga' },
-      { status: 400 },
+      { status: 400 }
     )
   }
 
-  const result = await registerMatchEvent(matchId, data)
+  const minuteOverride = isAdmin && data.minute !== undefined ? data.minute : undefined
+  const { minute: _minute, ...eventInput } = data
+
+  const result = await registerMatchEvent(matchId, eventInput, { minuteOverride })
   return NextResponse.json(result, { status: 201 })
 }

@@ -7,6 +7,9 @@ export type LiveMatchPayload = {
   homeScore: number
   awayScore: number
   status: string
+  clockStartedAt?: Date | null
+  secondHalfStartedAt?: Date | null
+  halftimeAt?: Date | null
   event?: MatchEvent
 }
 

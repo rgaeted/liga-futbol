@@ -125,6 +125,9 @@ model Match {
   status       MatchStatus @default(SCHEDULED)
   homeScore    Int         @default(0)
   awayScore    Int         @default(0)
+  clockStartedAt      DateTime?
+  secondHalfStartedAt DateTime?
+  halftimeAt          DateTime?
   events       MatchEvent[]
   callUps      CallUp[]
   friendlyPlayers FriendlyMatchPlayer[]

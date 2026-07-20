@@ -13,6 +13,13 @@ describe('match event validation', () => {
     expect(result.success).toBe(true)
   })
 
+  it('accepts event without minute for auto clock', () => {
+    const result = createMatchEventSchema.safeParse({
+      type: EventType.KICKOFF,
+    })
+    expect(result.success).toBe(true)
+  })
+
   it('rejects minute over 130', () => {
     const result = createMatchEventSchema.safeParse({
       type: EventType.GOAL,
@@ -34,7 +41,6 @@ describe('match event validation', () => {
   it('accepts kickoff without player fields', () => {
     const result = createMatchEventSchema.safeParse({
       type: EventType.KICKOFF,
-      minute: 0,
     })
     expect(result.success).toBe(true)
   })

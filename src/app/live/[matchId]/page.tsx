@@ -38,6 +38,12 @@ export default async function LiveMatchPage({
         homeScore: match.homeScore,
         awayScore: match.awayScore,
         status: match.status,
+        clock: {
+          status: match.status,
+          clockStartedAt: match.clockStartedAt?.toISOString() ?? null,
+          secondHalfStartedAt: match.secondHalfStartedAt?.toISOString() ?? null,
+          halftimeAt: match.halftimeAt?.toISOString() ?? null,
+        },
         events: match.events.map((e) => ({
           id: e.id,
           type: e.type,
