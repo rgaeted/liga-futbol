@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { EventType } from '@prisma/client'
 
-type Player = { id: string; user: { name: string }; jerseyNumber: number | null }
-type Team = { id: string; name: string; players: Player[] }
+type RosterPlayer = { id: string; label: string }
+type SideRoster = { id: string; name: string; players: RosterPlayer[] }
 
 type Props = {
   matchId: string
-  homeTeam: Team
-  awayTeam: Team
+  matchType: 'LEAGUE' | 'FRIENDLY'
+  homeTeam: SideRoster
+  awayTeam: SideRoster
   initialHomeScore: number
   initialAwayScore: number
   initialStatus: string
@@ -30,6 +31,7 @@ const QUICK_EVENTS = [
 
 export function MatchControlPanel({
   matchId,
+  matchType,
   homeTeam,
   awayTeam,
   initialHomeScore,
@@ -65,16 +67,26 @@ export function MatchControlPanel({
       return
     }
 
+    const body =
+      matchType === 'FRIENDLY'
+        ? {
+            type,
+            minute,
+            friendlyPlayerId: selectedPlayer || undefined,
+            side: selectedTeam === 'home' ? ('A' as const) : ('B' as const),
+          }
+        : {
+            type,
+            minute,
+            playerId: selectedPlayer || undefined,
+            teamId: activeTeam.id,
+          }
+
     setLoading(true)
     const res = await fetch(`/api/matches/${matchId}/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type,
-        minute,
-        playerId: selectedPlayer || undefined,
-        teamId: activeTeam.id,
-      }),
+      body: JSON.stringify(body),
     })
     const data = await res.json()
     if (data.match) {
@@ -137,7 +149,7 @@ export function MatchControlPanel({
         <option value="">Seleccionar jugador...</option>
         {activeTeam.players.map((p) => (
           <option key={p.id} value={p.id}>
-            #{p.jerseyNumber ?? '—'} {p.user.name}
+            {p.label}
           </option>
         ))}
       </select>

@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { matchDisplayName } from '@/lib/match-label'
 
 export default async function RefereeDashboardPage() {
   const session = await auth()
@@ -22,9 +23,7 @@ export default async function RefereeDashboardPage() {
           href={`/referee/match/${match.id}`}
           className="block rounded-xl border border-kelme-border bg-kelme-surface p-4 hover:border-kelme-red"
         >
-          <p className="font-semibold">
-            {match.homeTeam.name} vs {match.awayTeam.name}
-          </p>
+          <p className="font-semibold">{matchDisplayName(match)}</p>
           <p className="text-sm text-kelme-gray-400">
             {match.scheduledAt.toLocaleString('es-CL')} · {match.status}
           </p>
