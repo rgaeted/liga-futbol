@@ -7,15 +7,26 @@ const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
+  const isPhotoGet =
+    req.method === 'GET' && /^\/api\/friendly-players\/[^/]+\/photo$/.test(pathname)
+  const isClaimPost =
+    req.method === 'POST' && pathname === '/api/friendly-players/claim'
+
   const isPublic =
     pathname === '/' ||
     pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
     pathname.startsWith('/live') ||
-    pathname.startsWith('/api/auth')
+    pathname.startsWith('/api/auth') ||
+    isPhotoGet ||
+    isClaimPost
 
   if (isPublic) return NextResponse.next()
 
   if (!req.auth) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
