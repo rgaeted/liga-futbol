@@ -38,6 +38,36 @@ describe('friendly player validations', () => {
     expect(result.success).toBe(false)
   })
 
+  it('accepts create with email and password together', () => {
+    const result = createFriendlyPlayerSchema.safeParse({
+      firstName: 'Ana',
+      lastName: 'Silva',
+      email: 'ana@demo.cl',
+      password: 'password123',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('ignores empty email and password fields', () => {
+    const result = createFriendlyPlayerSchema.safeParse({
+      firstName: 'Ana',
+      lastName: 'Silva',
+      email: '',
+      password: '',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects email without password', () => {
+    const result = createFriendlyPlayerSchema.safeParse({
+      firstName: 'Ana',
+      lastName: 'Silva',
+      email: 'ana@demo.cl',
+      password: '',
+    })
+    expect(result.success).toBe(false)
+  })
+
   it('accepts optional account fields together', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',

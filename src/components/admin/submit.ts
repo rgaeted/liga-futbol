@@ -1,3 +1,5 @@
+import { formatApiError } from '@/lib/api-error'
+
 export type SubmitResult = { ok: true } | { ok: false; message: string }
 
 export async function submitJson(
@@ -23,13 +25,8 @@ export async function submitJson(
     const data = await res.json()
     if (typeof data?.error === 'string') {
       message = data.error
-    } else if (data?.error?.fieldErrors) {
-      const parts = Object.entries(
-        data.error.fieldErrors as Record<string, string[]>
-      )
-        .filter(([, msgs]) => msgs.length > 0)
-        .map(([field, msgs]) => `${field}: ${msgs.join(', ')}`)
-      if (parts.length > 0) message = parts.join(' · ')
+    } else if (data?.error) {
+      message = formatApiError(data.error, message)
     }
   } catch {
     // respuesta sin JSON

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
+import { readApiError } from '@/lib/api-error'
 import {
   FriendlyPlayerProfileFields,
   readFriendlyPlayerProfileFromForm,
@@ -35,14 +36,20 @@ export function FriendlyPlayerForm() {
     const form = new FormData(formEl)
     const email = String(form.get('email') ?? '').trim()
     const photoFile = photoRef.current?.files?.[0]
+    const password = String(form.get('password') ?? '').trim()
     const payload: Record<string, string> = {
       firstName: String(form.get('firstName') ?? '').trim(),
       lastName: String(form.get('lastName') ?? '').trim(),
       ...readFriendlyPlayerProfileFromForm(form),
     }
     if (email) {
+      if (!password) {
+        setLoading(false)
+        setError('Si ingresas email, también debes ingresar una contraseña.')
+        return
+      }
       payload.email = email
-      payload.password = String(form.get('password') ?? '')
+      payload.password = password
     }
 
     const res = await fetch('/api/friendly-players', {
@@ -52,14 +59,7 @@ export function FriendlyPlayerForm() {
     })
     if (!res.ok) {
       setLoading(false)
-      let message = `Error ${res.status}`
-      try {
-        const data = await res.json()
-        if (typeof data?.error === 'string') message = data.error
-      } catch {
-        // sin JSON
-      }
-      setError(message)
+      setError(await readApiError(res))
       return
     }
 

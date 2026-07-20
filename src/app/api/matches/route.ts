@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
+import { formatApiError } from '@/lib/api-error'
 import { createMatchSchema } from '@/lib/validations/match'
 import { Role } from '@prisma/client'
 
@@ -31,7 +32,10 @@ export async function POST(req: Request) {
   await requireRole([Role.ADMIN])
   const parsed = createMatchSchema.safeParse(await req.json())
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: formatApiError(parsed.error.flatten()) },
+      { status: 400 }
+    )
   }
 
   const data = parsed.data

@@ -6,23 +6,47 @@ import {
 
 const id = z.string().min(1)
 
+function emptyToUndefined(value: unknown) {
+  if (typeof value === 'string' && value.trim() === '') return undefined
+  return value
+}
+
+const optionalEmail = z.preprocess(
+  emptyToUndefined,
+  z.string().email({ message: 'Email inválido' }).optional()
+)
+
+const optionalPassword = z.preprocess(
+  emptyToUndefined,
+  z.string().min(6, { message: 'La contraseña debe tener al menos 6 caracteres' }).optional()
+)
+
 const profileFields = {
-  dominantFoot: z.enum(DOMINANT_FOOT_VALUES).optional(),
-  primaryPosition: z.enum(FRIENDLY_PLAYER_POSITIONS).optional(),
-  secondaryPosition: z.enum(FRIENDLY_PLAYER_POSITIONS).optional(),
+  dominantFoot: z.preprocess(
+    emptyToUndefined,
+    z.enum(DOMINANT_FOOT_VALUES).optional()
+  ),
+  primaryPosition: z.preprocess(
+    emptyToUndefined,
+    z.enum(FRIENDLY_PLAYER_POSITIONS).optional()
+  ),
+  secondaryPosition: z.preprocess(
+    emptyToUndefined,
+    z.enum(FRIENDLY_PLAYER_POSITIONS).optional()
+  ),
 }
 
 export const createFriendlyPlayerSchema = z
   .object({
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
-    email: z.string().email().optional(),
-    password: z.string().min(6).optional(),
+    firstName: z.string().trim().min(1, { message: 'Ingresa el nombre' }),
+    lastName: z.string().trim().min(1, { message: 'Ingresa el apellido' }),
+    email: optionalEmail,
+    password: optionalPassword,
     ...profileFields,
   })
   .superRefine((data, ctx) => {
-    const hasEmail = data.email !== undefined
-    const hasPassword = data.password !== undefined
+    const hasEmail = Boolean(data.email)
+    const hasPassword = Boolean(data.password)
     if (hasEmail !== hasPassword) {
       ctx.addIssue({
         code: 'custom',
@@ -45,8 +69,8 @@ export const createFriendlyPlayerSchema = z
 
 export const updateFriendlyPlayerSchema = z
   .object({
-    firstName: z.string().min(1).optional(),
-    lastName: z.string().min(1).optional(),
+    firstName: z.string().trim().min(1).optional(),
+    lastName: z.string().trim().min(1).optional(),
     dominantFoot: z.enum(DOMINANT_FOOT_VALUES).nullable().optional(),
     primaryPosition: z.enum(FRIENDLY_PLAYER_POSITIONS).nullable().optional(),
     secondaryPosition: z.enum(FRIENDLY_PLAYER_POSITIONS).nullable().optional(),
