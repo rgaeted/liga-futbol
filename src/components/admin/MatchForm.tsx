@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -26,6 +26,7 @@ export function MatchForm({ seasons, teams, referees }: Props) {
     const date = form.get('date') as string
     const time = form.get('time') as string
     const result = await submitJson('/api/matches', 'POST', {
+      matchType: 'LEAGUE',
       seasonId: form.get('seasonId'),
       homeTeamId: form.get('homeTeamId'),
       awayTeamId: form.get('awayTeamId'),
@@ -63,7 +64,7 @@ export function MatchForm({ seasons, teams, referees }: Props) {
         ))}
       </select>
       <select name="refereeId" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2">
-        <option value="">Árbitro</option>
+        <option value="">Ãrbitro</option>
         {referees.map((r) => (
           <option key={r.id} value={r.id}>{r.name}</option>
         ))}
@@ -72,7 +73,7 @@ export function MatchForm({ seasons, teams, referees }: Props) {
       <input name="time" type="time" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
       <input name="venue" placeholder="Cancha" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2" />
       <button type="submit" disabled={loading} className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50">
-        {loading ? 'Creando…' : 'Crear partido'}
+        {loading ? 'Creandoâ€¦' : 'Crear partido'}
       </button>
       {error && <p className="text-sm text-kelme-red md:col-span-3">{error}</p>}
     </form>
