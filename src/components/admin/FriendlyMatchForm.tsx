@@ -27,6 +27,16 @@ function playerLabel(p: FriendlyPlayer) {
   return p.primaryPosition ? `${name} (${p.primaryPosition})` : name
 }
 
+function playerSearchText(p: FriendlyPlayer) {
+  return `${p.firstName} ${p.lastName} ${p.primaryPosition ?? ''}`.toLowerCase()
+}
+
+function filterRoster(players: FriendlyPlayer[], query: string) {
+  const q = query.trim().toLowerCase()
+  if (!q) return players
+  return players.filter((p) => playerSearchText(p).includes(q))
+}
+
 export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Props) {
   const router = useRouter()
   const activeCategories = categories.filter((c) => c.isActive)
@@ -35,13 +45,19 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
   const [error, setError] = useState('')
   const [sideAIds, setSideAIds] = useState<Set<string>>(new Set())
   const [sideBIds, setSideBIds] = useState<Set<string>>(new Set())
+  const [sideASearch, setSideASearch] = useState('')
+  const [sideBSearch, setSideBSearch] = useState('')
 
   const roster = friendlyPlayers.filter((p) => p.friendlyCategoryId === categoryId)
+  const filteredSideA = filterRoster(roster, sideASearch)
+  const filteredSideB = filterRoster(roster, sideBSearch)
 
   function onCategoryChange(nextId: string) {
     setCategoryId(nextId)
     setSideAIds(new Set())
     setSideBIds(new Set())
+    setSideASearch('')
+    setSideBSearch('')
     setError('')
   }
 
@@ -177,61 +193,97 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <fieldset className="rounded-lg border border-kelme-border p-3">
-          <legend className="px-1 text-sm font-medium">Jugadores lado A</legend>
+          <legend className="px-1 text-sm font-medium">
+            Jugadores lado A
+            {sideAIds.size > 0 && (
+              <span className="ml-1 font-normal text-kelme-gray-400">({sideAIds.size} seleccionados)</span>
+            )}
+          </legend>
           {roster.length === 0 ? (
             <p className="text-sm text-kelme-gray-400">No hay jugadores en esta categoría.</p>
           ) : (
-            <ul className="max-h-48 space-y-2 overflow-y-auto">
-              {roster.map((p) => (
-                <li key={`a-${p.id}`}>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={sideAIds.has(p.id)}
-                      disabled={sideBIds.has(p.id)}
-                      onChange={(ev) => toggleSide('A', p.id, ev.target.checked)}
-                    />
-                    <FriendlyPlayerAvatar
-                      id={p.id}
-                      firstName={p.firstName}
-                      lastName={p.lastName}
-                      hasPhoto={Boolean(p.hasPhoto)}
-                      size="sm"
-                    />
-                    {playerLabel(p)}
-                  </label>
-                </li>
-              ))}
-            </ul>
+            <>
+              <input
+                type="search"
+                value={sideASearch}
+                onChange={(e) => setSideASearch(e.target.value)}
+                placeholder="Buscar jugador…"
+                className="mb-2 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-1.5 text-sm"
+              />
+              {filteredSideA.length === 0 ? (
+                <p className="text-sm text-kelme-gray-400">Ningún jugador coincide con la búsqueda.</p>
+              ) : (
+                <ul className="max-h-48 space-y-2 overflow-y-auto">
+                  {filteredSideA.map((p) => (
+                    <li key={`a-${p.id}`}>
+                      <label className="flex cursor-pointer items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={sideAIds.has(p.id)}
+                          disabled={sideBIds.has(p.id)}
+                          onChange={(ev) => toggleSide('A', p.id, ev.target.checked)}
+                        />
+                        <FriendlyPlayerAvatar
+                          id={p.id}
+                          firstName={p.firstName}
+                          lastName={p.lastName}
+                          hasPhoto={Boolean(p.hasPhoto)}
+                          size="sm"
+                        />
+                        {playerLabel(p)}
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
         </fieldset>
         <fieldset className="rounded-lg border border-kelme-border p-3">
-          <legend className="px-1 text-sm font-medium">Jugadores lado B</legend>
+          <legend className="px-1 text-sm font-medium">
+            Jugadores lado B
+            {sideBIds.size > 0 && (
+              <span className="ml-1 font-normal text-kelme-gray-400">({sideBIds.size} seleccionados)</span>
+            )}
+          </legend>
           {roster.length === 0 ? (
             <p className="text-sm text-kelme-gray-400">No hay jugadores en esta categoría.</p>
           ) : (
-            <ul className="max-h-48 space-y-2 overflow-y-auto">
-              {roster.map((p) => (
-                <li key={`b-${p.id}`}>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={sideBIds.has(p.id)}
-                      disabled={sideAIds.has(p.id)}
-                      onChange={(ev) => toggleSide('B', p.id, ev.target.checked)}
-                    />
-                    <FriendlyPlayerAvatar
-                      id={p.id}
-                      firstName={p.firstName}
-                      lastName={p.lastName}
-                      hasPhoto={Boolean(p.hasPhoto)}
-                      size="sm"
-                    />
-                    {playerLabel(p)}
-                  </label>
-                </li>
-              ))}
-            </ul>
+            <>
+              <input
+                type="search"
+                value={sideBSearch}
+                onChange={(e) => setSideBSearch(e.target.value)}
+                placeholder="Buscar jugador…"
+                className="mb-2 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-1.5 text-sm"
+              />
+              {filteredSideB.length === 0 ? (
+                <p className="text-sm text-kelme-gray-400">Ningún jugador coincide con la búsqueda.</p>
+              ) : (
+                <ul className="max-h-48 space-y-2 overflow-y-auto">
+                  {filteredSideB.map((p) => (
+                    <li key={`b-${p.id}`}>
+                      <label className="flex cursor-pointer items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={sideBIds.has(p.id)}
+                          disabled={sideAIds.has(p.id)}
+                          onChange={(ev) => toggleSide('B', p.id, ev.target.checked)}
+                        />
+                        <FriendlyPlayerAvatar
+                          id={p.id}
+                          firstName={p.firstName}
+                          lastName={p.lastName}
+                          hasPhoto={Boolean(p.hasPhoto)}
+                          size="sm"
+                        />
+                        {playerLabel(p)}
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
         </fieldset>
       </div>
