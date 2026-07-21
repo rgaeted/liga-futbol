@@ -1,20 +1,10 @@
-const MAX_PHOTO_BYTES = 500 * 1024
-const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+import { validateImageUpload } from '@/lib/image-upload'
 
 export function validateFriendlyPlayerPhoto(
   buffer: Buffer,
   mimeType: string
 ): { ok: true } | { ok: false; error: string } {
-  if (!ALLOWED_MIME_TYPES.has(mimeType)) {
-    return { ok: false, error: 'Formato no permitido. Usa JPG, PNG o WebP.' }
-  }
-  if (buffer.byteLength > MAX_PHOTO_BYTES) {
-    return { ok: false, error: 'La foto no puede superar 500 KB.' }
-  }
-  if (buffer.byteLength === 0) {
-    return { ok: false, error: 'Archivo vacío.' }
-  }
-  return { ok: true }
+  return validateImageUpload(buffer, mimeType)
 }
 
 export function friendlyPlayerPhotoUrl(id: string): string {

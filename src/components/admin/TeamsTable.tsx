@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
+import { CrestUploadField } from './CrestUploadField'
+import { TeamCrest } from '@/components/TeamCrest'
+import { teamCrestUrl } from '@/lib/team-crest'
 
 export type TeamRow = {
   id: string
@@ -11,6 +14,7 @@ export type TeamRow = {
   coachId: string | null
   coachName: string | null
   playerCount: number
+  hasCrest: boolean
 }
 
 export type CoachOption = {
@@ -55,6 +59,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
       <table className="w-full text-left text-sm">
         <thead className="bg-kelme-surface">
           <tr>
+            <th className="p-3">Escudo</th>
             <th className="p-3">Nombre</th>
             <th className="p-3">DT</th>
             <th className="p-3">Jugadores</th>
@@ -66,6 +71,16 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
             <tr key={team.id} className="border-t border-kelme-border">
               {editingId === team.id ? (
                 <>
+                  <td className="p-3 align-top">
+                    <CrestUploadField
+                      label="Escudo del equipo"
+                      name={name}
+                      uploadUrl={`/api/teams/${team.id}/crest`}
+                      previewUrl={teamCrestUrl(team.id)}
+                      hasCrest={team.hasCrest}
+                      onUpdated={() => router.refresh()}
+                    />
+                  </td>
                   <td className="p-3">
                     <input
                       value={name}
@@ -116,6 +131,13 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
                 </>
               ) : (
                 <>
+                  <td className="p-3">
+                    <TeamCrest
+                      name={team.name}
+                      src={team.hasCrest ? teamCrestUrl(team.id) : null}
+                      size="sm"
+                    />
+                  </td>
                   <td className="p-3">{team.name}</td>
                   <td className="p-3">{team.coachName ?? '—'}</td>
                   <td className="p-3">{team.playerCount}</td>

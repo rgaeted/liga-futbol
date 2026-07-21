@@ -2,15 +2,22 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import type { FootballFormat } from '@prisma/client'
+import type { FootballFormat, MatchType } from '@prisma/client'
 import { FOOTBALL_FORMATS, footballFormatLabel } from '@/lib/football-format'
+import { matchSideCrestUrl } from '@/lib/match-side-crest'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
+import { CrestUploadField } from './CrestUploadField'
 
 export type MatchRow = {
   id: string
   label: string // "Local vs Visitante"
+  matchType: MatchType
+  sideAName: string | null
+  sideBName: string | null
+  hasCrestA: boolean
+  hasCrestB: boolean
   refereeId: string | null
   venue: string | null
   status: string
@@ -122,6 +129,26 @@ export function MatchActions({ match, referees }: { match: MatchRow; referees: R
         placeholder="Cancha"
         className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
       />
+      {match.matchType === 'FRIENDLY' && (
+        <>
+          <CrestUploadField
+            label={`Escudo lado A (${match.sideAName ?? 'A'})`}
+            name={match.sideAName ?? 'Lado A'}
+            uploadUrl={`/api/matches/${match.id}/crest/A`}
+            previewUrl={matchSideCrestUrl(match.id, 'A')}
+            hasCrest={match.hasCrestA}
+            onUpdated={() => router.refresh()}
+          />
+          <CrestUploadField
+            label={`Escudo lado B (${match.sideBName ?? 'B'})`}
+            name={match.sideBName ?? 'Lado B'}
+            uploadUrl={`/api/matches/${match.id}/crest/B`}
+            previewUrl={matchSideCrestUrl(match.id, 'B')}
+            hasCrest={match.hasCrestB}
+            onUpdated={() => router.refresh()}
+          />
+        </>
+      )}
       <span className="inline-flex items-center gap-2">
         <button
           type="button"

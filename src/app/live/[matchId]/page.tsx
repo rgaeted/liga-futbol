@@ -2,11 +2,14 @@ import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
 import { matchSideNames, resolveEventTeamLabel } from '@/lib/match-label'
 import { buildMatchFormationSides } from '@/lib/match-formations'
+import { matchSideCrestUrl, matchSideHasCrest } from '@/lib/match-side-crest'
+import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
 import {
   sortTimelineEvents,
   timelineUsesCreatedAtOrder,
 } from '@/lib/match-timeline-sort'
 import { notFound } from 'next/navigation'
+import { MatchType } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -99,6 +102,24 @@ export default async function LiveMatchPage({
     })),
   })
 
+  const homeCrestSrc =
+    match.matchType === MatchType.FRIENDLY
+      ? matchSideHasCrest(match, 'A')
+        ? matchSideCrestUrl(match.id, 'A')
+        : null
+      : match.homeTeam && teamHasCrest(match.homeTeam)
+        ? teamCrestUrl(match.homeTeam.id)
+        : null
+
+  const awayCrestSrc =
+    match.matchType === MatchType.FRIENDLY
+      ? matchSideHasCrest(match, 'B')
+        ? matchSideCrestUrl(match.id, 'B')
+        : null
+      : match.awayTeam && teamHasCrest(match.awayTeam)
+        ? teamCrestUrl(match.awayTeam.id)
+        : null
+
   return (
     <LiveScoreboard
       initialMatch={{
@@ -108,8 +129,8 @@ export default async function LiveMatchPage({
         awayTeamId: match.awayTeamId,
         sideAName: match.sideAName,
         sideBName: match.sideBName,
-        homeTeam: { name: sides.home },
-        awayTeam: { name: sides.away },
+        homeTeam: { name: sides.home, crestSrc: homeCrestSrc },
+        awayTeam: { name: sides.away, crestSrc: awayCrestSrc },
         homeScore: match.homeScore,
         awayScore: match.awayScore,
         status: match.status,

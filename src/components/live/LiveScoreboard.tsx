@@ -9,6 +9,7 @@ import { sortTimelineEvents } from '@/lib/match-timeline-sort'
 import { resolveEventTeamLabel } from '@/lib/match-label'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
+import { TeamCrest } from '@/components/TeamCrest'
 import type { LineupView } from '@/lib/match-lineup'
 import type { FootballFormat, MatchType } from '@prisma/client'
 import { footballFormatLabel } from '@/lib/football-format'
@@ -58,8 +59,8 @@ type Match = {
   awayTeamId: string | null
   sideAName: string | null
   sideBName: string | null
-  homeTeam: { name: string }
-  awayTeam: { name: string }
+  homeTeam: { name: string; crestSrc?: string | null }
+  awayTeam: { name: string; crestSrc?: string | null }
   homeScore: number
   awayScore: number
   status: string
@@ -200,15 +201,27 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
           <MatchClockDisplay clock={{ ...match.clock, status: match.status }} />
         </div>
 
-        <div className="mb-8 flex items-center justify-between rounded-2xl border border-white/10 bg-kelme-live-surface p-8">
-          <div className="flex-1 text-center">
-            <p className="font-ui text-lg font-semibold">{match.homeTeam.name}</p>
-            <p className="font-display text-6xl font-extrabold tabular-nums text-white">{match.homeScore}</p>
-          </div>
-          <p className="px-4 font-ui text-2xl text-white/40">vs</p>
-          <div className="flex-1 text-center">
-            <p className="font-ui text-lg font-semibold">{match.awayTeam.name}</p>
-            <p className="font-display text-6xl font-extrabold tabular-nums text-white">{match.awayScore}</p>
+        <div className="mb-8 rounded-2xl border border-white/10 bg-kelme-live-surface p-6 sm:p-8">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+              <TeamCrest name={match.homeTeam.name} src={match.homeTeam.crestSrc} size="lg" />
+              <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
+                {match.homeTeam.name}
+              </p>
+            </div>
+            <div className="shrink-0 px-2 text-center">
+              <p className="font-display text-5xl font-extrabold tabular-nums text-white sm:text-6xl">
+                {match.homeScore}
+                <span className="mx-1 text-white/35">-</span>
+                {match.awayScore}
+              </p>
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+              <TeamCrest name={match.awayTeam.name} src={match.awayTeam.crestSrc} size="lg" />
+              <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
+                {match.awayTeam.name}
+              </p>
+            </div>
           </div>
         </div>
 

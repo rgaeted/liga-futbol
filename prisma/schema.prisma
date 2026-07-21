@@ -73,10 +73,12 @@ model User {
 }
 
 model Team {
-  id        String   @id @default(cuid())
-  name      String
-  logoUrl   String?
-  coachId   String?  @unique
+  id            String   @id @default(cuid())
+  name          String
+  logoUrl       String?
+  crestMimeType String?
+  crestData     Bytes?
+  coachId       String?  @unique
   coach     User?    @relation("TeamCoach", fields: [coachId], references: [id])
   players   Player[]
   homeMatches Match[] @relation("HomeTeam")
@@ -138,6 +140,10 @@ model Match {
   awayTeam     Team?       @relation("AwayTeam", fields: [awayTeamId], references: [id])
   sideAName    String?
   sideBName    String?
+  sideACrestMimeType String?
+  sideACrestData     Bytes?
+  sideBCrestMimeType String?
+  sideBCrestData     Bytes?
   friendlyCategoryId String?
   friendlyCategory   FriendlyCategory? @relation(fields: [friendlyCategoryId], references: [id])
   footballFormat     FootballFormat    @default(FUTBOL_11)

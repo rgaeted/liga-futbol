@@ -9,6 +9,10 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isPhotoGet =
     req.method === 'GET' && /^\/api\/friendly-players\/[^/]+\/photo$/.test(pathname)
+  const isTeamCrestGet =
+    req.method === 'GET' && /^\/api\/teams\/[^/]+\/crest$/.test(pathname)
+  const isMatchCrestGet =
+    req.method === 'GET' && /^\/api\/matches\/[^/]+\/crest\/[AB]$/.test(pathname)
   const isFormationsGet =
     req.method === 'GET' && /^\/api\/matches\/[^/]+\/formations$/.test(pathname)
   const isClaimPost =
@@ -21,6 +25,8 @@ export default auth((req) => {
     pathname.startsWith('/live') ||
     pathname.startsWith('/api/auth') ||
     isPhotoGet ||
+    isTeamCrestGet ||
+    isMatchCrestGet ||
     isFormationsGet ||
     isClaimPost
 

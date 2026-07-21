@@ -9,6 +9,7 @@ import { APP_LOCALE } from '@/lib/locale'
 import { formatScheduleDateInput, formatScheduleTimeInput } from '@/lib/schedule-datetime'
 import Link from 'next/link'
 import { MatchType, Role } from '@prisma/client'
+import { matchSideHasCrest } from '@/lib/match-side-crest'
 
 export default async function AdminMatchesPage() {
   const [matches, seasons, teams, referees, friendlyCategories, friendlyPlayers] = await Promise.all([
@@ -149,6 +150,11 @@ export default async function AdminMatchesPage() {
                     match={{
                       id: match.id,
                       label: title,
+                      matchType: match.matchType,
+                      sideAName: match.sideAName,
+                      sideBName: match.sideBName,
+                      hasCrestA: matchSideHasCrest(match, 'A'),
+                      hasCrestB: matchSideHasCrest(match, 'B'),
                       refereeId: match.refereeId,
                       venue: match.venue,
                       status: match.status,
