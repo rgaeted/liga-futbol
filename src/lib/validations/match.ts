@@ -1,6 +1,8 @@
 import { z } from 'zod'
+import { FOOTBALL_FORMATS } from '@/lib/football-format'
 
 const id = z.string().min(1)
+const footballFormatSchema = z.enum(FOOTBALL_FORMATS)
 
 const friendlyPlayerEntry = z.object({
   friendlyPlayerId: id,
@@ -21,6 +23,7 @@ export const createFriendlyMatchSchema = z
   .object({
     matchType: z.literal('FRIENDLY'),
     friendlyCategoryId: id,
+    footballFormat: footballFormatSchema.default('FUTBOL_11'),
     sideAName: z.string().min(1),
     sideBName: z.string().min(1),
     refereeId: id.optional(),

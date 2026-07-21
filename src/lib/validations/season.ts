@@ -1,15 +1,20 @@
 import { z } from 'zod'
+import { FOOTBALL_FORMATS } from '@/lib/football-format'
+
+const footballFormatSchema = z.enum(FOOTBALL_FORMATS)
 
 export const createSeasonSchema = z.object({
   name: z.string().min(2),
   startDate: z.string().datetime(),
   endDate: z.string().datetime(),
+  footballFormat: footballFormatSchema.default('FUTBOL_11'),
 })
 
 export const updateSeasonSchema = z.object({
   name: z.string().min(2).optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
+  footballFormat: footballFormatSchema.optional(),
   isActive: z.boolean().optional(),
 })
 

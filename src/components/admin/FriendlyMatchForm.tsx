@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from './submit'
 import { FriendlyPlayerAvatar } from './FriendlyPlayerAvatar'
+import { FOOTBALL_FORMATS, FOOTBALL_FORMAT_LABELS } from '@/lib/football-format'
 
 type Referee = { id: string; name: string }
 type FriendlyCategoryOption = { id: string; name: string; isActive: boolean }
@@ -127,6 +128,7 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     const result = await submitJson('/api/matches', 'POST', {
       matchType: 'FRIENDLY',
       friendlyCategoryId: categoryId,
+      footballFormat: String(form.get('footballFormat') ?? 'FUTBOL_11'),
       sideAName: String(form.get('sideAName') ?? '').trim(),
       sideBName: String(form.get('sideBName') ?? '').trim(),
       refereeId: refereeId || undefined,
@@ -174,6 +176,18 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
         {activeCategories.map((c) => (
           <option key={c.id} value={c.id}>
             {c.name}
+          </option>
+        ))}
+      </select>
+      <select
+        name="footballFormat"
+        defaultValue="FUTBOL_11"
+        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        required
+      >
+        {FOOTBALL_FORMATS.map((format) => (
+          <option key={format} value={format}>
+            {FOOTBALL_FORMAT_LABELS[format]}
           </option>
         ))}
       </select>

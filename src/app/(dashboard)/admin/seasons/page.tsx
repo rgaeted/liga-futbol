@@ -15,6 +15,7 @@ export default async function AdminSeasonsPage() {
           name: s.name,
           startDate: s.startDate.toISOString().slice(0, 10),
           endDate: s.endDate.toISOString().slice(0, 10),
+          footballFormat: s.footballFormat,
           isActive: s.isActive,
         }))}
       />

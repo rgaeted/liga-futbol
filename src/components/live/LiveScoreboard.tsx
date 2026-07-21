@@ -7,7 +7,10 @@ import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
 import { resolveEventTeamLabel } from '@/lib/match-label'
-import type { MatchType } from '@prisma/client'
+import { FormationPitch } from '@/components/lineup/FormationPitch'
+import type { LineupView } from '@/lib/match-lineup'
+import type { FootballFormat, MatchType } from '@prisma/client'
+import { footballFormatLabel } from '@/lib/football-format'
 
 type RawSocketEvent = {
   id: string
@@ -63,6 +66,8 @@ type Match = {
   friendlySideByPlayer: Record<string, 'A' | 'B'>
   clock: SerializableClockState
   events: MatchEvent[]
+  footballFormat: FootballFormat
+  formations: Array<{ label: string; lineup: LineupView | null }>
 }
 
 function eventPlayerName(event: RawSocketEvent): string | null {
@@ -170,6 +175,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
   }, [match.id])
 
   const isLive = match.status === 'LIVE'
+  const hasFormations = match.formations.some((f) => f.lineup)
 
   return (
     <div className="min-h-screen bg-kelme-live-bg text-white">
@@ -204,6 +210,32 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
             <p className="font-display text-6xl font-extrabold tabular-nums text-white">{match.awayScore}</p>
           </div>
         </div>
+
+        {hasFormations && (
+          <section className="mb-8">
+            <h2 className="mb-1 font-display text-lg font-bold">Formaciones</h2>
+            <p className="mb-4 text-center font-ui text-xs uppercase tracking-widest text-white/40">
+              {footballFormatLabel(match.footballFormat)}
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              {match.formations.map((side) =>
+                side.lineup ? (
+                  <div key={side.label}>
+                    <p className="mb-2 text-center font-ui text-sm text-white/70">
+                      {side.label}
+                    </p>
+                    <FormationPitch lineup={side.lineup} />
+                    {side.lineup.bench.length > 0 && (
+                      <p className="mt-2 text-center text-xs text-white/40">
+                        Banco: {side.lineup.bench.map((b) => b.playerName).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                ) : null
+              )}
+            </div>
+          </section>
+        )}
 
         <h2 className="mb-4 font-display text-lg font-bold">Cronología</h2>
         <ul className="space-y-2">

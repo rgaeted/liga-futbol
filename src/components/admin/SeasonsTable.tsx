@@ -2,14 +2,17 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import type { FootballFormat } from '@prisma/client'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
+import { FOOTBALL_FORMATS, FOOTBALL_FORMAT_LABELS } from '@/lib/football-format'
 
 export type SeasonRow = {
   id: string
   name: string
-  startDate: string // yyyy-mm-dd
-  endDate: string // yyyy-mm-dd
+  startDate: string
+  endDate: string
+  footballFormat: FootballFormat
   isActive: boolean
 }
 
@@ -19,6 +22,7 @@ export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
   const [name, setName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [footballFormat, setFootballFormat] = useState<FootballFormat>('FUTBOL_11')
   const [isActive, setIsActive] = useState(true)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -28,6 +32,7 @@ export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
     setName(season.name)
     setStartDate(season.startDate)
     setEndDate(season.endDate)
+    setFootballFormat(season.footballFormat)
     setIsActive(season.isActive)
     setError('')
   }
@@ -39,6 +44,7 @@ export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
       name,
       startDate: new Date(startDate).toISOString(),
       endDate: new Date(endDate).toISOString(),
+      footballFormat,
       isActive,
     })
     setSaving(false)
@@ -56,6 +62,7 @@ export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
         <thead className="bg-kelme-surface">
           <tr>
             <th className="p-3">Nombre</th>
+            <th className="p-3">Tipo</th>
             <th className="p-3">Inicio</th>
             <th className="p-3">Fin</th>
             <th className="p-3">Activa</th>
@@ -73,6 +80,19 @@ export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
                       onChange={(e) => setName(e.target.value)}
                       className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
                     />
+                  </td>
+                  <td className="p-3">
+                    <select
+                      value={footballFormat}
+                      onChange={(e) => setFootballFormat(e.target.value as FootballFormat)}
+                      className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                    >
+                      {FOOTBALL_FORMATS.map((format) => (
+                        <option key={format} value={format}>
+                          {FOOTBALL_FORMAT_LABELS[format]}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="p-3">
                     <input
@@ -121,6 +141,7 @@ export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
               ) : (
                 <>
                   <td className="p-3">{season.name}</td>
+                  <td className="p-3">{FOOTBALL_FORMAT_LABELS[season.footballFormat]}</td>
                   <td className="p-3">{season.startDate}</td>
                   <td className="p-3">{season.endDate}</td>
                   <td className="p-3">{season.isActive ? 'Sí' : 'No'}</td>

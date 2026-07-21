@@ -46,10 +46,15 @@ export async function POST(req: Request) {
     if (data.homeTeamId === data.awayTeamId) {
       return NextResponse.json({ error: 'Home and away team must differ' }, { status: 400 })
     }
+    const season = await db.season.findUnique({ where: { id: data.seasonId } })
+    if (!season) {
+      return NextResponse.json({ error: 'Temporada no encontrada' }, { status: 400 })
+    }
     const match = await db.match.create({
       data: {
         matchType: 'LEAGUE',
         seasonId: data.seasonId,
+        footballFormat: season.footballFormat,
         homeTeamId: data.homeTeamId,
         awayTeamId: data.awayTeamId,
         refereeId: data.refereeId,
@@ -96,6 +101,7 @@ export async function POST(req: Request) {
       data: {
         matchType: 'FRIENDLY',
         friendlyCategoryId: data.friendlyCategoryId,
+        footballFormat: data.footballFormat,
         sideAName: data.sideAName,
         sideBName: data.sideBName,
         refereeId: data.refereeId,

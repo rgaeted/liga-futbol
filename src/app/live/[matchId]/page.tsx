@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
 import { matchSideNames, resolveEventTeamLabel } from '@/lib/match-label'
+import { buildMatchFormationSides } from '@/lib/match-formations'
 import {
   sortTimelineEvents,
   timelineUsesCreatedAtOrder,
@@ -21,7 +22,20 @@ export default async function LiveMatchPage({
     include: {
       homeTeam: true,
       awayTeam: true,
-      friendlyPlayers: { select: { friendlyPlayerId: true, side: true } },
+      formations: true,
+      callUps: {
+        include: {
+          player: {
+            include: {
+              user: { select: { name: true } },
+              team: { select: { id: true } },
+            },
+          },
+        },
+      },
+      friendlyPlayers: {
+        include: { friendlyPlayer: { select: { firstName: true, lastName: true } } },
+      },
       events: {
         include: {
           player: {
@@ -58,6 +72,32 @@ export default async function LiveMatchPage({
   const friendlySideByPlayer = new Map(
     match.friendlyPlayers.map((p) => [p.friendlyPlayerId, p.side])
   )
+
+  const formationSides = buildMatchFormationSides({
+    matchType: match.matchType,
+    footballFormat: match.footballFormat,
+    sideAName: match.sideAName,
+    sideBName: match.sideBName,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    homeTeamId: match.homeTeamId,
+    awayTeamId: match.awayTeamId,
+    formations: match.formations,
+    callUps: match.callUps.map((c) => ({
+      playerId: c.playerId,
+      slotKey: c.slotKey,
+      player: {
+        teamId: c.player.teamId,
+        user: c.player.user,
+      },
+    })),
+    friendlyPlayers: match.friendlyPlayers.map((p) => ({
+      friendlyPlayerId: p.friendlyPlayerId,
+      side: p.side,
+      slotKey: p.slotKey,
+      friendlyPlayer: p.friendlyPlayer,
+    })),
+  })
 
   return (
     <LiveScoreboard
@@ -108,6 +148,8 @@ export default async function LiveMatchPage({
             teamContext
           ),
         })),
+        footballFormat: match.footballFormat,
+        formations: formationSides.map((s) => ({ label: s.label, lineup: s.lineup })),
       }}
     />
   )

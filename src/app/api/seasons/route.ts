@@ -20,6 +20,7 @@ export async function POST(req: Request) {
       name: parsed.data.name,
       startDate: new Date(parsed.data.startDate),
       endDate: new Date(parsed.data.endDate),
+      footballFormat: parsed.data.footballFormat,
     },
   })
   return NextResponse.json(season, { status: 201 })

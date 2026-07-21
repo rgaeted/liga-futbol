@@ -9,6 +9,8 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isPhotoGet =
     req.method === 'GET' && /^\/api\/friendly-players\/[^/]+\/photo$/.test(pathname)
+  const isFormationsGet =
+    req.method === 'GET' && /^\/api\/matches\/[^/]+\/formations$/.test(pathname)
   const isClaimPost =
     req.method === 'POST' && pathname === '/api/friendly-players/claim'
 
@@ -19,6 +21,7 @@ export default auth((req) => {
     pathname.startsWith('/live') ||
     pathname.startsWith('/api/auth') ||
     isPhotoGet ||
+    isFormationsGet ||
     isClaimPost
 
   if (isPublic) return NextResponse.next()

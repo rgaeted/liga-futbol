@@ -4,6 +4,7 @@ import { FriendlyMatchForm } from '@/components/admin/FriendlyMatchForm'
 import { FriendlyPaidToggle } from '@/components/admin/FriendlyPaidToggle'
 import { MatchActions } from '@/components/admin/MatchActions'
 import { matchDisplayName } from '@/lib/match-label'
+import { footballFormatLabel } from '@/lib/football-format'
 import { APP_LOCALE } from '@/lib/locale'
 import Link from 'next/link'
 import { MatchType, Role } from '@prisma/client'
@@ -44,7 +45,15 @@ export default async function AdminMatchesPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold">Partidos</h1>
-      <MatchForm seasons={seasons} teams={teams} referees={referees} />
+      <MatchForm
+        seasons={seasons.map((s) => ({
+          id: s.id,
+          name: s.name,
+          footballFormat: s.footballFormat,
+        }))}
+        teams={teams}
+        referees={referees}
+      />
       <FriendlyMatchForm
         referees={referees}
         categories={friendlyCategories.map((c) => ({
@@ -81,7 +90,8 @@ export default async function AdminMatchesPage() {
                     )}
                   </div>
                   <p className="text-sm text-kelme-gray-400">
-                    {seasonLine} · {match.scheduledAt.toLocaleString(APP_LOCALE)}
+                    {seasonLine} · {footballFormatLabel(match.footballFormat)} ·{' '}
+                    {match.scheduledAt.toLocaleString(APP_LOCALE)}
                     {match.referee ? ` · ${match.referee.name}` : ''}
                   </p>
                   {match.matchType === MatchType.FRIENDLY &&
@@ -123,6 +133,12 @@ export default async function AdminMatchesPage() {
                     className="text-sm text-kelme-gray-600 hover:underline"
                   >
                     Cronología
+                  </Link>
+                  <Link
+                    href={`/admin/matches/${match.id}/lineup`}
+                    className="text-sm text-kelme-gray-600 hover:underline"
+                  >
+                    Formación
                   </Link>
                   <MatchActions
                     match={{
