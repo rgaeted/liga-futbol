@@ -78,13 +78,13 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
         },
         events: payload.event
           ? [
+              ...prev.events,
               {
                 id: payload.event.id,
                 type: payload.event.type,
                 minute: payload.event.minute,
                 playerName: eventPlayerName(payload.event),
               },
-              ...prev.events,
             ]
           : prev.events,
       }))
