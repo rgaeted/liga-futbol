@@ -62,6 +62,7 @@ export const updateMatchSchema = z.object({
   scheduledAt: z.string().datetime().optional(),
   venue: z.string().nullable().optional(),
   status: z.enum(['SCHEDULED', 'LIVE', 'HALFTIME', 'FINISHED', 'CANCELLED']).optional(),
+  footballFormat: footballFormatSchema.optional(),
 })
 
 export const updateFriendlyPaidSchema = z.object({

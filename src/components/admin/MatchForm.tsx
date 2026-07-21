@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import type { FootballFormat } from '@prisma/client'
 import { submitJson } from './submit'
 import { footballFormatLabel } from '@/lib/football-format'
+import { scheduleInputToIso } from '@/lib/schedule-datetime'
 
 type Option = { id: string; name: string; footballFormat?: FootballFormat }
 
@@ -40,7 +41,7 @@ export function MatchForm({ seasons, teams, referees }: Props) {
       awayTeamId: form.get('awayTeamId'),
       refereeId: form.get('refereeId') || undefined,
       venue: form.get('venue') || undefined,
-      scheduledAt: new Date(`${date}T${time}`).toISOString(),
+      scheduledAt: scheduleInputToIso(date, time),
     })
     setLoading(false)
     if (!result.ok) {

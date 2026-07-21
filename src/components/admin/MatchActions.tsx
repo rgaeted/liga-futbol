@@ -2,6 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import type { FootballFormat } from '@prisma/client'
+import { FOOTBALL_FORMATS, footballFormatLabel } from '@/lib/football-format'
+import { scheduleInputToIso } from '@/lib/schedule-datetime'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
 
@@ -11,6 +14,7 @@ export type MatchRow = {
   refereeId: string | null
   venue: string | null
   status: string
+  footballFormat: FootballFormat
   date: string // yyyy-mm-dd
   time: string // HH:mm
 }
@@ -25,6 +29,7 @@ export function MatchActions({ match, referees }: { match: MatchRow; referees: R
   const [refereeId, setRefereeId] = useState(match.refereeId ?? '')
   const [venue, setVenue] = useState(match.venue ?? '')
   const [status, setStatus] = useState(match.status)
+  const [footballFormat, setFootballFormat] = useState(match.footballFormat)
   const [date, setDate] = useState(match.date)
   const [time, setTime] = useState(match.time)
   const [error, setError] = useState('')
@@ -37,7 +42,8 @@ export function MatchActions({ match, referees }: { match: MatchRow; referees: R
       refereeId: refereeId || null,
       venue: venue || null,
       status,
-      scheduledAt: new Date(`${date}T${time}`).toISOString(),
+      footballFormat,
+      scheduledAt: scheduleInputToIso(date, time),
     })
     setSaving(false)
     if (!result.ok) {
@@ -87,6 +93,17 @@ export function MatchActions({ match, referees }: { match: MatchRow; referees: R
       >
         {STATUSES.map((s) => (
           <option key={s} value={s}>{s}</option>
+        ))}
+      </select>
+      <select
+        value={footballFormat}
+        onChange={(e) => setFootballFormat(e.target.value as FootballFormat)}
+        className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+      >
+        {FOOTBALL_FORMATS.map((format) => (
+          <option key={format} value={format}>
+            {footballFormatLabel(format)}
+          </option>
         ))}
       </select>
       <select

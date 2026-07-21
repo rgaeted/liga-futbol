@@ -26,6 +26,10 @@ describe('match validations', () => {
     const result = updateMatchSchema.safeParse({ refereeId: null })
     expect(result.success).toBe(true)
   })
+  it('updateMatchSchema accepts footballFormat change', () => {
+    const result = updateMatchSchema.safeParse({ footballFormat: 'FUTBOL_7' })
+    expect(result.success).toBe(true)
+  })
 })
 
 describe('player validations', () => {

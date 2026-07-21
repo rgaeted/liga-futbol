@@ -6,6 +6,7 @@ import { MatchActions } from '@/components/admin/MatchActions'
 import { matchDisplayName } from '@/lib/match-label'
 import { footballFormatLabel } from '@/lib/football-format'
 import { APP_LOCALE } from '@/lib/locale'
+import { formatScheduleDateInput, formatScheduleTimeInput } from '@/lib/schedule-datetime'
 import Link from 'next/link'
 import { MatchType, Role } from '@prisma/client'
 
@@ -151,8 +152,9 @@ export default async function AdminMatchesPage() {
                       refereeId: match.refereeId,
                       venue: match.venue,
                       status: match.status,
-                      date: match.scheduledAt.toISOString().slice(0, 10),
-                      time: match.scheduledAt.toISOString().slice(11, 16),
+                      footballFormat: match.footballFormat,
+                      date: formatScheduleDateInput(match.scheduledAt),
+                      time: formatScheduleTimeInput(match.scheduledAt),
                     }}
                     referees={referees}
                   />

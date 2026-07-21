@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { submitJson } from './submit'
 import { FriendlyPlayerAvatar } from './FriendlyPlayerAvatar'
 import { FOOTBALL_FORMATS, FOOTBALL_FORMAT_LABELS } from '@/lib/football-format'
+import { scheduleInputToIso } from '@/lib/schedule-datetime'
 
 type Referee = { id: string; name: string }
 type FriendlyCategoryOption = { id: string; name: string; isActive: boolean }
@@ -133,7 +134,7 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       sideBName: String(form.get('sideBName') ?? '').trim(),
       refereeId: refereeId || undefined,
       venue: String(form.get('venue') ?? '').trim() || undefined,
-      scheduledAt: new Date(`${date}T${time}`).toISOString(),
+      scheduledAt: scheduleInputToIso(date, time),
       players: [
         ...sideA.map((id) => ({ friendlyPlayerId: id, side: 'A' as const })),
         ...sideB.map((id) => ({ friendlyPlayerId: id, side: 'B' as const })),
