@@ -84,3 +84,18 @@ export function resolveEventTeamLabel(
   if (event.playerTeamName) return event.playerTeamName
   return null
 }
+
+export function resolveEventTeamCrest(
+  teamName: string | null | undefined,
+  crests: {
+    homeName: string
+    awayName: string
+    homeCrestSrc?: string | null
+    awayCrestSrc?: string | null
+  }
+): string | null {
+  if (!teamName) return null
+  if (teamName === crests.homeName) return crests.homeCrestSrc ?? null
+  if (teamName === crests.awayName) return crests.awayCrestSrc ?? null
+  return null
+}

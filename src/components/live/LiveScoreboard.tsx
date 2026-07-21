@@ -6,7 +6,7 @@ import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
-import { resolveEventTeamLabel } from '@/lib/match-label'
+import { resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
 import { TeamCrest } from '@/components/TeamCrest'
@@ -49,6 +49,7 @@ type MatchEvent = {
   createdAt: string
   playerName: string | null
   teamName: string | null
+  teamCrestSrc: string | null
   assistName: string | null
 }
 
@@ -69,7 +70,16 @@ type Match = {
   clock: SerializableClockState
   events: MatchEvent[]
   footballFormat: FootballFormat
-  formations: Array<{ label: string; lineup: LineupView | null }>
+  formations: Array<{ label: string; crestSrc?: string | null; lineup: LineupView | null }>
+}
+
+function crestLookup(match: Match) {
+  return {
+    homeName: match.homeTeam.name,
+    awayName: match.awayTeam.name,
+    homeCrestSrc: match.homeTeam.crestSrc,
+    awayCrestSrc: match.awayTeam.crestSrc,
+  }
 }
 
 function eventPlayerName(event: RawSocketEvent): string | null {
@@ -118,14 +128,8 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
             ? prev.events
             : [
                 ...prev.events,
-                {
-                  id: payload.event!.id,
-                  type: payload.event!.type,
-                  minute: payload.event!.minute,
-                  createdAt: toEventCreatedAt(payload.event!.createdAt),
-                  playerName: eventPlayerName(payload.event!),
-                  assistName: eventAssistName(payload.event!),
-                  teamName: resolveEventTeamLabel(
+                (() => {
+                  const teamName = resolveEventTeamLabel(
                     {
                       teamId: payload.event!.teamId,
                       side: payload.event!.side,
@@ -147,8 +151,18 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                       homeTeamId: prev.homeTeamId,
                       awayTeamId: prev.awayTeamId,
                     }
-                  ),
-                },
+                  )
+                  return {
+                    id: payload.event!.id,
+                    type: payload.event!.type,
+                    minute: payload.event!.minute,
+                    createdAt: toEventCreatedAt(payload.event!.createdAt),
+                    playerName: eventPlayerName(payload.event!),
+                    assistName: eventAssistName(payload.event!),
+                    teamName,
+                    teamCrestSrc: resolveEventTeamCrest(teamName, crestLookup(prev)),
+                  }
+                })(),
               ]
           : prev.events
 
@@ -181,7 +195,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
 
   return (
     <div className="min-h-screen bg-kelme-live-bg text-white">
-      <div className="mx-auto max-w-2xl px-4 py-8">
+      <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-6 flex justify-center">
           <KelmeLogo size="sm" variant="dark" />
         </div>
@@ -233,14 +247,16 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
             <p className="mb-4 text-center font-ui text-xs uppercase tracking-widest text-white/40">
               {footballFormatLabel(match.footballFormat)}
             </p>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               {match.formations.map((side) =>
                 side.lineup ? (
                   <div key={side.label}>
-                    <p className="mb-2 text-center font-ui text-sm text-white/70">
-                      {side.label}
-                    </p>
-                    <FormationPitch lineup={side.lineup} />
+                    <FormationPitch
+                      variant="live"
+                      lineup={side.lineup}
+                      teamName={side.label}
+                      crestSrc={side.crestSrc}
+                    />
                     {side.lineup.bench.length > 0 && (
                       <p className="mt-2 text-center text-xs text-white/40">
                         Banco: {side.lineup.bench.map((b) => b.playerName).join(', ')}

@@ -1,9 +1,12 @@
+import { TeamCrest } from '@/components/TeamCrest'
+
 export type TimelineEvent = {
   id: string
   type: string
   minute: number
   playerName: string | null
   teamName: string | null
+  teamCrestSrc?: string | null
   assistName: string | null
 }
 
@@ -114,8 +117,11 @@ function TimelineRow({ event }: { event: TimelineEvent }) {
       )}
 
       {event.teamName && (
-        <span className="max-w-[38%] shrink-0 truncate text-right font-ui text-xs font-semibold uppercase tracking-wide text-white sm:max-w-none sm:text-sm">
-          {event.teamName}
+        <span className="flex max-w-[46%] shrink-0 items-center justify-end gap-1.5 sm:max-w-none">
+          <TeamCrest name={event.teamName} src={event.teamCrestSrc} size="sm" />
+          <span className="truncate text-right font-ui text-xs font-semibold uppercase tracking-wide text-white sm:text-sm">
+            {event.teamName}
+          </span>
         </span>
       )}
     </li>

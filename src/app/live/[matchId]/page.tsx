@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
-import { matchSideNames, resolveEventTeamLabel } from '@/lib/match-label'
+import { matchSideNames, resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
 import { buildMatchFormationSides } from '@/lib/match-formations'
 import { matchSideCrestUrl, matchSideHasCrest } from '@/lib/match-side-crest'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
@@ -144,18 +144,8 @@ export default async function LiveMatchPage({
           secondHalfStartedAt: match.secondHalfStartedAt?.toISOString() ?? null,
           halftimeAt: match.halftimeAt?.toISOString() ?? null,
         },
-        events: timelineEvents.map((e) => ({
-          id: e.id,
-          type: e.type,
-          minute: e.minute,
-          createdAt: e.createdAt.toISOString(),
-          playerName: e.friendlyPlayer
-            ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
-            : (e.player?.user.name ?? null),
-          assistName: e.assistFriendlyPlayer
-            ? `${e.assistFriendlyPlayer.firstName} ${e.assistFriendlyPlayer.lastName}`
-            : (e.assistPlayer?.user.name ?? null),
-          teamName: resolveEventTeamLabel(
+        events: timelineEvents.map((e) => {
+          const teamName = resolveEventTeamLabel(
             {
               teamId: e.teamId,
               side: e.side,
@@ -167,10 +157,33 @@ export default async function LiveMatchPage({
                 : null,
             },
             teamContext
-          ),
-        })),
+          )
+          return {
+            id: e.id,
+            type: e.type,
+            minute: e.minute,
+            createdAt: e.createdAt.toISOString(),
+            playerName: e.friendlyPlayer
+              ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
+              : (e.player?.user.name ?? null),
+            assistName: e.assistFriendlyPlayer
+              ? `${e.assistFriendlyPlayer.firstName} ${e.assistFriendlyPlayer.lastName}`
+              : (e.assistPlayer?.user.name ?? null),
+            teamName,
+            teamCrestSrc: resolveEventTeamCrest(teamName, {
+              homeName: sides.home,
+              awayName: sides.away,
+              homeCrestSrc,
+              awayCrestSrc,
+            }),
+          }
+        }),
         footballFormat: match.footballFormat,
-        formations: formationSides.map((s) => ({ label: s.label, lineup: s.lineup })),
+        formations: formationSides.map((s) => ({
+          label: s.label,
+          lineup: s.lineup,
+          crestSrc: s.label === sides.home ? homeCrestSrc : s.label === sides.away ? awayCrestSrc : null,
+        })),
       }}
     />
   )
