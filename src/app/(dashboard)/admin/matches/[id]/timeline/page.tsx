@@ -47,7 +47,7 @@ export default async function AdminMatchTimelinePage({
           player: { include: { user: { select: { name: true } } } },
           friendlyPlayer: { select: { firstName: true, lastName: true } },
         },
-        orderBy: [{ minute: 'desc' }, { createdAt: 'desc' }],
+        orderBy: { minute: 'asc' },
       },
       friendlyPlayers: { include: { friendlyPlayer: true } },
     },
