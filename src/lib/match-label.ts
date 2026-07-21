@@ -29,6 +29,7 @@ export function matchDisplayName(match: MatchLabelInput): string {
 type EventTeamInput = {
   teamId?: string | null
   side?: 'A' | 'B' | null
+  playerTeamId?: string | null
 }
 
 type MatchTeamInput = MatchLabelInput & {
@@ -41,9 +42,35 @@ export function eventTeamLabel(
   match: MatchTeamInput
 ): string | null {
   const sides = matchSideNames(match)
+  const resolvedTeamId = event.teamId ?? event.playerTeamId ?? null
+
   if (event.side === 'A') return sides.home
   if (event.side === 'B') return sides.away
-  if (event.teamId && match.homeTeamId && event.teamId === match.homeTeamId) return sides.home
-  if (event.teamId && match.awayTeamId && event.teamId === match.awayTeamId) return sides.away
+  if (resolvedTeamId && match.homeTeamId && resolvedTeamId === match.homeTeamId) return sides.home
+  if (resolvedTeamId && match.awayTeamId && resolvedTeamId === match.awayTeamId) return sides.away
+  return null
+}
+
+export function resolveEventTeamLabel(
+  event: {
+    teamId?: string | null
+    side?: 'A' | 'B' | null
+    playerTeamId?: string | null
+    playerTeamName?: string | null
+    friendlyPlayerId?: string | null
+    friendlySide?: 'A' | 'B' | null
+  },
+  match: MatchTeamInput
+): string | null {
+  const fromIds = eventTeamLabel(
+    {
+      teamId: event.teamId,
+      side: event.side ?? event.friendlySide ?? null,
+      playerTeamId: event.playerTeamId,
+    },
+    match
+  )
+  if (fromIds) return fromIds
+  if (event.playerTeamName) return event.playerTeamName
   return null
 }

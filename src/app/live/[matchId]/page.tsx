@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
-import { matchSideNames, eventTeamLabel } from '@/lib/match-label'
+import { matchSideNames, resolveEventTeamLabel } from '@/lib/match-label'
 import {
   sortTimelineEvents,
   timelineUsesCreatedAtOrder,
@@ -21,9 +21,15 @@ export default async function LiveMatchPage({
     include: {
       homeTeam: true,
       awayTeam: true,
+      friendlyPlayers: { select: { friendlyPlayerId: true, side: true } },
       events: {
         include: {
-          player: { include: { user: { select: { name: true } } } },
+          player: {
+            include: {
+              user: { select: { name: true } },
+              team: { select: { id: true, name: true } },
+            },
+          },
           friendlyPlayer: { select: { firstName: true, lastName: true } },
         },
         orderBy: { createdAt: 'asc' },
@@ -47,6 +53,10 @@ export default async function LiveMatchPage({
     awayTeamId: match.awayTeamId,
   }
 
+  const friendlySideByPlayer = new Map(
+    match.friendlyPlayers.map((p) => [p.friendlyPlayerId, p.side])
+  )
+
   return (
     <LiveScoreboard
       initialMatch={{
@@ -62,6 +72,9 @@ export default async function LiveMatchPage({
         awayScore: match.awayScore,
         status: match.status,
         preferCreatedAtOrder: preferCreatedAt,
+        friendlySideByPlayer: Object.fromEntries(
+          match.friendlyPlayers.map((p) => [p.friendlyPlayerId, p.side])
+        ) as Record<string, 'A' | 'B'>,
         clock: {
           status: match.status,
           clockStartedAt: match.clockStartedAt?.toISOString() ?? null,
@@ -76,7 +89,19 @@ export default async function LiveMatchPage({
           playerName: e.friendlyPlayer
             ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
             : (e.player?.user.name ?? null),
-          teamName: eventTeamLabel(e, teamContext),
+          teamName: resolveEventTeamLabel(
+            {
+              teamId: e.teamId,
+              side: e.side,
+              playerTeamId: e.player?.team?.id ?? e.player?.teamId ?? null,
+              playerTeamName: e.player?.team?.name ?? null,
+              friendlyPlayerId: e.friendlyPlayerId,
+              friendlySide: e.friendlyPlayerId
+                ? friendlySideByPlayer.get(e.friendlyPlayerId) ?? null
+                : null,
+            },
+            teamContext
+          ),
         })),
       }}
     />

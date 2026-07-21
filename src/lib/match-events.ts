@@ -6,7 +6,12 @@ import { getMatchMinute } from '@/lib/match-clock'
 import { syncLeaguePlayerStats } from '@/lib/match-reconcile'
 
 const eventInclude = {
-  player: { include: { user: { select: { name: true } } } },
+  player: {
+    include: {
+      user: { select: { name: true } },
+      team: { select: { id: true, name: true } },
+    },
+  },
   friendlyPlayer: { select: { firstName: true, lastName: true } },
 } as const
 

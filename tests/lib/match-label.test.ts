@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect } from 'vitest'
-import { eventTeamLabel, matchDisplayName, matchSideNames } from '@/lib/match-label'
+import { eventTeamLabel, matchDisplayName, matchSideNames, resolveEventTeamLabel } from '@/lib/match-label'
 
 describe('matchDisplayName', () => {
   it('uses team names for league matches', () => {
@@ -69,5 +69,43 @@ describe('eventTeamLabel', () => {
         }
       )
     ).toBe('Negros')
+  })
+
+  it('falls back to player team id', () => {
+    expect(
+      eventTeamLabel({ playerTeamId: 'away-id' }, leagueMatch)
+    ).toBe('Sur')
+  })
+})
+
+describe('resolveEventTeamLabel', () => {
+  it('uses friendly participation side for legacy events', () => {
+    expect(
+      resolveEventTeamLabel(
+        { friendlyPlayerId: 'fp-1', friendlySide: 'A' },
+        {
+          matchType: 'FRIENDLY',
+          sideAName: 'Blancos',
+          sideBName: 'Negros',
+          homeTeam: null,
+          awayTeam: null,
+        }
+      )
+    ).toBe('Blancos')
+  })
+
+  it('uses player team name when ids are missing', () => {
+    expect(
+      resolveEventTeamLabel(
+        { playerTeamName: 'Kelme Norte' },
+        {
+          matchType: 'LEAGUE',
+          sideAName: null,
+          sideBName: null,
+          homeTeam: { name: 'Norte' },
+          awayTeam: { name: 'Sur' },
+        }
+      )
+    ).toBe('Kelme Norte')
   })
 })
