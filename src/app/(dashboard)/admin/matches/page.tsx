@@ -121,7 +121,7 @@ export default async function AdminMatchesPage() {
                       </ul>
                     )}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <span className="font-mono text-lg">
                     {match.homeScore} - {match.awayScore}
                   </span>
@@ -146,6 +146,8 @@ export default async function AdminMatchesPage() {
                   >
                     Formación
                   </Link>
+                </div>
+                <div className="w-full">
                   <MatchActions
                     match={{
                       id: match.id,
@@ -155,6 +157,11 @@ export default async function AdminMatchesPage() {
                       sideBName: match.sideBName,
                       sideAColor: match.sideAColor,
                       sideBColor: match.sideBColor,
+                      friendlyCategoryId: match.friendlyCategoryId,
+                      playerSides: match.friendlyPlayers.map((p) => ({
+                        friendlyPlayerId: p.friendlyPlayerId,
+                        side: p.side,
+                      })),
                       hasCrestA: matchSideHasCrest(match, 'A'),
                       hasCrestB: matchSideHasCrest(match, 'B'),
                       refereeId: match.refereeId,
@@ -165,6 +172,14 @@ export default async function AdminMatchesPage() {
                       time: formatScheduleTimeInput(match.scheduledAt),
                     }}
                     referees={referees}
+                    friendlyPlayers={friendlyPlayers.map((p) => ({
+                      id: p.id,
+                      firstName: p.firstName,
+                      lastName: p.lastName,
+                      categoryIds: p.categories.map((c) => c.friendlyCategoryId),
+                      primaryPosition: p.primaryPosition,
+                      hasPhoto: Boolean(p.photoMimeType),
+                    }))}
                   />
                 </div>
               </div>

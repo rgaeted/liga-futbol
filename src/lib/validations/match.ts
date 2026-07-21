@@ -10,6 +10,25 @@ const friendlyPlayerEntry = z.object({
   side: z.enum(['A', 'B']),
 })
 
+function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEntry>[] }, ctx: z.RefinementCtx) {
+  const sides = new Set(data.players.map((p) => p.side))
+  if (!sides.has('A') || !sides.has('B')) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Debe haber al menos un jugador por lado',
+      path: ['players'],
+    })
+  }
+  const ids = data.players.map((p) => p.friendlyPlayerId)
+  if (new Set(ids).size !== ids.length) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Un jugador no puede estar dos veces en el mismo partido',
+      path: ['players'],
+    })
+  }
+}
+
 export const createLeagueMatchSchema = z.object({
   matchType: z.literal('LEAGUE').default('LEAGUE'),
   seasonId: id,
@@ -32,24 +51,7 @@ export const createFriendlyMatchSchema = z
     venue: z.string().optional(),
     players: z.array(friendlyPlayerEntry).min(2),
   })
-  .superRefine((data, ctx) => {
-    const sides = new Set(data.players.map((p) => p.side))
-    if (!sides.has('A') || !sides.has('B')) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Debe haber al menos un jugador por lado',
-        path: ['players'],
-      })
-    }
-    const ids = data.players.map((p) => p.friendlyPlayerId)
-    if (new Set(ids).size !== ids.length) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Un jugador no puede estar dos veces en el mismo partido',
-        path: ['players'],
-      })
-    }
-  })
+  .superRefine(refineFriendlyPlayers)
 
 export const createMatchSchema = z.preprocess((raw) => {
   if (raw && typeof raw === 'object' && !('matchType' in (raw as object))) {
@@ -58,15 +60,20 @@ export const createMatchSchema = z.preprocess((raw) => {
   return raw
 }, z.discriminatedUnion('matchType', [createLeagueMatchSchema, createFriendlyMatchSchema]))
 
-export const updateMatchSchema = z.object({
-  refereeId: id.nullable().optional(),
-  scheduledAt: z.string().datetime().optional(),
-  venue: z.string().nullable().optional(),
-  status: z.enum(['SCHEDULED', 'LIVE', 'HALFTIME', 'FINISHED', 'CANCELLED']).optional(),
-  footballFormat: footballFormatSchema.optional(),
-  sideAColor: teamColorSchema.nullable().optional(),
-  sideBColor: teamColorSchema.nullable().optional(),
-})
+export const updateMatchSchema = z
+  .object({
+    refereeId: id.nullable().optional(),
+    scheduledAt: z.string().datetime().optional(),
+    venue: z.string().nullable().optional(),
+    status: z.enum(['SCHEDULED', 'LIVE', 'HALFTIME', 'FINISHED', 'CANCELLED']).optional(),
+    footballFormat: footballFormatSchema.optional(),
+    sideAColor: teamColorSchema.nullable().optional(),
+    sideBColor: teamColorSchema.nullable().optional(),
+    players: z.array(friendlyPlayerEntry).min(2).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.players) refineFriendlyPlayers({ players: data.players }, ctx)
+  })
 
 export const updateFriendlyPaidSchema = z.object({
   paid: z.boolean(),
