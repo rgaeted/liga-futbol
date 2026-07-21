@@ -1,15 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getSocket, joinMatchRoom } from '@/lib/socket-client'
 import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
+import { sortTimelineEvents } from '@/lib/match-timeline-sort'
 
 type RawSocketEvent = {
   id: string
   type: string
   minute: number
+  createdAt?: string | Date
   player?: { user: { name: string } } | null
   friendlyPlayer?: { firstName: string; lastName: string } | null
 }
@@ -29,6 +31,7 @@ type MatchEvent = {
   id: string
   type: string
   minute: number
+  createdAt: string
   playerName: string | null
 }
 
@@ -39,6 +42,7 @@ type Match = {
   homeScore: number
   awayScore: number
   status: string
+  preferCreatedAtOrder: boolean
   clock: SerializableClockState
   events: MatchEvent[]
 }
@@ -55,39 +59,59 @@ function toIso(value: Date | string | null | undefined): string | null {
   return value instanceof Date ? value.toISOString() : value
 }
 
+function toEventCreatedAt(value: string | Date | undefined): string {
+  if (!value) return new Date().toISOString()
+  return value instanceof Date ? value.toISOString() : value
+}
+
 export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
   const [match, setMatch] = useState(initialMatch)
+
+  const sortedEvents = useMemo(
+    () =>
+      sortTimelineEvents(match.events, {
+        preferCreatedAt: match.preferCreatedAtOrder,
+      }),
+    [match.events, match.preferCreatedAtOrder]
+  )
 
   useEffect(() => {
     joinMatchRoom(match.id)
     const socket = getSocket()
 
     function onUpdate(payload: LiveMatchPayload) {
-      setMatch((prev) => ({
-        ...prev,
-        homeScore: payload.homeScore,
-        awayScore: payload.awayScore,
-        status: payload.status,
-        clock: {
+      setMatch((prev) => {
+        const nextEvents = payload.event
+          ? prev.events.some((e) => e.id === payload.event!.id)
+            ? prev.events
+            : [
+                ...prev.events,
+                {
+                  id: payload.event!.id,
+                  type: payload.event!.type,
+                  minute: payload.event!.minute,
+                  createdAt: toEventCreatedAt(payload.event!.createdAt),
+                  playerName: eventPlayerName(payload.event!),
+                },
+              ]
+          : prev.events
+
+        return {
+          ...prev,
+          homeScore: payload.homeScore,
+          awayScore: payload.awayScore,
           status: payload.status,
-          clockStartedAt: toIso(payload.clockStartedAt ?? prev.clock.clockStartedAt),
-          secondHalfStartedAt: toIso(
-            payload.secondHalfStartedAt ?? prev.clock.secondHalfStartedAt
-          ),
-          halftimeAt: toIso(payload.halftimeAt ?? prev.clock.halftimeAt),
-        },
-        events: payload.event
-          ? [
-              ...prev.events,
-              {
-                id: payload.event.id,
-                type: payload.event.type,
-                minute: payload.event.minute,
-                playerName: eventPlayerName(payload.event),
-              },
-            ]
-          : prev.events,
-      }))
+          clock: {
+            status: payload.status,
+            clockStartedAt: toIso(payload.clockStartedAt ?? prev.clock.clockStartedAt),
+            secondHalfStartedAt: toIso(
+              payload.secondHalfStartedAt ?? prev.clock.secondHalfStartedAt
+            ),
+            halftimeAt: toIso(payload.halftimeAt ?? prev.clock.halftimeAt),
+          },
+          events: nextEvents,
+        }
+      })
     }
 
     socket.on('match-update', onUpdate)
@@ -134,7 +158,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
 
         <h2 className="mb-4 font-display text-lg font-bold">Cronología</h2>
         <ul className="space-y-2">
-          {match.events.map((event) => (
+          {sortedEvents.map((event) => (
             <li
               key={event.id}
               className="flex items-center gap-3 rounded-lg border border-white/10 bg-kelme-live-surface px-4 py-3"

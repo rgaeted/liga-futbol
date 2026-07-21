@@ -1,7 +1,13 @@
 import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
 import { matchSideNames } from '@/lib/match-label'
+import {
+  sortTimelineEvents,
+  timelineUsesCreatedAtOrder,
+} from '@/lib/match-timeline-sort'
 import { notFound } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 
 export default async function LiveMatchPage({
   params,
@@ -20,7 +26,7 @@ export default async function LiveMatchPage({
           player: { include: { user: { select: { name: true } } } },
           friendlyPlayer: { select: { firstName: true, lastName: true } },
         },
-        orderBy: [{ minute: 'asc' }, { createdAt: 'asc' }],
+        orderBy: { createdAt: 'asc' },
       },
     },
   })
@@ -28,6 +34,8 @@ export default async function LiveMatchPage({
   if (!match) notFound()
 
   const sides = matchSideNames(match)
+  const preferCreatedAt = timelineUsesCreatedAtOrder(match.clockStartedAt)
+  const timelineEvents = sortTimelineEvents(match.events, { preferCreatedAt })
 
   return (
     <LiveScoreboard
@@ -38,16 +46,18 @@ export default async function LiveMatchPage({
         homeScore: match.homeScore,
         awayScore: match.awayScore,
         status: match.status,
+        preferCreatedAtOrder: preferCreatedAt,
         clock: {
           status: match.status,
           clockStartedAt: match.clockStartedAt?.toISOString() ?? null,
           secondHalfStartedAt: match.secondHalfStartedAt?.toISOString() ?? null,
           halftimeAt: match.halftimeAt?.toISOString() ?? null,
         },
-        events: match.events.map((e) => ({
+        events: timelineEvents.map((e) => ({
           id: e.id,
           type: e.type,
           minute: e.minute,
+          createdAt: e.createdAt.toISOString(),
           playerName: e.friendlyPlayer
             ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
             : (e.player?.user.name ?? null),
