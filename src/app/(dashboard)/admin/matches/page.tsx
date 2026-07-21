@@ -9,13 +9,14 @@ import Link from 'next/link'
 import { MatchType, Role } from '@prisma/client'
 
 export default async function AdminMatchesPage() {
-  const [matches, seasons, teams, referees, friendlyPlayers] = await Promise.all([
+  const [matches, seasons, teams, referees, friendlyCategories, friendlyPlayers] = await Promise.all([
     db.match.findMany({
       include: {
         homeTeam: true,
         awayTeam: true,
         referee: { select: { name: true } },
         season: true,
+        friendlyCategory: { select: { id: true, name: true } },
         friendlyPlayers: { include: { friendlyPlayer: true } },
       },
       orderBy: { scheduledAt: 'desc' },
@@ -26,9 +27,17 @@ export default async function AdminMatchesPage() {
       where: { role: Role.REFEREE },
       select: { id: true, name: true },
     }),
+    db.friendlyCategory.findMany({ orderBy: { name: 'asc' } }),
     db.friendlyPlayer.findMany({
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
-      select: { id: true, firstName: true, lastName: true, primaryPosition: true, photoMimeType: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        friendlyCategoryId: true,
+        primaryPosition: true,
+        photoMimeType: true,
+      },
     }),
   ])
 
@@ -38,6 +47,11 @@ export default async function AdminMatchesPage() {
       <MatchForm seasons={seasons} teams={teams} referees={referees} />
       <FriendlyMatchForm
         referees={referees}
+        categories={friendlyCategories.map((c) => ({
+          id: c.id,
+          name: c.name,
+          isActive: c.isActive,
+        }))}
         friendlyPlayers={friendlyPlayers.map((p) => ({
           ...p,
           hasPhoto: Boolean(p.photoMimeType),
@@ -47,9 +61,9 @@ export default async function AdminMatchesPage() {
         {matches.map((match) => {
           const title = matchDisplayName(match)
           const seasonLine =
-            match.matchType === MatchType.FRIENDLY || !match.season
-              ? 'Amistoso'
-              : match.season.name
+            match.matchType === MatchType.FRIENDLY
+              ? match.friendlyCategory?.name ?? 'Amistoso'
+              : match.season?.name ?? 'Liga'
 
           return (
             <div

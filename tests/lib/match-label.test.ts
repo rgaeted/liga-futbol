@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect } from 'vitest'
-import { eventTeamLabel, matchDisplayName, matchSideNames, resolveEventTeamLabel } from '@/lib/match-label'
+import { eventTeamLabel, friendlyCategoryLabel, matchDisplayName, matchSideNames, resolveEventTeamLabel } from '@/lib/match-label'
 
 describe('matchDisplayName', () => {
   it('uses team names for league matches', () => {
@@ -24,6 +24,26 @@ describe('matchDisplayName', () => {
         awayTeam: null,
       })
     ).toBe('Blancos vs Negros')
+  })
+})
+
+describe('friendlyCategoryLabel', () => {
+  it('returns category name for friendly matches', () => {
+    expect(
+      friendlyCategoryLabel({
+        matchType: 'FRIENDLY',
+        friendlyCategory: { name: 'Viernes fútbol' },
+      })
+    ).toBe('Viernes fútbol')
+  })
+
+  it('returns null for league matches', () => {
+    expect(
+      friendlyCategoryLabel({
+        matchType: 'LEAGUE',
+        friendlyCategory: { name: 'Viernes fútbol' },
+      })
+    ).toBeNull()
   })
 })
 

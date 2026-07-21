@@ -1,38 +1,95 @@
 ﻿import { db } from '@/lib/db'
 import { FriendlyPlayerForm } from '@/components/admin/FriendlyPlayerForm'
 import { FriendlyPlayersTable } from '@/components/admin/FriendlyPlayersTable'
+import Link from 'next/link'
 
-export default async function AdminFriendlyPlayersPage() {
-  const players = await db.friendlyPlayer.findMany({
-    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      dominantFoot: true,
-      primaryPosition: true,
-      secondaryPosition: true,
-      photoMimeType: true,
-      user: { select: { email: true } },
-    },
+export default async function AdminFriendlyPlayersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ categoryId?: string }>
+}) {
+  const { categoryId } = await searchParams
+
+  const categories = await db.friendlyCategory.findMany({
+    orderBy: { name: 'asc' },
   })
+
+  const selectedCategoryId = categoryId ?? categories[0]?.id ?? null
+
+  const players = selectedCategoryId
+    ? await db.friendlyPlayer.findMany({
+        where: { friendlyCategoryId: selectedCategoryId },
+        orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          dominantFoot: true,
+          primaryPosition: true,
+          secondaryPosition: true,
+          photoMimeType: true,
+          friendlyCategory: { select: { id: true, name: true } },
+          user: { select: { email: true } },
+        },
+      })
+    : []
+
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId)
 
   return (
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold">Jugadores amistosos</h1>
-      <FriendlyPlayerForm />
-      <FriendlyPlayersTable
-        players={players.map((p) => ({
-          id: p.id,
-          firstName: p.firstName,
-          lastName: p.lastName,
-          email: p.user?.email ?? null,
-          hasPhoto: Boolean(p.photoMimeType),
-          dominantFoot: p.dominantFoot,
-          primaryPosition: p.primaryPosition,
-          secondaryPosition: p.secondaryPosition,
-        }))}
-      />
+
+      {categories.length === 0 ? (
+        <p className="text-kelme-gray-400">
+          Primero crea una{' '}
+          <Link href="/admin/friendly-categories" className="text-kelme-red hover:underline">
+            categoría amistosa
+          </Link>
+          .
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/admin/friendly-players?categoryId=${category.id}`}
+                className={`rounded-lg px-3 py-1.5 text-sm ${
+                  category.id === selectedCategoryId
+                    ? 'bg-kelme-red text-white'
+                    : 'border border-kelme-border bg-kelme-surface hover:border-kelme-red'
+                }`}
+              >
+                {category.name}
+              </Link>
+            ))}
+          </div>
+
+          {selectedCategory && (
+            <p className="text-sm text-kelme-gray-400">
+              Jugadores de <strong>{selectedCategory.name}</strong>
+            </p>
+          )}
+
+          <FriendlyPlayerForm
+            categories={categories.filter((c) => c.isActive)}
+            defaultCategoryId={selectedCategoryId ?? ''}
+          />
+          <FriendlyPlayersTable
+            players={players.map((p) => ({
+              id: p.id,
+              firstName: p.firstName,
+              lastName: p.lastName,
+              email: p.user?.email ?? null,
+              hasPhoto: Boolean(p.photoMimeType),
+              dominantFoot: p.dominantFoot,
+              primaryPosition: p.primaryPosition,
+              secondaryPosition: p.secondaryPosition,
+            }))}
+          />
+        </>
+      )}
     </div>
   )
 }

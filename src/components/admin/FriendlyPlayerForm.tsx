@@ -22,7 +22,13 @@ async function uploadPhoto(playerId: string, file: File): Promise<string | null>
   return null
 }
 
-export function FriendlyPlayerForm() {
+export function FriendlyPlayerForm({
+  categories,
+  defaultCategoryId,
+}: {
+  categories: Array<{ id: string; name: string }>
+  defaultCategoryId: string
+}) {
   const router = useRouter()
   const photoRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
@@ -40,7 +46,13 @@ export function FriendlyPlayerForm() {
     const payload: Record<string, string> = {
       firstName: String(form.get('firstName') ?? '').trim(),
       lastName: String(form.get('lastName') ?? '').trim(),
+      friendlyCategoryId: String(form.get('friendlyCategoryId') ?? '').trim(),
       ...readFriendlyPlayerProfileFromForm(form),
+    }
+    if (!payload.friendlyCategoryId) {
+      setLoading(false)
+      setError('Selecciona una categoría.')
+      return
     }
     if (email) {
       if (!password) {
@@ -82,6 +94,19 @@ export function FriendlyPlayerForm() {
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-3 rounded-xl border border-kelme-border bg-kelme-surface p-4 md:grid-cols-3">
+      <select
+        name="friendlyCategoryId"
+        required
+        defaultValue={defaultCategoryId}
+        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-3"
+      >
+        <option value="">Categoría</option>
+        {categories.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
       <input
         name="firstName"
         placeholder="Nombre"

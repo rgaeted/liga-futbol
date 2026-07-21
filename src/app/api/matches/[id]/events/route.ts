@@ -83,6 +83,46 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 400 }
       )
     }
+
+    if (data.friendlyPlayerId) {
+      const participation = await db.friendlyMatchPlayer.findUnique({
+        where: {
+          matchId_friendlyPlayerId: {
+            matchId,
+            friendlyPlayerId: data.friendlyPlayerId,
+          },
+        },
+      })
+      if (!participation) {
+        return NextResponse.json(
+          { error: 'El jugador no está en el plantel de este partido' },
+          { status: 400 }
+        )
+      }
+      if (data.side && participation.side !== data.side) {
+        return NextResponse.json(
+          { error: 'El lado no coincide con la participación del jugador' },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (data.assistFriendlyPlayerId) {
+      const assistPart = await db.friendlyMatchPlayer.findUnique({
+        where: {
+          matchId_friendlyPlayerId: {
+            matchId,
+            friendlyPlayerId: data.assistFriendlyPlayerId,
+          },
+        },
+      })
+      if (!assistPart) {
+        return NextResponse.json(
+          { error: 'El asistente no está en el plantel de este partido' },
+          { status: 400 }
+        )
+      }
+    }
   } else if (data.friendlyPlayerId) {
     return NextResponse.json(
       { error: 'friendlyPlayerId no aplica en partidos de liga' },

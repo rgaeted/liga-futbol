@@ -7,11 +7,18 @@ import { mapPrismaError } from '@/lib/prisma-errors'
 import { createFriendlyPlayerSchema } from '@/lib/validations/friendly-player'
 import { Role } from '@prisma/client'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await requireRole([Role.ADMIN])
+    const { searchParams } = new URL(req.url)
+    const categoryId = searchParams.get('categoryId')
+
     const players = await db.friendlyPlayer.findMany({
-      include: { user: { select: { id: true, email: true } } },
+      where: categoryId ? { friendlyCategoryId: categoryId } : undefined,
+      include: {
+        user: { select: { id: true, email: true } },
+        friendlyCategory: { select: { id: true, name: true } },
+      },
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     })
     return NextResponse.json(players)
@@ -36,8 +43,15 @@ export async function POST(req: Request) {
       )
     }
 
-    const { firstName, lastName, email, password, dominantFoot, primaryPosition, secondaryPosition } =
+    const { firstName, lastName, email, password, dominantFoot, primaryPosition, secondaryPosition, friendlyCategoryId } =
       parsed.data
+
+    const category = await db.friendlyCategory.findUnique({
+      where: { id: friendlyCategoryId },
+    })
+    if (!category) {
+      return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 400 })
+    }
 
     const player = await db.$transaction(async (tx) => {
       let userId: string | undefined
@@ -61,12 +75,16 @@ export async function POST(req: Request) {
         data: {
           firstName,
           lastName,
+          friendlyCategoryId,
           ...(dominantFoot ? { dominantFoot } : {}),
           ...(primaryPosition ? { primaryPosition } : {}),
           ...(secondaryPosition ? { secondaryPosition } : {}),
           ...(userId ? { userId } : {}),
         },
-        include: { user: { select: { id: true, email: true } } },
+        include: {
+          user: { select: { id: true, email: true } },
+          friendlyCategory: { select: { id: true, name: true } },
+        },
       })
     })
 

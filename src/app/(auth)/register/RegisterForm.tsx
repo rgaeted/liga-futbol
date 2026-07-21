@@ -13,6 +13,7 @@ export type AvailableFriendlyPlayer = {
   firstName: string
   lastName: string
   primaryPosition: string | null
+  categoryName?: string
 }
 
 type Props = {
@@ -86,6 +87,7 @@ export function RegisterForm({ available }: Props) {
               {available.map((p) => (
                 <option key={p.id} value={p.id}>
                   {formatFriendlyPlayerLabel(p)}
+                  {p.categoryName ? ` — ${p.categoryName}` : ''}
                 </option>
               ))}
             </select>

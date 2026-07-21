@@ -7,6 +7,7 @@ const ADMIN_NAV = [
   { href: '/admin', label: 'Inicio' },
   { href: '/admin/teams', label: 'Equipos' },
   { href: '/admin/players', label: 'Jugadores' },
+  { href: '/admin/friendly-categories', label: 'Categorías amistosas' },
   { href: '/admin/friendly-players', label: 'Jugadores amistosos' },
   { href: '/admin/matches', label: 'Partidos' },
   { href: '/admin/seasons', label: 'Temporadas' },

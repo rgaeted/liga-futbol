@@ -8,6 +8,16 @@ type MatchLabelInput = {
   awayTeam: { name: string } | null
 }
 
+export function friendlyCategoryLabel(
+  match: {
+    matchType: string
+    friendlyCategory?: { name: string } | null
+  }
+): string | null {
+  if (match.matchType !== 'FRIENDLY') return null
+  return match.friendlyCategory?.name ?? null
+}
+
 export function matchSideNames(match: MatchLabelInput): { home: string; away: string } {
   if (match.matchType === 'FRIENDLY') {
     return {

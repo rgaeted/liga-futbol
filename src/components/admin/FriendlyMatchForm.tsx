@@ -6,16 +6,19 @@ import { submitJson } from './submit'
 import { FriendlyPlayerAvatar } from './FriendlyPlayerAvatar'
 
 type Referee = { id: string; name: string }
+type FriendlyCategoryOption = { id: string; name: string; isActive: boolean }
 type FriendlyPlayer = {
   id: string
   firstName: string
   lastName: string
+  friendlyCategoryId: string
   primaryPosition?: string | null
   hasPhoto?: boolean
 }
 
 type Props = {
   referees: Referee[]
+  categories: FriendlyCategoryOption[]
   friendlyPlayers: FriendlyPlayer[]
 }
 
@@ -24,12 +27,23 @@ function playerLabel(p: FriendlyPlayer) {
   return p.primaryPosition ? `${name} (${p.primaryPosition})` : name
 }
 
-export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
+export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Props) {
   const router = useRouter()
+  const activeCategories = categories.filter((c) => c.isActive)
+  const [categoryId, setCategoryId] = useState(activeCategories[0]?.id ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sideAIds, setSideAIds] = useState<Set<string>>(new Set())
   const [sideBIds, setSideBIds] = useState<Set<string>>(new Set())
+
+  const roster = friendlyPlayers.filter((p) => p.friendlyCategoryId === categoryId)
+
+  function onCategoryChange(nextId: string) {
+    setCategoryId(nextId)
+    setSideAIds(new Set())
+    setSideBIds(new Set())
+    setError('')
+  }
 
   function toggleSide(side: 'A' | 'B', playerId: string, checked: boolean) {
     setError('')
@@ -71,6 +85,11 @@ export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
     const formEl = e.currentTarget
     setError('')
 
+    if (!categoryId) {
+      setError('Selecciona una categoría.')
+      return
+    }
+
     const sideA = [...sideAIds]
     const sideB = [...sideBIds]
     const overlap = sideA.some((id) => sideBIds.has(id))
@@ -91,6 +110,7 @@ export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
 
     const result = await submitJson('/api/matches', 'POST', {
       matchType: 'FRIENDLY',
+      friendlyCategoryId: categoryId,
       sideAName: String(form.get('sideAName') ?? '').trim(),
       sideBName: String(form.get('sideBName') ?? '').trim(),
       refereeId: refereeId || undefined,
@@ -112,12 +132,35 @@ export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
     router.refresh()
   }
 
+  if (activeCategories.length === 0) {
+    return (
+      <div className="rounded-xl border border-kelme-border bg-kelme-surface p-4">
+        <h2 className="font-display text-lg font-semibold">Crear partido amistoso</h2>
+        <p className="mt-2 text-sm text-kelme-gray-400">
+          Primero crea una categoría amistosa activa.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
       className="grid gap-3 rounded-xl border border-kelme-border bg-kelme-surface p-4"
     >
       <h2 className="font-display text-lg font-semibold">Crear partido amistoso</h2>
+      <select
+        value={categoryId}
+        onChange={(e) => onCategoryChange(e.target.value)}
+        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        required
+      >
+        {activeCategories.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
       <div className="grid gap-3 md:grid-cols-2">
         <input
           name="sideAName"
@@ -135,11 +178,11 @@ export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
       <div className="grid gap-4 md:grid-cols-2">
         <fieldset className="rounded-lg border border-kelme-border p-3">
           <legend className="px-1 text-sm font-medium">Jugadores lado A</legend>
-          {friendlyPlayers.length === 0 ? (
-            <p className="text-sm text-kelme-gray-400">No hay jugadores en el pool.</p>
+          {roster.length === 0 ? (
+            <p className="text-sm text-kelme-gray-400">No hay jugadores en esta categoría.</p>
           ) : (
             <ul className="max-h-48 space-y-2 overflow-y-auto">
-              {friendlyPlayers.map((p) => (
+              {roster.map((p) => (
                 <li key={`a-${p.id}`}>
                   <label className="flex cursor-pointer items-center gap-2 text-sm">
                     <input
@@ -164,11 +207,11 @@ export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
         </fieldset>
         <fieldset className="rounded-lg border border-kelme-border p-3">
           <legend className="px-1 text-sm font-medium">Jugadores lado B</legend>
-          {friendlyPlayers.length === 0 ? (
-            <p className="text-sm text-kelme-gray-400">No hay jugadores en el pool.</p>
+          {roster.length === 0 ? (
+            <p className="text-sm text-kelme-gray-400">No hay jugadores en esta categoría.</p>
           ) : (
             <ul className="max-h-48 space-y-2 overflow-y-auto">
-              {friendlyPlayers.map((p) => (
+              {roster.map((p) => (
                 <li key={`b-${p.id}`}>
                   <label className="flex cursor-pointer items-center gap-2 text-sm">
                     <input
@@ -223,7 +266,7 @@ export function FriendlyMatchForm({ referees, friendlyPlayers }: Props) {
         />
         <button
           type="submit"
-          disabled={loading || friendlyPlayers.length === 0}
+          disabled={loading || roster.length === 0}
           className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50"
         >
           {loading ? 'Creando…' : 'Crear amistoso'}
