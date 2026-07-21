@@ -20,6 +20,7 @@ export const createLeagueMatchSchema = z.object({
 export const createFriendlyMatchSchema = z
   .object({
     matchType: z.literal('FRIENDLY'),
+    friendlyCategoryId: id,
     sideAName: z.string().min(1),
     sideBName: z.string().min(1),
     refereeId: id.optional(),

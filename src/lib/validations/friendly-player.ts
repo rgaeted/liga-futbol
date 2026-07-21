@@ -40,6 +40,7 @@ export const createFriendlyPlayerSchema = z
   .object({
     firstName: z.string().trim().min(1, { message: 'Ingresa el nombre' }),
     lastName: z.string().trim().min(1, { message: 'Ingresa el apellido' }),
+    friendlyCategoryId: id,
     email: optionalEmail,
     password: optionalPassword,
     ...profileFields,

@@ -9,18 +9,28 @@ import {
 } from '@/lib/validations/match'
 
 describe('friendly player validations', () => {
-  it('accepts first and last name only', () => {
+  it('accepts first and last name with category', () => {
+    const result = createFriendlyPlayerSchema.safeParse({
+      firstName: 'Juan',
+      lastName: 'Pérez',
+      friendlyCategoryId: 'cat-1',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('requires friendlyCategoryId when creating friendly player', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Juan',
       lastName: 'Pérez',
     })
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
   })
 
   it('accepts profile fields', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Juan',
       lastName: 'Pérez',
+      friendlyCategoryId: 'cat-1',
       dominantFoot: 'RIGHT',
       primaryPosition: 'Delantero',
       secondaryPosition: 'Extremo derecho',
@@ -32,6 +42,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Juan',
       lastName: 'Pérez',
+      friendlyCategoryId: 'cat-1',
       primaryPosition: 'Delantero',
       secondaryPosition: 'Delantero',
     })
@@ -42,6 +53,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
+      friendlyCategoryId: 'cat-1',
       email: 'ana@demo.cl',
       password: 'password123',
     })
@@ -52,6 +64,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
+      friendlyCategoryId: 'cat-1',
       email: '',
       password: '',
     })
@@ -62,6 +75,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
+      friendlyCategoryId: 'cat-1',
       email: 'ana@demo.cl',
       password: '',
     })
@@ -72,16 +86,18 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
+      friendlyCategoryId: 'cat-1',
       email: 'ana@demo.cl',
       password: 'password123',
     })
     expect(result.success).toBe(true)
   })
 
-  it('rejects email without password', () => {
+  it('rejects email without password when category provided', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
+      friendlyCategoryId: 'cat-1',
       email: 'ana@demo.cl',
     })
     expect(result.success).toBe(false)
@@ -98,9 +114,39 @@ describe('friendly player validations', () => {
 })
 
 describe('friendly match validations', () => {
+  it('requires friendlyCategoryId for friendly match', () => {
+    const result = createMatchSchema.safeParse({
+      matchType: 'FRIENDLY',
+      sideAName: 'Blancos',
+      sideBName: 'Negros',
+      scheduledAt: new Date().toISOString(),
+      players: [
+        { friendlyPlayerId: 'fp-1', side: 'A' },
+        { friendlyPlayerId: 'fp-2', side: 'B' },
+      ],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts friendly match with category and roster', () => {
+    const result = createMatchSchema.safeParse({
+      matchType: 'FRIENDLY',
+      friendlyCategoryId: 'cat-1',
+      sideAName: 'Blancos',
+      sideBName: 'Negros',
+      scheduledAt: new Date().toISOString(),
+      players: [
+        { friendlyPlayerId: 'fp-1', side: 'A' },
+        { friendlyPlayerId: 'fp-2', side: 'B' },
+      ],
+    })
+    expect(result.success).toBe(true)
+  })
+
   it('accepts friendly match with players on both sides', () => {
     const result = createMatchSchema.safeParse({
       matchType: 'FRIENDLY',
+      friendlyCategoryId: 'cat-1',
       sideAName: 'Blancos',
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
@@ -115,6 +161,7 @@ describe('friendly match validations', () => {
   it('rejects friendly without a player on side B', () => {
     const result = createMatchSchema.safeParse({
       matchType: 'FRIENDLY',
+      friendlyCategoryId: 'cat-1',
       sideAName: 'Blancos',
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
