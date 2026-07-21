@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect } from 'vitest'
-import { matchDisplayName, matchSideNames } from '@/lib/match-label'
+import { eventTeamLabel, matchDisplayName, matchSideNames } from '@/lib/match-label'
 
 describe('matchDisplayName', () => {
   it('uses team names for league matches', () => {
@@ -38,5 +38,36 @@ describe('matchSideNames', () => {
         awayTeam: null,
       })
     ).toEqual({ home: 'A', away: 'B' })
+  })
+})
+
+describe('eventTeamLabel', () => {
+  const leagueMatch = {
+    matchType: 'LEAGUE' as const,
+    sideAName: null,
+    sideBName: null,
+    homeTeam: { name: 'Norte' },
+    awayTeam: { name: 'Sur' },
+    homeTeamId: 'home-id',
+    awayTeamId: 'away-id',
+  }
+
+  it('returns home team name for league home teamId', () => {
+    expect(eventTeamLabel({ teamId: 'home-id' }, leagueMatch)).toBe('Norte')
+  })
+
+  it('returns friendly side name', () => {
+    expect(
+      eventTeamLabel(
+        { side: 'B' },
+        {
+          matchType: 'FRIENDLY',
+          sideAName: 'Blancos',
+          sideBName: 'Negros',
+          homeTeam: null,
+          awayTeam: null,
+        }
+      )
+    ).toBe('Negros')
   })
 })

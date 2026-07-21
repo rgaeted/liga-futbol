@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
-import { matchSideNames } from '@/lib/match-label'
+import { matchSideNames, eventTeamLabel } from '@/lib/match-label'
 import {
   sortTimelineEvents,
   timelineUsesCreatedAtOrder,
@@ -37,10 +37,25 @@ export default async function LiveMatchPage({
   const preferCreatedAt = timelineUsesCreatedAtOrder(match.clockStartedAt)
   const timelineEvents = sortTimelineEvents(match.events, { preferCreatedAt })
 
+  const teamContext = {
+    matchType: match.matchType,
+    sideAName: match.sideAName,
+    sideBName: match.sideBName,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    homeTeamId: match.homeTeamId,
+    awayTeamId: match.awayTeamId,
+  }
+
   return (
     <LiveScoreboard
       initialMatch={{
         id: match.id,
+        matchType: match.matchType,
+        homeTeamId: match.homeTeamId,
+        awayTeamId: match.awayTeamId,
+        sideAName: match.sideAName,
+        sideBName: match.sideBName,
         homeTeam: { name: sides.home },
         awayTeam: { name: sides.away },
         homeScore: match.homeScore,
@@ -61,6 +76,7 @@ export default async function LiveMatchPage({
           playerName: e.friendlyPlayer
             ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
             : (e.player?.user.name ?? null),
+          teamName: eventTeamLabel(e, teamContext),
         })),
       }}
     />

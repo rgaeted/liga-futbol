@@ -6,12 +6,16 @@ import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
+import { eventTeamLabel } from '@/lib/match-label'
+import type { MatchType } from '@prisma/client'
 
 type RawSocketEvent = {
   id: string
   type: string
   minute: number
   createdAt?: string | Date
+  teamId?: string | null
+  side?: 'A' | 'B' | null
   player?: { user: { name: string } } | null
   friendlyPlayer?: { firstName: string; lastName: string } | null
 }
@@ -33,10 +37,16 @@ type MatchEvent = {
   minute: number
   createdAt: string
   playerName: string | null
+  teamName: string | null
 }
 
 type Match = {
   id: string
+  matchType: MatchType
+  homeTeamId: string | null
+  awayTeamId: string | null
+  sideAName: string | null
+  sideBName: string | null
   homeTeam: { name: string }
   awayTeam: { name: string }
   homeScore: number
@@ -92,6 +102,15 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                   minute: payload.event!.minute,
                   createdAt: toEventCreatedAt(payload.event!.createdAt),
                   playerName: eventPlayerName(payload.event!),
+                  teamName: eventTeamLabel(payload.event!, {
+                    matchType: prev.matchType,
+                    sideAName: prev.sideAName,
+                    sideBName: prev.sideBName,
+                    homeTeam: prev.homeTeam,
+                    awayTeam: prev.awayTeam,
+                    homeTeamId: prev.homeTeamId,
+                    awayTeamId: prev.awayTeamId,
+                  }),
                 },
               ]
           : prev.events
@@ -163,10 +182,15 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
               key={event.id}
               className="flex items-center gap-3 rounded-lg border border-white/10 bg-kelme-live-surface px-4 py-3"
             >
-              <span className="w-10 font-mono text-kelme-red">{event.minute}&apos;</span>
-              <span className="font-ui">{formatEvent(event.type)}</span>
-              {event.playerName && (
-                <span className="ml-auto font-ui text-sm text-white/50">{event.playerName}</span>
+              <span className="w-10 shrink-0 font-mono text-kelme-red">{event.minute}&apos;</span>
+              <span className="min-w-0 flex-1 font-ui">{formatEvent(event.type)}</span>
+              {(event.playerName || event.teamName) && (
+                <span className="ml-auto shrink-0 text-right font-ui text-sm text-white/50">
+                  {event.playerName && <span className="block">{event.playerName}</span>}
+                  {event.teamName && (
+                    <span className="block text-xs text-white/30">{event.teamName}</span>
+                  )}
+                </span>
               )}
             </li>
           ))}
