@@ -35,9 +35,9 @@ export default async function AdminMatchesPage() {
         id: true,
         firstName: true,
         lastName: true,
-        friendlyCategoryId: true,
         primaryPosition: true,
         photoMimeType: true,
+        categories: { select: { friendlyCategoryId: true } },
       },
     }),
   ])
@@ -62,7 +62,11 @@ export default async function AdminMatchesPage() {
           isActive: c.isActive,
         }))}
         friendlyPlayers={friendlyPlayers.map((p) => ({
-          ...p,
+          id: p.id,
+          firstName: p.firstName,
+          lastName: p.lastName,
+          categoryIds: p.categories.map((c) => c.friendlyCategoryId),
+          primaryPosition: p.primaryPosition,
           hasPhoto: Boolean(p.photoMimeType),
         }))}
       />

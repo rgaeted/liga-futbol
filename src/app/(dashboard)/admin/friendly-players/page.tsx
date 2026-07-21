@@ -1,6 +1,7 @@
 ﻿import { db } from '@/lib/db'
 import { FriendlyPlayerForm } from '@/components/admin/FriendlyPlayerForm'
 import { FriendlyPlayersTable } from '@/components/admin/FriendlyPlayersTable'
+import { mapFriendlyPlayerCategoryIds } from '@/lib/friendly-player-categories'
 import Link from 'next/link'
 
 export default async function AdminFriendlyPlayersPage({
@@ -18,7 +19,7 @@ export default async function AdminFriendlyPlayersPage({
 
   const players = selectedCategoryId
     ? await db.friendlyPlayer.findMany({
-        where: { friendlyCategoryId: selectedCategoryId },
+        where: { categories: { some: { friendlyCategoryId: selectedCategoryId } } },
         orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
         select: {
           id: true,
@@ -28,7 +29,7 @@ export default async function AdminFriendlyPlayersPage({
           primaryPosition: true,
           secondaryPosition: true,
           photoMimeType: true,
-          friendlyCategory: { select: { id: true, name: true } },
+          categories: { select: { friendlyCategoryId: true } },
           user: { select: { email: true } },
         },
       })
@@ -68,15 +69,17 @@ export default async function AdminFriendlyPlayersPage({
 
           {selectedCategory && (
             <p className="text-sm text-kelme-gray-400">
-              Jugadores de <strong>{selectedCategory.name}</strong>
+              Jugadores de <strong>{selectedCategory.name}</strong> (pueden pertenecer a varias
+              categorías)
             </p>
           )}
 
           <FriendlyPlayerForm
             categories={categories.filter((c) => c.isActive)}
-            defaultCategoryId={selectedCategoryId ?? ''}
+            defaultCategoryIds={selectedCategoryId ? [selectedCategoryId] : []}
           />
           <FriendlyPlayersTable
+            categories={categories}
             players={players.map((p) => ({
               id: p.id,
               firstName: p.firstName,
@@ -86,6 +89,7 @@ export default async function AdminFriendlyPlayersPage({
               dominantFoot: p.dominantFoot,
               primaryPosition: p.primaryPosition,
               secondaryPosition: p.secondaryPosition,
+              categoryIds: mapFriendlyPlayerCategoryIds(p.categories),
             }))}
           />
         </>

@@ -9,7 +9,7 @@ export async function GET() {
   const categories = await db.friendlyCategory.findMany({
     orderBy: { name: 'asc' },
     include: {
-      _count: { select: { players: true, matches: true } },
+      _count: { select: { playerMemberships: true, matches: true } },
     },
   })
   return NextResponse.json(categories)

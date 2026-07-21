@@ -36,58 +36,69 @@ const profileFields = {
   ),
 }
 
+const positionRefine = (
+  data: {
+    primaryPosition?: string | null
+    secondaryPosition?: string | null
+  },
+  ctx: z.RefinementCtx
+) => {
+  if (
+    data.primaryPosition &&
+    data.secondaryPosition &&
+    data.primaryPosition === data.secondaryPosition
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'La segunda posición debe ser distinta de la principal',
+      path: ['secondaryPosition'],
+    })
+  }
+}
+
+const accountRefine = (
+  data: { email?: string; password?: string },
+  ctx: z.RefinementCtx
+) => {
+  const hasEmail = Boolean(data.email)
+  const hasPassword = Boolean(data.password)
+  if (hasEmail !== hasPassword) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Email y contraseña deben ir juntos',
+      path: hasEmail ? ['password'] : ['email'],
+    })
+  }
+}
+
 export const createFriendlyPlayerSchema = z
   .object({
     firstName: z.string().trim().min(1, { message: 'Ingresa el nombre' }),
     lastName: z.string().trim().min(1, { message: 'Ingresa el apellido' }),
-    friendlyCategoryId: id,
+    friendlyCategoryIds: z.array(id).min(1, { message: 'Selecciona al menos una categoría' }),
     email: optionalEmail,
     password: optionalPassword,
     ...profileFields,
   })
   .superRefine((data, ctx) => {
-    const hasEmail = Boolean(data.email)
-    const hasPassword = Boolean(data.password)
-    if (hasEmail !== hasPassword) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Email y contraseña deben ir juntos',
-        path: hasEmail ? ['password'] : ['email'],
-      })
-    }
-    if (
-      data.primaryPosition &&
-      data.secondaryPosition &&
-      data.primaryPosition === data.secondaryPosition
-    ) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'La segunda posición debe ser distinta de la principal',
-        path: ['secondaryPosition'],
-      })
-    }
+    accountRefine(data, ctx)
+    positionRefine(data, ctx)
   })
 
 export const updateFriendlyPlayerSchema = z
   .object({
     firstName: z.string().trim().min(1).optional(),
     lastName: z.string().trim().min(1).optional(),
+    friendlyCategoryIds: z.array(id).min(1).optional(),
+    email: optionalEmail,
+    password: optionalPassword,
     dominantFoot: z.enum(DOMINANT_FOOT_VALUES).nullable().optional(),
     primaryPosition: z.enum(FRIENDLY_PLAYER_POSITIONS).nullable().optional(),
     secondaryPosition: z.enum(FRIENDLY_PLAYER_POSITIONS).nullable().optional(),
   })
   .superRefine((data, ctx) => {
-    if (
-      data.primaryPosition &&
-      data.secondaryPosition &&
-      data.primaryPosition === data.secondaryPosition
-    ) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'La segunda posición debe ser distinta de la principal',
-        path: ['secondaryPosition'],
-      })
-    }
+    accountRefine(data, ctx)
+    positionRefine(data, ctx)
   })
 
 export const claimFriendlyPlayerSchema = z.object({

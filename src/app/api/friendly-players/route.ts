@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { formatApiError } from '@/lib/api-error'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { createFriendlyPlayerSchema } from '@/lib/validations/friendly-player'
+import {
+  createUserForFriendlyPlayer,
+  syncFriendlyPlayerCategories,
+} from '@/lib/friendly-player-categories'
 import { Role } from '@prisma/client'
+
+const friendlyPlayerInclude = {
+  user: { select: { id: true, email: true } },
+  categories: {
+    include: { friendlyCategory: { select: { id: true, name: true } } },
+  },
+} as const
 
 export async function GET(req: Request) {
   try {
@@ -14,11 +24,10 @@ export async function GET(req: Request) {
     const categoryId = searchParams.get('categoryId')
 
     const players = await db.friendlyPlayer.findMany({
-      where: categoryId ? { friendlyCategoryId: categoryId } : undefined,
-      include: {
-        user: { select: { id: true, email: true } },
-        friendlyCategory: { select: { id: true, name: true } },
-      },
+      where: categoryId
+        ? { categories: { some: { friendlyCategoryId: categoryId } } }
+        : undefined,
+      include: friendlyPlayerInclude,
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     })
     return NextResponse.json(players)
@@ -43,48 +52,52 @@ export async function POST(req: Request) {
       )
     }
 
-    const { firstName, lastName, email, password, dominantFoot, primaryPosition, secondaryPosition, friendlyCategoryId } =
-      parsed.data
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      dominantFoot,
+      primaryPosition,
+      secondaryPosition,
+      friendlyCategoryIds,
+    } = parsed.data
 
-    const category = await db.friendlyCategory.findUnique({
-      where: { id: friendlyCategoryId },
+    const categories = await db.friendlyCategory.findMany({
+      where: { id: { in: friendlyCategoryIds } },
+      select: { id: true },
     })
-    if (!category) {
-      return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 400 })
+    if (categories.length !== friendlyCategoryIds.length) {
+      return NextResponse.json({ error: 'Una o más categorías no existen' }, { status: 400 })
     }
 
     const player = await db.$transaction(async (tx) => {
       let userId: string | undefined
       if (email && password) {
-        const passwordHash = await bcrypt.hash(password, 10)
-        const user = await tx.user.create({
-          data: {
-            email,
-            passwordHash,
-            name: `${firstName} ${lastName}`,
-            role: Role.PLAYER,
-          },
+        userId = await createUserForFriendlyPlayer(tx, {
+          firstName,
+          lastName,
+          email,
+          password,
         })
-        await tx.player.create({
-          data: { userId: user.id },
-        })
-        userId = user.id
       }
 
-      return tx.friendlyPlayer.create({
+      const created = await tx.friendlyPlayer.create({
         data: {
           firstName,
           lastName,
-          friendlyCategoryId,
           ...(dominantFoot ? { dominantFoot } : {}),
           ...(primaryPosition ? { primaryPosition } : {}),
           ...(secondaryPosition ? { secondaryPosition } : {}),
           ...(userId ? { userId } : {}),
         },
-        include: {
-          user: { select: { id: true, email: true } },
-          friendlyCategory: { select: { id: true, name: true } },
-        },
+      })
+
+      await syncFriendlyPlayerCategories(tx, created.id, friendlyCategoryIds)
+
+      return tx.friendlyPlayer.findUniqueOrThrow({
+        where: { id: created.id },
+        include: friendlyPlayerInclude,
       })
     })
 

@@ -10,7 +10,9 @@ export default async function RegisterPage() {
       firstName: true,
       lastName: true,
       primaryPosition: true,
-      friendlyCategory: { select: { name: true } },
+      categories: {
+        include: { friendlyCategory: { select: { name: true } } },
+      },
     },
   })
 
@@ -21,7 +23,7 @@ export default async function RegisterPage() {
         firstName: p.firstName,
         lastName: p.lastName,
         primaryPosition: p.primaryPosition,
-        categoryName: p.friendlyCategory.name,
+        categoryName: p.categories.map((c) => c.friendlyCategory.name).join(', '),
       }))}
     />
   )

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   createFriendlyPlayerSchema,
   claimFriendlyPlayerSchema,
+  updateFriendlyPlayerSchema,
 } from '@/lib/validations/friendly-player'
 import {
   createMatchSchema,
@@ -13,12 +14,12 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Juan',
       lastName: 'Pérez',
-      friendlyCategoryId: 'cat-1',
+      friendlyCategoryIds: ['cat-1'],
     })
     expect(result.success).toBe(true)
   })
 
-  it('requires friendlyCategoryId when creating friendly player', () => {
+  it('requires friendlyCategoryIds when creating friendly player', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Juan',
       lastName: 'Pérez',
@@ -26,11 +27,20 @@ describe('friendly player validations', () => {
     expect(result.success).toBe(false)
   })
 
+  it('accepts multiple categories when creating friendly player', () => {
+    const result = createFriendlyPlayerSchema.safeParse({
+      firstName: 'Juan',
+      lastName: 'Pérez',
+      friendlyCategoryIds: ['cat-1', 'cat-2'],
+    })
+    expect(result.success).toBe(true)
+  })
+
   it('accepts profile fields', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Juan',
       lastName: 'Pérez',
-      friendlyCategoryId: 'cat-1',
+      friendlyCategoryIds: ['cat-1'],
       dominantFoot: 'RIGHT',
       primaryPosition: 'Delantero',
       secondaryPosition: 'Extremo derecho',
@@ -42,7 +52,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Juan',
       lastName: 'Pérez',
-      friendlyCategoryId: 'cat-1',
+      friendlyCategoryIds: ['cat-1'],
       primaryPosition: 'Delantero',
       secondaryPosition: 'Delantero',
     })
@@ -53,7 +63,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
-      friendlyCategoryId: 'cat-1',
+      friendlyCategoryIds: ['cat-1'],
       email: 'ana@demo.cl',
       password: 'password123',
     })
@@ -64,7 +74,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
-      friendlyCategoryId: 'cat-1',
+      friendlyCategoryIds: ['cat-1'],
       email: '',
       password: '',
     })
@@ -75,7 +85,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
-      friendlyCategoryId: 'cat-1',
+      friendlyCategoryIds: ['cat-1'],
       email: 'ana@demo.cl',
       password: '',
     })
@@ -86,7 +96,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
-      friendlyCategoryId: 'cat-1',
+      friendlyCategoryIds: ['cat-1'],
       email: 'ana@demo.cl',
       password: 'password123',
     })
@@ -97,7 +107,7 @@ describe('friendly player validations', () => {
     const result = createFriendlyPlayerSchema.safeParse({
       firstName: 'Ana',
       lastName: 'Silva',
-      friendlyCategoryId: 'cat-1',
+      friendlyCategoryIds: ['cat-1'],
       email: 'ana@demo.cl',
     })
     expect(result.success).toBe(false)
@@ -110,6 +120,23 @@ describe('friendly player validations', () => {
       friendlyPlayerId: 'fp-1',
     })
     expect(result.success).toBe(true)
+  })
+
+  it('update accepts email and password to create account', () => {
+    const result = updateFriendlyPlayerSchema.safeParse({
+      email: 'nuevo@demo.cl',
+      password: 'password123',
+      friendlyCategoryIds: ['cat-1'],
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('update rejects email without password', () => {
+    const result = updateFriendlyPlayerSchema.safeParse({
+      email: 'nuevo@demo.cl',
+      friendlyCategoryIds: ['cat-1'],
+    })
+    expect(result.success).toBe(false)
   })
 })
 

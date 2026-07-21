@@ -79,13 +79,22 @@ export async function POST(req: Request) {
   const playerIds = data.players.map((p) => p.friendlyPlayerId)
   const rosterPlayers = await db.friendlyPlayer.findMany({
     where: { id: { in: playerIds } },
-    select: { id: true, friendlyCategoryId: true },
+    select: {
+      id: true,
+      categories: { select: { friendlyCategoryId: true } },
+    },
   })
   if (rosterPlayers.length !== playerIds.length) {
     return NextResponse.json({ error: 'Uno o más jugadores no existen' }, { status: 400 })
   }
 
-  const membership = assertPlayersBelongToCategory(data.friendlyCategoryId, rosterPlayers)
+  const membership = assertPlayersBelongToCategory(
+    data.friendlyCategoryId,
+    rosterPlayers.map((p) => ({
+      id: p.id,
+      categoryIds: p.categories.map((c) => c.friendlyCategoryId),
+    }))
+  )
   if (!membership.ok) {
     return NextResponse.json(
       {

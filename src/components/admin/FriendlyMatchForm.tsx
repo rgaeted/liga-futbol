@@ -12,7 +12,7 @@ type FriendlyPlayer = {
   id: string
   firstName: string
   lastName: string
-  friendlyCategoryId: string
+  categoryIds: string[]
   primaryPosition?: string | null
   hasPhoto?: boolean
 }
@@ -49,7 +49,7 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
   const [sideASearch, setSideASearch] = useState('')
   const [sideBSearch, setSideBSearch] = useState('')
 
-  const roster = friendlyPlayers.filter((p) => p.friendlyCategoryId === categoryId)
+  const roster = friendlyPlayers.filter((p) => p.categoryIds.includes(categoryId))
   const filteredSideA = filterRoster(roster, sideASearch)
   const filteredSideB = filterRoster(roster, sideBSearch)
 
