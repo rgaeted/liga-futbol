@@ -108,6 +108,17 @@ model Season {
   createdAt DateTime @default(now())
 }
 
+model FriendlyCategory {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  players     FriendlyPlayer[]
+  matches     Match[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Match {
   id           String      @id @default(cuid())
   matchType    MatchType   @default(LEAGUE)
@@ -119,6 +130,8 @@ model Match {
   awayTeam     Team?       @relation("AwayTeam", fields: [awayTeamId], references: [id])
   sideAName    String?
   sideBName    String?
+  friendlyCategoryId String?
+  friendlyCategory   FriendlyCategory? @relation(fields: [friendlyCategoryId], references: [id])
   refereeId    String?
   referee      User?       @relation("MatchReferee", fields: [refereeId], references: [id])
   scheduledAt  DateTime
@@ -189,6 +202,8 @@ model FriendlyPlayer {
   secondaryPosition String?
   photoMimeType  String?
   photoData      Bytes?
+  friendlyCategoryId String
+  friendlyCategory   FriendlyCategory @relation(fields: [friendlyCategoryId], references: [id])
   userId         String?               @unique
   user           User?                 @relation(fields: [userId], references: [id])
   participations FriendlyMatchPlayer[]
