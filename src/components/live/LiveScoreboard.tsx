@@ -78,13 +78,13 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
         },
         events: payload.event
           ? [
-              ...prev.events,
               {
                 id: payload.event.id,
                 type: payload.event.type,
                 minute: payload.event.minute,
                 playerName: eventPlayerName(payload.event),
               },
+              ...prev.events,
             ]
           : prev.events,
       }))
@@ -134,7 +134,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
 
         <h2 className="mb-4 font-display text-lg font-bold">Cronología</h2>
         <ul className="space-y-2">
-          {[...match.events].reverse().map((event) => (
+          {match.events.map((event) => (
             <li
               key={event.id}
               className="flex items-center gap-3 rounded-lg border border-white/10 bg-kelme-live-surface px-4 py-3"
