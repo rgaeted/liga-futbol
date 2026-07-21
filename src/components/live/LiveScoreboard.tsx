@@ -8,6 +8,7 @@ import type { SerializableClockState } from '@/hooks/useMatchClock'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
 import { resolveEventTeamLabel } from '@/lib/match-label'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
+import { MatchTimeline } from '@/components/live/MatchTimeline'
 import type { LineupView } from '@/lib/match-lineup'
 import type { FootballFormat, MatchType } from '@prisma/client'
 import { footballFormatLabel } from '@/lib/football-format'
@@ -213,7 +214,9 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
 
         {hasFormations && (
           <section className="mb-8">
-            <h2 className="mb-1 font-display text-lg font-bold">Formaciones</h2>
+            <h2 className="mb-1 font-display text-sm font-bold uppercase tracking-[0.25em] text-amber-200/75">
+              Formaciones
+            </h2>
             <p className="mb-4 text-center font-ui text-xs uppercase tracking-widest text-white/40">
               {footballFormatLabel(match.footballFormat)}
             </p>
@@ -237,41 +240,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
           </section>
         )}
 
-        <h2 className="mb-4 font-display text-lg font-bold">Cronología</h2>
-        <ul className="space-y-2">
-          {sortedEvents.map((event) => (
-            <li
-              key={event.id}
-              className="flex items-center gap-3 rounded-lg border border-white/10 bg-kelme-live-surface px-4 py-3"
-            >
-              <span className="w-10 shrink-0 font-mono text-kelme-red">{event.minute}&apos;</span>
-              <span className="min-w-0 flex-1 font-ui">{formatEvent(event.type)}</span>
-              {(event.playerName || event.teamName || event.assistName) && (
-                <span className="ml-auto shrink-0 text-right font-ui text-sm text-white/70">
-                  {event.playerName && event.teamName && (
-                    <>
-                      <span className="block">{event.playerName}</span>
-                      <span className="block text-xs font-medium text-kelme-red/90">
-                        {event.teamName}
-                      </span>
-                    </>
-                  )}
-                  {event.playerName && !event.teamName && (
-                    <span className="block">{event.playerName}</span>
-                  )}
-                  {!event.playerName && event.teamName && (
-                    <span className="block font-medium text-kelme-red/90">{event.teamName}</span>
-                  )}
-                  {event.assistName && (
-                    <span className="mt-0.5 block text-xs text-white/50">
-                      Asistencia: {event.assistName}
-                    </span>
-                  )}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+        <MatchTimeline events={sortedEvents} />
 
         <p className="mt-10 text-center font-ui text-xs uppercase tracking-widest text-white/30">
           Torneos Kelme
@@ -279,21 +248,4 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
       </div>
     </div>
   )
-}
-
-function formatEvent(type: string): string {
-  const labels: Record<string, string> = {
-    GOAL: '⚽ Gol',
-    OWN_GOAL: '⚽ Gol en contra',
-    YELLOW_CARD: '🟨 Tarjeta amarilla',
-    RED_CARD: '🟥 Tarjeta roja',
-    SHOT_ON_TARGET: '🎯 Tiro al arco',
-    SHOT_OFF_TARGET: 'Tiro desviado',
-    SUBSTITUTION: '🔄 Cambio',
-    FOUL: '⚠️ Falta',
-    KICKOFF: '▶ Inicio del partido',
-    HALFTIME: '⏸ Entretiempo',
-    FULLTIME: '⏹ Final del partido',
-  }
-  return labels[type] ?? type
 }
