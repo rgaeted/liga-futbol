@@ -53,6 +53,7 @@ export function MatchControlPanel({
   const [clock, setClock] = useState(initialClock)
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away'>('home')
   const [selectedPlayer, setSelectedPlayer] = useState('')
+  const [selectedAssist, setSelectedAssist] = useState('')
   const [pendingEvent, setPendingEvent] = useState<EventType | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -101,11 +102,17 @@ export function MatchControlPanel({
             type,
             friendlyPlayerId: selectedPlayer || undefined,
             side: selectedTeam === 'home' ? ('A' as const) : ('B' as const),
+            ...(type === EventType.GOAL && selectedAssist
+              ? { assistFriendlyPlayerId: selectedAssist }
+              : {}),
           }
         : {
             type,
             playerId: selectedPlayer || undefined,
             teamId: activeTeam.id,
+            ...(type === EventType.GOAL && selectedAssist
+              ? { assistPlayerId: selectedAssist }
+              : {}),
           }
 
     setLoading(true)
@@ -119,6 +126,7 @@ export function MatchControlPanel({
       updateFromMatchResponse(data.match)
     }
     setPendingEvent(null)
+    setSelectedAssist('')
     setLoading(false)
   }
 
@@ -164,7 +172,10 @@ export function MatchControlPanel({
 
       <select
         value={selectedPlayer}
-        onChange={(e) => setSelectedPlayer(e.target.value)}
+        onChange={(e) => {
+          setSelectedPlayer(e.target.value)
+          if (e.target.value === selectedAssist) setSelectedAssist('')
+        }}
         className="w-full rounded-lg border border-kelme-border bg-kelme-surface px-4 py-3"
       >
         <option value="">Seleccionar jugador...</option>
@@ -173,6 +184,21 @@ export function MatchControlPanel({
             {p.label}
           </option>
         ))}
+      </select>
+
+      <select
+        value={selectedAssist}
+        onChange={(e) => setSelectedAssist(e.target.value)}
+        className="w-full rounded-lg border border-kelme-border bg-kelme-surface px-4 py-3"
+      >
+        <option value="">Asistencia (opcional)...</option>
+        {activeTeam.players
+          .filter((p) => p.id !== selectedPlayer)
+          .map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.label}
+            </option>
+          ))}
       </select>
 
       <div className="grid grid-cols-2 gap-3">

@@ -71,11 +71,36 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 400 }
       )
     }
+    if (data.assistPlayerId) {
+      return NextResponse.json(
+        { error: 'assistPlayerId no aplica en partidos amistosos' },
+        { status: 400 }
+      )
+    }
+    if (data.assistFriendlyPlayerId && data.type !== EventType.GOAL) {
+      return NextResponse.json(
+        { error: 'La asistencia solo aplica en goles' },
+        { status: 400 }
+      )
+    }
   } else if (data.friendlyPlayerId) {
     return NextResponse.json(
       { error: 'friendlyPlayerId no aplica en partidos de liga' },
       { status: 400 }
     )
+  } else {
+    if (data.assistFriendlyPlayerId) {
+      return NextResponse.json(
+        { error: 'assistFriendlyPlayerId no aplica en partidos de liga' },
+        { status: 400 }
+      )
+    }
+    if (data.assistPlayerId && data.type !== EventType.GOAL) {
+      return NextResponse.json(
+        { error: 'La asistencia solo aplica en goles' },
+        { status: 400 }
+      )
+    }
   }
 
   const minuteOverride = isAdmin && data.minute !== undefined ? data.minute : undefined

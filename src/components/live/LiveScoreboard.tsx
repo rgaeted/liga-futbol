@@ -22,6 +22,8 @@ type RawSocketEvent = {
     team?: { id: string; name: string } | null
   } | null
   friendlyPlayer?: { firstName: string; lastName: string } | null
+  assistPlayer?: { user: { name: string } } | null
+  assistFriendlyPlayer?: { firstName: string; lastName: string } | null
 }
 
 type LiveMatchPayload = {
@@ -42,6 +44,7 @@ type MatchEvent = {
   createdAt: string
   playerName: string | null
   teamName: string | null
+  assistName: string | null
 }
 
 type Match = {
@@ -67,6 +70,13 @@ function eventPlayerName(event: RawSocketEvent): string | null {
     return `${event.friendlyPlayer.firstName} ${event.friendlyPlayer.lastName}`
   }
   return event.player?.user.name ?? null
+}
+
+function eventAssistName(event: RawSocketEvent): string | null {
+  if (event.assistFriendlyPlayer) {
+    return `${event.assistFriendlyPlayer.firstName} ${event.assistFriendlyPlayer.lastName}`
+  }
+  return event.assistPlayer?.user.name ?? null
 }
 
 function toIso(value: Date | string | null | undefined): string | null {
@@ -107,6 +117,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                   minute: payload.event!.minute,
                   createdAt: toEventCreatedAt(payload.event!.createdAt),
                   playerName: eventPlayerName(payload.event!),
+                  assistName: eventAssistName(payload.event!),
                   teamName: resolveEventTeamLabel(
                     {
                       teamId: payload.event!.teamId,
@@ -203,7 +214,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
             >
               <span className="w-10 shrink-0 font-mono text-kelme-red">{event.minute}&apos;</span>
               <span className="min-w-0 flex-1 font-ui">{formatEvent(event.type)}</span>
-              {(event.playerName || event.teamName) && (
+              {(event.playerName || event.teamName || event.assistName) && (
                 <span className="ml-auto shrink-0 text-right font-ui text-sm text-white/70">
                   {event.playerName && event.teamName && (
                     <>
@@ -218,6 +229,11 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                   )}
                   {!event.playerName && event.teamName && (
                     <span className="block font-medium text-kelme-red/90">{event.teamName}</span>
+                  )}
+                  {event.assistName && (
+                    <span className="mt-0.5 block text-xs text-white/50">
+                      Asistencia: {event.assistName}
+                    </span>
                   )}
                 </span>
               )}

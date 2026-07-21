@@ -28,12 +28,24 @@ describe('match event validation', () => {
     expect(result.success).toBe(false)
   })
 
-  it('accepts friendly goal with friendlyPlayerId and side', () => {
+  it('accepts goal with assist', () => {
+    const result = createMatchEventSchema.safeParse({
+      type: EventType.GOAL,
+      minute: 45,
+      playerId: 'clxyz123456789012345678901',
+      teamId: 'clxyz123456789012345678902',
+      assistPlayerId: 'clxyz123456789012345678903',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts friendly goal with assist', () => {
     const result = createMatchEventSchema.safeParse({
       type: EventType.GOAL,
       minute: 12,
       friendlyPlayerId: 'fp-1',
       side: 'A',
+      assistFriendlyPlayerId: 'fp-2',
     })
     expect(result.success).toBe(true)
   })

@@ -9,6 +9,8 @@ export const createMatchEventSchema = z.object({
   playerId: id.optional(),
   teamId: id.optional(),
   friendlyPlayerId: id.optional(),
+  assistPlayerId: id.optional(),
+  assistFriendlyPlayerId: id.optional(),
   side: z.enum(['A', 'B']).optional(),
   description: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -20,6 +22,8 @@ export const updateMatchEventSchema = z.object({
   playerId: id.nullable().optional(),
   teamId: id.nullable().optional(),
   friendlyPlayerId: id.nullable().optional(),
+  assistPlayerId: id.nullable().optional(),
+  assistFriendlyPlayerId: id.nullable().optional(),
   side: z.enum(['A', 'B']).nullable().optional(),
   description: z.string().nullable().optional(),
 })

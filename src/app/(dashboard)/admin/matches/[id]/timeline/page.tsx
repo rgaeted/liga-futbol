@@ -15,6 +15,7 @@ async function getLeaguePlayers(matchId: string, homeTeamId: string, awayTeamId:
     return callUps.map((c) => ({
       id: c.playerId,
       label: c.player.user.name,
+      teamId: c.player.teamId,
     }))
   }
 
@@ -27,6 +28,7 @@ async function getLeaguePlayers(matchId: string, homeTeamId: string, awayTeamId:
   return players.map((p) => ({
     id: p.id,
     label: p.user.name,
+    teamId: p.teamId,
   }))
 }
 
@@ -46,6 +48,8 @@ export default async function AdminMatchTimelinePage({
         include: {
           player: { include: { user: { select: { name: true } } } },
           friendlyPlayer: { select: { firstName: true, lastName: true } },
+          assistPlayer: { include: { user: { select: { name: true } } } },
+          assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
         },
         orderBy: { minute: 'asc' },
       },
@@ -58,12 +62,13 @@ export default async function AdminMatchTimelinePage({
   const sides = matchSideNames(match)
   const title = matchDisplayName(match)
 
-  let players: { id: string; label: string }[] = []
+  let players: { id: string; label: string; teamId?: string | null; side?: 'A' | 'B' }[] = []
 
   if (match.matchType === MatchType.FRIENDLY) {
     players = match.friendlyPlayers.map((p) => ({
       id: p.friendlyPlayerId,
       label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`,
+      side: p.side,
     }))
   } else if (match.homeTeamId && match.awayTeamId) {
     players = await getLeaguePlayers(match.id, match.homeTeamId, match.awayTeamId)
@@ -76,11 +81,16 @@ export default async function AdminMatchTimelinePage({
     playerId: e.playerId,
     teamId: e.teamId,
     friendlyPlayerId: e.friendlyPlayerId,
+    assistPlayerId: e.assistPlayerId,
+    assistFriendlyPlayerId: e.assistFriendlyPlayerId,
     side: e.side,
     description: e.description,
     playerName: e.friendlyPlayer
       ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
       : (e.player?.user.name ?? null),
+    assistName: e.assistFriendlyPlayer
+      ? `${e.assistFriendlyPlayer.firstName} ${e.assistFriendlyPlayer.lastName}`
+      : (e.assistPlayer?.user.name ?? null),
   }))
 
   return (

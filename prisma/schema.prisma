@@ -93,6 +93,7 @@ model Player {
   callUps      CallUp[]
   evaluations  PlayerEvaluation[]
   matchEvents  MatchEvent[]
+  goalAssists  MatchEvent[] @relation("GoalAssists")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -145,6 +146,10 @@ model MatchEvent {
   player      Player?   @relation(fields: [playerId], references: [id])
   friendlyPlayerId String?
   friendlyPlayer   FriendlyPlayer? @relation(fields: [friendlyPlayerId], references: [id])
+  assistPlayerId   String?
+  assistPlayer     Player?         @relation("GoalAssists", fields: [assistPlayerId], references: [id])
+  assistFriendlyPlayerId String?
+  assistFriendlyPlayer   FriendlyPlayer? @relation("FriendlyGoalAssists", fields: [assistFriendlyPlayerId], references: [id])
   side             FriendlySide?
   teamId      String?
   description String?
@@ -188,6 +193,7 @@ model FriendlyPlayer {
   user           User?                 @relation(fields: [userId], references: [id])
   participations FriendlyMatchPlayer[]
   matchEvents    MatchEvent[]
+  goalAssists    MatchEvent[] @relation("FriendlyGoalAssists")
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt
 }

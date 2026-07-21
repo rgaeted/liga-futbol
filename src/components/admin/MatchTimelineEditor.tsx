@@ -10,7 +10,7 @@ import {
 } from '@/lib/event-labels'
 import { readApiError } from '@/lib/api-error'
 
-type RosterPlayer = { id: string; label: string; side?: 'A' | 'B' }
+type RosterPlayer = { id: string; label: string; teamId?: string | null; side?: 'A' | 'B' }
 
 type TimelineEvent = {
   id: string
@@ -19,9 +19,12 @@ type TimelineEvent = {
   playerId: string | null
   teamId: string | null
   friendlyPlayerId: string | null
+  assistPlayerId: string | null
+  assistFriendlyPlayerId: string | null
   side: 'A' | 'B' | null
   description: string | null
   playerName: string | null
+  assistName: string | null
 }
 
 type Props = {
@@ -42,8 +45,26 @@ type EditState = {
   playerId: string
   teamId: string
   friendlyPlayerId: string
+  assistPlayerId: string
+  assistFriendlyPlayerId: string
   side: string
   description: string
+}
+
+function isGoalEvent(type: EventType) {
+  return type === EventType.GOAL
+}
+
+function assistCandidates(
+  matchType: 'LEAGUE' | 'FRIENDLY',
+  players: RosterPlayer[],
+  opts: { teamId: string; side: string; scorerId: string }
+) {
+  return players.filter((p) => {
+    if (p.id === opts.scorerId) return false
+    if (matchType === 'FRIENDLY') return p.side === opts.side
+    return p.teamId === opts.teamId
+  })
 }
 
 export function MatchTimelineEditor({
@@ -72,6 +93,8 @@ export function MatchTimelineEditor({
     playerId: '',
     teamId: homeTeamId ?? '',
     friendlyPlayerId: '',
+    assistPlayerId: '',
+    assistFriendlyPlayerId: '',
     side: 'A',
     description: '',
   })
@@ -84,6 +107,8 @@ export function MatchTimelineEditor({
       playerId: event.playerId ?? '',
       teamId: event.teamId ?? homeTeamId ?? '',
       friendlyPlayerId: event.friendlyPlayerId ?? '',
+      assistPlayerId: event.assistPlayerId ?? '',
+      assistFriendlyPlayerId: event.assistFriendlyPlayerId ?? '',
       side: event.side ?? 'A',
       description: event.description ?? '',
     })
@@ -103,6 +128,9 @@ export function MatchTimelineEditor({
             friendlyPlayerId: editing.friendlyPlayerId || null,
             side: editing.side || null,
             description: editing.description || null,
+            ...(isGoalEvent(editing.type)
+              ? { assistFriendlyPlayerId: editing.assistFriendlyPlayerId || null }
+              : { assistFriendlyPlayerId: null }),
           }
         : {
             type: editing.type,
@@ -110,6 +138,9 @@ export function MatchTimelineEditor({
             playerId: editing.playerId || null,
             teamId: editing.teamId || null,
             description: editing.description || null,
+            ...(isGoalEvent(editing.type)
+              ? { assistPlayerId: editing.assistPlayerId || null }
+              : { assistPlayerId: null }),
           }
 
     const res = await fetch(`/api/matches/${matchId}/events/${editing.id}`, {
@@ -162,6 +193,9 @@ export function MatchTimelineEditor({
             friendlyPlayerId: newEvent.friendlyPlayerId || undefined,
             side: newEvent.side as 'A' | 'B',
             description: newEvent.description || undefined,
+            ...(isGoalEvent(newEvent.type) && newEvent.assistFriendlyPlayerId
+              ? { assistFriendlyPlayerId: newEvent.assistFriendlyPlayerId }
+              : {}),
           }
         : {
             type: newEvent.type,
@@ -169,6 +203,9 @@ export function MatchTimelineEditor({
             playerId: newEvent.playerId || undefined,
             teamId: newEvent.teamId || undefined,
             description: newEvent.description || undefined,
+            ...(isGoalEvent(newEvent.type) && newEvent.assistPlayerId
+              ? { assistPlayerId: newEvent.assistPlayerId }
+              : {}),
           }
 
     const res = await fetch(`/api/matches/${matchId}/events`, {
@@ -188,6 +225,8 @@ export function MatchTimelineEditor({
       minute: 0,
       playerId: '',
       friendlyPlayerId: '',
+      assistPlayerId: '',
+      assistFriendlyPlayerId: '',
       description: '',
     }))
     setLoading(false)
@@ -200,7 +239,15 @@ export function MatchTimelineEditor({
         <h2 className="font-display text-lg font-bold md:col-span-3">Agregar evento</h2>
         <select
           value={newEvent.type}
-          onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value as EventType })}
+          onChange={(e) => {
+            const type = e.target.value as EventType
+            setNewEvent({
+              ...newEvent,
+              type,
+              assistPlayerId: '',
+              assistFriendlyPlayerId: '',
+            })
+          }}
           className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
         >
           {ALL_EVENT_TYPES.map((type) => (
@@ -232,11 +279,40 @@ export function MatchTimelineEditor({
             {eventNeedsPlayer(newEvent.type) && (
               <select
                 value={newEvent.friendlyPlayerId}
-                onChange={(e) => setNewEvent({ ...newEvent, friendlyPlayerId: e.target.value })}
+                onChange={(e) =>
+                  setNewEvent({
+                    ...newEvent,
+                    friendlyPlayerId: e.target.value,
+                    assistFriendlyPlayerId:
+                      e.target.value === newEvent.assistFriendlyPlayerId
+                        ? ''
+                        : newEvent.assistFriendlyPlayerId,
+                  })
+                }
                 className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
               >
                 <option value="">Jugador (opcional)</option>
                 {players.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            )}
+            {isGoalEvent(newEvent.type) && (
+              <select
+                value={newEvent.assistFriendlyPlayerId}
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, assistFriendlyPlayerId: e.target.value })
+                }
+                className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+              >
+                <option value="">Asistencia (opcional)</option>
+                {assistCandidates(matchType, players, {
+                  teamId: newEvent.teamId,
+                  side: newEvent.side,
+                  scorerId: newEvent.friendlyPlayerId,
+                }).map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.label}
                   </option>
@@ -257,11 +333,36 @@ export function MatchTimelineEditor({
             {eventNeedsPlayer(newEvent.type) && (
               <select
                 value={newEvent.playerId}
-                onChange={(e) => setNewEvent({ ...newEvent, playerId: e.target.value })}
+                onChange={(e) =>
+                  setNewEvent({
+                    ...newEvent,
+                    playerId: e.target.value,
+                    assistPlayerId:
+                      e.target.value === newEvent.assistPlayerId ? '' : newEvent.assistPlayerId,
+                  })
+                }
                 className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
               >
                 <option value="">Jugador (opcional)</option>
                 {players.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            )}
+            {isGoalEvent(newEvent.type) && (
+              <select
+                value={newEvent.assistPlayerId}
+                onChange={(e) => setNewEvent({ ...newEvent, assistPlayerId: e.target.value })}
+                className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+              >
+                <option value="">Asistencia (opcional)</option>
+                {assistCandidates(matchType, players, {
+                  teamId: newEvent.teamId,
+                  side: newEvent.side,
+                  scorerId: newEvent.playerId,
+                }).map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.label}
                   </option>
@@ -286,6 +387,7 @@ export function MatchTimelineEditor({
               <th className="px-4 py-3">Min</th>
               <th className="px-4 py-3">Evento</th>
               <th className="px-4 py-3">Jugador</th>
+              <th className="px-4 py-3">Asistencia</th>
               <th className="px-4 py-3">Acciones</th>
             </tr>
           </thead>
@@ -308,9 +410,15 @@ export function MatchTimelineEditor({
                   <td className="px-4 py-3">
                     <select
                       value={editing.type}
-                      onChange={(e) =>
-                        setEditing({ ...editing, type: e.target.value as EventType })
-                      }
+                      onChange={(e) => {
+                        const type = e.target.value as EventType
+                        setEditing({
+                          ...editing,
+                          type,
+                          assistPlayerId: '',
+                          assistFriendlyPlayerId: '',
+                        })
+                      }}
                       className="rounded border border-kelme-border px-2 py-1"
                     >
                       {ALL_EVENT_TYPES.map((type) => (
@@ -325,7 +433,14 @@ export function MatchTimelineEditor({
                       <select
                         value={editing.friendlyPlayerId}
                         onChange={(e) =>
-                          setEditing({ ...editing, friendlyPlayerId: e.target.value })
+                          setEditing({
+                            ...editing,
+                            friendlyPlayerId: e.target.value,
+                            assistFriendlyPlayerId:
+                              e.target.value === editing.assistFriendlyPlayerId
+                                ? ''
+                                : editing.assistFriendlyPlayerId,
+                          })
                         }
                         className="rounded border border-kelme-border px-2 py-1"
                       >
@@ -340,7 +455,14 @@ export function MatchTimelineEditor({
                       <select
                         value={editing.playerId}
                         onChange={(e) =>
-                          setEditing({ ...editing, playerId: e.target.value })
+                          setEditing({
+                            ...editing,
+                            playerId: e.target.value,
+                            assistPlayerId:
+                              e.target.value === editing.assistPlayerId
+                                ? ''
+                                : editing.assistPlayerId,
+                          })
                         }
                         className="rounded border border-kelme-border px-2 py-1"
                       >
@@ -351,6 +473,51 @@ export function MatchTimelineEditor({
                           </option>
                         ))}
                       </select>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {isGoalEvent(editing.type) ? (
+                      matchType === 'FRIENDLY' ? (
+                        <select
+                          value={editing.assistFriendlyPlayerId}
+                          onChange={(e) =>
+                            setEditing({ ...editing, assistFriendlyPlayerId: e.target.value })
+                          }
+                          className="rounded border border-kelme-border px-2 py-1"
+                        >
+                          <option value="">—</option>
+                          {assistCandidates(matchType, players, {
+                            teamId: editing.teamId,
+                            side: editing.side,
+                            scorerId: editing.friendlyPlayerId,
+                          }).map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <select
+                          value={editing.assistPlayerId}
+                          onChange={(e) =>
+                            setEditing({ ...editing, assistPlayerId: e.target.value })
+                          }
+                          className="rounded border border-kelme-border px-2 py-1"
+                        >
+                          <option value="">—</option>
+                          {assistCandidates(matchType, players, {
+                            teamId: editing.teamId,
+                            side: editing.side,
+                            scorerId: editing.playerId,
+                          }).map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.label}
+                            </option>
+                          ))}
+                        </select>
+                      )
+                    ) : (
+                      '—'
                     )}
                   </td>
                   <td className="space-x-2 px-4 py-3">
@@ -376,6 +543,7 @@ export function MatchTimelineEditor({
                   <td className="px-4 py-3 font-mono">{event.minute}&apos;</td>
                   <td className="px-4 py-3">{EVENT_TYPE_LABELS[event.type]}</td>
                   <td className="px-4 py-3">{event.playerName ?? '—'}</td>
+                  <td className="px-4 py-3">{event.assistName ?? '—'}</td>
                   <td className="space-x-2 px-4 py-3">
                     <button
                       type="button"

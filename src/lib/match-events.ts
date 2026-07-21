@@ -13,6 +13,12 @@ const eventInclude = {
     },
   },
   friendlyPlayer: { select: { firstName: true, lastName: true } },
+  assistPlayer: {
+    include: {
+      user: { select: { name: true } },
+    },
+  },
+  assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
 } as const
 
 const GAME_EVENT_TYPES: EventType[] = [
@@ -101,8 +107,11 @@ export async function registerMatchEvent(
     data: { homeScore, awayScore, status, ...clockUpdate },
   })
 
-  if (match.matchType === MatchType.LEAGUE && input.playerId) {
-    await syncLeaguePlayerStats(input.playerId)
+  if (match.matchType === MatchType.LEAGUE) {
+    const playerIds = new Set<string>()
+    if (input.playerId) playerIds.add(input.playerId)
+    if (input.assistPlayerId) playerIds.add(input.assistPlayerId)
+    await Promise.all([...playerIds].map((playerId) => syncLeaguePlayerStats(playerId)))
   }
 
   emitMatchUpdate({

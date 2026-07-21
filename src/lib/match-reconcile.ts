@@ -29,10 +29,17 @@ export function computeScoresFromEvents(
 }
 
 export async function syncLeaguePlayerStats(playerId: string) {
-  const [goals, yellowCards, redCards] = await Promise.all([
+  const [goals, assists, yellowCards, redCards] = await Promise.all([
     db.matchEvent.count({
       where: {
         playerId,
+        type: EventType.GOAL,
+        match: { matchType: MatchType.LEAGUE },
+      },
+    }),
+    db.matchEvent.count({
+      where: {
+        assistPlayerId: playerId,
         type: EventType.GOAL,
         match: { matchType: MatchType.LEAGUE },
       },
@@ -55,7 +62,7 @@ export async function syncLeaguePlayerStats(playerId: string) {
 
   await db.player.update({
     where: { id: playerId },
-    data: { goals, yellowCards, redCards },
+    data: { goals, assists, yellowCards, redCards },
   })
 }
 
@@ -78,6 +85,7 @@ export async function reconcileMatchState(matchId: string, affectedPlayerIds: st
     const playerIds = new Set(affectedPlayerIds)
     for (const event of events) {
       if (event.playerId) playerIds.add(event.playerId)
+      if (event.assistPlayerId) playerIds.add(event.assistPlayerId)
     }
     await Promise.all([...playerIds].map((playerId) => syncLeaguePlayerStats(playerId)))
   }

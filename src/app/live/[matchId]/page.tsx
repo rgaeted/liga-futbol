@@ -31,6 +31,8 @@ export default async function LiveMatchPage({
             },
           },
           friendlyPlayer: { select: { firstName: true, lastName: true } },
+          assistPlayer: { include: { user: { select: { name: true } } } },
+          assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
         },
         orderBy: { createdAt: 'asc' },
       },
@@ -89,6 +91,9 @@ export default async function LiveMatchPage({
           playerName: e.friendlyPlayer
             ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
             : (e.player?.user.name ?? null),
+          assistName: e.assistFriendlyPlayer
+            ? `${e.assistFriendlyPlayer.firstName} ${e.assistFriendlyPlayer.lastName}`
+            : (e.assistPlayer?.user.name ?? null),
           teamName: resolveEventTeamLabel(
             {
               teamId: e.teamId,
