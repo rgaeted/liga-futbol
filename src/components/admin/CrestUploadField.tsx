@@ -9,6 +9,7 @@ type Props = {
   uploadUrl: string
   previewUrl?: string | null
   hasCrest: boolean
+  color?: string | null
   onUpdated?: () => void
 }
 
@@ -29,6 +30,7 @@ export function CrestUploadField({
   uploadUrl,
   previewUrl,
   hasCrest,
+  color,
   onUpdated,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -76,7 +78,7 @@ export function CrestUploadField({
     <div className="space-y-2">
       <p className="text-xs font-medium text-kelme-gray-600">{label}</p>
       <div className="flex items-center gap-3">
-        <TeamCrest name={name} src={displaySrc} size="md" />
+        <TeamCrest name={name} src={displaySrc} color={color} size="md" />
         <div className="flex flex-wrap items-center gap-2">
           <label className="cursor-pointer rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red">
             {busy ? 'Subiendo…' : showCrest ? 'Cambiar' : 'Subir escudo'}

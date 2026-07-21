@@ -7,6 +7,7 @@ export type TimelineEvent = {
   playerName: string | null
   teamName: string | null
   teamCrestSrc?: string | null
+  teamColor?: string | null
   assistName: string | null
 }
 
@@ -118,7 +119,12 @@ function TimelineRow({ event }: { event: TimelineEvent }) {
 
       {event.teamName && (
         <span className="flex max-w-[46%] shrink-0 items-center justify-end gap-1.5 sm:max-w-none">
-          <TeamCrest name={event.teamName} src={event.teamCrestSrc} size="sm" />
+          <TeamCrest
+            name={event.teamName}
+            src={event.teamCrestSrc}
+            color={event.teamColor}
+            size="sm"
+          />
           <span className="truncate text-right font-ui text-xs font-semibold uppercase tracking-wide text-white sm:text-sm">
             {event.teamName}
           </span>

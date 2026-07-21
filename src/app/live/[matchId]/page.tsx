@@ -4,6 +4,7 @@ import { matchSideNames, resolveEventTeamLabel, resolveEventTeamCrest } from '@/
 import { buildMatchFormationSides } from '@/lib/match-formations'
 import { matchSideCrestUrl, matchSideHasCrest } from '@/lib/match-side-crest'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
+import { resolveEventTeamColor, resolveMatchSideColor, resolveTeamColor } from '@/lib/team-color'
 import {
   sortTimelineEvents,
   timelineUsesCreatedAtOrder,
@@ -120,6 +121,29 @@ export default async function LiveMatchPage({
         ? teamCrestUrl(match.awayTeam.id)
         : null
 
+  const homeColor =
+    match.matchType === MatchType.FRIENDLY
+      ? resolveMatchSideColor(match.sideAColor, sides.home)
+      : match.homeTeam
+        ? resolveTeamColor(match.homeTeam.color, match.homeTeam.name)
+        : resolveTeamColor(null, sides.home)
+
+  const awayColor =
+    match.matchType === MatchType.FRIENDLY
+      ? resolveMatchSideColor(match.sideBColor, sides.away)
+      : match.awayTeam
+        ? resolveTeamColor(match.awayTeam.color, match.awayTeam.name)
+        : resolveTeamColor(null, sides.away)
+
+  const teamVisual = {
+    homeName: sides.home,
+    awayName: sides.away,
+    homeCrestSrc,
+    awayCrestSrc,
+    homeColor,
+    awayColor,
+  }
+
   return (
     <LiveScoreboard
       initialMatch={{
@@ -129,8 +153,8 @@ export default async function LiveMatchPage({
         awayTeamId: match.awayTeamId,
         sideAName: match.sideAName,
         sideBName: match.sideBName,
-        homeTeam: { name: sides.home, crestSrc: homeCrestSrc },
-        awayTeam: { name: sides.away, crestSrc: awayCrestSrc },
+        homeTeam: { name: sides.home, crestSrc: homeCrestSrc, color: homeColor },
+        awayTeam: { name: sides.away, crestSrc: awayCrestSrc, color: awayColor },
         homeScore: match.homeScore,
         awayScore: match.awayScore,
         status: match.status,
@@ -170,12 +194,8 @@ export default async function LiveMatchPage({
               ? `${e.assistFriendlyPlayer.firstName} ${e.assistFriendlyPlayer.lastName}`
               : (e.assistPlayer?.user.name ?? null),
             teamName,
-            teamCrestSrc: resolveEventTeamCrest(teamName, {
-              homeName: sides.home,
-              awayName: sides.away,
-              homeCrestSrc,
-              awayCrestSrc,
-            }),
+            teamCrestSrc: resolveEventTeamCrest(teamName, teamVisual),
+            teamColor: resolveEventTeamColor(teamName, teamVisual),
           }
         }),
         footballFormat: match.footballFormat,
@@ -183,6 +203,7 @@ export default async function LiveMatchPage({
           label: s.label,
           lineup: s.lineup,
           crestSrc: s.label === sides.home ? homeCrestSrc : s.label === sides.away ? awayCrestSrc : null,
+          color: s.label === sides.home ? homeColor : s.label === sides.away ? awayColor : undefined,
         })),
       }}
     />

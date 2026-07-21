@@ -9,6 +9,8 @@ import { scheduleInputToIso } from '@/lib/schedule-datetime'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
 import { CrestUploadField } from './CrestUploadField'
+import { TeamColorPicker } from './TeamColorPicker'
+import { resolveTeamColor } from '@/lib/team-color'
 
 export type MatchRow = {
   id: string
@@ -16,6 +18,8 @@ export type MatchRow = {
   matchType: MatchType
   sideAName: string | null
   sideBName: string | null
+  sideAColor: string | null
+  sideBColor: string | null
   hasCrestA: boolean
   hasCrestB: boolean
   refereeId: string | null
@@ -39,6 +43,8 @@ export function MatchActions({ match, referees }: { match: MatchRow; referees: R
   const [footballFormat, setFootballFormat] = useState(match.footballFormat)
   const [date, setDate] = useState(match.date)
   const [time, setTime] = useState(match.time)
+  const [sideAColor, setSideAColor] = useState(match.sideAColor)
+  const [sideBColor, setSideBColor] = useState(match.sideBColor)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -51,6 +57,9 @@ export function MatchActions({ match, referees }: { match: MatchRow; referees: R
       status,
       footballFormat,
       scheduledAt: scheduleInputToIso(date, time),
+      ...(match.matchType === 'FRIENDLY'
+        ? { sideAColor, sideBColor }
+        : {}),
     })
     setSaving(false)
     if (!result.ok) {
@@ -131,17 +140,37 @@ export function MatchActions({ match, referees }: { match: MatchRow; referees: R
       />
       {match.matchType === 'FRIENDLY' && (
         <>
+          <div className="md:col-span-3">
+            <TeamColorPicker
+              name={match.sideAName ?? 'Lado A'}
+              value={sideAColor}
+              onChange={setSideAColor}
+              hasCrest={match.hasCrestA}
+              crestSrc={matchSideCrestUrl(match.id, 'A')}
+            />
+          </div>
           <CrestUploadField
-            label={`Escudo lado A (${match.sideAName ?? 'A'})`}
+            label={`Imagen escudo lado A (${match.sideAName ?? 'A'})`}
             name={match.sideAName ?? 'Lado A'}
+            color={resolveTeamColor(sideAColor, match.sideAName ?? 'A')}
             uploadUrl={`/api/matches/${match.id}/crest/A`}
             previewUrl={matchSideCrestUrl(match.id, 'A')}
             hasCrest={match.hasCrestA}
             onUpdated={() => router.refresh()}
           />
+          <div className="md:col-span-3">
+            <TeamColorPicker
+              name={match.sideBName ?? 'Lado B'}
+              value={sideBColor}
+              onChange={setSideBColor}
+              hasCrest={match.hasCrestB}
+              crestSrc={matchSideCrestUrl(match.id, 'B')}
+            />
+          </div>
           <CrestUploadField
-            label={`Escudo lado B (${match.sideBName ?? 'B'})`}
+            label={`Imagen escudo lado B (${match.sideBName ?? 'B'})`}
             name={match.sideBName ?? 'Lado B'}
+            color={resolveTeamColor(sideBColor, match.sideBName ?? 'B')}
             uploadUrl={`/api/matches/${match.id}/crest/B`}
             previewUrl={matchSideCrestUrl(match.id, 'B')}
             hasCrest={match.hasCrestB}

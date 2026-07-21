@@ -78,6 +78,7 @@ model Team {
   logoUrl       String?
   crestMimeType String?
   crestData     Bytes?
+  color         String?
   coachId       String?  @unique
   coach     User?    @relation("TeamCoach", fields: [coachId], references: [id])
   players   Player[]
@@ -144,6 +145,8 @@ model Match {
   sideACrestData     Bytes?
   sideBCrestMimeType String?
   sideBCrestData     Bytes?
+  sideAColor         String?
+  sideBColor         String?
   friendlyCategoryId String?
   friendlyCategory   FriendlyCategory? @relation(fields: [friendlyCategoryId], references: [id])
   footballFormat     FootballFormat    @default(FUTBOL_11)

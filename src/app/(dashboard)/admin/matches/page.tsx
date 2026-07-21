@@ -153,6 +153,8 @@ export default async function AdminMatchesPage() {
                       matchType: match.matchType,
                       sideAName: match.sideAName,
                       sideBName: match.sideBName,
+                      sideAColor: match.sideAColor,
+                      sideBColor: match.sideBColor,
                       hasCrestA: matchSideHasCrest(match, 'A'),
                       hasCrestB: matchSideHasCrest(match, 'B'),
                       refereeId: match.refereeId,

@@ -7,6 +7,7 @@ import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
 import { resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
+import { resolveEventTeamColor } from '@/lib/team-color'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
 import { TeamCrest } from '@/components/TeamCrest'
@@ -50,6 +51,7 @@ type MatchEvent = {
   playerName: string | null
   teamName: string | null
   teamCrestSrc: string | null
+  teamColor: string | null
   assistName: string | null
 }
 
@@ -60,8 +62,8 @@ type Match = {
   awayTeamId: string | null
   sideAName: string | null
   sideBName: string | null
-  homeTeam: { name: string; crestSrc?: string | null }
-  awayTeam: { name: string; crestSrc?: string | null }
+  homeTeam: { name: string; crestSrc?: string | null; color: string }
+  awayTeam: { name: string; crestSrc?: string | null; color: string }
   homeScore: number
   awayScore: number
   status: string
@@ -70,15 +72,17 @@ type Match = {
   clock: SerializableClockState
   events: MatchEvent[]
   footballFormat: FootballFormat
-  formations: Array<{ label: string; crestSrc?: string | null; lineup: LineupView | null }>
+  formations: Array<{ label: string; crestSrc?: string | null; color?: string; lineup: LineupView | null }>
 }
 
-function crestLookup(match: Match) {
+function teamVisualLookup(match: Match) {
   return {
     homeName: match.homeTeam.name,
     awayName: match.awayTeam.name,
     homeCrestSrc: match.homeTeam.crestSrc,
     awayCrestSrc: match.awayTeam.crestSrc,
+    homeColor: match.homeTeam.color,
+    awayColor: match.awayTeam.color,
   }
 }
 
@@ -160,7 +164,8 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                     playerName: eventPlayerName(payload.event!),
                     assistName: eventAssistName(payload.event!),
                     teamName,
-                    teamCrestSrc: resolveEventTeamCrest(teamName, crestLookup(prev)),
+                    teamCrestSrc: resolveEventTeamCrest(teamName, teamVisualLookup(prev)),
+                    teamColor: resolveEventTeamColor(teamName, teamVisualLookup(prev)),
                   }
                 })(),
               ]
@@ -218,7 +223,12 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
         <div className="mb-8 rounded-2xl border border-white/10 bg-kelme-live-surface p-6 sm:p-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-              <TeamCrest name={match.homeTeam.name} src={match.homeTeam.crestSrc} size="lg" />
+              <TeamCrest
+                name={match.homeTeam.name}
+                src={match.homeTeam.crestSrc}
+                color={match.homeTeam.color}
+                size="lg"
+              />
               <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
                 {match.homeTeam.name}
               </p>
@@ -231,7 +241,12 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
               </p>
             </div>
             <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-              <TeamCrest name={match.awayTeam.name} src={match.awayTeam.crestSrc} size="lg" />
+              <TeamCrest
+                name={match.awayTeam.name}
+                src={match.awayTeam.crestSrc}
+                color={match.awayTeam.color}
+                size="lg"
+              />
               <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
                 {match.awayTeam.name}
               </p>
@@ -256,6 +271,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                       lineup={side.lineup}
                       teamName={side.label}
                       crestSrc={side.crestSrc}
+                      color={side.color}
                     />
                     {side.lineup.bench.length > 0 && (
                       <p className="mt-2 text-center text-xs text-white/40">

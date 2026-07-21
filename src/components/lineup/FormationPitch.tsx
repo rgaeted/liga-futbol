@@ -13,6 +13,7 @@ type Props = {
   variant?: 'editor' | 'live'
   teamName?: string
   crestSrc?: string | null
+  color?: string | null
 }
 
 function PitchSurface() {
@@ -92,6 +93,7 @@ export function FormationPitch({
   variant = 'editor',
   teamName,
   crestSrc,
+  color,
 }: Props) {
   const maxRow = Math.max(...lineup.pitch.map((s) => s.row), 0)
   const isLive = variant === 'live'
@@ -156,7 +158,7 @@ export function FormationPitch({
     <div className={className}>
       {teamName && (
         <div className="mb-3 flex items-center justify-center gap-2">
-          <TeamCrest name={teamName} src={crestSrc} size="sm" />
+          <TeamCrest name={teamName} src={crestSrc} color={color} size="sm" />
           <p className="font-ui text-xs font-semibold uppercase tracking-widest text-white/85">
             {teamName}
           </p>

@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth'
 import { formatApiError } from '@/lib/api-error'
 import { createMatchSchema } from '@/lib/validations/match'
 import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
+import { deriveTeamColor } from '@/lib/team-color'
 import { Role } from '@prisma/client'
 
 export async function GET(req: Request) {
@@ -113,6 +114,8 @@ export async function POST(req: Request) {
         footballFormat: data.footballFormat,
         sideAName: data.sideAName,
         sideBName: data.sideBName,
+        sideAColor: deriveTeamColor(data.sideAName),
+        sideBColor: deriveTeamColor(data.sideBName),
         refereeId: data.refereeId,
         venue: data.venue,
         scheduledAt: new Date(data.scheduledAt),

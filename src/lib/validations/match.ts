@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { FOOTBALL_FORMATS } from '@/lib/football-format'
+import { teamColorSchema } from '@/lib/team-color'
 
 const id = z.string().min(1)
 const footballFormatSchema = z.enum(FOOTBALL_FORMATS)
@@ -63,6 +64,8 @@ export const updateMatchSchema = z.object({
   venue: z.string().nullable().optional(),
   status: z.enum(['SCHEDULED', 'LIVE', 'HALFTIME', 'FINISHED', 'CANCELLED']).optional(),
   footballFormat: footballFormatSchema.optional(),
+  sideAColor: teamColorSchema.nullable().optional(),
+  sideBColor: teamColorSchema.nullable().optional(),
 })
 
 export const updateFriendlyPaidSchema = z.object({

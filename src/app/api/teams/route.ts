@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { createTeamSchema } from '@/lib/validations/team'
+import { deriveTeamColor } from '@/lib/team-color'
 import { Role } from '@prisma/client'
 
 export async function GET() {
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
   const data = {
     name: parsed.data.name,
     logoUrl: parsed.data.logoUrl || null,
+    color: parsed.data.color ?? deriveTeamColor(parsed.data.name),
     coachId: parsed.data.coachId,
   }
 

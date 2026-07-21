@@ -5,12 +5,15 @@ import { useState } from 'react'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
 import { CrestUploadField } from './CrestUploadField'
+import { TeamColorPicker } from './TeamColorPicker'
 import { TeamCrest } from '@/components/TeamCrest'
 import { teamCrestUrl } from '@/lib/team-crest'
+import { resolveTeamColor } from '@/lib/team-color'
 
 export type TeamRow = {
   id: string
   name: string
+  color: string | null
   coachId: string | null
   coachName: string | null
   playerCount: number
@@ -27,6 +30,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
+  const [color, setColor] = useState<string | null>(null)
   const [coachId, setCoachId] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -34,6 +38,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
   function startEdit(team: TeamRow) {
     setEditingId(team.id)
     setName(team.name)
+    setColor(team.color)
     setCoachId(team.coachId ?? '')
     setError('')
   }
@@ -43,6 +48,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
     setError('')
     const result = await submitJson(`/api/teams/${teamId}`, 'PUT', {
       name,
+      color,
       coachId: coachId || null,
     })
     setSaving(false)
@@ -72,14 +78,24 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
               {editingId === team.id ? (
                 <>
                   <td className="p-3 align-top">
-                    <CrestUploadField
-                      label="Escudo del equipo"
-                      name={name}
-                      uploadUrl={`/api/teams/${team.id}/crest`}
-                      previewUrl={teamCrestUrl(team.id)}
-                      hasCrest={team.hasCrest}
-                      onUpdated={() => router.refresh()}
-                    />
+                    <div className="space-y-3">
+                      <TeamColorPicker
+                        name={name}
+                        value={color}
+                        onChange={setColor}
+                        hasCrest={team.hasCrest}
+                        crestSrc={teamCrestUrl(team.id)}
+                      />
+                      <CrestUploadField
+                        label="Imagen del escudo (opcional)"
+                        name={name}
+                        color={resolveTeamColor(color, name)}
+                        uploadUrl={`/api/teams/${team.id}/crest`}
+                        previewUrl={teamCrestUrl(team.id)}
+                        hasCrest={team.hasCrest}
+                        onUpdated={() => router.refresh()}
+                      />
+                    </div>
                   </td>
                   <td className="p-3">
                     <input
@@ -135,6 +151,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
                     <TeamCrest
                       name={team.name}
                       src={team.hasCrest ? teamCrestUrl(team.id) : null}
+                      color={resolveTeamColor(team.color, team.name)}
                       size="sm"
                     />
                   </td>
