@@ -28,6 +28,12 @@ describe('formations catalog', () => {
     expect(getFormationSlots(scheme, 'FUTBOL_7')).toHaveLength(7)
   })
 
+  it('fútbol 6 uses 6-player schemes', () => {
+    const scheme = getDefaultScheme('FUTBOL_6')
+    expect(isValidScheme(scheme, 'FUTBOL_6')).toBe(true)
+    expect(getFormationSlots(scheme, 'FUTBOL_6')).toHaveLength(6)
+  })
+
   it('fútbol 5 uses 5-player schemes', () => {
     const scheme = getDefaultScheme('FUTBOL_5')
     expect(isValidScheme(scheme, 'FUTBOL_5')).toBe(true)

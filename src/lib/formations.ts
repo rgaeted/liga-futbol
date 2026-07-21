@@ -125,6 +125,49 @@ const SCHEMES_F7 = {
   ],
 } as const satisfies Record<string, FormationSlot[]>
 
+const SCHEMES_F6 = {
+  '2-2-1': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB_L', label: 'DFC', row: 1, col: 0.35 },
+    { key: 'CB_R', label: 'DFC', row: 1, col: 0.65 },
+    { key: 'CM_L', label: 'MC', row: 2, col: 0.35 },
+    { key: 'CM_R', label: 'MC', row: 2, col: 0.65 },
+    { key: 'ST', label: 'DC', row: 3, col: 0.5 },
+  ],
+  '1-3-1': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB', label: 'DFC', row: 1, col: 0.5 },
+    { key: 'CM_L', label: 'MC', row: 2, col: 0.2 },
+    { key: 'CM', label: 'MCD', row: 2, col: 0.5 },
+    { key: 'CM_R', label: 'MC', row: 2, col: 0.8 },
+    { key: 'ST', label: 'DC', row: 3, col: 0.5 },
+  ],
+  '2-1-2': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB_L', label: 'DFC', row: 1, col: 0.35 },
+    { key: 'CB_R', label: 'DFC', row: 1, col: 0.65 },
+    { key: 'CM', label: 'MC', row: 2, col: 0.5 },
+    { key: 'ST_L', label: 'DC', row: 3, col: 0.35 },
+    { key: 'ST_R', label: 'DC', row: 3, col: 0.65 },
+  ],
+  '3-1-1': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB_L', label: 'DFC', row: 1, col: 0.25 },
+    { key: 'CB', label: 'DFC', row: 1, col: 0.5 },
+    { key: 'CB_R', label: 'DFC', row: 1, col: 0.75 },
+    { key: 'CM', label: 'MC', row: 2, col: 0.5 },
+    { key: 'ST', label: 'DC', row: 3, col: 0.5 },
+  ],
+  '1-2-2': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB', label: 'DFC', row: 1, col: 0.5 },
+    { key: 'CM_L', label: 'MC', row: 2, col: 0.35 },
+    { key: 'CM_R', label: 'MC', row: 2, col: 0.65 },
+    { key: 'ST_L', label: 'DC', row: 3, col: 0.35 },
+    { key: 'ST_R', label: 'DC', row: 3, col: 0.65 },
+  ],
+} as const satisfies Record<string, FormationSlot[]>
+
 const SCHEMES_F5 = {
   '1-2-1': [
     { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
@@ -159,12 +202,14 @@ const SCHEMES_F5 = {
 const SCHEMES_BY_FORMAT: Record<FootballFormat, Record<string, FormationSlot[]>> = {
   FUTBOL_11: SCHEMES_F11,
   FUTBOL_7: SCHEMES_F7,
+  FUTBOL_6: SCHEMES_F6,
   FUTBOL_5: SCHEMES_F5,
 }
 
 const DEFAULT_SCHEME: Record<FootballFormat, string> = {
   FUTBOL_11: '4-3-3',
   FUTBOL_7: '2-3-1',
+  FUTBOL_6: '2-2-1',
   FUTBOL_5: '1-2-1',
 }
 

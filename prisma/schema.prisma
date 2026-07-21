@@ -47,6 +47,7 @@ enum FriendlySide {
 
 enum FootballFormat {
   FUTBOL_5
+  FUTBOL_6
   FUTBOL_7
   FUTBOL_11
 }
