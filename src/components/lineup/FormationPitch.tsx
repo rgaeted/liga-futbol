@@ -16,6 +16,30 @@ type Props = {
   color?: string | null
 }
 
+/** Vertical % aligned with pitch SVG penalty areas (viewBox 0–150). */
+function slotTopPercent(
+  row: number,
+  maxRow: number,
+  variant: 'editor' | 'live',
+  compact: boolean
+): number {
+  if (maxRow <= 0) return 50
+
+  // Compact formats (F5–F7): extra inset so markers are not glued to the goal line.
+  const attackEnd = compact ? 0.19 : 0.15
+  const defendEnd = compact ? 0.81 : 0.85
+
+  if (variant === 'live') {
+    // Live panels: GK (row 0) defends the top goal, attack goes down.
+    const t = row / maxRow
+    return (attackEnd + t * (defendEnd - attackEnd)) * 100
+  }
+
+  // Editor: classic board — GK (row 0) at bottom, attack upward.
+  const t = (maxRow - row) / maxRow
+  return (attackEnd + t * (defendEnd - attackEnd)) * 100
+}
+
 function PitchSurface() {
   return (
     <>
@@ -96,6 +120,7 @@ export function FormationPitch({
   color,
 }: Props) {
   const maxRow = Math.max(...lineup.pitch.map((s) => s.row), 0)
+  const compact = lineup.pitch.length < 11
   const isLive = variant === 'live'
 
   const pitch = (
@@ -117,7 +142,7 @@ export function FormationPitch({
       </p>
 
       {lineup.pitch.map((slot) => {
-        const top = `${((maxRow - slot.row) / (maxRow + 1)) * 82 + 7}%`
+        const top = `${slotTopPercent(slot.row, maxRow, variant, compact)}%`
         const left = `${slot.col * 100}%`
         const filled = Boolean(slot.playerName)
 
