@@ -1,7 +1,9 @@
 ﻿import { auth, signOut } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { Role } from '@/lib/roles'
+import { Role, getDashboardPath } from '@/lib/roles'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
+
+export const dynamic = 'force-dynamic'
 
 const ADMIN_NAV = [
   { href: '/admin', label: 'Inicio' },
@@ -16,7 +18,10 @@ const ADMIN_NAV = [
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  if (!session || session.user.role !== Role.ADMIN) redirect('/login')
+  if (!session) redirect('/login?callbackUrl=/admin')
+  if (session.user.role !== Role.ADMIN) {
+    redirect(getDashboardPath(session.user.role))
+  }
 
   async function handleSignOut() {
     'use server'
