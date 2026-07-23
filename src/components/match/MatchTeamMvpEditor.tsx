@@ -130,20 +130,20 @@ function TeamMvpSidePicker({
       </div>
 
       {mvp.label && (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-3 sm:flex-row sm:items-center">
           {mvp.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={mvp.photoUrl}
               alt={mvp.label}
-              className="h-14 w-14 rounded-full object-cover ring-2 ring-amber-400"
+              className="h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-amber-400"
             />
           ) : (
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-200 text-sm font-bold text-amber-900">
+            <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-amber-200 text-base font-bold text-amber-900 ring-4 ring-amber-400">
               {personInitials(mvp.label)}
             </span>
           )}
-          <div>
+          <div className="text-center sm:text-left">
             <p className="text-xs font-medium uppercase tracking-wide text-amber-800/70">MVP actual</p>
             <p className="font-semibold text-amber-950">{mvp.label}</p>
           </div>

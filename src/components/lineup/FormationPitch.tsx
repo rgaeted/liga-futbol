@@ -20,7 +20,7 @@ type Props = {
 
 function PitchSurface() {
   return (
-    <>
+    <div className="absolute inset-0 overflow-hidden rounded-xl">
       <div
         className="absolute inset-0"
         style={{
@@ -49,7 +49,7 @@ function PitchSurface() {
         <circle cx="50" cy="16" r="0.8" fill="currentColor" />
         <circle cx="50" cy="134" r="0.8" fill="currentColor" />
       </svg>
-    </>
+    </div>
   )
 }
 
@@ -73,22 +73,24 @@ function PlayerCircle({
   const mvpRing = isMvp ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-emerald-800' : ''
 
   return (
-    <div
-      className={`relative flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${
-        filled
-          ? 'border-white/90 bg-white text-emerald-900'
-          : 'border-dashed border-white/50 bg-black/25 text-white/60'
-      }`}
-    >
-      {filled && photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photoUrl} alt={playerName ?? label} className="h-full w-full object-cover" />
-      ) : (
-        <span>{filled ? personInitials(playerName!) : label}</span>
-      )}
+    <div className={`relative shrink-0 ${isMvp ? 'z-20' : ''}`}>
+      <div
+        className={`flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${
+          filled
+            ? 'border-white/90 bg-white text-emerald-900'
+            : 'border-dashed border-white/50 bg-black/25 text-white/60'
+        }`}
+      >
+        {filled && photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoUrl} alt={playerName ?? label} className="h-full w-full object-cover" />
+        ) : (
+          <span>{filled ? personInitials(playerName!) : label}</span>
+        )}
+      </div>
       {isMvp && (
         <span
-          className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[8px] text-emerald-950"
+          className="absolute -right-1.5 -top-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-amber-400 text-[10px] font-bold leading-none text-emerald-950 shadow-md"
           title="MVP"
         >
           ★
@@ -114,7 +116,7 @@ function LivePlayerMarker({
 
   return (
     <div
-      className="absolute z-10 flex w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+      className="absolute z-10 flex w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center overflow-visible"
       style={{ top, left }}
     >
       <PlayerCircle
@@ -151,7 +153,7 @@ export function FormationPitch({
 
   const pitch = (
     <div
-      className={`relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-emerald-900/80 ${
+      className={`relative aspect-[2/3] w-full overflow-visible rounded-xl border border-emerald-900/80 ${
         isLive ? 'shadow-inner' : 'border-emerald-800 bg-gradient-to-b from-emerald-700 to-emerald-900'
       }`}
     >

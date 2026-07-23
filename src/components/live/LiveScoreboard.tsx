@@ -268,25 +268,25 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                 .map((mvp) => (
                   <div
                     key={mvp.side}
-                    className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3"
+                    className="flex flex-col items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-4 sm:flex-row sm:items-center"
                   >
                     {mvp.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={mvp.photoUrl}
                         alt={mvp.label ?? ''}
-                        className="h-12 w-12 rounded-full object-cover ring-2 ring-amber-300"
+                        className="h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-amber-300/80 sm:h-28 sm:w-28"
                       />
                     ) : (
-                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-300/25 text-sm font-bold text-amber-100 ring-2 ring-amber-300/50">
+                      <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-amber-300/25 text-lg font-bold text-amber-100 ring-4 ring-amber-300/50 sm:h-28 sm:w-28">
                         {personInitials(mvp.label ?? '?')}
                       </span>
                     )}
-                    <div className="min-w-0 text-left">
+                    <div className="min-w-0 text-center sm:text-left">
                       <p className="truncate font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/70">
                         MVP · {mvp.teamLabel}
                       </p>
-                      <p className="truncate font-display text-base font-bold text-amber-100">
+                      <p className="truncate font-display text-lg font-bold text-amber-100 sm:text-xl">
                         {mvp.label}
                       </p>
                     </div>
