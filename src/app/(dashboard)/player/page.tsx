@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { MatchStatus } from '@prisma/client'
 import { matchDisplayName } from '@/lib/match-label'
 
 export default async function PlayerDashboardPage() {
@@ -28,6 +29,10 @@ export default async function PlayerDashboardPage() {
     return <p className="text-kelme-gray-900">Perfil de jugador no encontrado.</p>
   }
 
+  const mvpCount = await db.match.count({
+    where: { mvpPlayerId: player.id, status: MatchStatus.FINISHED },
+  })
+
   const upcoming = player.callUps.filter(
     (c) => c.match.status === 'SCHEDULED' || c.match.status === 'LIVE'
   )
@@ -42,21 +47,30 @@ export default async function PlayerDashboardPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <StatCard label="Goles" value={player.goals} />
         <StatCard label="Asistencias" value={player.assists} />
+        <StatCard label="MVPs" value={mvpCount} />
         <StatCard label="Amarillas" value={player.yellowCards} />
         <StatCard label="Rojas" value={player.redCards} />
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Próximos partidos</h2>
-        <MatchList items={upcoming} emptyText="No hay partidos programados." />
+        <MatchList
+          items={upcoming}
+          playerId={player.id}
+          emptyText="No hay partidos programados."
+        />
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Partidos jugados</h2>
-        <MatchList items={played.slice(0, 5)} emptyText="Aún no has jugado partidos." />
+        <MatchList
+          items={played.slice(0, 5)}
+          playerId={player.id}
+          emptyText="Aún no has jugado partidos."
+        />
       </section>
 
       <Link href="/player/matches" className="text-kelme-red hover:underline">
@@ -77,6 +91,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
 
 function MatchList({
   items,
+  playerId,
   emptyText,
 }: {
   items: Array<{
@@ -91,8 +106,10 @@ function MatchList({
       homeScore: number
       awayScore: number
       status: string
+      mvpPlayerId: string | null
     }
   }>
+  playerId: string
   emptyText: string
 }) {
   if (items.length === 0) return <p className="text-kelme-gray-400">{emptyText}</p>
@@ -100,9 +117,12 @@ function MatchList({
     <ul className="space-y-2">
       {items.map(({ match }) => (
         <li key={match.id} className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-2">
             <span>
               {matchDisplayName(match)}
+              {match.mvpPlayerId === playerId && (
+                <span className="ml-2 text-xs font-semibold text-amber-600">⭐ MVP</span>
+              )}
             </span>
             <span className="font-mono">
               {match.status === 'FINISHED'

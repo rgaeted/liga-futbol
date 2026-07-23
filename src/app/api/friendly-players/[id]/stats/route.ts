@@ -1,5 +1,5 @@
 ﻿import { NextResponse } from 'next/server'
-import { MatchType, Role } from '@prisma/client'
+import { MatchType, MatchStatus, Role } from '@prisma/client'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { aggregateFriendlyEvents } from '@/lib/friendly-stats'
@@ -33,5 +33,12 @@ export async function GET(
     select: { type: true },
   })
 
-  return NextResponse.json(aggregateFriendlyEvents(events))
+  const mvps = await db.match.count({
+    where: {
+      mvpFriendlyPlayerId: id,
+      status: MatchStatus.FINISHED,
+    },
+  })
+
+  return NextResponse.json({ ...aggregateFriendlyEvents(events), mvps })
 }

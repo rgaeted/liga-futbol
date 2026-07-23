@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
 import { matchSideNames, resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
 import { buildMatchFormationSides } from '@/lib/match-formations'
+import { resolveMvpLabel } from '@/lib/match-mvp'
 import { matchSideCrestUrl, matchSideHasCrest } from '@/lib/match-side-crest'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
 import { resolveEventTeamColor, resolveMatchSideColor, resolveTeamColor } from '@/lib/team-color'
@@ -40,6 +41,8 @@ export default async function LiveMatchPage({
       friendlyPlayers: {
         include: { friendlyPlayer: { select: { firstName: true, lastName: true } } },
       },
+      mvpPlayer: { include: { user: { select: { name: true } } } },
+      mvpFriendlyPlayer: { select: { firstName: true, lastName: true } },
       events: {
         include: {
           player: {
@@ -199,6 +202,7 @@ export default async function LiveMatchPage({
           }
         }),
         footballFormat: match.footballFormat,
+        mvpLabel: resolveMvpLabel(match),
         formations: formationSides.map((s) => ({
           label: s.label,
           lineup: s.lineup,

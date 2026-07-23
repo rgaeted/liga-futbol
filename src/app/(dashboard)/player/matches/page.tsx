@@ -10,33 +10,36 @@ export default async function PlayerMatchesPage() {
 
   const player = await db.player.findUnique({
     where: { userId: session.user.id },
-    include: {
-      callUps: {
-        where: { match: { matchType: 'LEAGUE' } },
-        include: {
-          match: {
-            include: { homeTeam: true, awayTeam: true },
-          },
-        },
-        orderBy: { match: { scheduledAt: 'desc' } },
-      },
-    },
+    select: { id: true },
   })
 
   if (!player) redirect('/player')
 
+  const callUps = await db.callUp.findMany({
+    where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
+    include: {
+      match: {
+        include: { homeTeam: true, awayTeam: true },
+      },
+    },
+    orderBy: { match: { scheduledAt: 'desc' } },
+  })
+
   return (
     <div className="space-y-4">
       <h1 className="font-display text-2xl font-bold">Mis Partidos</h1>
-      {player.callUps.length === 0 ? (
+      {callUps.length === 0 ? (
         <p className="text-kelme-gray-400">Aún no has sido citado a ningún partido.</p>
       ) : (
-        player.callUps.map(({ match, isStarter }) => (
+        callUps.map(({ match, isStarter }) => (
           <div key={match.id} className="rounded-xl border border-kelme-border bg-kelme-surface p-4">
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-2">
               <div>
                 <p className="font-semibold">
                   {matchDisplayName(match)}
+                  {match.mvpPlayerId === player.id && (
+                    <span className="ml-2 text-xs font-semibold text-amber-600">⭐ MVP</span>
+                  )}
                 </p>
                 <p className="text-sm text-kelme-gray-400">
                   {new Date(match.scheduledAt).toLocaleString('es-CL')} · {isStarter ? 'Titular' : 'Suplente'}

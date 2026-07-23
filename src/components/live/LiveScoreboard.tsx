@@ -72,6 +72,7 @@ type Match = {
   clock: SerializableClockState
   events: MatchEvent[]
   footballFormat: FootballFormat
+  mvpLabel: string | null
   formations: Array<{ label: string; crestSrc?: string | null; color?: string; lineup: LineupView | null }>
 }
 
@@ -252,6 +253,11 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
               </p>
             </div>
           </div>
+          {match.status === 'FINISHED' && match.mvpLabel && (
+            <p className="mt-4 text-center font-ui text-sm font-semibold text-amber-200">
+              ⭐ MVP: {match.mvpLabel}
+            </p>
+          )}
         </div>
 
         {hasFormations && (

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { EventType } from '@prisma/client'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
+import { MatchMvpPicker } from '@/components/match/MatchMvpPicker'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 
 type RosterPlayer = { id: string; label: string }
@@ -16,6 +17,7 @@ type Props = {
   initialHomeScore: number
   initialAwayScore: number
   initialStatus: string
+  initialMvpPlayerId: string | null
   initialClock: SerializableClockState
 }
 
@@ -45,6 +47,7 @@ export function MatchControlPanel({
   initialHomeScore,
   initialAwayScore,
   initialStatus,
+  initialMvpPlayerId,
   initialClock,
 }: Props) {
   const [homeScore, setHomeScore] = useState(initialHomeScore)
@@ -58,6 +61,7 @@ export function MatchControlPanel({
   const [loading, setLoading] = useState(false)
 
   const activeTeam = selectedTeam === 'home' ? homeTeam : awayTeam
+  const allPlayers = [...homeTeam.players, ...awayTeam.players]
 
   function updateFromMatchResponse(match: {
     homeScore: number
@@ -220,6 +224,15 @@ export function MatchControlPanel({
           Selecciona un jugador para registrar este evento.
         </p>
       )}
+
+      <MatchMvpPicker
+        matchId={matchId}
+        matchType={matchType}
+        matchStatus={status}
+        players={allPlayers}
+        initialPlayerId={initialMvpPlayerId}
+        compact
+      />
     </div>
   )
 }

@@ -1,6 +1,8 @@
 import { db } from '@/lib/db'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { MatchTimelineEditor } from '@/components/admin/MatchTimelineEditor'
+import { MatchMvpPicker } from '@/components/match/MatchMvpPicker'
+import { resolveMvpPlayerId } from '@/lib/match-mvp'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MatchType } from '@prisma/client'
@@ -54,6 +56,8 @@ export default async function AdminMatchTimelinePage({
         orderBy: { minute: 'asc' },
       },
       friendlyPlayers: { include: { friendlyPlayer: true } },
+      mvpPlayer: { include: { user: { select: { name: true } } } },
+      mvpFriendlyPlayer: { select: { firstName: true, lastName: true } },
     },
   })
 
@@ -104,6 +108,13 @@ export default async function AdminMatchTimelinePage({
       <p className="text-sm text-kelme-gray-400">
         Marcador actual: {match.homeScore} - {match.awayScore} · {match.status}
       </p>
+      <MatchMvpPicker
+        matchId={match.id}
+        matchType={match.matchType}
+        matchStatus={match.status}
+        players={players.map((p) => ({ id: p.id, label: p.label }))}
+        initialPlayerId={resolveMvpPlayerId(match)}
+      />
       <MatchTimelineEditor
         matchId={match.id}
         matchType={match.matchType}

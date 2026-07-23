@@ -104,6 +104,7 @@ model Player {
   evaluations  PlayerEvaluation[]
   matchEvents  MatchEvent[]
   goalAssists  MatchEvent[] @relation("GoalAssists")
+  mvpMatches   Match[]      @relation("MatchMvp")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -164,6 +165,10 @@ model Match {
   callUps      CallUp[]
   friendlyPlayers FriendlyMatchPlayer[]
   formations   MatchFormation[]
+  mvpPlayerId          String?
+  mvpPlayer            Player?          @relation("MatchMvp", fields: [mvpPlayerId], references: [id], onDelete: SetNull)
+  mvpFriendlyPlayerId  String?
+  mvpFriendlyPlayer    FriendlyPlayer?  @relation("FriendlyMatchMvp", fields: [mvpFriendlyPlayerId], references: [id], onDelete: SetNull)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
@@ -242,6 +247,7 @@ model FriendlyPlayer {
   participations FriendlyMatchPlayer[]
   matchEvents    MatchEvent[]
   goalAssists    MatchEvent[] @relation("FriendlyGoalAssists")
+  mvpMatches     Match[]      @relation("FriendlyMatchMvp")
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt
 }

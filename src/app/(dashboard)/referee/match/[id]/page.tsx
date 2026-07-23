@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import { MatchControlPanel } from '@/components/referee/MatchControlPanel'
 import { matchSideNames } from '@/lib/match-label'
+import { resolveMvpPlayerId } from '@/lib/match-mvp'
 
 async function getTeamPlayers(matchId: string, teamId: string) {
   const callUps = await db.callUp.findMany({
@@ -46,6 +47,7 @@ export default async function RefereeMatchPage({
     initialHomeScore: match.homeScore,
     initialAwayScore: match.awayScore,
     initialStatus: match.status,
+    initialMvpPlayerId: resolveMvpPlayerId(match),
     initialClock: {
       status: match.status,
       clockStartedAt: match.clockStartedAt?.toISOString() ?? null,
