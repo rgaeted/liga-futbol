@@ -64,6 +64,7 @@ export default async function AdminMatchLineupPage({
             side: p.side,
             label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
             slotKey: p.slotKey,
+            hasPhoto: Boolean(p.friendlyPlayer.photoMimeType),
           }))}
         />
       ) : (

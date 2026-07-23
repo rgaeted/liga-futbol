@@ -1,6 +1,7 @@
 'use client'
 
 import { TeamCrest } from '@/components/TeamCrest'
+import { slotTopPercent } from '@/lib/formation-layout'
 import { personInitials } from '@/lib/player-name'
 import type { LineupView } from '@/lib/match-lineup'
 
@@ -14,30 +15,7 @@ type Props = {
   teamName?: string
   crestSrc?: string | null
   color?: string | null
-}
-
-/** Vertical % aligned with pitch SVG penalty areas (viewBox 0–150). */
-function slotTopPercent(
-  row: number,
-  maxRow: number,
-  variant: 'editor' | 'live',
-  compact: boolean
-): number {
-  if (maxRow <= 0) return 50
-
-  // Compact formats (F5–F7): extra inset so markers are not glued to the goal line.
-  const attackEnd = compact ? 0.19 : 0.15
-  const defendEnd = compact ? 0.81 : 0.85
-
-  if (variant === 'live') {
-    // Live panels: GK (row 0) defends the top goal, attack goes down.
-    const t = row / maxRow
-    return (attackEnd + t * (defendEnd - attackEnd)) * 100
-  }
-
-  // Editor: classic board — GK (row 0) at bottom, attack upward.
-  const t = (maxRow - row) / maxRow
-  return (attackEnd + t * (defendEnd - attackEnd)) * 100
+  mvpPlayerIds?: string[]
 }
 
 function PitchSurface() {
@@ -75,31 +53,78 @@ function PitchSurface() {
   )
 }
 
+function PlayerCircle({
+  label,
+  playerName,
+  photoUrl,
+  filled,
+  size,
+  isMvp,
+}: {
+  label: string
+  playerName: string | null
+  photoUrl: string | null
+  filled: boolean
+  size: 'live' | 'editor'
+  isMvp?: boolean
+}) {
+  const dim = size === 'live' ? 'h-10 w-10' : 'h-12 w-12'
+  const textSize = size === 'live' ? 'text-[11px]' : 'text-[10px]'
+  const mvpRing = isMvp ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-emerald-800' : ''
+
+  return (
+    <div
+      className={`relative flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${
+        filled
+          ? 'border-white/90 bg-white text-emerald-900'
+          : 'border-dashed border-white/50 bg-black/25 text-white/60'
+      }`}
+    >
+      {filled && photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt={playerName ?? label} className="h-full w-full object-cover" />
+      ) : (
+        <span>{filled ? personInitials(playerName!) : label}</span>
+      )}
+      {isMvp && (
+        <span
+          className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[8px] text-emerald-950"
+          title="MVP"
+        >
+          ★
+        </span>
+      )}
+    </div>
+  )
+}
+
 function LivePlayerMarker({
   slot,
   top,
   left,
+  mvpPlayerIds,
 }: {
   slot: LineupView['pitch'][number]
   top: string
   left: string
+  mvpPlayerIds?: string[]
 }) {
   const filled = Boolean(slot.playerName)
+  const isMvp = Boolean(slot.playerId && mvpPlayerIds?.includes(slot.playerId))
 
   return (
     <div
       className="absolute z-10 flex w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center"
       style={{ top, left }}
     >
-      <div
-        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-[11px] font-bold shadow-lg ${
-          filled
-            ? 'border-white/90 bg-white text-emerald-900'
-            : 'border-dashed border-white/50 bg-black/25 text-white/60'
-        }`}
-      >
-        {filled ? personInitials(slot.playerName!) : slot.label}
-      </div>
+      <PlayerCircle
+        label={slot.label}
+        playerName={slot.playerName}
+        photoUrl={slot.playerPhotoUrl}
+        filled={filled}
+        size="live"
+        isMvp={isMvp}
+      />
       {filled && (
         <span className="mt-1 max-w-[4.75rem] truncate text-center text-[9px] font-medium leading-tight text-white drop-shadow-sm">
           {slot.playerName}
@@ -118,6 +143,7 @@ export function FormationPitch({
   teamName,
   crestSrc,
   color,
+  mvpPlayerIds,
 }: Props) {
   const maxRow = Math.max(...lineup.pitch.map((s) => s.row), 0)
   const compact = lineup.pitch.length < 11
@@ -129,9 +155,7 @@ export function FormationPitch({
         isLive ? 'shadow-inner' : 'border-emerald-800 bg-gradient-to-b from-emerald-700 to-emerald-900'
       }`}
     >
-      {isLive ? (
-        <PitchSurface />
-      ) : null}
+      {isLive ? <PitchSurface /> : null}
 
       <p
         className={`absolute left-2 top-2 z-20 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
@@ -145,10 +169,17 @@ export function FormationPitch({
         const top = `${slotTopPercent(slot.row, maxRow, variant, compact)}%`
         const left = `${slot.col * 100}%`
         const filled = Boolean(slot.playerName)
+        const isMvp = Boolean(slot.playerId && mvpPlayerIds?.includes(slot.playerId))
 
         if (isLive) {
           return (
-            <LivePlayerMarker key={slot.slotKey} slot={slot} top={top} left={left} />
+            <LivePlayerMarker
+              key={slot.slotKey}
+              slot={slot}
+              top={top}
+              left={left}
+              mvpPlayerIds={mvpPlayerIds}
+            />
           )
         }
 
@@ -159,16 +190,21 @@ export function FormationPitch({
             disabled={!onSelectSlot}
             onClick={() => onSelectSlot?.(slot.slotKey)}
             style={{ top, left, transform: 'translate(-50%, -50%)' }}
-            className={`absolute z-10 flex h-14 w-14 flex-col items-center justify-center rounded-full border text-center text-[10px] leading-tight ${
-              selectedSlotKey === slot.slotKey
-                ? 'border-kelme-red bg-white text-kelme-gray-900'
-                : filled
-                  ? 'border-white/60 bg-kelme-gray-900/80 text-white'
-                  : 'border-dashed border-white/40 bg-black/20 text-white/70'
+            className={`absolute z-10 flex flex-col items-center justify-center text-center leading-tight ${
+              selectedSlotKey === slot.slotKey ? 'scale-105' : ''
             }`}
           >
-            <span className="font-semibold">{slot.label}</span>
-            <span className="line-clamp-2 px-0.5">{slot.playerName ?? '—'}</span>
+            <PlayerCircle
+              label={slot.label}
+              playerName={slot.playerName}
+              photoUrl={slot.playerPhotoUrl}
+              filled={filled}
+              size="editor"
+              isMvp={isMvp}
+            />
+            <span className="mt-1 line-clamp-2 max-w-[4rem] px-0.5 text-[10px] text-white">
+              {filled ? slot.playerName : '—'}
+            </span>
           </button>
         )
       })}

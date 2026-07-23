@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { EventType } from '@prisma/client'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
-import { MatchMvpPicker } from '@/components/match/MatchMvpPicker'
+import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
+import type { TeamMvpSideView } from '@/lib/match-mvp'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 
 type RosterPlayer = { id: string; label: string }
@@ -17,7 +18,7 @@ type Props = {
   initialHomeScore: number
   initialAwayScore: number
   initialStatus: string
-  initialMvpPlayerId: string | null
+  initialTeamMvps: TeamMvpSideView[]
   initialClock: SerializableClockState
 }
 
@@ -47,7 +48,7 @@ export function MatchControlPanel({
   initialHomeScore,
   initialAwayScore,
   initialStatus,
-  initialMvpPlayerId,
+  initialTeamMvps,
   initialClock,
 }: Props) {
   const [homeScore, setHomeScore] = useState(initialHomeScore)
@@ -61,7 +62,6 @@ export function MatchControlPanel({
   const [loading, setLoading] = useState(false)
 
   const activeTeam = selectedTeam === 'home' ? homeTeam : awayTeam
-  const allPlayers = [...homeTeam.players, ...awayTeam.players]
 
   function updateFromMatchResponse(match: {
     homeScore: number
@@ -225,12 +225,13 @@ export function MatchControlPanel({
         </p>
       )}
 
-      <MatchMvpPicker
+      <MatchTeamMvpEditor
         matchId={matchId}
         matchType={matchType}
         matchStatus={status}
-        players={allPlayers}
-        initialPlayerId={initialMvpPlayerId}
+        homeTeam={{ label: homeTeam.name, players: homeTeam.players }}
+        awayTeam={{ label: awayTeam.name, players: awayTeam.players }}
+        teamMvps={initialTeamMvps}
         compact
       />
     </div>

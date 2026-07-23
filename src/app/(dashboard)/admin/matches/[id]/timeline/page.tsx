@@ -1,8 +1,8 @@
 import { db } from '@/lib/db'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { MatchTimelineEditor } from '@/components/admin/MatchTimelineEditor'
-import { MatchMvpPicker } from '@/components/match/MatchMvpPicker'
-import { resolveMvpPlayerId } from '@/lib/match-mvp'
+import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
+import { buildMatchTeamMvps, MATCH_MVP_INCLUDE } from '@/lib/match-mvp'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MatchType } from '@prisma/client'
@@ -56,8 +56,7 @@ export default async function AdminMatchTimelinePage({
         orderBy: { minute: 'asc' },
       },
       friendlyPlayers: { include: { friendlyPlayer: true } },
-      mvpPlayer: { include: { user: { select: { name: true } } } },
-      mvpFriendlyPlayer: { select: { firstName: true, lastName: true } },
+      teamMvps: { include: MATCH_MVP_INCLUDE },
     },
   })
 
@@ -77,6 +76,27 @@ export default async function AdminMatchTimelinePage({
   } else if (match.homeTeamId && match.awayTeamId) {
     players = await getLeaguePlayers(match.id, match.homeTeamId, match.awayTeamId)
   }
+
+  const homePlayers =
+    match.matchType === MatchType.FRIENDLY
+      ? players.filter((p) => p.side === 'A')
+      : players.filter((p) => p.teamId === match.homeTeamId)
+  const awayPlayers =
+    match.matchType === MatchType.FRIENDLY
+      ? players.filter((p) => p.side === 'B')
+      : players.filter((p) => p.teamId === match.awayTeamId)
+
+  const teamMvps = buildMatchTeamMvps({
+    matchId: match.id,
+    homeLabel: sides.home,
+    awayLabel: sides.away,
+    rows: match.teamMvps,
+  })
+
+  const mvpSummary = teamMvps
+    .filter((m) => m.label)
+    .map((m) => `${m.teamLabel}: ${m.label}`)
+    .join(' · ')
 
   const timelineEvents = match.events.map((e) => ({
     id: e.id,
@@ -107,13 +127,17 @@ export default async function AdminMatchTimelinePage({
       </div>
       <p className="text-sm text-kelme-gray-400">
         Marcador actual: {match.homeScore} - {match.awayScore} · {match.status}
+        {mvpSummary && (
+          <span className="ml-2 font-semibold text-amber-700">· ⭐ {mvpSummary}</span>
+        )}
       </p>
-      <MatchMvpPicker
+      <MatchTeamMvpEditor
         matchId={match.id}
         matchType={match.matchType}
         matchStatus={match.status}
-        players={players.map((p) => ({ id: p.id, label: p.label }))}
-        initialPlayerId={resolveMvpPlayerId(match)}
+        homeTeam={{ label: sides.home, players: homePlayers.map((p) => ({ id: p.id, label: p.label })) }}
+        awayTeam={{ label: sides.away, players: awayPlayers.map((p) => ({ id: p.id, label: p.label })) }}
+        teamMvps={teamMvps}
       />
       <MatchTimelineEditor
         matchId={match.id}

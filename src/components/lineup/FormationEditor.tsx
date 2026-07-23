@@ -12,7 +12,7 @@ import { buildLineupView } from '@/lib/match-lineup'
 import { footballFormatLabel } from '@/lib/football-format'
 import { FormationPitch } from './FormationPitch'
 
-export type EditorPlayer = { id: string; label: string }
+export type EditorPlayer = { id: string; label: string; photoUrl?: string | null }
 
 type Props = {
   footballFormat: FootballFormat
@@ -50,11 +50,15 @@ export function FormationEditor({
   const lineup = buildLineupView({
     scheme,
     footballFormat,
-    assignments: Object.entries(slots).map(([slotKey, playerId]) => ({
-      slotKey,
-      playerId,
-      playerName: players.find((p) => p.id === playerId)?.label ?? playerId,
-    })),
+    assignments: Object.entries(slots).map(([slotKey, playerId]) => {
+      const player = players.find((p) => p.id === playerId)
+      return {
+        slotKey,
+        playerId,
+        playerName: player?.label ?? playerId,
+        playerPhotoUrl: player?.photoUrl ?? null,
+      }
+    }),
     bench: players
       .filter((p) => !assignedIds.has(p.id))
       .map((p) => ({ playerId: p.id, playerName: p.label })),

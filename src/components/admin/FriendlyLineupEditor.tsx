@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import type { FootballFormat, MatchFormation } from '@prisma/client'
 import { FormationEditor } from '@/components/lineup/FormationEditor'
+import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { normalizeSchemeForFormat, getDefaultScheme } from '@/lib/formations'
 
 type Participation = {
@@ -10,6 +11,7 @@ type Participation = {
   side: 'A' | 'B'
   label: string
   slotKey: string | null
+  hasPhoto?: boolean
 }
 
 type Props = {
@@ -48,7 +50,7 @@ function SideEditor({
   label: string
   footballFormat: FootballFormat
   scheme: string
-  players: Array<{ id: string; label: string }>
+  players: Array<{ id: string; label: string; photoUrl?: string | null }>
   initialSlots: Record<string, string>
 }) {
   const router = useRouter()
@@ -111,10 +113,18 @@ export function FriendlyLineupEditor({
 
   const playersA = participations
     .filter((p) => p.side === 'A')
-    .map((p) => ({ id: p.id, label: p.label }))
+    .map((p) => ({
+      id: p.id,
+      label: p.label,
+      photoUrl: p.hasPhoto ? friendlyPlayerPhotoUrl(p.id) : null,
+    }))
   const playersB = participations
     .filter((p) => p.side === 'B')
-    .map((p) => ({ id: p.id, label: p.label }))
+    .map((p) => ({
+      id: p.id,
+      label: p.label,
+      photoUrl: p.hasPhoto ? friendlyPlayerPhotoUrl(p.id) : null,
+    }))
 
   return (
     <div className="space-y-10">

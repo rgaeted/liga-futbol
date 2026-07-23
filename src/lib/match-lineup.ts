@@ -5,6 +5,7 @@ export type LineupAssignment = {
   slotKey: string
   playerId: string
   playerName: string
+  playerPhotoUrl?: string | null
 }
 
 export type LineupBenchPlayer = {
@@ -21,6 +22,7 @@ export type LineupView = {
     col: number
     playerId: string | null
     playerName: string | null
+    playerPhotoUrl: string | null
   }>
   bench: LineupBenchPlayer[]
 }
@@ -42,6 +44,7 @@ export function buildLineupView(input: {
       col: slot.col,
       playerId: a?.playerId ?? null,
       playerName: a?.playerName ?? null,
+      playerPhotoUrl: a?.playerPhotoUrl ?? null,
     }
   })
   return { scheme: input.scheme, pitch, bench: input.bench }

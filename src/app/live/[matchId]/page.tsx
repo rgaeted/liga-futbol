@@ -2,7 +2,7 @@ import { db } from '@/lib/db'
 import { LiveScoreboard } from '@/components/live/LiveScoreboard'
 import { matchSideNames, resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
 import { buildMatchFormationSides } from '@/lib/match-formations'
-import { resolveMvpLabel } from '@/lib/match-mvp'
+import { buildMatchTeamMvps, MATCH_MVP_INCLUDE, teamMvpPlayerIds } from '@/lib/match-mvp'
 import { matchSideCrestUrl, matchSideHasCrest } from '@/lib/match-side-crest'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
 import { resolveEventTeamColor, resolveMatchSideColor, resolveTeamColor } from '@/lib/team-color'
@@ -39,10 +39,13 @@ export default async function LiveMatchPage({
         },
       },
       friendlyPlayers: {
-        include: { friendlyPlayer: { select: { firstName: true, lastName: true } } },
+        include: {
+          friendlyPlayer: {
+            select: { firstName: true, lastName: true, photoMimeType: true },
+          },
+        },
       },
-      mvpPlayer: { include: { user: { select: { name: true } } } },
-      mvpFriendlyPlayer: { select: { firstName: true, lastName: true } },
+      teamMvps: { include: MATCH_MVP_INCLUDE },
       events: {
         include: {
           player: {
@@ -147,6 +150,13 @@ export default async function LiveMatchPage({
     awayColor,
   }
 
+  const teamMvps = buildMatchTeamMvps({
+    matchId: match.id,
+    homeLabel: sides.home,
+    awayLabel: sides.away,
+    rows: match.teamMvps,
+  })
+
   return (
     <LiveScoreboard
       initialMatch={{
@@ -202,7 +212,8 @@ export default async function LiveMatchPage({
           }
         }),
         footballFormat: match.footballFormat,
-        mvpLabel: resolveMvpLabel(match),
+        teamMvps,
+        mvpPlayerIds: teamMvpPlayerIds(teamMvps),
         formations: formationSides.map((s) => ({
           label: s.label,
           lineup: s.lineup,

@@ -33,10 +33,10 @@ export async function GET(
     select: { type: true },
   })
 
-  const mvps = await db.match.count({
+  const mvps = await db.matchTeamMvp.count({
     where: {
-      mvpFriendlyPlayerId: id,
-      status: MatchStatus.FINISHED,
+      friendlyPlayerId: id,
+      match: { status: MatchStatus.FINISHED },
     },
   })
 

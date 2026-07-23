@@ -1,4 +1,5 @@
 import { MatchType, type FootballFormat, type MatchFormation } from '@prisma/client'
+import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { buildLineupView, type LineupView } from '@/lib/match-lineup'
 import { matchSideNames } from '@/lib/match-label'
 import { normalizeSchemeForFormat } from '@/lib/formations'
@@ -22,7 +23,7 @@ type FriendlyParticipation = {
   friendlyPlayerId: string
   side: 'A' | 'B'
   slotKey: string | null
-  friendlyPlayer: { firstName: string; lastName: string }
+  friendlyPlayer: { firstName: string; lastName: string; photoMimeType: string | null }
 }
 
 type MatchFormationInput = {
@@ -95,6 +96,9 @@ function friendlySide(
           slotKey: p.slotKey!,
           playerId: p.friendlyPlayerId,
           playerName: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
+          playerPhotoUrl: p.friendlyPlayer.photoMimeType
+            ? friendlyPlayerPhotoUrl(p.friendlyPlayerId)
+            : null,
         })),
       bench: sideParts
         .filter((p) => !p.slotKey)

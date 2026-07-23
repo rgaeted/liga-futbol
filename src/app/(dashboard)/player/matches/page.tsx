@@ -19,7 +19,11 @@ export default async function PlayerMatchesPage() {
     where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
     include: {
       match: {
-        include: { homeTeam: true, awayTeam: true },
+        include: {
+          homeTeam: true,
+          awayTeam: true,
+          teamMvps: { select: { id: true, playerId: true } },
+        },
       },
     },
     orderBy: { match: { scheduledAt: 'desc' } },
@@ -37,7 +41,7 @@ export default async function PlayerMatchesPage() {
               <div>
                 <p className="font-semibold">
                   {matchDisplayName(match)}
-                  {match.mvpPlayerId === player.id && (
+                  {match.teamMvps.some((mvp) => mvp.playerId === player.id) && (
                     <span className="ml-2 text-xs font-semibold text-amber-600">⭐ MVP</span>
                   )}
                 </p>

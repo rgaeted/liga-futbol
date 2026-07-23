@@ -10,6 +10,13 @@ export type LiveMatchPayload = {
   clockStartedAt?: Date | null
   secondHalfStartedAt?: Date | null
   halftimeAt?: Date | null
+  teamMvps?: Array<{
+    side: string
+    teamLabel: string
+    playerId: string | null
+    label: string | null
+    photoUrl: string | null
+  }>
   event?: MatchEvent
 }
 

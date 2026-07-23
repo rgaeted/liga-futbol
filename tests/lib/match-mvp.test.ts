@@ -1,66 +1,125 @@
 import { describe, it, expect } from 'vitest'
-import { resolveMvpLabel, resolveMvpPlayerId } from '@/lib/match-mvp'
+import {
+  buildMatchTeamMvps,
+  buildTeamMvpView,
+  resolveTeamMvpLabel,
+  resolveTeamMvpPhotoUrl,
+  teamMvpPlayerIds,
+} from '@/lib/match-mvp'
 import { setMatchMvpSchema } from '@/lib/validations/mvp'
 
-describe('resolveMvpLabel', () => {
+describe('resolveTeamMvpLabel', () => {
   it('returns league player name', () => {
     expect(
-      resolveMvpLabel({
-        matchType: 'LEAGUE',
-        mvpPlayer: { user: { name: 'Juan Pérez' } },
+      resolveTeamMvpLabel({
+        side: 'HOME',
+        playerId: 'p-1',
+        friendlyPlayerId: null,
+        photoMimeType: null,
+        photoData: null,
+        player: { user: { name: 'Juan Pérez' } },
       })
     ).toBe('Juan Pérez')
   })
 
   it('returns friendly player name', () => {
     expect(
-      resolveMvpLabel({
-        matchType: 'FRIENDLY',
-        mvpFriendlyPlayer: { firstName: 'Ana', lastName: 'López' },
+      resolveTeamMvpLabel({
+        side: 'AWAY',
+        playerId: null,
+        friendlyPlayerId: 'fp-1',
+        photoMimeType: null,
+        photoData: null,
+        friendlyPlayer: { firstName: 'Ana', lastName: 'López' },
       })
     ).toBe('Ana López')
   })
+})
 
-  it('returns null when unset', () => {
-    expect(resolveMvpLabel({ matchType: 'LEAGUE' })).toBeNull()
+describe('buildMatchTeamMvps', () => {
+  it('builds home and away slots', () => {
+    const views = buildMatchTeamMvps({
+      matchId: 'm-1',
+      homeLabel: 'Local FC',
+      awayLabel: 'Visita FC',
+      rows: [
+        {
+          side: 'HOME',
+          playerId: 'p-1',
+          friendlyPlayerId: null,
+          photoMimeType: null,
+          photoData: null,
+          player: { user: { name: 'Juan' } },
+        },
+      ],
+    })
+
+    expect(views).toHaveLength(2)
+    expect(views[0]).toMatchObject({ side: 'HOME', label: 'Juan', teamLabel: 'Local FC' })
+    expect(views[1]).toMatchObject({ side: 'AWAY', label: null })
   })
 })
 
-describe('resolveMvpPlayerId', () => {
-  it('returns friendly id for amistoso', () => {
+describe('resolveTeamMvpPhotoUrl', () => {
+  it('prefers dedicated mvp photo', () => {
     expect(
-      resolveMvpPlayerId({
-        matchType: 'FRIENDLY',
-        mvpPlayerId: null,
-        mvpFriendlyPlayerId: 'fp-1',
+      resolveTeamMvpPhotoUrl('m-1', {
+        side: 'HOME',
+        playerId: null,
+        friendlyPlayerId: 'fp-1',
+        photoMimeType: 'image/jpeg',
+        photoData: Buffer.from('x'),
+        friendlyPlayer: { firstName: 'Ana', lastName: 'López', photoMimeType: 'image/png' },
       })
-    ).toBe('fp-1')
+    ).toBe('/api/matches/m-1/mvp/home/photo')
   })
 
-  it('returns player id for liga', () => {
+  it('falls back to friendly player profile photo', () => {
     expect(
-      resolveMvpPlayerId({
-        matchType: 'LEAGUE',
-        mvpPlayerId: 'p-1',
-        mvpFriendlyPlayerId: null,
+      resolveTeamMvpPhotoUrl('m-1', {
+        side: 'HOME',
+        playerId: null,
+        friendlyPlayerId: 'fp-1',
+        photoMimeType: null,
+        photoData: null,
+        friendlyPlayer: { firstName: 'Ana', lastName: 'López', photoMimeType: 'image/png' },
       })
-    ).toBe('p-1')
+    ).toBe('/api/friendly-players/fp-1/photo')
+  })
+})
+
+describe('teamMvpPlayerIds', () => {
+  it('collects player ids', () => {
+    expect(
+      teamMvpPlayerIds([
+        buildTeamMvpView('m-1', 'HOME', 'Local', {
+          side: 'HOME',
+          playerId: 'p-1',
+          friendlyPlayerId: null,
+          photoMimeType: null,
+          photoData: null,
+          player: { user: { name: 'Juan' } },
+        }),
+        buildTeamMvpView('m-1', 'AWAY', 'Visita', null),
+      ])
+    ).toEqual(['p-1'])
   })
 })
 
 describe('setMatchMvpSchema', () => {
-  it('accepts league mvp', () => {
-    const result = setMatchMvpSchema.safeParse({ playerId: 'player-1' })
+  it('accepts league mvp with side', () => {
+    const result = setMatchMvpSchema.safeParse({ side: 'HOME', playerId: 'player-1' })
     expect(result.success).toBe(true)
   })
 
   it('accepts clearing mvp', () => {
-    const result = setMatchMvpSchema.safeParse({ playerId: null })
+    const result = setMatchMvpSchema.safeParse({ side: 'AWAY', playerId: null })
     expect(result.success).toBe(true)
   })
 
   it('rejects both ids', () => {
     const result = setMatchMvpSchema.safeParse({
+      side: 'HOME',
       playerId: 'p-1',
       friendlyPlayerId: 'fp-1',
     })

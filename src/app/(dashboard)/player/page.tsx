@@ -17,7 +17,11 @@ export default async function PlayerDashboardPage() {
         where: { match: { matchType: 'LEAGUE' } },
         include: {
           match: {
-            include: { homeTeam: true, awayTeam: true },
+            include: {
+              homeTeam: true,
+              awayTeam: true,
+              teamMvps: { select: { id: true, playerId: true } },
+            },
           },
         },
         orderBy: { match: { scheduledAt: 'desc' } },
@@ -29,8 +33,8 @@ export default async function PlayerDashboardPage() {
     return <p className="text-kelme-gray-900">Perfil de jugador no encontrado.</p>
   }
 
-  const mvpCount = await db.match.count({
-    where: { mvpPlayerId: player.id, status: MatchStatus.FINISHED },
+  const mvpCount = await db.matchTeamMvp.count({
+    where: { playerId: player.id, match: { status: MatchStatus.FINISHED } },
   })
 
   const upcoming = player.callUps.filter(
@@ -106,7 +110,7 @@ function MatchList({
       homeScore: number
       awayScore: number
       status: string
-      mvpPlayerId: string | null
+      teamMvps: Array<{ id: string; playerId: string | null }>
     }
   }>
   playerId: string
@@ -120,7 +124,7 @@ function MatchList({
           <div className="flex justify-between gap-2">
             <span>
               {matchDisplayName(match)}
-              {match.mvpPlayerId === playerId && (
+              {match.teamMvps.some((mvp) => mvp.playerId === playerId) && (
                 <span className="ml-2 text-xs font-semibold text-amber-600">⭐ MVP</span>
               )}
             </span>

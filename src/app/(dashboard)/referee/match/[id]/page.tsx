@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import { MatchControlPanel } from '@/components/referee/MatchControlPanel'
 import { matchSideNames } from '@/lib/match-label'
-import { resolveMvpPlayerId } from '@/lib/match-mvp'
+import { buildMatchTeamMvps, MATCH_MVP_INCLUDE } from '@/lib/match-mvp'
 
 async function getTeamPlayers(matchId: string, teamId: string) {
   const callUps = await db.callUp.findMany({
@@ -36,18 +36,30 @@ export default async function RefereeMatchPage({
   const { id } = await params
   const match = await db.match.findUnique({
     where: { id },
-    include: { homeTeam: true, awayTeam: true },
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+      teamMvps: { include: MATCH_MVP_INCLUDE },
+    },
   })
 
   if (!match) notFound()
   if (match.refereeId !== session.user.id) redirect('/referee')
+
+  const { home, away } = matchSideNames(match)
+  const teamMvps = buildMatchTeamMvps({
+    matchId: match.id,
+    homeLabel: home,
+    awayLabel: away,
+    rows: match.teamMvps,
+  })
 
   const panelProps = {
     matchId: match.id,
     initialHomeScore: match.homeScore,
     initialAwayScore: match.awayScore,
     initialStatus: match.status,
-    initialMvpPlayerId: resolveMvpPlayerId(match),
+    initialTeamMvps: teamMvps,
     initialClock: {
       status: match.status,
       clockStartedAt: match.clockStartedAt?.toISOString() ?? null,
@@ -63,7 +75,6 @@ export default async function RefereeMatchPage({
     })
     const sideA = participations.filter((p) => p.side === 'A')
     const sideB = participations.filter((p) => p.side === 'B')
-    const { home, away } = matchSideNames(match)
 
     return (
       <MatchControlPanel

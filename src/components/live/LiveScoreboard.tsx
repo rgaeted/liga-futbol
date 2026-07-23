@@ -13,7 +13,9 @@ import { MatchTimeline } from '@/components/live/MatchTimeline'
 import { TeamCrest } from '@/components/TeamCrest'
 import type { LineupView } from '@/lib/match-lineup'
 import type { FootballFormat, MatchType } from '@prisma/client'
+import type { TeamMvpSideView } from '@/lib/match-mvp'
 import { footballFormatLabel } from '@/lib/football-format'
+import { personInitials } from '@/lib/player-name'
 
 type RawSocketEvent = {
   id: string
@@ -40,6 +42,7 @@ type LiveMatchPayload = {
   clockStartedAt?: string | Date | null
   secondHalfStartedAt?: string | Date | null
   halftimeAt?: string | Date | null
+  teamMvps?: TeamMvpSideView[]
   event?: RawSocketEvent
 }
 
@@ -72,7 +75,8 @@ type Match = {
   clock: SerializableClockState
   events: MatchEvent[]
   footballFormat: FootballFormat
-  mvpLabel: string | null
+  teamMvps: TeamMvpSideView[]
+  mvpPlayerIds: string[]
   formations: Array<{ label: string; crestSrc?: string | null; color?: string; lineup: LineupView | null }>
 }
 
@@ -177,6 +181,10 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
           homeScore: payload.homeScore,
           awayScore: payload.awayScore,
           status: payload.status,
+          teamMvps: payload.teamMvps ?? prev.teamMvps,
+          mvpPlayerIds: payload.teamMvps
+            ? payload.teamMvps.map((m) => m.playerId).filter((id): id is string => Boolean(id))
+            : prev.mvpPlayerIds,
           clock: {
             status: payload.status,
             clockStartedAt: toIso(payload.clockStartedAt ?? prev.clock.clockStartedAt),
@@ -253,10 +261,38 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
               </p>
             </div>
           </div>
-          {match.status === 'FINISHED' && match.mvpLabel && (
-            <p className="mt-4 text-center font-ui text-sm font-semibold text-amber-200">
-              ⭐ MVP: {match.mvpLabel}
-            </p>
+          {match.status === 'FINISHED' && match.teamMvps.some((m) => m.label) && (
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {match.teamMvps
+                .filter((m) => m.label)
+                .map((mvp) => (
+                  <div
+                    key={mvp.side}
+                    className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3"
+                  >
+                    {mvp.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={mvp.photoUrl}
+                        alt={mvp.label ?? ''}
+                        className="h-12 w-12 rounded-full object-cover ring-2 ring-amber-300"
+                      />
+                    ) : (
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-300/25 text-sm font-bold text-amber-100 ring-2 ring-amber-300/50">
+                        {personInitials(mvp.label ?? '?')}
+                      </span>
+                    )}
+                    <div className="min-w-0 text-left">
+                      <p className="truncate font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/70">
+                        MVP · {mvp.teamLabel}
+                      </p>
+                      <p className="truncate font-display text-base font-bold text-amber-100">
+                        {mvp.label}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
           )}
         </div>
 
@@ -278,6 +314,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                       teamName={side.label}
                       crestSrc={side.crestSrc}
                       color={side.color}
+                      mvpPlayerIds={match.mvpPlayerIds}
                     />
                     {side.lineup.bench.length > 0 && (
                       <p className="mt-2 text-center text-xs text-white/40">
