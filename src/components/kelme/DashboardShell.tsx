@@ -1,5 +1,6 @@
 import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 import { DashboardNav } from '@/components/kelme/DashboardNav'
+import Link from 'next/link'
 
 type NavItem = { href: string; label: string }
 
@@ -16,11 +17,16 @@ export function DashboardShell({ nav, signOutAction, children }: Props) {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
           <KelmeLogo size="sm" />
           <DashboardNav nav={nav} />
-          <form action={signOutAction}>
-            <button type="submit" className="link-nav px-2 py-1">
-              Salir
-            </button>
-          </form>
+          <div className="flex items-center gap-2">
+            <Link href="/ayuda" className="link-nav hidden px-2 py-1 sm:inline">
+              Ayuda
+            </Link>
+            <form action={signOutAction}>
+              <button type="submit" className="link-nav px-2 py-1">
+                Salir
+              </button>
+            </form>
+          </div>
         </div>
         <div className="border-t border-kelme-border md:hidden">
           <DashboardNav nav={nav} mobile />

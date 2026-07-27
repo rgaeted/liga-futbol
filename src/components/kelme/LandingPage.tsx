@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { KelmeLogo } from './KelmeLogo'
+import { MarketingShell } from './MarketingShell'
 import { APP_LOCALE } from '@/lib/locale'
 
 export type LiveMatchPreview = {
@@ -52,16 +52,7 @@ export function LandingPage({ liveMatches }: { liveMatches: LiveMatchPreview[] }
   const firstLiveMatch = liveMatches[0]
 
   return (
-    <div className="flex min-h-screen flex-col bg-kelme-bg">
-      <header className="border-b border-kelme-border bg-kelme-surface">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <KelmeLogo size="md" />
-          <Link href="/login" className="btn-kelme">
-            Ingresar
-          </Link>
-        </div>
-      </header>
-
+    <MarketingShell>
       <main className="flex-1">
         <section className="border-b border-kelme-border bg-kelme-surface">
           <div className="mx-auto max-w-5xl px-4 py-16 md:py-24">
@@ -78,6 +69,9 @@ export function LandingPage({ liveMatches }: { liveMatches: LiveMatchPreview[] }
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="btn-kelme">
                 Acceder al torneo
+              </Link>
+              <Link href="/ayuda" className="btn-kelme-outline">
+                Guía de uso
               </Link>
               {firstLiveMatch ? (
                 <Link href={`/live/${firstLiveMatch.id}`} className="btn-kelme-outline">
@@ -197,12 +191,6 @@ export function LandingPage({ liveMatches }: { liveMatches: LiveMatchPreview[] }
           </div>
         </section>
       </main>
-
-      <footer className="border-t border-kelme-border bg-kelme-surface py-6">
-        <div className="mx-auto max-w-5xl px-4 text-center font-ui text-xs text-kelme-gray-400">
-          © {new Date().getFullYear()} Torneos Kelme · KELME
-        </div>
-      </footer>
-    </div>
+    </MarketingShell>
   )
 }

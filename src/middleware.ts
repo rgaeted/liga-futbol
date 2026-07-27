@@ -25,6 +25,7 @@ export default auth((req) => {
     pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/register') ||
+    pathname.startsWith('/ayuda') ||
     pathname.startsWith('/live') ||
     pathname.startsWith('/api/auth') ||
     isPhotoGet ||
