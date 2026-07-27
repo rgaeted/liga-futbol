@@ -92,7 +92,11 @@ export async function PUT(
     if (session.user.role !== Role.COACH && session.user.role !== Role.ADMIN) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
-  } else if (session.user.role !== Role.ADMIN && session.user.role !== Role.PLAYER) {
+  } else if (
+    session.user.role !== Role.ADMIN &&
+    session.user.role !== Role.PLAYER &&
+    session.user.role !== Role.FRIENDLY_COACH
+  ) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
 
@@ -199,7 +203,10 @@ export async function PUT(
     }
     if (session.user.role === Role.ADMIN) {
       // admin puede editar cualquier lado
-    } else if (session.user.role === Role.PLAYER) {
+    } else if (
+      session.user.role === Role.PLAYER ||
+      session.user.role === Role.FRIENDLY_COACH
+    ) {
       const coachSide = await friendlyCoachSideForUser(session.user.id, matchId)
       if (!coachSide || coachSide !== data.side) {
         return NextResponse.json(

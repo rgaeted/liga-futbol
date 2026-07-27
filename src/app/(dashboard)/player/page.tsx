@@ -4,10 +4,12 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { MatchStatus } from '@prisma/client'
 import { matchDisplayName } from '@/lib/match-label'
+import { Role } from '@/lib/roles'
 
 export default async function PlayerDashboardPage() {
   const session = await auth()
   if (!session) redirect('/login')
+  if (session.user.role === Role.FRIENDLY_COACH) redirect('/player/friendly-matches')
 
   const player = await db.player.findUnique({
     where: { userId: session.user.id },

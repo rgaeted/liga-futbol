@@ -105,5 +105,16 @@ export async function syncFriendlyMatchRoster(
       },
       data: { isCoach: true },
     })
+
+    const fp = await tx.friendlyPlayer.findUnique({
+      where: { id: entry.friendlyPlayerId },
+      select: { userId: true },
+    })
+    if (fp?.userId) {
+      await tx.user.updateMany({
+        where: { id: fp.userId, role: 'PLAYER' },
+        data: { role: 'FRIENDLY_COACH' },
+      })
+    }
   }
 }

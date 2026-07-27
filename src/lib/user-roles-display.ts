@@ -36,7 +36,7 @@ export function resolveUserRoleTags(input: UserRoleContext): UserRoleTag[] {
   if (input.role === Role.ADMIN) ids.add('admin')
   if (input.role === Role.COACH || input.hasCoachedTeam) ids.add('coach_league')
   if (input.role === Role.REFEREE) ids.add('referee')
-  if (input.isFriendlyCoach) ids.add('coach_friendly')
+  if (input.role === Role.FRIENDLY_COACH || input.isFriendlyCoach) ids.add('coach_friendly')
   if (input.hasLeagueTeam) ids.add('player_league')
   if (input.hasFriendlyProfile) ids.add('player_friendly')
 

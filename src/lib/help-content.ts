@@ -109,7 +109,7 @@ export const HELP_SECTIONS: HelpSection[] = [
     blocks: [
       {
         type: 'paragraph',
-        text: 'Los jugadores amistosos comparten el rol “jugador” en el sistema, pero sus partidos y estadísticas son independientes de la liga.',
+        text: 'Los jugadores amistosos suelen tener rol “Jugador” o “DT amistoso” si además dirigen equipos en partidos amistosos. Sus estadísticas son independientes de la liga.',
       },
       {
         type: 'list',
@@ -117,7 +117,7 @@ export const HELP_SECTIONS: HelpSection[] = [
           'Puedes pertenecer a una o más categorías amistosas (por edad, nivel, etc.).',
           'El administrador te asigna a partidos amistosos en el lado A o B.',
           'En cada partido hay un capitán y un DT por equipo; el DT suele ser uno de los jugadores del roster.',
-          'Si fuiste designado DT y tienes cuenta, entra a Amistosos (DT) en tu panel para editar la formación de tu equipo.',
+          'Si fuiste designado DT, el administrador puede asignarte el rol DT amistoso; entra a Amistosos (DT) en tu panel para editar la formación de tu equipo.',
           'Tus estadísticas amistosas (goles, asistencias, MVPs) se calculan aparte de la liga.',
         ],
       },
@@ -143,7 +143,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       },
       {
         type: 'note',
-        text: 'En partidos amistosos el DT designado (jugador con cuenta) edita la formación de su lado desde Amistosos (DT). El admin sigue pudiendo editar ambos lados.',
+        text: 'En partidos amistosos el DT designado (rol DT amistoso o jugador con cuenta) edita la formación de su lado desde Amistosos (DT). El admin sigue pudiendo editar ambos lados.',
       },
     ],
   },

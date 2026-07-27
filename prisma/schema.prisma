@@ -11,6 +11,7 @@ enum Role {
   ADMIN
   COACH
   REFEREE
+  FRIENDLY_COACH
 }
 
 enum MatchStatus {
