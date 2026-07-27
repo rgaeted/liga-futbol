@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 const staffRoles = ['ADMIN', 'COACH', 'REFEREE'] as const
+export const accessRoles = ['ADMIN', 'COACH', 'REFEREE', 'PLAYER'] as const
 
 export const createUserSchema = z.object({
   email: z.string().email(),
@@ -13,7 +14,7 @@ export const updateUserSchema = z.object({
   email: z.string().email().optional(),
   name: z.string().min(2).optional(),
   password: z.string().min(6).optional(),
-  role: z.enum(staffRoles).optional(),
+  role: z.enum(accessRoles).optional(),
 })
 
 export type CreateUserInput = z.infer<typeof createUserSchema>

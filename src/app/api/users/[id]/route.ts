@@ -6,22 +6,46 @@ import { updateUserSchema } from '@/lib/validations/user'
 import { Role } from '@prisma/client'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole([Role.ADMIN])
+  const session = await requireRole([Role.ADMIN])
   const { id } = await params
   const parsed = updateUserSchema.safeParse(await req.json())
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { password, ...rest } = parsed.data
-  const user = await db.user.update({
+  const { password, role, ...rest } = parsed.data
+
+  if (session.user.id === id && role && role !== Role.ADMIN) {
+    return NextResponse.json(
+      { error: 'No puedes cambiar tu propio rol de acceso' },
+      { status: 409 }
+    )
+  }
+
+  const existing = await db.user.findUnique({
     where: { id },
-    data: {
-      ...rest,
-      ...(password ? { passwordHash: await bcrypt.hash(password, 10) } : {}),
-    },
-    select: { id: true, email: true, name: true, role: true },
+    select: { role: true },
   })
+  if (!existing) {
+    return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+  }
+
+  const user = await db.$transaction(async (tx) => {
+    if (role && role !== Role.COACH && existing.role === Role.COACH) {
+      await tx.team.updateMany({ where: { coachId: id }, data: { coachId: null } })
+    }
+
+    return tx.user.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(role ? { role } : {}),
+        ...(password ? { passwordHash: await bcrypt.hash(password, 10) } : {}),
+      },
+      select: { id: true, email: true, name: true, role: true },
+    })
+  })
+
   return NextResponse.json(user)
 }
 

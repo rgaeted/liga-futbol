@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
 import type { UserRoleTag } from '@/lib/user-roles-display'
+import { accessRoles } from '@/lib/validations/user'
 
 export type UserRow = {
   id: string
@@ -14,14 +15,12 @@ export type UserRow = {
   roleTags: UserRoleTag[]
 }
 
-const ROLE_LABELS: Record<string, string> = {
+const ACCESS_ROLE_LABELS: Record<(typeof accessRoles)[number], string> = {
   ADMIN: 'Admin',
-  COACH: 'DT',
+  COACH: 'DT liga',
   REFEREE: 'Árbitro',
   PLAYER: 'Jugador',
 }
-
-const STAFF_ROLES = ['ADMIN', 'COACH', 'REFEREE'] as const
 
 function RoleBadges({ tags }: { tags: UserRoleTag[] }) {
   if (tags.length === 0) {
@@ -51,7 +50,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
-  const [role, setRole] = useState('COACH')
+  const [role, setRole] = useState<(typeof accessRoles)[number]>('COACH')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -59,7 +58,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
   function startEdit(user: UserRow) {
     setEditingId(user.id)
     setName(user.name)
-    setRole(user.role)
+    setRole(user.role as (typeof accessRoles)[number])
     setPassword('')
     setError('')
   }
@@ -67,14 +66,11 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
   async function save(user: UserRow) {
     setSaving(true)
     setError('')
-    const payload: Record<string, unknown> = {
+    const result = await submitJson(`/api/users/${user.id}`, 'PUT', {
       name,
+      role,
       ...(password ? { password } : {}),
-    }
-    if (user.role !== 'PLAYER') {
-      payload.role = role
-    }
-    const result = await submitJson(`/api/users/${user.id}`, 'PUT', payload)
+    })
     setSaving(false)
     if (!result.ok) {
       setError(result.message)
@@ -96,96 +92,119 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="border-t border-kelme-border">
-              {editingId === user.id ? (
-                <>
-                  <td className="p-3">
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
-                    />
-                  </td>
-                  <td className="p-3">{user.email}</td>
-                  <td className="p-3">
-                    {user.role === 'PLAYER' ? (
-                      <RoleBadges tags={user.roleTags} />
-                    ) : (
-                      <span className="flex flex-col gap-2">
-                        <select
-                          value={role}
-                          onChange={(e) => setRole(e.target.value)}
-                          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+          {users.map((user) => {
+            const extraTags = user.roleTags.filter((tag) => {
+              if (role === 'ADMIN' && tag.id === 'admin') return false
+              if (role === 'COACH' && tag.id === 'coach_league') return false
+              if (role === 'REFEREE' && tag.id === 'referee') return false
+              if (role === 'PLAYER' && tag.id === 'player') return false
+              return true
+            })
+            const isSelf = user.id === currentUserId
+
+            return (
+              <tr key={user.id} className="border-t border-kelme-border">
+                {editingId === user.id ? (
+                  <>
+                    <td className="p-3">
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                      />
+                    </td>
+                    <td className="p-3">{user.email}</td>
+                    <td className="p-3">
+                      <div className="space-y-2">
+                        <label className="block text-xs text-kelme-gray-500">
+                          Rol de acceso
+                          <select
+                            value={role}
+                            onChange={(e) =>
+                              setRole(e.target.value as (typeof accessRoles)[number])
+                            }
+                            disabled={isSelf}
+                            className="mt-1 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1 disabled:opacity-60"
+                          >
+                            {accessRoles.map((value) => (
+                              <option key={value} value={value}>
+                                {ACCESS_ROLE_LABELS[value]}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        {isSelf && (
+                          <p className="text-xs text-kelme-gray-400">
+                            No puedes cambiar tu propio rol de acceso.
+                          </p>
+                        )}
+                        {extraTags.length > 0 && (
+                          <div>
+                            <p className="mb-1 text-xs text-kelme-gray-500">
+                              También en el torneo (según datos vinculados):
+                            </p>
+                            <RoleBadges tags={extraTags} />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <span className="inline-flex flex-wrap items-center gap-2">
+                        <input
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Nueva contraseña (opcional)"
+                          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1 text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => save(user)}
+                          disabled={saving}
+                          className="rounded-lg bg-kelme-red px-2 py-1 text-xs font-semibold text-white disabled:opacity-50"
                         >
-                          {STAFF_ROLES.map((value) => (
-                            <option key={value} value={value}>
-                              {ROLE_LABELS[value]}
-                            </option>
-                          ))}
-                        </select>
-                        {user.roleTags.length > 1 && (
-                          <RoleBadges tags={user.roleTags} />
+                          Guardar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(null)}
+                          className="rounded-lg border border-kelme-border px-2 py-1 text-xs"
+                        >
+                          Cancelar
+                        </button>
+                        {error && <span className="text-xs text-kelme-red">{error}</span>}
+                      </span>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="p-3">{user.name}</td>
+                    <td className="p-3">{user.email}</td>
+                    <td className="p-3">
+                      <RoleBadges tags={user.roleTags} />
+                    </td>
+                    <td className="p-3">
+                      <span className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startEdit(user)}
+                          className="rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red"
+                        >
+                          Editar
+                        </button>
+                        {!isSelf && user.role !== 'PLAYER' && (
+                          <DeleteButton
+                            url={`/api/users/${user.id}`}
+                            confirmMessage={`¿Eliminar al usuario ${user.name}?`}
+                          />
                         )}
                       </span>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    <span className="inline-flex flex-wrap items-center gap-2">
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Nueva contraseña (opcional)"
-                        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1 text-xs"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => save(user)}
-                        disabled={saving}
-                        className="rounded-lg bg-kelme-red px-2 py-1 text-xs font-semibold text-white disabled:opacity-50"
-                      >
-                        Guardar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(null)}
-                        className="rounded-lg border border-kelme-border px-2 py-1 text-xs"
-                      >
-                        Cancelar
-                      </button>
-                      {error && <span className="text-xs text-kelme-red">{error}</span>}
-                    </span>
-                  </td>
-                </>
-              ) : (
-                <>
-                  <td className="p-3">{user.name}</td>
-                  <td className="p-3">{user.email}</td>
-                  <td className="p-3">
-                    <RoleBadges tags={user.roleTags} />
-                  </td>
-                  <td className="p-3">
-                    <span className="inline-flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => startEdit(user)}
-                        className="rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red"
-                      >
-                        Editar
-                      </button>
-                      {user.id !== currentUserId && user.role !== 'PLAYER' && (
-                        <DeleteButton
-                          url={`/api/users/${user.id}`}
-                          confirmMessage={`¿Eliminar al usuario ${user.name}?`}
-                        />
-                      )}
-                    </span>
-                  </td>
-                </>
-              )}
-            </tr>
-          ))}
+                    </td>
+                  </>
+                )}
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

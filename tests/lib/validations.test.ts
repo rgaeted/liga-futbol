@@ -78,6 +78,10 @@ describe('user validations', () => {
     const result = updateUserSchema.safeParse({ name: 'Nombre Nuevo' })
     expect(result.success).toBe(true)
   })
+  it('updateUserSchema allows changing access role to PLAYER', () => {
+    const result = updateUserSchema.safeParse({ role: 'PLAYER' })
+    expect(result.success).toBe(true)
+  })
   it('updateUserSchema rejects short password when provided', () => {
     const result = updateUserSchema.safeParse({ password: '123' })
     expect(result.success).toBe(false)
