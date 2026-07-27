@@ -10,6 +10,7 @@ import { resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
 import { resolveEventTeamColor } from '@/lib/team-color'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
+import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import { TeamCrest } from '@/components/TeamCrest'
 import type { LineupView } from '@/lib/match-lineup'
 import type { FootballFormat, MatchType } from '@prisma/client'
@@ -80,7 +81,15 @@ type Match = {
   captainPlayerIds: string[]
   homeCaptainLabel: string | null
   awayCaptainLabel: string | null
-  formations: Array<{ label: string; crestSrc?: string | null; color?: string; lineup: LineupView | null }>
+  homeCoachLabel: string | null
+  awayCoachLabel: string | null
+  formations: Array<{
+    label: string
+    crestSrc?: string | null
+    color?: string
+    coachLabel?: string | null
+    lineup: LineupView | null
+  }>
 }
 
 function teamVisualLookup(match: Match) {
@@ -244,11 +253,10 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
               <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
                 {match.homeTeam.name}
               </p>
-              {match.homeCaptainLabel && (
-                <p className="text-[11px] font-medium uppercase tracking-wide text-sky-300/90">
-                  C · {match.homeCaptainLabel}
-                </p>
-              )}
+              <LiveTeamStaff
+                captainLabel={match.homeCaptainLabel}
+                coachLabel={match.homeCoachLabel}
+              />
             </div>
             <div className="shrink-0 px-2 text-center">
               <p className="font-display text-5xl font-extrabold tabular-nums text-white sm:text-6xl">
@@ -267,11 +275,10 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
               <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
                 {match.awayTeam.name}
               </p>
-              {match.awayCaptainLabel && (
-                <p className="text-[11px] font-medium uppercase tracking-wide text-sky-300/90">
-                  C · {match.awayCaptainLabel}
-                </p>
-              )}
+              <LiveTeamStaff
+                captainLabel={match.awayCaptainLabel}
+                coachLabel={match.awayCoachLabel}
+              />
             </div>
           </div>
           {match.status === 'FINISHED' && match.teamMvps.some((m) => m.label) && (
@@ -327,6 +334,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                       teamName={side.label}
                       crestSrc={side.crestSrc}
                       color={side.color}
+                      coachLabel={side.coachLabel}
                       mvpPlayerIds={match.mvpPlayerIds}
                       captainPlayerIds={match.captainPlayerIds}
                     />

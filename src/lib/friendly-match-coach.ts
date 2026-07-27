@@ -50,6 +50,29 @@ export async function friendlyCoachSideForUser(
   return participation?.side ?? null
 }
 
+export type FriendlyCoachView = {
+  side: 'A' | 'B'
+  playerId: string
+  label: string
+}
+
+export function resolveFriendlyCoaches(
+  participations: Array<{
+    friendlyPlayerId: string
+    side: 'A' | 'B'
+    isCoach: boolean
+    friendlyPlayer: { firstName: string; lastName: string }
+  }>
+): FriendlyCoachView[] {
+  return participations
+    .filter((p) => p.isCoach)
+    .map((p) => ({
+      side: p.side,
+      playerId: p.friendlyPlayerId,
+      label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
+    }))
+}
+
 export async function listFriendlyCoachMatchesForUser(userId: string) {
   const profile = await db.friendlyPlayer.findUnique({
     where: { userId },

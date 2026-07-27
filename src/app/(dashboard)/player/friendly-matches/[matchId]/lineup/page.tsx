@@ -71,6 +71,8 @@ export default async function PlayerFriendlyLineupPage({
           label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
           slotKey: p.slotKey,
           hasPhoto: Boolean(p.friendlyPlayer.photoMimeType),
+          primaryPosition: p.friendlyPlayer.primaryPosition,
+          secondaryPosition: p.friendlyPlayer.secondaryPosition,
         }))}
       />
     </div>

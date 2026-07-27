@@ -12,6 +12,8 @@ type Participation = {
   label: string
   slotKey: string | null
   hasPhoto?: boolean
+  primaryPosition?: string | null
+  secondaryPosition?: string | null
 }
 
 type Props = {
@@ -120,6 +122,8 @@ export function FriendlyLineupEditor({
       id: p.id,
       label: p.label,
       photoUrl: p.hasPhoto ? friendlyPlayerPhotoUrl(p.id) : null,
+      primaryPosition: p.primaryPosition,
+      secondaryPosition: p.secondaryPosition,
     }))
   const playersB = participations
     .filter((p) => p.side === 'B')
@@ -127,6 +131,8 @@ export function FriendlyLineupEditor({
       id: p.id,
       label: p.label,
       photoUrl: p.hasPhoto ? friendlyPlayerPhotoUrl(p.id) : null,
+      primaryPosition: p.primaryPosition,
+      secondaryPosition: p.secondaryPosition,
     }))
 
   const showA = !editableSide || editableSide === 'A'

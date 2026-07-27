@@ -10,9 +10,17 @@ import {
 } from '@/lib/formations'
 import { buildLineupView } from '@/lib/match-lineup'
 import { footballFormatLabel } from '@/lib/football-format'
+import { calculateFormationFit, playerFitScoreForSlot } from '@/lib/formation-position-fit'
 import { FormationPitch } from './FormationPitch'
+import { FormationFitScore, PlayerFitBadge } from './FormationFitScore'
 
-export type EditorPlayer = { id: string; label: string; photoUrl?: string | null }
+export type EditorPlayer = {
+  id: string
+  label: string
+  photoUrl?: string | null
+  primaryPosition?: string | null
+  secondaryPosition?: string | null
+}
 
 type Props = {
   footballFormat: FootballFormat
@@ -63,6 +71,17 @@ export function FormationEditor({
       .filter((p) => !assignedIds.has(p.id))
       .map((p) => ({ playerId: p.id, playerName: p.label })),
   })
+
+  const formationFit = useMemo(
+    () =>
+      calculateFormationFit({
+        scheme,
+        footballFormat,
+        slots,
+        players,
+      }),
+    [scheme, footballFormat, slots, players]
+  )
 
   function onSchemeChange(next: string) {
     setScheme(next)
@@ -145,6 +164,7 @@ export function FormationEditor({
             ))}
           </select>
         </label>
+        <FormationFitScore fit={formationFit} />
         <FormationPitch
           lineup={lineup}
           selectedSlotKey={selectedSlot}
@@ -169,20 +189,27 @@ export function FormationEditor({
         <ul className="max-h-96 space-y-2 overflow-y-auto">
           {players.map((p) => {
             const inPitch = assignedIds.has(p.id)
+            const assignedSlot = inPitch
+              ? Object.entries(slots).find(([, playerId]) => playerId === p.id)?.[0]
+              : null
+            const fitScore = assignedSlot
+              ? playerFitScoreForSlot(assignedSlot, scheme, footballFormat, p)
+              : null
             return (
               <li key={p.id}>
                 <button
                   type="button"
                   disabled={!selectedSlot}
                   onClick={() => assignPlayerToSelected(p.id)}
-                  className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm disabled:opacity-40 ${
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm disabled:opacity-40 ${
                     inPitch
                       ? 'border-kelme-red/40 bg-kelme-red/5'
                       : 'border-kelme-border bg-kelme-surface'
                   }`}
                 >
-                  <span>{p.label}</span>
-                  <span className="text-xs text-kelme-gray-400">
+                  <span className="min-w-0 truncate">{p.label}</span>
+                  <span className="flex shrink-0 items-center gap-2 text-xs text-kelme-gray-400">
+                    {fitScore !== null && <PlayerFitBadge score={fitScore} />}
                     {inPitch ? 'En cancha' : 'Banco'}
                   </span>
                 </button>

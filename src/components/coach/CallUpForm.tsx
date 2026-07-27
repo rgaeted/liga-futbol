@@ -10,6 +10,7 @@ import { normalizeSchemeForFormat } from '@/lib/formations'
 type Player = {
   id: string
   jerseyNumber: number | null
+  position: string | null
   user: { name: string }
 }
 
@@ -44,7 +45,8 @@ export function CallUpForm({
     .filter((p) => selected.includes(p.id))
     .map((p) => ({
       id: p.id,
-      label: `#${p.jerseyNumber ?? '—'} ${p.user.name}`,
+      label: `#${p.jerseyNumber ?? '—'} ${p.user.name}${p.position ? ` (${p.position})` : ''}`,
+      primaryPosition: p.position,
     }))
 
   const filteredInitialSlots: Record<string, string> = {}

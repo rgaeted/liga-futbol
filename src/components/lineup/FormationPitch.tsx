@@ -1,6 +1,7 @@
 'use client'
 
 import { TeamCrest } from '@/components/TeamCrest'
+import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import { slotTopPercent } from '@/lib/formation-layout'
 import { personInitials } from '@/lib/player-name'
 import type { LineupView } from '@/lib/match-lineup'
@@ -15,6 +16,7 @@ type Props = {
   teamName?: string
   crestSrc?: string | null
   color?: string | null
+  coachLabel?: string | null
   mvpPlayerIds?: string[]
   captainPlayerIds?: string[]
 }
@@ -161,6 +163,7 @@ export function FormationPitch({
   teamName,
   crestSrc,
   color,
+  coachLabel,
   mvpPlayerIds,
   captainPlayerIds,
 }: Props) {
@@ -240,11 +243,14 @@ export function FormationPitch({
   return (
     <div className={className}>
       {teamName && (
-        <div className="mb-3 flex items-center justify-center gap-2">
-          <TeamCrest name={teamName} src={crestSrc} color={color} size="sm" />
-          <p className="font-ui text-xs font-semibold uppercase tracking-widest text-white/85">
-            {teamName}
-          </p>
+        <div className="mb-3 space-y-2 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <TeamCrest name={teamName} src={crestSrc} color={color} size="sm" />
+            <p className="font-ui text-xs font-semibold uppercase tracking-widest text-white/85">
+              {teamName}
+            </p>
+          </div>
+          {coachLabel && <LiveTeamStaff coachLabel={coachLabel} compact />}
         </div>
       )}
       {pitch}

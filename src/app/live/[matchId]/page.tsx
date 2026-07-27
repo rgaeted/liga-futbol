@@ -7,6 +7,7 @@ import {
   friendlyCaptainPlayerIds,
   resolveFriendlyCaptains,
 } from '@/lib/friendly-match-captain'
+import { resolveFriendlyCoaches } from '@/lib/friendly-match-coach'
 import { matchSideCrestUrl, matchSideHasCrest } from '@/lib/match-side-crest'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
 import { resolveEventTeamColor, resolveMatchSideColor, resolveTeamColor } from '@/lib/team-color'
@@ -29,8 +30,8 @@ export default async function LiveMatchPage({
   const match = await db.match.findUnique({
     where: { id: matchId },
     include: {
-      homeTeam: true,
-      awayTeam: true,
+      homeTeam: { include: { coach: { select: { name: true } } } },
+      awayTeam: { include: { coach: { select: { name: true } } } },
       formations: true,
       callUps: {
         include: {
@@ -177,6 +178,27 @@ export default async function LiveMatchPage({
   const awayCaptainLabel = friendlyCaptains.find((c) => c.side === 'B')?.label ?? null
   const captainPlayerIds = friendlyCaptainPlayerIds(friendlyCaptains)
 
+  const friendlyCoaches =
+    match.matchType === MatchType.FRIENDLY
+      ? resolveFriendlyCoaches(
+          match.friendlyPlayers.map((p) => ({
+            friendlyPlayerId: p.friendlyPlayerId,
+            side: p.side,
+            isCoach: p.isCoach,
+            friendlyPlayer: p.friendlyPlayer,
+          }))
+        )
+      : []
+
+  const homeCoachLabel =
+    match.matchType === MatchType.FRIENDLY
+      ? (friendlyCoaches.find((c) => c.side === 'A')?.label ?? null)
+      : (match.homeTeam?.coach?.name ?? null)
+  const awayCoachLabel =
+    match.matchType === MatchType.FRIENDLY
+      ? (friendlyCoaches.find((c) => c.side === 'B')?.label ?? null)
+      : (match.awayTeam?.coach?.name ?? null)
+
   return (
     <LiveScoreboard
       initialMatch={{
@@ -237,11 +259,14 @@ export default async function LiveMatchPage({
         captainPlayerIds,
         homeCaptainLabel,
         awayCaptainLabel,
+        homeCoachLabel,
+        awayCoachLabel,
         formations: formationSides.map((s) => ({
           label: s.label,
           lineup: s.lineup,
           crestSrc: s.label === sides.home ? homeCrestSrc : s.label === sides.away ? awayCrestSrc : null,
           color: s.label === sides.home ? homeColor : s.label === sides.away ? awayColor : undefined,
+          coachLabel: s.label === sides.home ? homeCoachLabel : s.label === sides.away ? awayCoachLabel : null,
         })),
       }}
     />

@@ -65,6 +65,8 @@ export default async function AdminMatchLineupPage({
             label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
             slotKey: p.slotKey,
             hasPhoto: Boolean(p.friendlyPlayer.photoMimeType),
+            primaryPosition: p.friendlyPlayer.primaryPosition,
+            secondaryPosition: p.friendlyPlayer.secondaryPosition,
           }))}
         />
       ) : (
@@ -85,7 +87,8 @@ export default async function AdminMatchLineupPage({
                 .filter((c) => c.player.teamId === match.homeTeamId)
                 .map((c) => ({
                   id: c.playerId,
-                  label: `#${c.player.jerseyNumber ?? '—'} ${c.player.user.name}`,
+                  label: `#${c.player.jerseyNumber ?? '—'} ${c.player.user.name}${c.player.position ? ` (${c.player.position})` : ''}`,
+                  primaryPosition: c.player.position,
                 }))}
             />
           )}
@@ -105,7 +108,8 @@ export default async function AdminMatchLineupPage({
                 .filter((c) => c.player.teamId === match.awayTeamId)
                 .map((c) => ({
                   id: c.playerId,
-                  label: `#${c.player.jerseyNumber ?? '—'} ${c.player.user.name}`,
+                  label: `#${c.player.jerseyNumber ?? '—'} ${c.player.user.name}${c.player.position ? ` (${c.player.position})` : ''}`,
+                  primaryPosition: c.player.position,
                 }))}
             />
           )}
