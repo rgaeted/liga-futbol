@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { EventType } from '@prisma/client'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
+import { EVENT_TYPE_LABELS, eventNeedsPlayer } from '@/lib/event-labels'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 
@@ -35,9 +36,24 @@ const QUICK_EVENTS = [
   { type: EventType.FULLTIME, label: '⏹ Final', color: 'bg-kelme-gray-900' },
 ] as const
 
+type DetailMode = 'team' | 'player' | 'goal'
+
+const INSTANT_EVENTS: EventType[] = [
+  EventType.HALFTIME,
+  EventType.FULLTIME,
+  EventType.FOUL,
+]
+
 function toIso(value: Date | string | null | undefined): string | null {
   if (!value) return null
   return value instanceof Date ? value.toISOString() : value
+}
+
+function getDetailMode(type: EventType): DetailMode | null {
+  if (type === EventType.KICKOFF) return 'team'
+  if (type === EventType.GOAL) return 'goal'
+  if (eventNeedsPlayer(type)) return 'player'
+  return null
 }
 
 export function MatchControlPanel({
@@ -55,13 +71,21 @@ export function MatchControlPanel({
   const [awayScore, setAwayScore] = useState(initialAwayScore)
   const [status, setStatus] = useState(initialStatus)
   const [clock, setClock] = useState(initialClock)
-  const [selectedTeam, setSelectedTeam] = useState<'home' | 'away'>('home')
+  const [pendingEvent, setPendingEvent] = useState<EventType | null>(null)
+  const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState('')
   const [selectedAssist, setSelectedAssist] = useState('')
-  const [pendingEvent, setPendingEvent] = useState<EventType | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const activeTeam = selectedTeam === 'home' ? homeTeam : awayTeam
+  const activeTeam = selectedTeam === 'home' ? homeTeam : selectedTeam === 'away' ? awayTeam : null
+  const detailMode = pendingEvent ? getDetailMode(pendingEvent) : null
+
+  function resetDetails() {
+    setPendingEvent(null)
+    setSelectedTeam(null)
+    setSelectedPlayer('')
+    setSelectedAssist('')
+  }
 
   function updateFromMatchResponse(match: {
     homeScore: number
@@ -82,41 +106,34 @@ export function MatchControlPanel({
     })
   }
 
-  async function submitEvent(type: EventType) {
-    const needsPlayer = (
-      [
-        EventType.GOAL,
-        EventType.OWN_GOAL,
-        EventType.YELLOW_CARD,
-        EventType.RED_CARD,
-        EventType.SHOT_ON_TARGET,
-        EventType.SHOT_OFF_TARGET,
-        EventType.SUBSTITUTION,
-      ] as EventType[]
-    ).includes(type)
-
-    if (needsPlayer && !selectedPlayer) {
-      setPendingEvent(type)
-      return
+  async function submitEvent(
+    type: EventType,
+    opts?: {
+      team?: 'home' | 'away'
+      playerId?: string
+      assistId?: string
     }
+  ) {
+    const teamSide = opts?.team ?? selectedTeam
+    const playerId = opts?.playerId ?? selectedPlayer
+    const assistId = opts?.assistId ?? selectedAssist
+    const team = teamSide === 'home' ? homeTeam : teamSide === 'away' ? awayTeam : null
 
     const body =
       matchType === 'FRIENDLY'
         ? {
             type,
-            friendlyPlayerId: selectedPlayer || undefined,
-            side: selectedTeam === 'home' ? ('A' as const) : ('B' as const),
-            ...(type === EventType.GOAL && selectedAssist
-              ? { assistFriendlyPlayerId: selectedAssist }
+            friendlyPlayerId: playerId || undefined,
+            side: teamSide === 'home' ? ('A' as const) : teamSide === 'away' ? ('B' as const) : undefined,
+            ...(type === EventType.GOAL && assistId
+              ? { assistFriendlyPlayerId: assistId }
               : {}),
           }
         : {
             type,
-            playerId: selectedPlayer || undefined,
-            teamId: activeTeam.id,
-            ...(type === EventType.GOAL && selectedAssist
-              ? { assistPlayerId: selectedAssist }
-              : {}),
+            playerId: playerId || undefined,
+            teamId: team?.id,
+            ...(type === EventType.GOAL && assistId ? { assistPlayerId: assistId } : {}),
           }
 
     setLoading(true)
@@ -129,9 +146,40 @@ export function MatchControlPanel({
     if (data.match) {
       updateFromMatchResponse(data.match)
     }
-    setPendingEvent(null)
-    setSelectedAssist('')
+    resetDetails()
     setLoading(false)
+  }
+
+  function handleEventClick(type: EventType) {
+    if (INSTANT_EVENTS.includes(type)) {
+      void submitEvent(type)
+      return
+    }
+    setPendingEvent(type)
+    setSelectedTeam(null)
+    setSelectedPlayer('')
+    setSelectedAssist('')
+  }
+
+  async function handleTeamPick(team: 'home' | 'away') {
+    if (!pendingEvent) return
+    setSelectedTeam(team)
+    setSelectedPlayer('')
+    setSelectedAssist('')
+
+    if (detailMode === 'team') {
+      await submitEvent(pendingEvent, { team })
+    }
+  }
+
+  async function handleConfirmDetails(withoutAssist = false) {
+    if (!pendingEvent || !selectedTeam) return
+    if (detailMode === 'goal' || detailMode === 'player') {
+      if (!selectedPlayer) return
+      await submitEvent(pendingEvent, {
+        assistId: withoutAssist ? undefined : selectedAssist || undefined,
+      })
+    }
   }
 
   function eventLabel(type: EventType, defaultLabel: string) {
@@ -140,6 +188,16 @@ export function MatchControlPanel({
       return '▶ Inicio'
     }
     return defaultLabel
+  }
+
+  function kickoffPrompt() {
+    if (status === 'HALFTIME') return '¿Qué equipo saca el segundo tiempo?'
+    return '¿Qué equipo saca?'
+  }
+
+  function canConfirmDetails() {
+    if (!selectedTeam || !selectedPlayer) return false
+    return detailMode === 'player' || detailMode === 'goal'
   }
 
   return (
@@ -157,72 +215,159 @@ export function MatchControlPanel({
         </p>
       </div>
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setSelectedTeam('home')}
-          className={`flex-1 rounded-lg py-2 ${selectedTeam === 'home' ? 'bg-kelme-red' : 'bg-kelme-gray-100'}`}
-        >
-          {homeTeam.name}
-        </button>
-        <button
-          type="button"
-          onClick={() => setSelectedTeam('away')}
-          className={`flex-1 rounded-lg py-2 ${selectedTeam === 'away' ? 'bg-kelme-red' : 'bg-kelme-gray-100'}`}
-        >
-          {awayTeam.name}
-        </button>
-      </div>
+      {pendingEvent ? (
+        <section className="space-y-4 rounded-xl border border-kelme-border bg-kelme-surface p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-ui text-xs uppercase tracking-wider text-kelme-gray-400">
+                Registrar evento
+              </p>
+              <h2 className="font-display text-lg font-bold">
+                {pendingEvent === EventType.KICKOFF && status === 'HALFTIME'
+                  ? 'Inicio 2.º tiempo'
+                  : EVENT_TYPE_LABELS[pendingEvent]}
+              </h2>
+            </div>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={resetDetails}
+              className="rounded-lg border border-kelme-border px-3 py-1.5 text-sm text-kelme-gray-600 hover:bg-kelme-gray-100 disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          </div>
 
-      <select
-        value={selectedPlayer}
-        onChange={(e) => {
-          setSelectedPlayer(e.target.value)
-          if (e.target.value === selectedAssist) setSelectedAssist('')
-        }}
-        className="w-full rounded-lg border border-kelme-border bg-kelme-surface px-4 py-3"
-      >
-        <option value="">Seleccionar jugador...</option>
-        {activeTeam.players.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.label}
-          </option>
-        ))}
-      </select>
+          <div className="space-y-2">
+            <p className="font-ui text-sm font-medium text-kelme-gray-700">
+              {detailMode === 'team' ? kickoffPrompt() : 'Equipo'}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => void handleTeamPick('home')}
+                className={`flex-1 rounded-lg py-3 font-semibold transition-colors ${
+                  selectedTeam === 'home'
+                    ? 'bg-kelme-red text-white'
+                    : 'bg-kelme-gray-100 hover:bg-kelme-gray-200'
+                } disabled:opacity-50`}
+              >
+                {homeTeam.name}
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => void handleTeamPick('away')}
+                className={`flex-1 rounded-lg py-3 font-semibold transition-colors ${
+                  selectedTeam === 'away'
+                    ? 'bg-kelme-red text-white'
+                    : 'bg-kelme-gray-100 hover:bg-kelme-gray-200'
+                } disabled:opacity-50`}
+              >
+                {awayTeam.name}
+              </button>
+            </div>
+          </div>
 
-      <select
-        value={selectedAssist}
-        onChange={(e) => setSelectedAssist(e.target.value)}
-        className="w-full rounded-lg border border-kelme-border bg-kelme-surface px-4 py-3"
-      >
-        <option value="">Asistencia (opcional)...</option>
-        {activeTeam.players
-          .filter((p) => p.id !== selectedPlayer)
-          .map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.label}
-            </option>
+          {(detailMode === 'player' || detailMode === 'goal') && selectedTeam && activeTeam && (
+            <div className="space-y-2">
+              <p className="font-ui text-sm font-medium text-kelme-gray-700">Jugador</p>
+              {activeTeam.players.length === 0 ? (
+                <p className="text-sm text-kelme-gray-400">No hay jugadores en este equipo.</p>
+              ) : (
+                <ul className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-kelme-border">
+                  {activeTeam.players.map((player) => (
+                    <li key={player.id}>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => {
+                          setSelectedPlayer(player.id)
+                          if (selectedAssist === player.id) setSelectedAssist('')
+                        }}
+                        className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                          selectedPlayer === player.id
+                            ? 'bg-kelme-red/10 font-semibold text-kelme-red'
+                            : 'hover:bg-kelme-gray-100'
+                        } disabled:opacity-50`}
+                      >
+                        {player.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {detailMode === 'goal' && selectedPlayer && activeTeam && (
+            <div className="space-y-2">
+              <p className="font-ui text-sm font-medium text-kelme-gray-700">
+                Asistencia <span className="font-normal text-kelme-gray-400">(opcional)</span>
+              </p>
+              <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-kelme-border">
+                {activeTeam.players
+                  .filter((player) => player.id !== selectedPlayer)
+                  .map((player) => (
+                    <li key={player.id}>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => setSelectedAssist(player.id)}
+                        className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                          selectedAssist === player.id
+                            ? 'bg-kelme-red/10 font-semibold text-kelme-red'
+                            : 'hover:bg-kelme-gray-100'
+                        } disabled:opacity-50`}
+                      >
+                        {player.label}
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+
+          {(detailMode === 'player' || detailMode === 'goal') && (
+            <div className="flex gap-2 pt-1">
+              {detailMode === 'goal' && (
+                <button
+                  type="button"
+                  disabled={loading || !canConfirmDetails()}
+                  onClick={() => void handleConfirmDetails(true)}
+                  className="flex-1 rounded-xl border border-kelme-border py-3 font-semibold hover:bg-kelme-gray-100 disabled:opacity-50"
+                >
+                  Sin asistencia
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={loading || !canConfirmDetails()}
+                onClick={() => void handleConfirmDetails(false)}
+                className={`rounded-xl bg-kelme-red py-3 font-bold text-white hover:bg-kelme-red-dark disabled:opacity-50 ${
+                  detailMode === 'goal' ? 'flex-1' : 'w-full'
+                }`}
+              >
+                {loading ? 'Guardando...' : 'Registrar'}
+              </button>
+            </div>
+          )}
+        </section>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {QUICK_EVENTS.map((ev) => (
+            <button
+              key={ev.type}
+              type="button"
+              disabled={loading}
+              onClick={() => handleEventClick(ev.type)}
+              className={`rounded-xl py-4 text-lg font-bold ${ev.color} disabled:opacity-50`}
+            >
+              {eventLabel(ev.type, ev.label)}
+            </button>
           ))}
-      </select>
-
-      <div className="grid grid-cols-2 gap-3">
-        {QUICK_EVENTS.map((ev) => (
-          <button
-            key={ev.type}
-            type="button"
-            disabled={loading}
-            onClick={() => submitEvent(ev.type)}
-            className={`rounded-xl py-4 text-lg font-bold ${ev.color} disabled:opacity-50`}
-          >
-            {eventLabel(ev.type, ev.label)}
-          </button>
-        ))}
-      </div>
-
-      {pendingEvent && (
-        <p className="text-center text-yellow-600">
-          Selecciona un jugador para registrar este evento.
-        </p>
+        </div>
       )}
 
       <MatchTeamMvpEditor
