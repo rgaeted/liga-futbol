@@ -5,6 +5,8 @@ import { requireRole } from '@/lib/auth'
 import { createUserSchema } from '@/lib/validations/user'
 import { Role } from '@prisma/client'
 
+import { resolveUserRoleTags } from '@/lib/user-roles-display'
+
 export async function GET() {
   await requireRole([Role.ADMIN])
   const users = await db.user.findMany({
@@ -14,11 +16,33 @@ export async function GET() {
       name: true,
       role: true,
       createdAt: true,
-      friendlyPlayer: { select: { id: true } },
+      coachedTeam: { select: { id: true } },
+      friendlyPlayer: {
+        select: {
+          id: true,
+          participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+        },
+      },
+      player: { select: { teamId: true } },
     },
     orderBy: [{ role: 'asc' }, { name: 'asc' }],
   })
-  return NextResponse.json(users)
+  return NextResponse.json(
+    users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      role: u.role,
+      createdAt: u.createdAt,
+      roleTags: resolveUserRoleTags({
+        role: u.role,
+        hasCoachedTeam: Boolean(u.coachedTeam),
+        hasLeagueTeam: Boolean(u.player?.teamId),
+        hasFriendlyProfile: Boolean(u.friendlyPlayer),
+        isFriendlyCoach: Boolean(u.friendlyPlayer?.participations.length),
+      }),
+    }))
+  )
 }
 
 export async function POST(req: Request) {

@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { UserForm } from '@/components/admin/UserForm'
 import { UsersTable } from '@/components/admin/UsersTable'
+import { resolveUserRoleTags } from '@/lib/user-roles-display'
 
 export default async function AdminUsersPage() {
   const session = await auth()
@@ -11,7 +12,13 @@ export default async function AdminUsersPage() {
       email: true,
       name: true,
       role: true,
-      friendlyPlayer: { select: { id: true } },
+      coachedTeam: { select: { id: true } },
+      friendlyPlayer: {
+        select: {
+          id: true,
+          participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+        },
+      },
       player: { select: { teamId: true } },
     },
     orderBy: [{ role: 'asc' }, { name: 'asc' }],
@@ -21,8 +28,8 @@ export default async function AdminUsersPage() {
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold">Usuarios</h1>
       <p className="text-sm text-kelme-gray-400">
-        Todas las cuentas con acceso a la plataforma: staff (admin, DT, árbitro) y jugadores
-        (liga o amistosos). El perfil deportivo se gestiona en Jugadores o Jugadores amistosos.
+        Todas las cuentas con acceso a la plataforma. Si alguien acumula varios roles, se listan
+        todos; el más permisivo (menos restrictivo) aparece destacado en rojo.
       </p>
       <UserForm />
       <UsersTable
@@ -31,8 +38,13 @@ export default async function AdminUsersPage() {
           email: u.email,
           name: u.name,
           role: u.role,
-          isFriendlyPlayer: Boolean(u.friendlyPlayer),
-          isLeaguePlayer: Boolean(u.player?.teamId),
+          roleTags: resolveUserRoleTags({
+            role: u.role,
+            hasCoachedTeam: Boolean(u.coachedTeam),
+            hasLeagueTeam: Boolean(u.player?.teamId),
+            hasFriendlyProfile: Boolean(u.friendlyPlayer),
+            isFriendlyCoach: Boolean(u.friendlyPlayer?.participations.length),
+          }),
         }))}
         currentUserId={session!.user.id}
       />

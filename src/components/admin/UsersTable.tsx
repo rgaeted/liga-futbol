@@ -4,14 +4,14 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
+import type { UserRoleTag } from '@/lib/user-roles-display'
 
 export type UserRow = {
   id: string
   name: string
   email: string
   role: string
-  isFriendlyPlayer?: boolean
-  isLeaguePlayer?: boolean
+  roleTags: UserRoleTag[]
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -21,15 +21,31 @@ const ROLE_LABELS: Record<string, string> = {
   PLAYER: 'Jugador',
 }
 
-function roleDetail(user: UserRow): string {
-  const base = ROLE_LABELS[user.role] ?? user.role
-  if (user.role !== 'PLAYER') return base
-  if (user.isFriendlyPlayer) return `${base} · amistoso`
-  if (user.isLeaguePlayer) return `${base} · liga`
-  return base
-}
-
 const STAFF_ROLES = ['ADMIN', 'COACH', 'REFEREE'] as const
+
+function RoleBadges({ tags }: { tags: UserRoleTag[] }) {
+  if (tags.length === 0) {
+    return <span className="text-kelme-gray-400">—</span>
+  }
+
+  const [primary, ...secondary] = tags
+
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      <span className="rounded-full bg-kelme-red/10 px-2 py-0.5 text-xs font-semibold text-kelme-red">
+        {primary.label}
+      </span>
+      {secondary.map((tag) => (
+        <span
+          key={tag.id}
+          className="rounded-full bg-kelme-gray-100 px-2 py-0.5 text-xs text-kelme-gray-600"
+        >
+          {tag.label}
+        </span>
+      ))}
+    </span>
+  )
+}
 
 export function UsersTable({ users, currentUserId }: { users: UserRow[]; currentUserId: string }) {
   const router = useRouter()
@@ -75,7 +91,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
           <tr>
             <th className="p-3">Nombre</th>
             <th className="p-3">Email</th>
-            <th className="p-3">Rol</th>
+            <th className="p-3">Roles</th>
             <th className="p-3">Acciones</th>
           </tr>
         </thead>
@@ -94,19 +110,24 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                   <td className="p-3">{user.email}</td>
                   <td className="p-3">
                     {user.role === 'PLAYER' ? (
-                      <span className="text-kelme-gray-600">{roleDetail(user)}</span>
+                      <RoleBadges tags={user.roleTags} />
                     ) : (
-                      <select
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
-                      >
-                        {STAFF_ROLES.map((value) => (
-                          <option key={value} value={value}>
-                            {ROLE_LABELS[value]}
-                          </option>
-                        ))}
-                      </select>
+                      <span className="flex flex-col gap-2">
+                        <select
+                          value={role}
+                          onChange={(e) => setRole(e.target.value)}
+                          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                        >
+                          {STAFF_ROLES.map((value) => (
+                            <option key={value} value={value}>
+                              {ROLE_LABELS[value]}
+                            </option>
+                          ))}
+                        </select>
+                        {user.roleTags.length > 1 && (
+                          <RoleBadges tags={user.roleTags} />
+                        )}
+                      </span>
                     )}
                   </td>
                   <td className="p-3">
@@ -141,7 +162,9 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                 <>
                   <td className="p-3">{user.name}</td>
                   <td className="p-3">{user.email}</td>
-                  <td className="p-3">{roleDetail(user)}</td>
+                  <td className="p-3">
+                    <RoleBadges tags={user.roleTags} />
+                  </td>
                   <td className="p-3">
                     <span className="inline-flex items-center gap-2">
                       <button
