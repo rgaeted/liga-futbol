@@ -273,6 +273,7 @@ model FriendlyMatchPlayer {
   side             FriendlySide
   paid             Boolean        @default(false)
   isStarter        Boolean        @default(false)
+  isCaptain        Boolean        @default(false)
   slotKey          String?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt

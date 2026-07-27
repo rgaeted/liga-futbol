@@ -16,6 +16,7 @@ type Props = {
   crestSrc?: string | null
   color?: string | null
   mvpPlayerIds?: string[]
+  captainPlayerIds?: string[]
 }
 
 function PitchSurface() {
@@ -60,6 +61,7 @@ function PlayerCircle({
   filled,
   size,
   isMvp,
+  isCaptain,
 }: {
   label: string
   playerName: string | null
@@ -67,15 +69,17 @@ function PlayerCircle({
   filled: boolean
   size: 'live' | 'editor'
   isMvp?: boolean
+  isCaptain?: boolean
 }) {
   const dim = size === 'live' ? 'h-10 w-10' : 'h-12 w-12'
   const textSize = size === 'live' ? 'text-[11px]' : 'text-[10px]'
   const mvpRing = isMvp ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-emerald-800' : ''
+  const captainRing = isCaptain && !isMvp ? 'ring-2 ring-sky-300 ring-offset-1 ring-offset-emerald-800' : ''
 
   return (
-    <div className={`relative shrink-0 ${isMvp ? 'z-20' : ''}`}>
+    <div className={`relative shrink-0 ${isMvp || isCaptain ? 'z-20' : ''}`}>
       <div
-        className={`flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${
+        className={`flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${captainRing} ${
           filled
             ? 'border-white/90 bg-white text-emerald-900'
             : 'border-dashed border-white/50 bg-black/25 text-white/60'
@@ -96,6 +100,14 @@ function PlayerCircle({
           ★
         </span>
       )}
+      {isCaptain && (
+        <span
+          className="absolute -bottom-1.5 -left-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-sky-500 text-[9px] font-bold leading-none text-white shadow-md"
+          title="Capitán"
+        >
+          C
+        </span>
+      )}
     </div>
   )
 }
@@ -105,14 +117,17 @@ function LivePlayerMarker({
   top,
   left,
   mvpPlayerIds,
+  captainPlayerIds,
 }: {
   slot: LineupView['pitch'][number]
   top: string
   left: string
   mvpPlayerIds?: string[]
+  captainPlayerIds?: string[]
 }) {
   const filled = Boolean(slot.playerName)
   const isMvp = Boolean(slot.playerId && mvpPlayerIds?.includes(slot.playerId))
+  const isCaptain = Boolean(slot.playerId && captainPlayerIds?.includes(slot.playerId))
 
   return (
     <div
@@ -126,6 +141,7 @@ function LivePlayerMarker({
         filled={filled}
         size="live"
         isMvp={isMvp}
+        isCaptain={isCaptain}
       />
       {filled && (
         <span className="mt-1 max-w-[4.75rem] truncate text-center text-[9px] font-medium leading-tight text-white drop-shadow-sm">
@@ -146,6 +162,7 @@ export function FormationPitch({
   crestSrc,
   color,
   mvpPlayerIds,
+  captainPlayerIds,
 }: Props) {
   const maxRow = Math.max(...lineup.pitch.map((s) => s.row), 0)
   const compact = lineup.pitch.length < 11
@@ -172,6 +189,7 @@ export function FormationPitch({
         const left = `${slot.col * 100}%`
         const filled = Boolean(slot.playerName)
         const isMvp = Boolean(slot.playerId && mvpPlayerIds?.includes(slot.playerId))
+        const isCaptain = Boolean(slot.playerId && captainPlayerIds?.includes(slot.playerId))
 
         if (isLive) {
           return (
@@ -181,6 +199,7 @@ export function FormationPitch({
               top={top}
               left={left}
               mvpPlayerIds={mvpPlayerIds}
+              captainPlayerIds={captainPlayerIds}
             />
           )
         }
@@ -203,6 +222,7 @@ export function FormationPitch({
               filled={filled}
               size="editor"
               isMvp={isMvp}
+              isCaptain={isCaptain}
             />
             <span className="mt-1 line-clamp-2 max-w-[4rem] px-0.5 text-[10px] text-white">
               {filled ? slot.playerName : '—'}

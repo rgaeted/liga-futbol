@@ -3,6 +3,10 @@ import { LiveScoreboard } from '@/components/live/LiveScoreboard'
 import { matchSideNames, resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
 import { buildMatchFormationSides } from '@/lib/match-formations'
 import { buildMatchTeamMvps, MATCH_MVP_INCLUDE, teamMvpPlayerIds } from '@/lib/match-mvp'
+import {
+  friendlyCaptainPlayerIds,
+  resolveFriendlyCaptains,
+} from '@/lib/friendly-match-captain'
 import { matchSideCrestUrl, matchSideHasCrest } from '@/lib/match-side-crest'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
 import { resolveEventTeamColor, resolveMatchSideColor, resolveTeamColor } from '@/lib/team-color'
@@ -157,6 +161,22 @@ export default async function LiveMatchPage({
     rows: match.teamMvps,
   })
 
+  const friendlyCaptains =
+    match.matchType === MatchType.FRIENDLY
+      ? resolveFriendlyCaptains(
+          match.friendlyPlayers.map((p) => ({
+            friendlyPlayerId: p.friendlyPlayerId,
+            side: p.side,
+            isCaptain: p.isCaptain,
+            friendlyPlayer: p.friendlyPlayer,
+          }))
+        )
+      : []
+
+  const homeCaptainLabel = friendlyCaptains.find((c) => c.side === 'A')?.label ?? null
+  const awayCaptainLabel = friendlyCaptains.find((c) => c.side === 'B')?.label ?? null
+  const captainPlayerIds = friendlyCaptainPlayerIds(friendlyCaptains)
+
   return (
     <LiveScoreboard
       initialMatch={{
@@ -214,6 +234,9 @@ export default async function LiveMatchPage({
         footballFormat: match.footballFormat,
         teamMvps,
         mvpPlayerIds: teamMvpPlayerIds(teamMvps),
+        captainPlayerIds,
+        homeCaptainLabel,
+        awayCaptainLabel,
         formations: formationSides.map((s) => ({
           label: s.label,
           lineup: s.lineup,

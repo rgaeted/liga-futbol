@@ -77,6 +77,9 @@ type Match = {
   footballFormat: FootballFormat
   teamMvps: TeamMvpSideView[]
   mvpPlayerIds: string[]
+  captainPlayerIds: string[]
+  homeCaptainLabel: string | null
+  awayCaptainLabel: string | null
   formations: Array<{ label: string; crestSrc?: string | null; color?: string; lineup: LineupView | null }>
 }
 
@@ -241,6 +244,11 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
               <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
                 {match.homeTeam.name}
               </p>
+              {match.homeCaptainLabel && (
+                <p className="text-[11px] font-medium uppercase tracking-wide text-sky-300/90">
+                  C · {match.homeCaptainLabel}
+                </p>
+              )}
             </div>
             <div className="shrink-0 px-2 text-center">
               <p className="font-display text-5xl font-extrabold tabular-nums text-white sm:text-6xl">
@@ -259,6 +267,11 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
               <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
                 {match.awayTeam.name}
               </p>
+              {match.awayCaptainLabel && (
+                <p className="text-[11px] font-medium uppercase tracking-wide text-sky-300/90">
+                  C · {match.awayCaptainLabel}
+                </p>
+              )}
             </div>
           </div>
           {match.status === 'FINISHED' && match.teamMvps.some((m) => m.label) && (
@@ -315,6 +328,7 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
                       crestSrc={side.crestSrc}
                       color={side.color}
                       mvpPlayerIds={match.mvpPlayerIds}
+                      captainPlayerIds={match.captainPlayerIds}
                     />
                     {side.lineup.bench.length > 0 && (
                       <p className="mt-2 text-center text-xs text-white/40">

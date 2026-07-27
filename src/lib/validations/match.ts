@@ -8,6 +8,7 @@ const footballFormatSchema = z.enum(FOOTBALL_FORMATS)
 const friendlyPlayerEntry = z.object({
   friendlyPlayerId: id,
   side: z.enum(['A', 'B']),
+  isCaptain: z.boolean().optional(),
 })
 
 function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEntry>[] }, ctx: z.RefinementCtx) {
@@ -26,6 +27,19 @@ function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEnt
       message: 'Un jugador no puede estar dos veces en el mismo partido',
       path: ['players'],
     })
+  }
+  for (const side of ['A', 'B'] as const) {
+    const captains = data.players.filter((p) => p.side === side && p.isCaptain)
+    if (captains.length !== 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          side === 'A'
+            ? 'Debes elegir un capitán para el equipo local (lado A)'
+            : 'Debes elegir un capitán para el equipo visitante (lado B)',
+        path: ['players'],
+      })
+    }
   }
 }
 

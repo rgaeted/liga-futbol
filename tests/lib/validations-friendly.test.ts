@@ -148,8 +148,8 @@ describe('friendly match validations', () => {
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A' },
-        { friendlyPlayerId: 'fp-2', side: 'B' },
+        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true },
+        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true },
       ],
     })
     expect(result.success).toBe(false)
@@ -163,8 +163,8 @@ describe('friendly match validations', () => {
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A' },
-        { friendlyPlayerId: 'fp-2', side: 'B' },
+        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true },
+        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true },
       ],
     })
     expect(result.success).toBe(true)
@@ -178,8 +178,8 @@ describe('friendly match validations', () => {
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A' },
-        { friendlyPlayerId: 'fp-2', side: 'B' },
+        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true },
+        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true },
       ],
     })
     expect(result.success).toBe(true)

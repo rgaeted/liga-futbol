@@ -1,9 +1,7 @@
 import type { Prisma } from '@prisma/client'
+import { validateFriendlyCaptains, type FriendlyRosterEntry } from '@/lib/friendly-match-captain'
 
-export type FriendlyRosterEntry = {
-  friendlyPlayerId: string
-  side: 'A' | 'B'
-}
+export type { FriendlyRosterEntry } from '@/lib/friendly-match-captain'
 
 export function validateFriendlyRoster(players: FriendlyRosterEntry[]): string | null {
   const sides = new Set(players.map((p) => p.side))
@@ -14,7 +12,7 @@ export function validateFriendlyRoster(players: FriendlyRosterEntry[]): string |
   if (new Set(ids).size !== ids.length) {
     return 'Un jugador no puede estar dos veces en el mismo partido'
   }
-  return null
+  return validateFriendlyCaptains(players)
 }
 
 export async function syncFriendlyMatchRoster(
@@ -34,12 +32,15 @@ export async function syncFriendlyMatchRoster(
 
   for (const entry of players) {
     const prev = existingByPlayer.get(entry.friendlyPlayerId)
+    const isCaptain = entry.isCaptain ?? false
+
     if (!prev) {
       await tx.friendlyMatchPlayer.create({
         data: {
           matchId,
           friendlyPlayerId: entry.friendlyPlayerId,
           side: entry.side,
+          isCaptain,
         },
       })
       continue
@@ -52,12 +53,37 @@ export async function syncFriendlyMatchRoster(
           side: entry.side,
           slotKey: null,
           isStarter: false,
+          isCaptain,
         },
       })
       await tx.matchEvent.updateMany({
         where: { matchId, friendlyPlayerId: entry.friendlyPlayerId },
         data: { side: entry.side },
       })
+      continue
     }
+
+    if (prev.isCaptain !== isCaptain) {
+      await tx.friendlyMatchPlayer.update({
+        where: { id: prev.id },
+        data: { isCaptain },
+      })
+    }
+  }
+
+  await tx.friendlyMatchPlayer.updateMany({
+    where: { matchId, isCaptain: true },
+    data: { isCaptain: false },
+  })
+
+  for (const entry of players.filter((p) => p.isCaptain)) {
+    await tx.friendlyMatchPlayer.updateMany({
+      where: {
+        matchId,
+        friendlyPlayerId: entry.friendlyPlayerId,
+        side: entry.side,
+      },
+      data: { isCaptain: true },
+    })
   }
 }

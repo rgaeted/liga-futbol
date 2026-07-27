@@ -14,6 +14,24 @@ describe('validateFriendlyRoster', () => {
     ).toBe('Debe haber al menos un jugador por lado')
   })
 
+  it('requires one captain per side', () => {
+    expect(
+      validateFriendlyRoster([
+        { friendlyPlayerId: 'a', side: 'A' },
+        { friendlyPlayerId: 'b', side: 'B' },
+      ])
+    ).toBe('Debes elegir un capitán para el equipo local (lado A)')
+  })
+
+  it('accepts roster with captains', () => {
+    expect(
+      validateFriendlyRoster([
+        { friendlyPlayerId: 'a', side: 'A', isCaptain: true },
+        { friendlyPlayerId: 'b', side: 'B', isCaptain: true },
+      ])
+    ).toBeNull()
+  })
+
   it('rejects duplicate players', () => {
     expect(
       validateFriendlyRoster([
@@ -34,24 +52,37 @@ describe('friendly roster helpers', () => {
     expect(moved.sideBIds.has('p1')).toBe(true)
   })
 
-  it('roundtrips sets and entries', () => {
-    const { sideAIds, sideBIds } = setsFromPlayerSides([
-      { friendlyPlayerId: 'a', side: 'A' },
-      { friendlyPlayerId: 'b', side: 'B' },
+  it('roundtrips sets and entries with captains', () => {
+    const { sideAIds, sideBIds, sideACaptainId, sideBCaptainId } = setsFromPlayerSides([
+      { friendlyPlayerId: 'a', side: 'A', isCaptain: true },
+      { friendlyPlayerId: 'b', side: 'B', isCaptain: true },
     ])
-    const entries = rosterEntriesFromSets(sideAIds, sideBIds)
-    expect(entries).toHaveLength(2)
+    const entries = rosterEntriesFromSets(sideAIds, sideBIds, sideACaptainId, sideBCaptainId)
+    expect(entries).toEqual([
+      { friendlyPlayerId: 'a', side: 'A', isCaptain: true },
+      { friendlyPlayerId: 'b', side: 'B', isCaptain: true },
+    ])
   })
 })
 
 describe('updateMatchSchema players', () => {
-  it('accepts friendly roster update', () => {
+  it('accepts friendly roster update with captains', () => {
+    const result = updateMatchSchema.safeParse({
+      players: [
+        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true },
+        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true },
+      ],
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects friendly roster update without captains', () => {
     const result = updateMatchSchema.safeParse({
       players: [
         { friendlyPlayerId: 'fp-1', side: 'A' },
         { friendlyPlayerId: 'fp-2', side: 'B' },
       ],
     })
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
   })
 })

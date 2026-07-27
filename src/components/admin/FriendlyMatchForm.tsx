@@ -29,6 +29,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
   const [error, setError] = useState('')
   const [sideAIds, setSideAIds] = useState<Set<string>>(new Set())
   const [sideBIds, setSideBIds] = useState<Set<string>>(new Set())
+  const [sideACaptainId, setSideACaptainId] = useState<string | null>(null)
+  const [sideBCaptainId, setSideBCaptainId] = useState<string | null>(null)
   const [sideASearch, setSideASearch] = useState('')
   const [sideBSearch, setSideBSearch] = useState('')
 
@@ -38,6 +40,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     setCategoryId(nextId)
     setSideAIds(new Set())
     setSideBIds(new Set())
+    setSideACaptainId(null)
+    setSideBCaptainId(null)
     setSideASearch('')
     setSideBSearch('')
     setError('')
@@ -48,6 +52,11 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     const next = toggleFriendlyRosterSide(side, playerId, checked, sideAIds, sideBIds)
     setSideAIds(next.sideAIds)
     setSideBIds(next.sideBIds)
+    if (side === 'A') {
+      if (!checked && sideACaptainId === playerId) setSideACaptainId(null)
+    } else if (!checked && sideBCaptainId === playerId) {
+      setSideBCaptainId(null)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -61,6 +70,10 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     }
     if (sideAIds.size < 1 || sideBIds.size < 1) {
       setError('Selecciona al menos un jugador por lado.')
+      return
+    }
+    if (!sideACaptainId || !sideBCaptainId) {
+      setError('Debes elegir un capitán por equipo.')
       return
     }
 
@@ -79,7 +92,7 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       refereeId: refereeId || undefined,
       venue: String(form.get('venue') ?? '').trim() || undefined,
       scheduledAt: scheduleInputToIso(date, time),
-      players: rosterEntriesFromSets(sideAIds, sideBIds),
+      players: rosterEntriesFromSets(sideAIds, sideBIds, sideACaptainId, sideBCaptainId),
     })
     setLoading(false)
     if (!result.ok) {
@@ -89,6 +102,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     formEl.reset()
     setSideAIds(new Set())
     setSideBIds(new Set())
+    setSideACaptainId(null)
+    setSideBCaptainId(null)
     router.refresh()
   }
 
@@ -153,8 +168,12 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
         sideBIds={sideBIds}
         sideASearch={sideASearch}
         sideBSearch={sideBSearch}
+        sideACaptainId={sideACaptainId}
+        sideBCaptainId={sideBCaptainId}
         onSideASearchChange={setSideASearch}
         onSideBSearchChange={setSideBSearch}
+        onSideACaptainChange={setSideACaptainId}
+        onSideBCaptainChange={setSideBCaptainId}
         onToggleSide={handleToggleSide}
       />
       <div className="grid gap-3 md:grid-cols-3">
