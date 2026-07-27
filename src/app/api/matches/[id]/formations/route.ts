@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { MatchType, Role } from '@prisma/client'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { auth } from '@/lib/auth'
+import { friendlyCoachSideForUser } from '@/lib/friendly-match-coach'
 import { upsertMatchFormationSchema } from '@/lib/validations/formation'
 import {
   assertUniqueSlotAssignments,
@@ -75,12 +76,24 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireRole([Role.COACH, Role.ADMIN])
+  const session = await auth()
+  if (!session?.user?.role) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
   const { id: matchId } = await params
 
   const match = await db.match.findUnique({ where: { id: matchId } })
   if (!match) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
+  }
+
+  if (match.matchType === MatchType.LEAGUE) {
+    if (session.user.role !== Role.COACH && session.user.role !== Role.ADMIN) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+    }
+  } else if (session.user.role !== Role.ADMIN && session.user.role !== Role.PLAYER) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
 
   const parsed = upsertMatchFormationSchema.safeParse(await req.json())
@@ -184,9 +197,19 @@ export async function PUT(
     if (!data.side) {
       return NextResponse.json({ error: 'side requerido' }, { status: 400 })
     }
-    if (session.user.role !== Role.ADMIN) {
+    if (session.user.role === Role.ADMIN) {
+      // admin puede editar cualquier lado
+    } else if (session.user.role === Role.PLAYER) {
+      const coachSide = await friendlyCoachSideForUser(session.user.id, matchId)
+      if (!coachSide || coachSide !== data.side) {
+        return NextResponse.json(
+          { error: 'Solo puedes editar la formación de tu equipo' },
+          { status: 403 }
+        )
+      }
+    } else {
       return NextResponse.json(
-        { error: 'Solo admin edita formaciones amistosas' },
+        { error: 'Solo admin o DT amistoso edita formaciones amistosas' },
         { status: 403 }
       )
     }

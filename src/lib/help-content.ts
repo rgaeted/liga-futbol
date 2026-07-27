@@ -116,7 +116,8 @@ export const HELP_SECTIONS: HelpSection[] = [
         items: [
           'Puedes pertenecer a una o más categorías amistosas (por edad, nivel, etc.).',
           'El administrador te asigna a partidos amistosos en el lado A o B.',
-          'En cada partido hay un capitán por equipo; se muestra en el marcador en vivo.',
+          'En cada partido hay un capitán y un DT por equipo; el DT suele ser uno de los jugadores del roster.',
+          'Si fuiste designado DT y tienes cuenta, entra a Amistosos (DT) en tu panel para editar la formación de tu equipo.',
           'Tus estadísticas amistosas (goles, asistencias, MVPs) se calculan aparte de la liga.',
         ],
       },
@@ -142,7 +143,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       },
       {
         type: 'note',
-        text: 'En partidos amistosos el DT no edita formaciones; lo hace el administrador.',
+        text: 'En partidos amistosos el DT designado (jugador con cuenta) edita la formación de su lado desde Amistosos (DT). El admin sigue pudiendo editar ambos lados.',
       },
     ],
   },

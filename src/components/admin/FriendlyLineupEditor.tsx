@@ -21,6 +21,8 @@ type Props = {
   awayLabel: string
   formations: MatchFormation[]
   participations: Participation[]
+  /** Si se define, solo muestra ese lado (DT amistoso). */
+  editableSide?: 'A' | 'B'
 }
 
 function slotsForSide(
@@ -107,6 +109,7 @@ export function FriendlyLineupEditor({
   awayLabel,
   formations,
   participations,
+  editableSide,
 }: Props) {
   const formationA = formations.find((f) => f.side === 'A')
   const formationB = formations.find((f) => f.side === 'B')
@@ -126,26 +129,33 @@ export function FriendlyLineupEditor({
       photoUrl: p.hasPhoto ? friendlyPlayerPhotoUrl(p.id) : null,
     }))
 
+  const showA = !editableSide || editableSide === 'A'
+  const showB = !editableSide || editableSide === 'B'
+
   return (
     <div className="space-y-10">
-      <SideEditor
-        matchId={matchId}
-        side="A"
-        label={homeLabel}
-        footballFormat={footballFormat}
-        scheme={formationA?.scheme ?? getDefaultScheme(footballFormat)}
-        players={playersA}
-        initialSlots={slotsForSide(participations, 'A')}
-      />
-      <SideEditor
-        matchId={matchId}
-        side="B"
-        label={awayLabel}
-        footballFormat={footballFormat}
-        scheme={formationB?.scheme ?? getDefaultScheme(footballFormat)}
-        players={playersB}
-        initialSlots={slotsForSide(participations, 'B')}
-      />
+      {showA && (
+        <SideEditor
+          matchId={matchId}
+          side="A"
+          label={homeLabel}
+          footballFormat={footballFormat}
+          scheme={formationA?.scheme ?? getDefaultScheme(footballFormat)}
+          players={playersA}
+          initialSlots={slotsForSide(participations, 'A')}
+        />
+      )}
+      {showB && (
+        <SideEditor
+          matchId={matchId}
+          side="B"
+          label={awayLabel}
+          footballFormat={footballFormat}
+          scheme={formationB?.scheme ?? getDefaultScheme(footballFormat)}
+          players={playersB}
+          initialSlots={slotsForSide(participations, 'B')}
+        />
+      )}
     </div>
   )
 }

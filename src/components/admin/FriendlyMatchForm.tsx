@@ -31,6 +31,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
   const [sideBIds, setSideBIds] = useState<Set<string>>(new Set())
   const [sideACaptainId, setSideACaptainId] = useState<string | null>(null)
   const [sideBCaptainId, setSideBCaptainId] = useState<string | null>(null)
+  const [sideACoachId, setSideACoachId] = useState<string | null>(null)
+  const [sideBCoachId, setSideBCoachId] = useState<string | null>(null)
   const [sideASearch, setSideASearch] = useState('')
   const [sideBSearch, setSideBSearch] = useState('')
 
@@ -42,6 +44,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     setSideBIds(new Set())
     setSideACaptainId(null)
     setSideBCaptainId(null)
+    setSideACoachId(null)
+    setSideBCoachId(null)
     setSideASearch('')
     setSideBSearch('')
     setError('')
@@ -54,8 +58,10 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     setSideBIds(next.sideBIds)
     if (side === 'A') {
       if (!checked && sideACaptainId === playerId) setSideACaptainId(null)
-    } else if (!checked && sideBCaptainId === playerId) {
-      setSideBCaptainId(null)
+      if (!checked && sideACoachId === playerId) setSideACoachId(null)
+    } else {
+      if (!checked && sideBCaptainId === playerId) setSideBCaptainId(null)
+      if (!checked && sideBCoachId === playerId) setSideBCoachId(null)
     }
   }
 
@@ -76,6 +82,10 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       setError('Debes elegir un capitán por equipo.')
       return
     }
+    if (!sideACoachId || !sideBCoachId) {
+      setError('Debes elegir un DT por equipo.')
+      return
+    }
 
     setLoading(true)
     const form = new FormData(formEl)
@@ -92,7 +102,14 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       refereeId: refereeId || undefined,
       venue: String(form.get('venue') ?? '').trim() || undefined,
       scheduledAt: scheduleInputToIso(date, time),
-      players: rosterEntriesFromSets(sideAIds, sideBIds, sideACaptainId, sideBCaptainId),
+      players: rosterEntriesFromSets(
+        sideAIds,
+        sideBIds,
+        sideACaptainId,
+        sideBCaptainId,
+        sideACoachId,
+        sideBCoachId
+      ),
     })
     setLoading(false)
     if (!result.ok) {
@@ -104,6 +121,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     setSideBIds(new Set())
     setSideACaptainId(null)
     setSideBCaptainId(null)
+    setSideACoachId(null)
+    setSideBCoachId(null)
     router.refresh()
   }
 
@@ -170,10 +189,14 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
         sideBSearch={sideBSearch}
         sideACaptainId={sideACaptainId}
         sideBCaptainId={sideBCaptainId}
+        sideACoachId={sideACoachId}
+        sideBCoachId={sideBCoachId}
         onSideASearchChange={setSideASearch}
         onSideBSearchChange={setSideBSearch}
         onSideACaptainChange={setSideACaptainId}
         onSideBCaptainChange={setSideBCaptainId}
+        onSideACoachChange={setSideACoachId}
+        onSideBCoachChange={setSideBCoachId}
         onToggleSide={handleToggleSide}
       />
       <div className="grid gap-3 md:grid-cols-3">

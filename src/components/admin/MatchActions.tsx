@@ -28,7 +28,7 @@ export type MatchRow = {
   sideAColor: string | null
   sideBColor: string | null
   friendlyCategoryId: string | null
-  playerSides: Array<{ friendlyPlayerId: string; side: 'A' | 'B'; isCaptain?: boolean }>
+  playerSides: Array<{ friendlyPlayerId: string; side: 'A' | 'B'; isCaptain?: boolean; isCoach?: boolean }>
   hasCrestA: boolean
   hasCrestB: boolean
   refereeId: string | null
@@ -67,6 +67,8 @@ export function MatchActions({
   const [sideBIds, setSideBIds] = useState(initialRoster.sideBIds)
   const [sideACaptainId, setSideACaptainId] = useState<string | null>(initialRoster.sideACaptainId)
   const [sideBCaptainId, setSideBCaptainId] = useState<string | null>(initialRoster.sideBCaptainId)
+  const [sideACoachId, setSideACoachId] = useState<string | null>(initialRoster.sideACoachId)
+  const [sideBCoachId, setSideBCoachId] = useState<string | null>(initialRoster.sideBCoachId)
   const [sideASearch, setSideASearch] = useState('')
   const [sideBSearch, setSideBSearch] = useState('')
   const [error, setError] = useState('')
@@ -86,6 +88,8 @@ export function MatchActions({
     setSideBIds(next.sideBIds)
     setSideACaptainId(next.sideACaptainId)
     setSideBCaptainId(next.sideBCaptainId)
+    setSideACoachId(next.sideACoachId)
+    setSideBCoachId(next.sideBCoachId)
     setSideASearch('')
     setSideBSearch('')
     setEditing(true)
@@ -97,8 +101,10 @@ export function MatchActions({
     setSideBIds(next.sideBIds)
     if (side === 'A') {
       if (!checked && sideACaptainId === playerId) setSideACaptainId(null)
-    } else if (!checked && sideBCaptainId === playerId) {
-      setSideBCaptainId(null)
+      if (!checked && sideACoachId === playerId) setSideACoachId(null)
+    } else {
+      if (!checked && sideBCaptainId === playerId) setSideBCaptainId(null)
+      if (!checked && sideBCoachId === playerId) setSideBCoachId(null)
     }
   }
 
@@ -127,7 +133,19 @@ export function MatchActions({
         setError('Debes elegir un capitán por equipo.')
         return
       }
-      payload.players = rosterEntriesFromSets(sideAIds, sideBIds, sideACaptainId, sideBCaptainId)
+      if (!sideACoachId || !sideBCoachId) {
+        setSaving(false)
+        setError('Debes elegir un DT por equipo.')
+        return
+      }
+      payload.players = rosterEntriesFromSets(
+        sideAIds,
+        sideBIds,
+        sideACaptainId,
+        sideBCaptainId,
+        sideACoachId,
+        sideBCoachId
+      )
     }
 
     const result = await submitJson(`/api/matches/${match.id}`, 'PUT', payload)
@@ -222,10 +240,14 @@ export function MatchActions({
               sideBSearch={sideBSearch}
               sideACaptainId={sideACaptainId}
               sideBCaptainId={sideBCaptainId}
+              sideACoachId={sideACoachId}
+              sideBCoachId={sideBCoachId}
               onSideASearchChange={setSideASearch}
               onSideBSearchChange={setSideBSearch}
               onSideACaptainChange={setSideACaptainId}
               onSideBCaptainChange={setSideBCaptainId}
+              onSideACoachChange={setSideACoachId}
+              onSideBCoachChange={setSideBCoachId}
               onToggleSide={handleToggleSide}
             />
           </div>

@@ -6,6 +6,7 @@ import { DashboardShell } from '@/components/kelme/DashboardShell'
 const PLAYER_NAV = [
   { href: '/player', label: 'Mi Panel' },
   { href: '/player/matches', label: 'Mis Partidos' },
+  { href: '/player/friendly-matches', label: 'Amistosos (DT)' },
 ]
 
 export default async function PlayerLayout({ children }: { children: React.ReactNode }) {

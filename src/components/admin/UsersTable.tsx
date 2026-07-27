@@ -10,13 +10,26 @@ export type UserRow = {
   name: string
   email: string
   role: string
+  isFriendlyPlayer?: boolean
+  isLeaguePlayer?: boolean
 }
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Admin',
   COACH: 'DT',
   REFEREE: 'Árbitro',
+  PLAYER: 'Jugador',
 }
+
+function roleDetail(user: UserRow): string {
+  const base = ROLE_LABELS[user.role] ?? user.role
+  if (user.role !== 'PLAYER') return base
+  if (user.isFriendlyPlayer) return `${base} · amistoso`
+  if (user.isLeaguePlayer) return `${base} · liga`
+  return base
+}
+
+const STAFF_ROLES = ['ADMIN', 'COACH', 'REFEREE'] as const
 
 export function UsersTable({ users, currentUserId }: { users: UserRow[]; currentUserId: string }) {
   const router = useRouter()
@@ -35,14 +48,17 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
     setError('')
   }
 
-  async function save(userId: string) {
+  async function save(user: UserRow) {
     setSaving(true)
     setError('')
-    const result = await submitJson(`/api/users/${userId}`, 'PUT', {
+    const payload: Record<string, unknown> = {
       name,
-      role,
       ...(password ? { password } : {}),
-    })
+    }
+    if (user.role !== 'PLAYER') {
+      payload.role = role
+    }
+    const result = await submitJson(`/api/users/${user.id}`, 'PUT', payload)
     setSaving(false)
     if (!result.ok) {
       setError(result.message)
@@ -77,15 +93,21 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                   </td>
                   <td className="p-3">{user.email}</td>
                   <td className="p-3">
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
-                    >
-                      {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
+                    {user.role === 'PLAYER' ? (
+                      <span className="text-kelme-gray-600">{roleDetail(user)}</span>
+                    ) : (
+                      <select
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                      >
+                        {STAFF_ROLES.map((value) => (
+                          <option key={value} value={value}>
+                            {ROLE_LABELS[value]}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </td>
                   <td className="p-3">
                     <span className="inline-flex flex-wrap items-center gap-2">
@@ -98,7 +120,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                       />
                       <button
                         type="button"
-                        onClick={() => save(user.id)}
+                        onClick={() => save(user)}
                         disabled={saving}
                         className="rounded-lg bg-kelme-red px-2 py-1 text-xs font-semibold text-white disabled:opacity-50"
                       >
@@ -119,7 +141,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                 <>
                   <td className="p-3">{user.name}</td>
                   <td className="p-3">{user.email}</td>
-                  <td className="p-3">{ROLE_LABELS[user.role] ?? user.role}</td>
+                  <td className="p-3">{roleDetail(user)}</td>
                   <td className="p-3">
                     <span className="inline-flex items-center gap-2">
                       <button
@@ -129,7 +151,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                       >
                         Editar
                       </button>
-                      {user.id !== currentUserId && (
+                      {user.id !== currentUserId && user.role !== 'PLAYER' && (
                         <DeleteButton
                           url={`/api/users/${user.id}`}
                           confirmMessage={`¿Eliminar al usuario ${user.name}?`}

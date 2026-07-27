@@ -108,13 +108,14 @@ export default async function AdminMatchesPage() {
                           const label = `${fp.firstName} ${fp.lastName}`.trim()
                           const sideLabel = part.side === 'A' ? 'A' : 'B'
                           const captainSuffix = part.isCaptain ? ' · Capitán' : ''
+                          const coachSuffix = part.isCoach ? ' · DT' : ''
                           return (
                             <li key={part.id}>
                               <FriendlyPaidToggle
                                 matchId={match.id}
                                 participationId={part.id}
                                 initialPaid={part.paid}
-                                playerLabel={`${label} (lado ${sideLabel})${captainSuffix}`}
+                                playerLabel={`${label} (lado ${sideLabel})${captainSuffix}${coachSuffix}`}
                               />
                             </li>
                           )
@@ -163,6 +164,7 @@ export default async function AdminMatchesPage() {
                         friendlyPlayerId: p.friendlyPlayerId,
                         side: p.side,
                         isCaptain: p.isCaptain,
+                        isCoach: p.isCoach,
                       })),
                       hasCrestA: matchSideHasCrest(match, 'A'),
                       hasCrestB: matchSideHasCrest(match, 'B'),

@@ -9,6 +9,7 @@ const friendlyPlayerEntry = z.object({
   friendlyPlayerId: id,
   side: z.enum(['A', 'B']),
   isCaptain: z.boolean().optional(),
+  isCoach: z.boolean().optional(),
 })
 
 function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEntry>[] }, ctx: z.RefinementCtx) {
@@ -37,6 +38,17 @@ function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEnt
           side === 'A'
             ? 'Debes elegir un capitán para el equipo local (lado A)'
             : 'Debes elegir un capitán para el equipo visitante (lado B)',
+        path: ['players'],
+      })
+    }
+    const coaches = data.players.filter((p) => p.side === side && p.isCoach)
+    if (coaches.length !== 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          side === 'A'
+            ? 'Debes elegir un DT para el equipo local (lado A)'
+            : 'Debes elegir un DT para el equipo visitante (lado B)',
         path: ['players'],
       })
     }

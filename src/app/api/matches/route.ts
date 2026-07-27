@@ -127,6 +127,7 @@ export async function POST(req: Request) {
         friendlyPlayerId: p.friendlyPlayerId,
         side: p.side,
         isCaptain: p.isCaptain ?? false,
+        isCoach: p.isCoach ?? false,
       })),
     })
     return tx.match.findUniqueOrThrow({

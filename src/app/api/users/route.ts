@@ -8,9 +8,15 @@ import { Role } from '@prisma/client'
 export async function GET() {
   await requireRole([Role.ADMIN])
   const users = await db.user.findMany({
-    where: { role: { in: [Role.ADMIN, Role.COACH, Role.REFEREE] } },
-    select: { id: true, email: true, name: true, role: true, createdAt: true },
-    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
+      friendlyPlayer: { select: { id: true } },
+    },
+    orderBy: [{ role: 'asc' }, { name: 'asc' }],
   })
   return NextResponse.json(users)
 }

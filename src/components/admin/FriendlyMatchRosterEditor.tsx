@@ -40,6 +40,10 @@ type Props = {
   sideBCaptainId: string | null
   onSideACaptainChange: (playerId: string | null) => void
   onSideBCaptainChange: (playerId: string | null) => void
+  sideACoachId: string | null
+  sideBCoachId: string | null
+  onSideACoachChange: (playerId: string | null) => void
+  onSideBCoachChange: (playerId: string | null) => void
   onToggleSide: (side: 'A' | 'B', playerId: string, checked: boolean) => void
 }
 
@@ -57,6 +61,10 @@ export function FriendlyMatchRosterEditor({
   onSideBSearchChange,
   onSideACaptainChange,
   onSideBCaptainChange,
+  sideACoachId,
+  sideBCoachId,
+  onSideACoachChange,
+  onSideBCoachChange,
   onToggleSide,
 }: Props) {
   const filteredSideA = filterRoster(roster, sideASearch)
@@ -121,6 +129,26 @@ export function FriendlyMatchRosterEditor({
             className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-1.5 text-sm disabled:opacity-50"
           >
             <option value="">Seleccionar capitán…</option>
+            {[...sideAIds].map((playerId) => {
+              const p = roster.find((row) => row.id === playerId)
+              if (!p) return null
+              return (
+                <option key={playerId} value={playerId}>
+                  {playerLabel(p)}
+                </option>
+              )
+            })}
+          </select>
+        </label>
+        <label className="mt-3 block text-sm">
+          <span className="mb-1 block font-medium text-kelme-gray-700">DT (director técnico)</span>
+          <select
+            value={sideACoachId ?? ''}
+            onChange={(e) => onSideACoachChange(e.target.value || null)}
+            disabled={sideAIds.size === 0}
+            className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-1.5 text-sm disabled:opacity-50"
+          >
+            <option value="">Seleccionar DT…</option>
             {[...sideAIds].map((playerId) => {
               const p = roster.find((row) => row.id === playerId)
               if (!p) return null
@@ -201,6 +229,26 @@ export function FriendlyMatchRosterEditor({
             })}
           </select>
         </label>
+        <label className="mt-3 block text-sm">
+          <span className="mb-1 block font-medium text-kelme-gray-700">DT (director técnico)</span>
+          <select
+            value={sideBCoachId ?? ''}
+            onChange={(e) => onSideBCoachChange(e.target.value || null)}
+            disabled={sideBIds.size === 0}
+            className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-1.5 text-sm disabled:opacity-50"
+          >
+            <option value="">Seleccionar DT…</option>
+            {[...sideBIds].map((playerId) => {
+              const p = roster.find((row) => row.id === playerId)
+              if (!p) return null
+              return (
+                <option key={playerId} value={playerId}>
+                  {playerLabel(p)}
+                </option>
+              )
+            })}
+          </select>
+        </label>
       </fieldset>
     </div>
   )
@@ -210,39 +258,52 @@ export function rosterEntriesFromSets(
   sideAIds: Set<string>,
   sideBIds: Set<string>,
   sideACaptainId: string | null = null,
-  sideBCaptainId: string | null = null
+  sideBCaptainId: string | null = null,
+  sideACoachId: string | null = null,
+  sideBCoachId: string | null = null
 ) {
   return [
     ...[...sideAIds].map((friendlyPlayerId) => ({
       friendlyPlayerId,
       side: 'A' as const,
       isCaptain: friendlyPlayerId === sideACaptainId,
+      isCoach: friendlyPlayerId === sideACoachId,
     })),
     ...[...sideBIds].map((friendlyPlayerId) => ({
       friendlyPlayerId,
       side: 'B' as const,
       isCaptain: friendlyPlayerId === sideBCaptainId,
+      isCoach: friendlyPlayerId === sideBCoachId,
     })),
   ]
 }
 
 export function setsFromPlayerSides(
-  players: Array<{ friendlyPlayerId: string; side: 'A' | 'B'; isCaptain?: boolean }>
+  players: Array<{
+    friendlyPlayerId: string
+    side: 'A' | 'B'
+    isCaptain?: boolean
+    isCoach?: boolean
+  }>
 ) {
   const sideAIds = new Set<string>()
   const sideBIds = new Set<string>()
   let sideACaptainId: string | null = null
   let sideBCaptainId: string | null = null
+  let sideACoachId: string | null = null
+  let sideBCoachId: string | null = null
   for (const p of players) {
     if (p.side === 'A') {
       sideAIds.add(p.friendlyPlayerId)
       if (p.isCaptain) sideACaptainId = p.friendlyPlayerId
+      if (p.isCoach) sideACoachId = p.friendlyPlayerId
     } else {
       sideBIds.add(p.friendlyPlayerId)
       if (p.isCaptain) sideBCaptainId = p.friendlyPlayerId
+      if (p.isCoach) sideBCoachId = p.friendlyPlayerId
     }
   }
-  return { sideAIds, sideBIds, sideACaptainId, sideBCaptainId }
+  return { sideAIds, sideBIds, sideACaptainId, sideBCaptainId, sideACoachId, sideBCoachId }
 }
 
 export function toggleFriendlyRosterSide(

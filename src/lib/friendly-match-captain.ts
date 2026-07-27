@@ -2,6 +2,7 @@ export type FriendlyRosterEntry = {
   friendlyPlayerId: string
   side: 'A' | 'B'
   isCaptain?: boolean
+  isCoach?: boolean
 }
 
 export function validateFriendlyCaptains(players: FriendlyRosterEntry[]): string | null {

@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client'
 import { validateFriendlyCaptains, type FriendlyRosterEntry } from '@/lib/friendly-match-captain'
+import { validateFriendlyCoaches } from '@/lib/friendly-match-coach'
 
 export type { FriendlyRosterEntry } from '@/lib/friendly-match-captain'
 
@@ -12,7 +13,7 @@ export function validateFriendlyRoster(players: FriendlyRosterEntry[]): string |
   if (new Set(ids).size !== ids.length) {
     return 'Un jugador no puede estar dos veces en el mismo partido'
   }
-  return validateFriendlyCaptains(players)
+  return validateFriendlyCaptains(players) ?? validateFriendlyCoaches(players)
 }
 
 export async function syncFriendlyMatchRoster(
@@ -33,6 +34,7 @@ export async function syncFriendlyMatchRoster(
   for (const entry of players) {
     const prev = existingByPlayer.get(entry.friendlyPlayerId)
     const isCaptain = entry.isCaptain ?? false
+    const isCoach = entry.isCoach ?? false
 
     if (!prev) {
       await tx.friendlyMatchPlayer.create({
@@ -41,6 +43,7 @@ export async function syncFriendlyMatchRoster(
           friendlyPlayerId: entry.friendlyPlayerId,
           side: entry.side,
           isCaptain,
+          isCoach,
         },
       })
       continue
@@ -54,6 +57,7 @@ export async function syncFriendlyMatchRoster(
           slotKey: null,
           isStarter: false,
           isCaptain,
+          isCoach,
         },
       })
       await tx.matchEvent.updateMany({
@@ -63,10 +67,10 @@ export async function syncFriendlyMatchRoster(
       continue
     }
 
-    if (prev.isCaptain !== isCaptain) {
+    if (prev.isCaptain !== isCaptain || prev.isCoach !== isCoach) {
       await tx.friendlyMatchPlayer.update({
         where: { id: prev.id },
-        data: { isCaptain },
+        data: { isCaptain, isCoach },
       })
     }
   }
@@ -84,6 +88,22 @@ export async function syncFriendlyMatchRoster(
         side: entry.side,
       },
       data: { isCaptain: true },
+    })
+  }
+
+  await tx.friendlyMatchPlayer.updateMany({
+    where: { matchId, isCoach: true },
+    data: { isCoach: false },
+  })
+
+  for (const entry of players.filter((p) => p.isCoach)) {
+    await tx.friendlyMatchPlayer.updateMany({
+      where: {
+        matchId,
+        friendlyPlayerId: entry.friendlyPlayerId,
+        side: entry.side,
+      },
+      data: { isCoach: true },
     })
   }
 }
