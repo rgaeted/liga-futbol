@@ -18,7 +18,7 @@ import {
 import { notFound } from 'next/navigation'
 import { MatchType } from '@prisma/client'
 import { formatChileLocation } from '@/lib/chile-locations'
-import { formatMatchWeather } from '@/lib/match-weather'
+import type { LiveMatchWeather } from '@/components/live/LiveMatchContextBar'
 
 export const dynamic = 'force-dynamic'
 
@@ -201,6 +201,19 @@ export default async function LiveMatchPage({
       ? (friendlyCoaches.find((c) => c.side === 'B')?.label ?? null)
       : (match.awayTeam?.coach?.name ?? null)
 
+  const liveWeather: LiveMatchWeather | null =
+    match.weatherTempC !== null &&
+    match.weatherHumidityPct !== null &&
+    match.weatherWindKmh !== null &&
+    match.weatherLabel
+      ? {
+          label: match.weatherLabel,
+          tempC: match.weatherTempC,
+          humidityPct: match.weatherHumidityPct,
+          windKmh: match.weatherWindKmh,
+        }
+      : null
+
   return (
     <LiveScoreboard
       initialMatch={{
@@ -265,12 +278,7 @@ export default async function LiveMatchPage({
         awayCoachLabel,
         venue: match.venue,
         locationLabel: formatChileLocation(match.regionName, match.communeName),
-        weatherSummary: formatMatchWeather({
-          weatherTempC: match.weatherTempC,
-          weatherHumidityPct: match.weatherHumidityPct,
-          weatherWindKmh: match.weatherWindKmh,
-          weatherLabel: match.weatherLabel,
-        }),
+        weather: liveWeather,
         formations: formationSides.map((s) => ({
           label: s.label,
           lineup: s.lineup,

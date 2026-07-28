@@ -10,6 +10,7 @@ import { resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
 import { resolveEventTeamColor } from '@/lib/team-color'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
+import { LiveMatchContextBar, type LiveMatchWeather } from '@/components/live/LiveMatchContextBar'
 import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import { TeamCrest } from '@/components/TeamCrest'
 import type { LineupView } from '@/lib/match-lineup'
@@ -85,7 +86,7 @@ type Match = {
   awayCoachLabel: string | null
   venue: string | null
   locationLabel: string | null
-  weatherSummary: string | null
+  weather: LiveMatchWeather | null
   formations: Array<{
     label: string
     crestSrc?: string | null
@@ -244,11 +245,11 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
           <MatchClockDisplay clock={{ ...match.clock, status: match.status }} />
         </div>
 
-        {(match.venue || match.locationLabel || match.weatherSummary) && (
-          <p className="mb-4 text-center font-ui text-xs text-white/50">
-            {[match.venue, match.locationLabel, match.weatherSummary].filter(Boolean).join(' · ')}
-          </p>
-        )}
+        <LiveMatchContextBar
+          venue={match.venue}
+          locationLabel={match.locationLabel}
+          weather={match.weather}
+        />
 
         <div className="mb-8 rounded-2xl border border-white/10 bg-kelme-live-surface p-6 sm:p-8">
           <div className="flex items-center justify-between gap-4">

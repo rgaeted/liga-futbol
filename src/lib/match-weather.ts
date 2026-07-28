@@ -1,4 +1,4 @@
-import { APP_TIMEZONE } from '@/lib/locale'
+import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 import { formatScheduleDateInput, formatScheduleTimeInput } from '@/lib/schedule-datetime'
 
 export type MatchWeatherSnapshot = {
@@ -141,4 +141,19 @@ export function formatMatchWeather(snapshot: {
     snapshot.weatherWindKmh !== null ? `${snapshot.weatherWindKmh} km/h viento` : null,
   ].filter(Boolean)
   return parts.join(' · ')
+}
+
+function formatWeatherDecimal(value: number): string {
+  return new Intl.NumberFormat(APP_LOCALE, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(value)
+}
+
+export function formatLiveWeatherTempC(value: number): string {
+  return `${formatWeatherDecimal(value)}°C`
+}
+
+export function formatLiveWeatherWindKmh(value: number): string {
+  return `${formatWeatherDecimal(value)} km/h`
 }
