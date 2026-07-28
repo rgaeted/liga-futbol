@@ -2,11 +2,19 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { fetchWeatherForMatch } from '@/lib/match-weather'
+import { buildMatchLocationFields } from '@/lib/match-location'
+import { fetchMatchWeatherSchema } from '@/lib/validations/match'
 import { Role } from '@prisma/client'
 
-export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireRole([Role.ADMIN])
   const { id } = await params
+
+  const rawBody = await req.json().catch(() => ({}))
+  const parsed = fetchMatchWeatherSchema.safeParse(rawBody)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
 
   const match = await db.match.findUnique({
     where: { id },
@@ -23,23 +31,50 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
 
-  if (match.communeLat === null || match.communeLon === null) {
+  const { regionCode, communeCode, scheduledAt } = parsed.data
+  let lat = match.communeLat
+  let lon = match.communeLon
+  let targetScheduledAt = match.scheduledAt
+  const persistData: Record<string, unknown> = {}
+
+  if (regionCode && communeCode) {
+    const locationFields = buildMatchLocationFields({ regionCode, communeCode })
+    if ('error' in locationFields) {
+      return NextResponse.json({ error: locationFields.error }, { status: 400 })
+    }
+    lat = locationFields.communeLat
+    lon = locationFields.communeLon
+    Object.assign(persistData, locationFields)
+  }
+
+  if (scheduledAt) {
+    targetScheduledAt = new Date(scheduledAt)
+    persistData.scheduledAt = targetScheduledAt
+  }
+
+  if (lat === null || lon === null) {
     return NextResponse.json(
-      { error: 'El partido debe tener región y comuna para consultar el clima' },
+      {
+        error:
+          'Guarda región y comuna antes de consultar el clima, o envíalas al consultar.',
+      },
       { status: 400 }
     )
   }
 
   try {
     const weather = await fetchWeatherForMatch({
-      lat: match.communeLat,
-      lon: match.communeLon,
-      scheduledAt: match.scheduledAt,
+      lat,
+      lon,
+      scheduledAt: targetScheduledAt,
     })
 
     const updated = await db.match.update({
       where: { id },
-      data: weather,
+      data: {
+        ...persistData,
+        ...weather,
+      },
       select: {
         weatherTempC: true,
         weatherHumidityPct: true,

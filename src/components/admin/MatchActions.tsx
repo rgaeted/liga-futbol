@@ -197,7 +197,11 @@ export function MatchActions({
           weatherWindKmh={match.weatherWindKmh}
           weatherLabel={match.weatherLabel}
           weatherFetchedAt={match.weatherFetchedAt}
-          hasCoordinates={match.communeLat !== null}
+          regionCode={match.regionCode ?? undefined}
+          communeCode={match.communeCode ?? undefined}
+          hasCoordinates={
+            match.communeLat !== null || Boolean(match.regionCode && match.communeCode)
+          }
           compact
         />
         <span className="inline-flex items-center gap-2">
@@ -283,7 +287,10 @@ export function MatchActions({
         weatherWindKmh={match.weatherWindKmh}
         weatherLabel={match.weatherLabel}
         weatherFetchedAt={match.weatherFetchedAt}
-        hasCoordinates={Boolean(regionCode && communeCode)}
+        regionCode={regionCode || undefined}
+        communeCode={communeCode || undefined}
+        scheduledAt={scheduleInputToIso(date, time)}
+        hasCoordinates={Boolean(regionCode && communeCode) || match.communeLat !== null}
       />
       {match.matchType === 'FRIENDLY' && (
         <>

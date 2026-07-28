@@ -158,3 +158,11 @@ export const updateFriendlyPaidSchema = z.object({
 export type CreateMatchInput = z.infer<typeof createMatchSchema>
 export type UpdateMatchInput = z.infer<typeof updateMatchSchema>
 export type UpdateFriendlyPaidInput = z.infer<typeof updateFriendlyPaidSchema>
+
+export const fetchMatchWeatherSchema = z
+  .object({
+    regionCode: z.string().min(1).optional(),
+    communeCode: z.string().min(1).optional(),
+    scheduledAt: z.string().datetime().optional(),
+  })
+  .superRefine(refineChileLocation)

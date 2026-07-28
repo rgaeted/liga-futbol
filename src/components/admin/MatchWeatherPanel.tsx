@@ -18,6 +18,9 @@ type Props = {
   weatherLabel: string | null
   weatherFetchedAt: string | null
   hasCoordinates: boolean
+  regionCode?: string
+  communeCode?: string
+  scheduledAt?: string
   compact?: boolean
 }
 
@@ -32,6 +35,9 @@ export function MatchWeatherPanel({
   weatherLabel,
   weatherFetchedAt,
   hasCoordinates,
+  regionCode,
+  communeCode,
+  scheduledAt,
   compact = false,
 }: Props) {
   const router = useRouter()
@@ -49,7 +55,17 @@ export function MatchWeatherPanel({
   async function fetchWeather() {
     setLoading(true)
     setError('')
-    const result = await submitJson(`/api/matches/${matchId}/weather`, 'POST', {})
+    const payload: Record<string, string> = {}
+    if (regionCode && communeCode) {
+      payload.regionCode = regionCode
+      payload.communeCode = communeCode
+    }
+    if (scheduledAt) payload.scheduledAt = scheduledAt
+    const result = await submitJson(
+      `/api/matches/${matchId}/weather`,
+      'POST',
+      Object.keys(payload).length > 0 ? payload : {}
+    )
     setLoading(false)
     if (!result.ok) {
       setError(result.message)
@@ -95,6 +111,9 @@ export function MatchWeatherPanel({
       ) : hasCoordinates ? (
         <p className={compact ? 'text-kelme-gray-400' : 'mt-2 text-xs text-kelme-gray-500'}>
           Aún no hay clima registrado para la fecha y hora del partido.
+          {regionCode && communeCode && !locationLabel ? (
+            <span> Se guardará la ubicación al consultar.</span>
+          ) : null}
         </p>
       ) : null}
 
