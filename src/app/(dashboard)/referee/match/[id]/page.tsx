@@ -4,6 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import { MatchControlPanel } from '@/components/referee/MatchControlPanel'
 import { matchSideNames } from '@/lib/match-label'
 import { buildMatchTeamMvps, MATCH_MVP_INCLUDE } from '@/lib/match-mvp'
+import { resolveRefereeEventTypes } from '@/lib/match-referee-events'
 
 async function getTeamPlayers(matchId: string, teamId: string) {
   const callUps = await db.callUp.findMany({
@@ -56,6 +57,7 @@ export default async function RefereeMatchPage({
 
   const panelProps = {
     matchId: match.id,
+    enabledEventTypes: resolveRefereeEventTypes(match.refereeEventTypes),
     initialHomeScore: match.homeScore,
     initialAwayScore: match.awayScore,
     initialStatus: match.status,

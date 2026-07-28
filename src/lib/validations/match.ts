@@ -1,9 +1,25 @@
 import { z } from 'zod'
+import { EventType } from '@prisma/client'
 import { FOOTBALL_FORMATS } from '@/lib/football-format'
 import { teamColorSchema } from '@/lib/team-color'
+import {
+  normalizeRefereeEventTypes,
+  validateRefereeEventTypes,
+} from '@/lib/match-referee-events'
 
 const id = z.string().min(1)
 const footballFormatSchema = z.enum(FOOTBALL_FORMATS)
+const refereeEventTypesSchema = z
+  .array(z.nativeEnum(EventType))
+  .optional()
+  .transform((types) => (types ? normalizeRefereeEventTypes(types) : undefined))
+  .superRefine((types, ctx) => {
+    if (!types) return
+    const message = validateRefereeEventTypes(types)
+    if (message) {
+      ctx.addIssue({ code: 'custom', message, path: [] })
+    }
+  })
 
 const friendlyPlayerEntry = z.object({
   friendlyPlayerId: id,
@@ -61,6 +77,7 @@ export const createLeagueMatchSchema = z.object({
   homeTeamId: id,
   awayTeamId: id,
   refereeId: id.optional(),
+  refereeEventTypes: refereeEventTypesSchema,
   scheduledAt: z.string().datetime(),
   venue: z.string().optional(),
 })
@@ -73,6 +90,7 @@ export const createFriendlyMatchSchema = z
     sideAName: z.string().min(1),
     sideBName: z.string().min(1),
     refereeId: id.optional(),
+    refereeEventTypes: refereeEventTypesSchema,
     scheduledAt: z.string().datetime(),
     venue: z.string().optional(),
     players: z.array(friendlyPlayerEntry).min(2),
@@ -89,6 +107,7 @@ export const createMatchSchema = z.preprocess((raw) => {
 export const updateMatchSchema = z
   .object({
     refereeId: id.nullable().optional(),
+    refereeEventTypes: refereeEventTypesSchema,
     scheduledAt: z.string().datetime().optional(),
     venue: z.string().nullable().optional(),
     status: z.enum(['SCHEDULED', 'LIVE', 'HALFTIME', 'FINISHED', 'CANCELLED']).optional(),

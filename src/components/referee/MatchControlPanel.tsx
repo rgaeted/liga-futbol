@@ -5,6 +5,7 @@ import { EventType } from '@prisma/client'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
 import { EVENT_TYPE_LABELS, eventNeedsPlayer } from '@/lib/event-labels'
+import { refereePanelEvents } from '@/lib/match-referee-events'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 
@@ -21,28 +22,10 @@ type Props = {
   initialStatus: string
   initialTeamMvps: TeamMvpSideView[]
   initialClock: SerializableClockState
+  enabledEventTypes: EventType[]
 }
 
-const QUICK_EVENTS = [
-  { type: EventType.KICKOFF, label: '▶ Inicio', color: 'bg-kelme-red' },
-  { type: EventType.GOAL, label: '⚽ Gol', color: 'bg-green-600' },
-  { type: EventType.YELLOW_CARD, label: '🟨 Amarilla', color: 'bg-yellow-500 text-black' },
-  { type: EventType.RED_CARD, label: '🟥 Roja', color: 'bg-red-600' },
-  { type: EventType.SHOT_ON_TARGET, label: '🎯 Tiro al arco', color: 'bg-blue-600' },
-  { type: EventType.SHOT_OFF_TARGET, label: '↗ Tiro fuera', color: 'bg-kelme-gray-600' },
-  { type: EventType.SUBSTITUTION, label: '🔄 Cambio', color: 'bg-purple-600' },
-  { type: EventType.FOUL, label: '⚠ Falta', color: 'bg-orange-600' },
-  { type: EventType.HALFTIME, label: '⏸ Entretiempo', color: 'bg-kelme-gray-600' },
-  { type: EventType.FULLTIME, label: '⏹ Final', color: 'bg-kelme-gray-900' },
-] as const
-
 type DetailMode = 'team' | 'player' | 'goal'
-
-const INSTANT_EVENTS: EventType[] = [
-  EventType.HALFTIME,
-  EventType.FULLTIME,
-  EventType.FOUL,
-]
 
 function toIso(value: Date | string | null | undefined): string | null {
   if (!value) return null
@@ -66,7 +49,14 @@ export function MatchControlPanel({
   initialStatus,
   initialTeamMvps,
   initialClock,
+  enabledEventTypes,
 }: Props) {
+  const quickEvents = refereePanelEvents(enabledEventTypes)
+  const instantEvents = quickEvents
+    .map((item) => item.type)
+    .filter((type) =>
+      ([EventType.HALFTIME, EventType.FULLTIME, EventType.FOUL] as EventType[]).includes(type)
+    )
   const [homeScore, setHomeScore] = useState(initialHomeScore)
   const [awayScore, setAwayScore] = useState(initialAwayScore)
   const [status, setStatus] = useState(initialStatus)
@@ -151,7 +141,7 @@ export function MatchControlPanel({
   }
 
   function handleEventClick(type: EventType) {
-    if (INSTANT_EVENTS.includes(type)) {
+    if (instantEvents.includes(type)) {
       void submitEvent(type)
       return
     }
@@ -356,7 +346,7 @@ export function MatchControlPanel({
         </section>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {QUICK_EVENTS.map((ev) => (
+          {quickEvents.map((ev) => (
             <button
               key={ev.type}
               type="button"

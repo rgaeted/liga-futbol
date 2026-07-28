@@ -6,6 +6,7 @@ import { createMatchSchema } from '@/lib/validations/match'
 import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { deriveTeamColor } from '@/lib/team-color'
 import { Role } from '@prisma/client'
+import { DEFAULT_REFEREE_EVENT_TYPES, normalizeRefereeEventTypes } from '@/lib/match-referee-events'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -59,6 +60,9 @@ export async function POST(req: Request) {
         homeTeamId: data.homeTeamId,
         awayTeamId: data.awayTeamId,
         refereeId: data.refereeId,
+        refereeEventTypes: normalizeRefereeEventTypes(
+          data.refereeEventTypes ?? DEFAULT_REFEREE_EVENT_TYPES
+        ),
         venue: data.venue,
         scheduledAt: new Date(data.scheduledAt),
       },
@@ -117,6 +121,9 @@ export async function POST(req: Request) {
         sideAColor: deriveTeamColor(data.sideAName),
         sideBColor: deriveTeamColor(data.sideBName),
         refereeId: data.refereeId,
+        refereeEventTypes: normalizeRefereeEventTypes(
+          data.refereeEventTypes ?? DEFAULT_REFEREE_EVENT_TYPES
+        ),
         venue: data.venue,
         scheduledAt: new Date(data.scheduledAt),
       },

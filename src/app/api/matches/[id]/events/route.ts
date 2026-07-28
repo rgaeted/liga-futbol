@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { createMatchEventSchema } from '@/lib/validations/match-event'
 import { GAME_EVENT_TYPES, registerMatchEvent } from '@/lib/match-events'
+import { isRefereeEventEnabled } from '@/lib/match-referee-events'
 import { EventType, MatchStatus, MatchType, Role } from '@prisma/client'
 
 const PLAYER_EVENT_TYPES: EventType[] = [
@@ -53,6 +54,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const data = parsed.data
   const isAdmin = session.user.role === Role.ADMIN
+
+  if (
+    session.user.role === Role.REFEREE &&
+    !isRefereeEventEnabled(match.refereeEventTypes, data.type)
+  ) {
+    return NextResponse.json(
+      { error: 'Este evento no está habilitado para este partido' },
+      { status: 403 }
+    )
+  }
 
   if (
     session.user.role === Role.REFEREE &&

@@ -172,6 +172,7 @@ export default async function AdminMatchesPage() {
                       venue: match.venue,
                       status: match.status,
                       footballFormat: match.footballFormat,
+                      refereeEventTypes: match.refereeEventTypes,
                       date: formatScheduleDateInput(match.scheduledAt),
                       time: formatScheduleTimeInput(match.scheduledAt),
                     }}

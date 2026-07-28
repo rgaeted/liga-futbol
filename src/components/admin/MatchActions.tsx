@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
-import type { FootballFormat, MatchType } from '@prisma/client'
+import type { EventType, FootballFormat, MatchType } from '@prisma/client'
 import { FOOTBALL_FORMATS, footballFormatLabel } from '@/lib/football-format'
+import { resolveRefereeEventTypes } from '@/lib/match-referee-events'
 import { matchSideCrestUrl } from '@/lib/match-side-crest'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
 import { submitJson } from './submit'
@@ -17,6 +18,7 @@ import {
   toggleFriendlyRosterSide,
   type FriendlyRosterPlayer,
 } from './FriendlyMatchRosterEditor'
+import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
 import { resolveTeamColor } from '@/lib/team-color'
 
 export type MatchRow = {
@@ -35,6 +37,7 @@ export type MatchRow = {
   venue: string | null
   status: string
   footballFormat: FootballFormat
+  refereeEventTypes: EventType[]
   date: string
   time: string
 }
@@ -71,6 +74,9 @@ export function MatchActions({
   const [sideBCoachId, setSideBCoachId] = useState<string | null>(initialRoster.sideBCoachId)
   const [sideASearch, setSideASearch] = useState('')
   const [sideBSearch, setSideBSearch] = useState('')
+  const [refereeEventTypes, setRefereeEventTypes] = useState<EventType[]>(
+    resolveRefereeEventTypes(match.refereeEventTypes)
+  )
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -92,6 +98,7 @@ export function MatchActions({
     setSideBCoachId(next.sideBCoachId)
     setSideASearch('')
     setSideBSearch('')
+    setRefereeEventTypes(resolveRefereeEventTypes(match.refereeEventTypes))
     setEditing(true)
   }
 
@@ -117,6 +124,7 @@ export function MatchActions({
       venue: venue || null,
       status,
       footballFormat,
+      refereeEventTypes,
       scheduledAt: scheduleInputToIso(date, time),
     }
 
@@ -289,6 +297,7 @@ export function MatchActions({
           />
         </>
       )}
+      <MatchRefereeEventsPicker value={refereeEventTypes} onChange={setRefereeEventTypes} />
       <span className="inline-flex items-center gap-2 md:col-span-3">
         <button
           type="button"

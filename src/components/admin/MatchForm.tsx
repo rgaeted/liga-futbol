@@ -2,8 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
-import type { FootballFormat } from '@prisma/client'
+import type { EventType, FootballFormat } from '@prisma/client'
 import { submitJson } from './submit'
+import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
+import { DEFAULT_REFEREE_EVENT_TYPES } from '@/lib/match-referee-events'
 import { footballFormatLabel } from '@/lib/football-format'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
 
@@ -20,6 +22,9 @@ export function MatchForm({ seasons, teams, referees }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [seasonId, setSeasonId] = useState('')
+  const [refereeEventTypes, setRefereeEventTypes] = useState<EventType[]>(
+    DEFAULT_REFEREE_EVENT_TYPES
+  )
 
   const selectedSeason = useMemo(
     () => seasons.find((s) => s.id === seasonId),
@@ -40,6 +45,7 @@ export function MatchForm({ seasons, teams, referees }: Props) {
       homeTeamId: form.get('homeTeamId'),
       awayTeamId: form.get('awayTeamId'),
       refereeId: form.get('refereeId') || undefined,
+      refereeEventTypes,
       venue: form.get('venue') || undefined,
       scheduledAt: scheduleInputToIso(date, time),
     })
@@ -50,6 +56,7 @@ export function MatchForm({ seasons, teams, referees }: Props) {
     }
     formEl.reset()
     setSeasonId('')
+    setRefereeEventTypes(DEFAULT_REFEREE_EVENT_TYPES)
     router.refresh()
   }
 
@@ -91,6 +98,7 @@ export function MatchForm({ seasons, teams, referees }: Props) {
       <input name="date" type="date" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
       <input name="time" type="time" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
       <input name="venue" placeholder="Cancha" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2" />
+      <MatchRefereeEventsPicker value={refereeEventTypes} onChange={setRefereeEventTypes} />
       {selectedSeason?.footballFormat && (
         <p className="text-sm text-kelme-gray-400 md:col-span-3">
           Tipo de fútbol: {footballFormatLabel(selectedSeason.footballFormat)} (heredado de la temporada)

@@ -2,7 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import type { EventType } from '@prisma/client'
 import { submitJson } from './submit'
+import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
+import { DEFAULT_REFEREE_EVENT_TYPES } from '@/lib/match-referee-events'
 import { FOOTBALL_FORMATS, FOOTBALL_FORMAT_LABELS } from '@/lib/football-format'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
 import {
@@ -35,6 +38,9 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
   const [sideBCoachId, setSideBCoachId] = useState<string | null>(null)
   const [sideASearch, setSideASearch] = useState('')
   const [sideBSearch, setSideBSearch] = useState('')
+  const [refereeEventTypes, setRefereeEventTypes] = useState<EventType[]>(
+    DEFAULT_REFEREE_EVENT_TYPES
+  )
 
   const roster = friendlyPlayers.filter((p) => p.categoryIds.includes(categoryId))
 
@@ -100,6 +106,7 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       sideAName: String(form.get('sideAName') ?? '').trim(),
       sideBName: String(form.get('sideBName') ?? '').trim(),
       refereeId: refereeId || undefined,
+      refereeEventTypes,
       venue: String(form.get('venue') ?? '').trim() || undefined,
       scheduledAt: scheduleInputToIso(date, time),
       players: rosterEntriesFromSets(
@@ -123,6 +130,7 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     setSideBCaptainId(null)
     setSideACoachId(null)
     setSideBCoachId(null)
+    setRefereeEventTypes(DEFAULT_REFEREE_EVENT_TYPES)
     router.refresh()
   }
 
@@ -199,6 +207,7 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
         onSideBCoachChange={setSideBCoachId}
         onToggleSide={handleToggleSide}
       />
+      <MatchRefereeEventsPicker value={refereeEventTypes} onChange={setRefereeEventTypes} />
       <div className="grid gap-3 md:grid-cols-3">
         <select
           name="refereeId"

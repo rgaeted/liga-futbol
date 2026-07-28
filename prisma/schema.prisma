@@ -167,6 +167,7 @@ model Match {
   clockStartedAt      DateTime?
   secondHalfStartedAt DateTime?
   halftimeAt          DateTime?
+  refereeEventTypes   EventType[] @default([])
   events       MatchEvent[]
   callUps      CallUp[]
   friendlyPlayers FriendlyMatchPlayer[]
