@@ -30,6 +30,23 @@ describe('match validations', () => {
     const result = updateMatchSchema.safeParse({ footballFormat: 'FUTBOL_7' })
     expect(result.success).toBe(true)
   })
+  it('createMatchSchema rejects region without commune', () => {
+    const result = createMatchSchema.safeParse({
+      seasonId: 'demo-season-2026',
+      homeTeamId: 'demo-team-norte',
+      awayTeamId: 'demo-team-sur',
+      scheduledAt: new Date().toISOString(),
+      regionCode: '13',
+    })
+    expect(result.success).toBe(false)
+  })
+  it('updateMatchSchema accepts clearing location with nulls', () => {
+    const result = updateMatchSchema.safeParse({
+      regionCode: null,
+      communeCode: null,
+    })
+    expect(result.success).toBe(true)
+  })
 })
 
 describe('player validations', () => {

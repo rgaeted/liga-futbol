@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import type { EventType, FootballFormat } from '@prisma/client'
 import { submitJson } from './submit'
 import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
+import { ChileLocationPicker } from './ChileLocationPicker'
 import { DEFAULT_REFEREE_EVENT_TYPES } from '@/lib/match-referee-events'
 import { footballFormatLabel } from '@/lib/football-format'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
@@ -25,6 +26,8 @@ export function MatchForm({ seasons, teams, referees }: Props) {
   const [refereeEventTypes, setRefereeEventTypes] = useState<EventType[]>(
     DEFAULT_REFEREE_EVENT_TYPES
   )
+  const [regionCode, setRegionCode] = useState('')
+  const [communeCode, setCommuneCode] = useState('')
 
   const selectedSeason = useMemo(
     () => seasons.find((s) => s.id === seasonId),
@@ -47,6 +50,8 @@ export function MatchForm({ seasons, teams, referees }: Props) {
       refereeId: form.get('refereeId') || undefined,
       refereeEventTypes,
       venue: form.get('venue') || undefined,
+      regionCode: regionCode || undefined,
+      communeCode: communeCode || undefined,
       scheduledAt: scheduleInputToIso(date, time),
     })
     setLoading(false)
@@ -57,6 +62,8 @@ export function MatchForm({ seasons, teams, referees }: Props) {
     formEl.reset()
     setSeasonId('')
     setRefereeEventTypes(DEFAULT_REFEREE_EVENT_TYPES)
+    setRegionCode('')
+    setCommuneCode('')
     router.refresh()
   }
 
@@ -98,6 +105,12 @@ export function MatchForm({ seasons, teams, referees }: Props) {
       <input name="date" type="date" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
       <input name="time" type="time" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
       <input name="venue" placeholder="Cancha" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2" />
+      <ChileLocationPicker
+        regionCode={regionCode}
+        communeCode={communeCode}
+        onRegionChange={setRegionCode}
+        onCommuneChange={setCommuneCode}
+      />
       <MatchRefereeEventsPicker value={refereeEventTypes} onChange={setRefereeEventTypes} />
       {selectedSeason?.footballFormat && (
         <p className="text-sm text-kelme-gray-400 md:col-span-3">

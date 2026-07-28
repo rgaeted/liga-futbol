@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth'
 import { updateMatchSchema } from '@/lib/validations/match'
 import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { syncFriendlyMatchRoster } from '@/lib/friendly-match-roster'
+import { buildMatchLocationFields, clearMatchWeatherFields } from '@/lib/match-location'
 import { MatchType, Role } from '@prisma/client'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -14,11 +15,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { scheduledAt, players, ...rest } = parsed.data
+  const { scheduledAt, players, regionCode, communeCode, ...rest } = parsed.data
 
   const existing = await db.match.findUnique({
     where: { id },
-    select: { id: true, matchType: true, friendlyCategoryId: true },
+    select: {
+      id: true,
+      matchType: true,
+      friendlyCategoryId: true,
+      regionCode: true,
+      communeCode: true,
+      scheduledAt: true,
+    },
   })
   if (!existing) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
@@ -66,6 +74,19 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
   }
 
+  let locationUpdate: Record<string, unknown> = {}
+  if ('regionCode' in parsed.data || 'communeCode' in parsed.data) {
+    const locationFields = buildMatchLocationFields({ regionCode, communeCode })
+    if ('error' in locationFields) {
+      return NextResponse.json({ error: locationFields.error }, { status: 400 })
+    }
+    locationUpdate = locationFields
+  }
+
+  const scheduleChanged =
+    scheduledAt !== undefined &&
+    new Date(scheduledAt).getTime() !== existing.scheduledAt.getTime()
+
   const match = await db.$transaction(async (tx) => {
     if (players) {
       await syncFriendlyMatchRoster(tx, id, players)
@@ -75,7 +96,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       where: { id },
       data: {
         ...rest,
+        ...locationUpdate,
         ...(scheduledAt ? { scheduledAt: new Date(scheduledAt) } : {}),
+        ...(scheduleChanged ? clearMatchWeatherFields() : {}),
       },
       include: { homeTeam: true, awayTeam: true },
     })

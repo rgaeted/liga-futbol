@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { EventType } from '@prisma/client'
 import { FOOTBALL_FORMATS } from '@/lib/football-format'
 import { teamColorSchema } from '@/lib/team-color'
+import { validateChileLocationPair } from '@/lib/chile-locations'
 import {
   normalizeRefereeEventTypes,
   validateRefereeEventTypes,
@@ -9,6 +10,20 @@ import {
 
 const id = z.string().min(1)
 const footballFormatSchema = z.enum(FOOTBALL_FORMATS)
+const locationFieldsSchema = z.object({
+  regionCode: z.string().min(1).optional(),
+  communeCode: z.string().min(1).optional(),
+})
+
+function refineChileLocation(
+  data: { regionCode?: string; communeCode?: string },
+  ctx: z.RefinementCtx
+) {
+  const message = validateChileLocationPair(data.regionCode, data.communeCode)
+  if (message) {
+    ctx.addIssue({ code: 'custom', message, path: ['communeCode'] })
+  }
+}
 const refereeEventTypesSchema = z
   .array(z.nativeEnum(EventType))
   .optional()
@@ -71,16 +86,19 @@ function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEnt
   }
 }
 
-export const createLeagueMatchSchema = z.object({
-  matchType: z.literal('LEAGUE').default('LEAGUE'),
-  seasonId: id,
-  homeTeamId: id,
-  awayTeamId: id,
-  refereeId: id.optional(),
-  refereeEventTypes: refereeEventTypesSchema,
-  scheduledAt: z.string().datetime(),
-  venue: z.string().optional(),
-})
+export const createLeagueMatchSchema = z
+  .object({
+    matchType: z.literal('LEAGUE').default('LEAGUE'),
+    seasonId: id,
+    homeTeamId: id,
+    awayTeamId: id,
+    refereeId: id.optional(),
+    refereeEventTypes: refereeEventTypesSchema,
+    scheduledAt: z.string().datetime(),
+    venue: z.string().optional(),
+  })
+  .merge(locationFieldsSchema)
+  .superRefine(refineChileLocation)
 
 export const createFriendlyMatchSchema = z
   .object({
@@ -95,7 +113,9 @@ export const createFriendlyMatchSchema = z
     venue: z.string().optional(),
     players: z.array(friendlyPlayerEntry).min(2),
   })
+  .merge(locationFieldsSchema)
   .superRefine(refineFriendlyPlayers)
+  .superRefine(refineChileLocation)
 
 export const createMatchSchema = z.preprocess((raw) => {
   if (raw && typeof raw === 'object' && !('matchType' in (raw as object))) {
@@ -110,6 +130,8 @@ export const updateMatchSchema = z
     refereeEventTypes: refereeEventTypesSchema,
     scheduledAt: z.string().datetime().optional(),
     venue: z.string().nullable().optional(),
+    regionCode: z.string().min(1).nullable().optional(),
+    communeCode: z.string().min(1).nullable().optional(),
     status: z.enum(['SCHEDULED', 'LIVE', 'HALFTIME', 'FINISHED', 'CANCELLED']).optional(),
     footballFormat: footballFormatSchema.optional(),
     sideAColor: teamColorSchema.nullable().optional(),
@@ -118,6 +140,15 @@ export const updateMatchSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.players) refineFriendlyPlayers({ players: data.players }, ctx)
+    if ('regionCode' in data || 'communeCode' in data) {
+      refineChileLocation(
+        {
+          regionCode: data.regionCode ?? undefined,
+          communeCode: data.communeCode ?? undefined,
+        },
+        ctx
+      )
+    }
   })
 
 export const updateFriendlyPaidSchema = z.object({

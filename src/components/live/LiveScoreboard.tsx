@@ -83,6 +83,9 @@ type Match = {
   awayCaptainLabel: string | null
   homeCoachLabel: string | null
   awayCoachLabel: string | null
+  venue: string | null
+  locationLabel: string | null
+  weatherSummary: string | null
   formations: Array<{
     label: string
     crestSrc?: string | null
@@ -240,6 +243,12 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
         <div className="mb-4 flex justify-center">
           <MatchClockDisplay clock={{ ...match.clock, status: match.status }} />
         </div>
+
+        {(match.venue || match.locationLabel || match.weatherSummary) && (
+          <p className="mb-4 text-center font-ui text-xs text-white/50">
+            {[match.venue, match.locationLabel, match.weatherSummary].filter(Boolean).join(' · ')}
+          </p>
+        )}
 
         <div className="mb-8 rounded-2xl border border-white/10 bg-kelme-live-surface p-6 sm:p-8">
           <div className="flex items-center justify-between gap-4">

@@ -19,6 +19,8 @@ import {
   type FriendlyRosterPlayer,
 } from './FriendlyMatchRosterEditor'
 import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
+import { ChileLocationPicker } from './ChileLocationPicker'
+import { MatchWeatherPanel } from './MatchWeatherPanel'
 import { resolveTeamColor } from '@/lib/team-color'
 
 export type MatchRow = {
@@ -35,6 +37,16 @@ export type MatchRow = {
   hasCrestB: boolean
   refereeId: string | null
   venue: string | null
+  regionCode: string | null
+  regionName: string | null
+  communeCode: string | null
+  communeName: string | null
+  communeLat: number | null
+  weatherTempC: number | null
+  weatherHumidityPct: number | null
+  weatherWindKmh: number | null
+  weatherLabel: string | null
+  weatherFetchedAt: string | null
   status: string
   footballFormat: FootballFormat
   refereeEventTypes: EventType[]
@@ -59,6 +71,8 @@ export function MatchActions({
   const [editing, setEditing] = useState(false)
   const [refereeId, setRefereeId] = useState(match.refereeId ?? '')
   const [venue, setVenue] = useState(match.venue ?? '')
+  const [regionCode, setRegionCode] = useState(match.regionCode ?? '')
+  const [communeCode, setCommuneCode] = useState(match.communeCode ?? '')
   const [status, setStatus] = useState(match.status)
   const [footballFormat, setFootballFormat] = useState(match.footballFormat)
   const [date, setDate] = useState(match.date)
@@ -99,6 +113,8 @@ export function MatchActions({
     setSideASearch('')
     setSideBSearch('')
     setRefereeEventTypes(resolveRefereeEventTypes(match.refereeEventTypes))
+    setRegionCode(match.regionCode ?? '')
+    setCommuneCode(match.communeCode ?? '')
     setEditing(true)
   }
 
@@ -122,6 +138,8 @@ export function MatchActions({
     const payload: Record<string, unknown> = {
       refereeId: refereeId || null,
       venue: venue || null,
+      regionCode: regionCode || null,
+      communeCode: communeCode || null,
       status,
       footballFormat,
       refereeEventTypes,
@@ -168,7 +186,21 @@ export function MatchActions({
 
   if (!editing) {
     return (
-      <span className="inline-flex items-center gap-2">
+      <span className="inline-flex w-full flex-col gap-2">
+        <MatchWeatherPanel
+          matchId={match.id}
+          regionName={match.regionName}
+          communeName={match.communeName}
+          venue={match.venue}
+          weatherTempC={match.weatherTempC}
+          weatherHumidityPct={match.weatherHumidityPct}
+          weatherWindKmh={match.weatherWindKmh}
+          weatherLabel={match.weatherLabel}
+          weatherFetchedAt={match.weatherFetchedAt}
+          hasCoordinates={match.communeLat !== null}
+          compact
+        />
+        <span className="inline-flex items-center gap-2">
         <button
           type="button"
           onClick={openEdit}
@@ -180,6 +212,7 @@ export function MatchActions({
           url={`/api/matches/${match.id}`}
           confirmMessage={`¿Eliminar el partido ${match.label}? Se borran sus eventos y citaciones.`}
         />
+        </span>
       </span>
     )
   }
@@ -233,6 +266,24 @@ export function MatchActions({
         onChange={(e) => setVenue(e.target.value)}
         placeholder="Cancha"
         className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+      />
+      <ChileLocationPicker
+        regionCode={regionCode}
+        communeCode={communeCode}
+        onRegionChange={setRegionCode}
+        onCommuneChange={setCommuneCode}
+      />
+      <MatchWeatherPanel
+        matchId={match.id}
+        regionName={match.regionName}
+        communeName={match.communeName}
+        venue={venue}
+        weatherTempC={match.weatherTempC}
+        weatherHumidityPct={match.weatherHumidityPct}
+        weatherWindKmh={match.weatherWindKmh}
+        weatherLabel={match.weatherLabel}
+        weatherFetchedAt={match.weatherFetchedAt}
+        hasCoordinates={Boolean(regionCode && communeCode)}
       />
       {match.matchType === 'FRIENDLY' && (
         <>

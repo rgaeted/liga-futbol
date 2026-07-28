@@ -161,6 +161,18 @@ model Match {
   referee      User?       @relation("MatchReferee", fields: [refereeId], references: [id])
   scheduledAt  DateTime
   venue        String?
+  regionCode   String?
+  regionName   String?
+  communeCode  String?
+  communeName  String?
+  communeLat   Float?
+  communeLon   Float?
+  weatherTempC       Float?
+  weatherHumidityPct Int?
+  weatherWindKmh     Float?
+  weatherCode        Int?
+  weatherLabel       String?
+  weatherFetchedAt   DateTime?
   status       MatchStatus @default(SCHEDULED)
   homeScore    Int         @default(0)
   awayScore    Int         @default(0)

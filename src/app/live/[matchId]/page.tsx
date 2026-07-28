@@ -17,6 +17,8 @@ import {
 } from '@/lib/match-timeline-sort'
 import { notFound } from 'next/navigation'
 import { MatchType } from '@prisma/client'
+import { formatChileLocation } from '@/lib/chile-locations'
+import { formatMatchWeather } from '@/lib/match-weather'
 
 export const dynamic = 'force-dynamic'
 
@@ -261,6 +263,14 @@ export default async function LiveMatchPage({
         awayCaptainLabel,
         homeCoachLabel,
         awayCoachLabel,
+        venue: match.venue,
+        locationLabel: formatChileLocation(match.regionName, match.communeName),
+        weatherSummary: formatMatchWeather({
+          weatherTempC: match.weatherTempC,
+          weatherHumidityPct: match.weatherHumidityPct,
+          weatherWindKmh: match.weatherWindKmh,
+          weatherLabel: match.weatherLabel,
+        }),
         formations: formationSides.map((s) => ({
           label: s.label,
           lineup: s.lineup,

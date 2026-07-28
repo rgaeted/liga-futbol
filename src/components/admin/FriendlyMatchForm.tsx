@@ -5,6 +5,7 @@ import { useState } from 'react'
 import type { EventType } from '@prisma/client'
 import { submitJson } from './submit'
 import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
+import { ChileLocationPicker } from './ChileLocationPicker'
 import { DEFAULT_REFEREE_EVENT_TYPES } from '@/lib/match-referee-events'
 import { FOOTBALL_FORMATS, FOOTBALL_FORMAT_LABELS } from '@/lib/football-format'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
@@ -41,6 +42,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
   const [refereeEventTypes, setRefereeEventTypes] = useState<EventType[]>(
     DEFAULT_REFEREE_EVENT_TYPES
   )
+  const [regionCode, setRegionCode] = useState('')
+  const [communeCode, setCommuneCode] = useState('')
 
   const roster = friendlyPlayers.filter((p) => p.categoryIds.includes(categoryId))
 
@@ -108,6 +111,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       refereeId: refereeId || undefined,
       refereeEventTypes,
       venue: String(form.get('venue') ?? '').trim() || undefined,
+      regionCode: regionCode || undefined,
+      communeCode: communeCode || undefined,
       scheduledAt: scheduleInputToIso(date, time),
       players: rosterEntriesFromSets(
         sideAIds,
@@ -131,6 +136,8 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
     setSideACoachId(null)
     setSideBCoachId(null)
     setRefereeEventTypes(DEFAULT_REFEREE_EVENT_TYPES)
+    setRegionCode('')
+    setCommuneCode('')
     router.refresh()
   }
 
@@ -208,6 +215,12 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
         onToggleSide={handleToggleSide}
       />
       <MatchRefereeEventsPicker value={refereeEventTypes} onChange={setRefereeEventTypes} />
+      <ChileLocationPicker
+        regionCode={regionCode}
+        communeCode={communeCode}
+        onRegionChange={setRegionCode}
+        onCommuneChange={setCommuneCode}
+      />
       <div className="grid gap-3 md:grid-cols-3">
         <select
           name="refereeId"

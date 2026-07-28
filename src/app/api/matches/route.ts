@@ -7,6 +7,7 @@ import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { deriveTeamColor } from '@/lib/team-color'
 import { Role } from '@prisma/client'
 import { DEFAULT_REFEREE_EVENT_TYPES, normalizeRefereeEventTypes } from '@/lib/match-referee-events'
+import { buildMatchLocationFields, clearMatchWeatherFields, locationChanged } from '@/lib/match-location'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -43,6 +44,13 @@ export async function POST(req: Request) {
   }
 
   const data = parsed.data
+  const locationFields = buildMatchLocationFields({
+    regionCode: data.regionCode,
+    communeCode: data.communeCode,
+  })
+  if ('error' in locationFields) {
+    return NextResponse.json({ error: locationFields.error }, { status: 400 })
+  }
 
   if (data.matchType === 'LEAGUE') {
     if (data.homeTeamId === data.awayTeamId) {
@@ -65,6 +73,7 @@ export async function POST(req: Request) {
         ),
         venue: data.venue,
         scheduledAt: new Date(data.scheduledAt),
+        ...locationFields,
       },
       include: { homeTeam: true, awayTeam: true },
     })
@@ -126,6 +135,7 @@ export async function POST(req: Request) {
         ),
         venue: data.venue,
         scheduledAt: new Date(data.scheduledAt),
+        ...locationFields,
       },
     })
     await tx.friendlyMatchPlayer.createMany({
