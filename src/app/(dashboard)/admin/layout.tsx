@@ -15,9 +15,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   {
     href: '/admin/friendly-players',
     label: 'Amistosos',
-    match: (pathname) =>
-      pathname.startsWith('/admin/friendly-players') ||
-      pathname.startsWith('/admin/friendly-categories'),
+    activePrefixes: ['/admin/friendly-players', '/admin/friendly-categories'],
   },
   { href: '/admin/users', label: 'Usuarios' },
 ]

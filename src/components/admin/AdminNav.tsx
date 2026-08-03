@@ -3,7 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export type AdminNavItem = { href: string; label: string; match?: (pathname: string) => boolean }
+export type AdminNavItem = {
+  href: string
+  label: string
+  activePrefixes?: string[]
+}
 
 function defaultIsActive(href: string, pathname: string) {
   if (pathname === href) return true
@@ -29,7 +33,9 @@ export function AdminNav({
       }
     >
       {nav.map((item) => {
-        const active = item.match ? item.match(pathname) : defaultIsActive(item.href, pathname)
+        const active = item.activePrefixes
+          ? item.activePrefixes.some((prefix) => defaultIsActive(prefix, pathname))
+          : defaultIsActive(item.href, pathname)
         return (
           <Link
             key={item.href}
