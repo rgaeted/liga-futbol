@@ -10,7 +10,7 @@ import {
 } from '@/lib/match-mvp'
 import { setMatchMvpSchema } from '@/lib/validations/mvp'
 import { matchSideNames } from '@/lib/match-label'
-import { emitMatchUpdate } from '@/server/socket'
+import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 
 async function canEditMvp(userId: string, role: Role, match: { refereeId: string | null }) {
   if (role === Role.ADMIN) return true
@@ -119,20 +119,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     rows.find((row) => row.side === parsed.data.side)
   )
 
-  const fullMatch = await db.match.findUnique({
-    where: { id },
-    select: { homeScore: true, awayScore: true, status: true },
-  })
-
-  if (fullMatch) {
-    emitMatchUpdate({
-      matchId: id,
-      homeScore: fullMatch.homeScore,
-      awayScore: fullMatch.awayScore,
-      status: fullMatch.status,
-      teamMvps,
-    })
-  }
+  await publishMatchInvalidation(id)
 
   return NextResponse.json({ side: updatedSide, teamMvps })
 }

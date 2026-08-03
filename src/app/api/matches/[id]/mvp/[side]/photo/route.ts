@@ -13,7 +13,7 @@ import {
   matchMvpPhotoUrl,
 } from '@/lib/match-mvp-photo'
 import { matchSideNames } from '@/lib/match-label'
-import { emitMatchUpdate } from '@/server/socket'
+import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 
 async function canEditMvp(userId: string, role: Role, match: { refereeId: string | null }) {
   if (role === Role.ADMIN) return true
@@ -130,20 +130,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     rows,
   })
 
-  const fullMatch = await db.match.findUnique({
-    where: { id },
-    select: { homeScore: true, awayScore: true, status: true },
-  })
-
-  if (fullMatch) {
-    emitMatchUpdate({
-      matchId: id,
-      homeScore: fullMatch.homeScore,
-      awayScore: fullMatch.awayScore,
-      status: fullMatch.status,
-      teamMvps,
-    })
-  }
+  await publishMatchInvalidation(id)
 
   return NextResponse.json({
     ok: true,
@@ -203,20 +190,7 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
     rows,
   })
 
-  const fullMatch = await db.match.findUnique({
-    where: { id },
-    select: { homeScore: true, awayScore: true, status: true },
-  })
-
-  if (fullMatch) {
-    emitMatchUpdate({
-      matchId: id,
-      homeScore: fullMatch.homeScore,
-      awayScore: fullMatch.awayScore,
-      status: fullMatch.status,
-      teamMvps,
-    })
-  }
+  await publishMatchInvalidation(id)
 
   return NextResponse.json({ ok: true, teamMvps })
 }

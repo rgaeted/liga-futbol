@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { EventType, MatchStatus, MatchType } from '@prisma/client'
-import { emitMatchUpdate } from '@/server/socket'
+import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 import type { CreateMatchEventInput } from '@/lib/validations/match-event'
 import { getMatchMinute } from '@/lib/match-clock'
 import { syncLeaguePlayerStats } from '@/lib/match-reconcile'
@@ -114,16 +114,7 @@ export async function registerMatchEvent(
     await Promise.all([...playerIds].map((playerId) => syncLeaguePlayerStats(playerId)))
   }
 
-  emitMatchUpdate({
-    matchId,
-    homeScore: updatedMatch.homeScore,
-    awayScore: updatedMatch.awayScore,
-    status: updatedMatch.status,
-    clockStartedAt: updatedMatch.clockStartedAt,
-    secondHalfStartedAt: updatedMatch.secondHalfStartedAt,
-    halftimeAt: updatedMatch.halftimeAt,
-    event,
-  })
+  await publishMatchInvalidation(matchId)
 
   return { event, match: updatedMatch }
 }
