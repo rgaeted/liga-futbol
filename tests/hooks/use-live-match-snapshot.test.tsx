@@ -134,6 +134,117 @@ describe('useLiveMatchSnapshot', () => {
     await act(async () => root.unmount())
   })
 
+  it('adopts a later canonical initial snapshot for the same match', async () => {
+    const invalidations: Array<() => void> = []
+    vi.mocked(useMatchRealtime).mockImplementation((options) => {
+      invalidations.push(options.onInvalidate)
+      return 'degraded'
+    })
+    const values: LiveMatchSnapshot[] = []
+    const onSnapshot = (value: LiveMatchSnapshot) => {
+      values.push(value)
+    }
+    const root = createRoot(document.body.appendChild(document.createElement('div')))
+
+    await act(async () => {
+      root.render(<Probe initialSnapshot={initial} onSnapshot={onSnapshot} />)
+    })
+    const finished = { ...initial, status: 'FINISHED', homeScore: 3 }
+    await act(async () => {
+      root.render(<Probe initialSnapshot={finished} onSnapshot={onSnapshot} />)
+    })
+
+    const latestSnapshot = values.at(-1)
+    const invalidationCallbackCount = new Set(invalidations).size
+    await act(async () => root.unmount())
+    expect(latestSnapshot).toBe(finished)
+    expect(invalidationCallbackCount).toBe(1)
+  })
+
+  it('discards pending work when switching to a different match', async () => {
+    vi.useFakeTimers()
+    let invalidate: (() => void) | undefined
+    vi.mocked(useMatchRealtime).mockImplementation((options) => {
+      invalidate = options.onInvalidate
+      return 'degraded'
+    })
+    let resolveOldRequest: ((response: Response) => void) | undefined
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveOldRequest = resolve
+          })
+      )
+      .mockResolvedValue(
+        new Response(JSON.stringify({ ...initial, homeScore: 9 }), { status: 200 })
+      )
+    vi.stubGlobal('fetch', fetchMock)
+    const values: LiveMatchSnapshot[] = []
+    let result: SnapshotHookResult | undefined
+    const onResult = (value: SnapshotHookResult) => {
+      result = value
+    }
+    const onSnapshot = (value: LiveMatchSnapshot) => {
+      values.push(value)
+    }
+    const root = createRoot(document.body.appendChild(document.createElement('div')))
+
+    await act(async () => {
+      root.render(
+        <Probe
+          initialSnapshot={initial}
+          onResult={onResult}
+          onSnapshot={onSnapshot}
+        />
+      )
+    })
+    let oldRequest: Promise<void> | undefined
+    await act(async () => {
+      oldRequest = result?.resync()
+      invalidate?.()
+    })
+    const oldSignal = fetchMock.mock.calls[0]?.[1].signal
+    const nextMatch = {
+      ...initial,
+      id: 'match-2',
+      status: 'FINISHED',
+      homeScore: 4,
+    }
+
+    await act(async () => {
+      root.render(
+        <Probe
+          initialSnapshot={nextMatch}
+          onResult={onResult}
+          onSnapshot={onSnapshot}
+        />
+      )
+    })
+    const snapshotAfterSwitch = values.at(-1)
+    const oldRequestWasAborted = oldSignal?.aborted
+
+    await act(async () => {
+      vi.advanceTimersByTime(250)
+      await Promise.resolve()
+    })
+    const fetchCountAfterDebounce = fetchMock.mock.calls.length
+
+    await act(async () => {
+      resolveOldRequest?.(
+        new Response(JSON.stringify({ ...initial, homeScore: 7 }), { status: 200 })
+      )
+      await oldRequest
+    })
+    const finalSnapshot = values.at(-1)
+    await act(async () => root.unmount())
+    expect(snapshotAfterSwitch).toBe(nextMatch)
+    expect(oldRequestWasAborted).toBe(true)
+    expect(fetchCountAfterDebounce).toBe(1)
+    expect(finalSnapshot).toBe(nextMatch)
+  })
+
   it.each([
     [
       'invalid JSON',

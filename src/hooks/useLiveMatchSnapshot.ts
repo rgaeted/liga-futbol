@@ -29,24 +29,36 @@ export function useLiveMatchSnapshot({
 }: {
   initialSnapshot: LiveMatchSnapshot
 }) {
-  const [snapshot, setSnapshot] = useState(initialSnapshot)
+  const [snapshotState, setSnapshotState] = useState(() => ({
+    initialSnapshot,
+    snapshot: initialSnapshot,
+  }))
   const debounceRef = useRef<number | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const requestRef = useRef(0)
   const previousStatusRef = useRef<MatchRealtimeStatus>('connecting')
+  const lifecycleMatchIdRef = useRef(initialSnapshot.id)
+  const initialSnapshotRef = useRef(initialSnapshot)
+  const snapshot =
+    snapshotState.initialSnapshot === initialSnapshot
+      ? snapshotState.snapshot
+      : initialSnapshot
 
   const resync = useCallback(async () => {
     const requestId = ++requestRef.current
+    const requestSnapshot = initialSnapshotRef.current
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
     try {
-      const next = await fetchLiveMatchSnapshot(initialSnapshot.id, controller.signal)
-      if (requestId === requestRef.current) setSnapshot(next)
+      const next = await fetchLiveMatchSnapshot(requestSnapshot.id, controller.signal)
+      if (requestId === requestRef.current) {
+        setSnapshotState({ initialSnapshot: requestSnapshot, snapshot: next })
+      }
     } catch {
       // The last valid snapshot remains visible.
     }
-  }, [initialSnapshot.id])
+  }, [])
 
   const scheduleResync = useCallback(() => {
     if (debounceRef.current !== null) window.clearTimeout(debounceRef.current)
@@ -55,6 +67,20 @@ export function useLiveMatchSnapshot({
       void resync()
     }, INVALIDATION_DEBOUNCE_MS)
   }, [resync])
+
+  useEffect(() => {
+    const matchIdChanged = lifecycleMatchIdRef.current !== initialSnapshot.id
+    lifecycleMatchIdRef.current = initialSnapshot.id
+    initialSnapshotRef.current = initialSnapshot
+    if (debounceRef.current !== null) {
+      window.clearTimeout(debounceRef.current)
+      debounceRef.current = null
+    }
+    ++requestRef.current
+    abortRef.current?.abort()
+    abortRef.current = null
+    if (matchIdChanged) previousStatusRef.current = 'connecting'
+  }, [initialSnapshot])
 
   const realtimeStatus = useMatchRealtime({
     matchId: initialSnapshot.id,
