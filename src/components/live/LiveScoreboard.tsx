@@ -1,138 +1,27 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { getSocket, joinMatchRoom } from '@/lib/socket-client'
+import { useMemo } from 'react'
 import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
-import type { SerializableClockState } from '@/hooks/useMatchClock'
+import { useLiveMatchSnapshot } from '@/hooks/useLiveMatchSnapshot'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
-import { resolveEventTeamLabel, resolveEventTeamCrest } from '@/lib/match-label'
-import { resolveEventTeamColor } from '@/lib/team-color'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
-import { LiveMatchContextBar, type LiveMatchWeather } from '@/components/live/LiveMatchContextBar'
+import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
 import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import { TeamCrest } from '@/components/TeamCrest'
-import type { LineupView } from '@/lib/match-lineup'
-import type { FootballFormat, MatchType } from '@prisma/client'
-import type { TeamMvpSideView } from '@/lib/match-mvp'
 import { footballFormatLabel } from '@/lib/football-format'
+import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
 import { personInitials } from '@/lib/player-name'
 
-type RawSocketEvent = {
-  id: string
-  type: string
-  minute: number
-  createdAt?: string | Date
-  teamId?: string | null
-  side?: 'A' | 'B' | null
-  friendlyPlayerId?: string | null
-  player?: {
-    user: { name: string }
-    team?: { id: string; name: string } | null
-  } | null
-  friendlyPlayer?: { firstName: string; lastName: string } | null
-  assistPlayer?: { user: { name: string } } | null
-  assistFriendlyPlayer?: { firstName: string; lastName: string } | null
-}
-
-type LiveMatchPayload = {
-  matchId: string
-  homeScore: number
-  awayScore: number
-  status: string
-  clockStartedAt?: string | Date | null
-  secondHalfStartedAt?: string | Date | null
-  halftimeAt?: string | Date | null
-  teamMvps?: TeamMvpSideView[]
-  event?: RawSocketEvent
-}
-
-type MatchEvent = {
-  id: string
-  type: string
-  minute: number
-  createdAt: string
-  playerName: string | null
-  teamName: string | null
-  teamCrestSrc: string | null
-  teamColor: string | null
-  assistName: string | null
-}
-
-type Match = {
-  id: string
-  matchType: MatchType
-  homeTeamId: string | null
-  awayTeamId: string | null
-  sideAName: string | null
-  sideBName: string | null
-  homeTeam: { name: string; crestSrc?: string | null; color: string }
-  awayTeam: { name: string; crestSrc?: string | null; color: string }
-  homeScore: number
-  awayScore: number
-  status: string
-  preferCreatedAtOrder: boolean
-  friendlySideByPlayer: Record<string, 'A' | 'B'>
-  clock: SerializableClockState
-  events: MatchEvent[]
-  footballFormat: FootballFormat
-  teamMvps: TeamMvpSideView[]
-  mvpPlayerIds: string[]
-  captainPlayerIds: string[]
-  homeCaptainLabel: string | null
-  awayCaptainLabel: string | null
-  homeCoachLabel: string | null
-  awayCoachLabel: string | null
-  venue: string | null
-  locationLabel: string | null
-  weather: LiveMatchWeather | null
-  formations: Array<{
-    label: string
-    crestSrc?: string | null
-    color?: string
-    coachLabel?: string | null
-    lineup: LineupView | null
-  }>
-}
-
-function teamVisualLookup(match: Match) {
-  return {
-    homeName: match.homeTeam.name,
-    awayName: match.awayTeam.name,
-    homeCrestSrc: match.homeTeam.crestSrc,
-    awayCrestSrc: match.awayTeam.crestSrc,
-    homeColor: match.homeTeam.color,
-    awayColor: match.awayTeam.color,
-  }
-}
-
-function eventPlayerName(event: RawSocketEvent): string | null {
-  if (event.friendlyPlayer) {
-    return `${event.friendlyPlayer.firstName} ${event.friendlyPlayer.lastName}`
-  }
-  return event.player?.user.name ?? null
-}
-
-function eventAssistName(event: RawSocketEvent): string | null {
-  if (event.assistFriendlyPlayer) {
-    return `${event.assistFriendlyPlayer.firstName} ${event.assistFriendlyPlayer.lastName}`
-  }
-  return event.assistPlayer?.user.name ?? null
-}
-
-function toIso(value: Date | string | null | undefined): string | null {
-  if (!value) return null
-  return value instanceof Date ? value.toISOString() : value
-}
-
-function toEventCreatedAt(value: string | Date | undefined): string {
-  if (!value) return new Date().toISOString()
-  return value instanceof Date ? value.toISOString() : value
-}
-
-export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
-  const [match, setMatch] = useState(initialMatch)
+export function LiveScoreboard({
+  initialMatch,
+}: {
+  initialMatch: LiveMatchSnapshot
+}) {
+  const { snapshot: match } = useLiveMatchSnapshot({
+    initialSnapshot: initialMatch,
+  })
 
   const sortedEvents = useMemo(
     () =>
@@ -142,86 +31,8 @@ export function LiveScoreboard({ initialMatch }: { initialMatch: Match }) {
     [match.events, match.preferCreatedAtOrder]
   )
 
-  useEffect(() => {
-    joinMatchRoom(match.id)
-    const socket = getSocket()
-
-    function onUpdate(payload: LiveMatchPayload) {
-      setMatch((prev) => {
-        const nextEvents = payload.event
-          ? prev.events.some((e) => e.id === payload.event!.id)
-            ? prev.events
-            : [
-                ...prev.events,
-                (() => {
-                  const teamName = resolveEventTeamLabel(
-                    {
-                      teamId: payload.event!.teamId,
-                      side: payload.event!.side,
-                      playerTeamId: payload.event!.player?.team?.id ?? null,
-                      playerTeamName: payload.event!.player?.team?.name ?? null,
-                      friendlyPlayerId: payload.event!.friendlyPlayerId,
-                      friendlySide: payload.event!.friendlyPlayerId
-                        ? (payload.event!.side ??
-                          prev.friendlySideByPlayer[payload.event!.friendlyPlayerId] ??
-                          null)
-                        : null,
-                    },
-                    {
-                      matchType: prev.matchType,
-                      sideAName: prev.sideAName,
-                      sideBName: prev.sideBName,
-                      homeTeam: prev.homeTeam,
-                      awayTeam: prev.awayTeam,
-                      homeTeamId: prev.homeTeamId,
-                      awayTeamId: prev.awayTeamId,
-                    }
-                  )
-                  return {
-                    id: payload.event!.id,
-                    type: payload.event!.type,
-                    minute: payload.event!.minute,
-                    createdAt: toEventCreatedAt(payload.event!.createdAt),
-                    playerName: eventPlayerName(payload.event!),
-                    assistName: eventAssistName(payload.event!),
-                    teamName,
-                    teamCrestSrc: resolveEventTeamCrest(teamName, teamVisualLookup(prev)),
-                    teamColor: resolveEventTeamColor(teamName, teamVisualLookup(prev)),
-                  }
-                })(),
-              ]
-          : prev.events
-
-        return {
-          ...prev,
-          homeScore: payload.homeScore,
-          awayScore: payload.awayScore,
-          status: payload.status,
-          teamMvps: payload.teamMvps ?? prev.teamMvps,
-          mvpPlayerIds: payload.teamMvps
-            ? payload.teamMvps.map((m) => m.playerId).filter((id): id is string => Boolean(id))
-            : prev.mvpPlayerIds,
-          clock: {
-            status: payload.status,
-            clockStartedAt: toIso(payload.clockStartedAt ?? prev.clock.clockStartedAt),
-            secondHalfStartedAt: toIso(
-              payload.secondHalfStartedAt ?? prev.clock.secondHalfStartedAt
-            ),
-            halftimeAt: toIso(payload.halftimeAt ?? prev.clock.halftimeAt),
-          },
-          events: nextEvents,
-        }
-      })
-    }
-
-    socket.on('match-update', onUpdate)
-    return () => {
-      socket.off('match-update', onUpdate)
-    }
-  }, [match.id])
-
   const isLive = match.status === 'LIVE'
-  const hasFormations = match.formations.some((f) => f.lineup)
+  const hasFormations = match.formations.some((formation) => formation.lineup)
 
   return (
     <div className="min-h-screen bg-kelme-live-bg text-white">
