@@ -17,7 +17,7 @@ export async function GET(
   } catch (error) {
     console.error('live_match_snapshot_failed', {
       matchId: id,
-      reason: error instanceof Error ? error.message : 'unknown_error',
+      reason: error instanceof Error ? error.name : 'unknown_error',
     })
     return NextResponse.json(
       { error: 'No se pudo cargar el partido en vivo' },

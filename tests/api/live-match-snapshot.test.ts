@@ -30,9 +30,10 @@ describe('GET /api/matches/[id]/live', () => {
     expect(await response.json()).toEqual({ error: 'Partido no encontrado' })
   })
 
-  it('returns a generic 500 response', async () => {
-    vi.mocked(getLiveMatchSnapshot).mockRejectedValue(new Error('database detail'))
-    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+  it('returns a generic 500 response without logging error details', async () => {
+    const secret = 'postgresql://db-user:secret-password@db.internal/app'
+    vi.mocked(getLiveMatchSnapshot).mockRejectedValue(new Error(secret))
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const response = await GET(new Request('http://localhost'), {
       params: Promise.resolve({ id: 'match-1' }),
     })
@@ -40,5 +41,10 @@ describe('GET /api/matches/[id]/live', () => {
     expect(await response.json()).toEqual({
       error: 'No se pudo cargar el partido en vivo',
     })
+    expect(errorSpy).toHaveBeenCalledWith('live_match_snapshot_failed', {
+      matchId: 'match-1',
+      reason: 'Error',
+    })
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(secret)
   })
 })
