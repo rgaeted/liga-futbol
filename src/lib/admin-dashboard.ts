@@ -76,6 +76,38 @@ export type AdminDashboardData = {
   todos: AdminDashboardTodo[]
 }
 
+const matchListSelect = {
+  id: true,
+  status: true,
+  scheduledAt: true,
+  homeScore: true,
+  awayScore: true,
+  venue: true,
+  communeName: true,
+  refereeId: true,
+  matchType: true,
+  sideAName: true,
+  sideBName: true,
+  homeTeam: { select: { name: true, color: true } },
+  awayTeam: { select: { name: true, color: true } },
+} as const
+
+type MatchListRow = {
+  id: string
+  status: MatchStatus
+  scheduledAt: Date
+  homeScore: number
+  awayScore: number
+  venue: string | null
+  communeName: string | null
+  refereeId: string | null
+  matchType: MatchType
+  sideAName: string | null
+  sideBName: string | null
+  homeTeam: { name: string; color: string | null } | null
+  awayTeam: { name: string; color: string | null } | null
+}
+
 function formatMatchDay(date: Date): string {
   return new Intl.DateTimeFormat(APP_LOCALE, {
     weekday: 'short',
@@ -122,21 +154,7 @@ function matchStateBadge(match: {
   return { state: 'Programado', stateBg: '#f4f4f5', stateFg: '#52525b' }
 }
 
-function toMatchRow(match: {
-  id: string
-  status: MatchStatus
-  scheduledAt: Date
-  homeScore: number
-  awayScore: number
-  venue: string | null
-  communeName: string | null
-  refereeId: string | null
-  matchType: MatchType
-  sideAName: string | null
-  sideBName: string | null
-  homeTeam: { name: string; color: string | null } | null
-  awayTeam: { name: string; color: string | null } | null
-}): AdminDashboardMatchRow {
+function toMatchRow(match: MatchListRow): AdminDashboardMatchRow {
   const label = matchDisplayName(match)
   const [home, away] = label.includes(' vs ') ? label.split(' vs ') : [label, '']
   const homeName = match.homeTeam?.name ?? match.sideAName ?? home
@@ -234,12 +252,20 @@ function buildStandings(
 }
 
 export async function getAdminDashboardData(seasonId?: string | null): Promise<AdminDashboardData> {
-  const seasons = await db.season.findMany({ orderBy: { startDate: 'desc' } })
+  const seasons = await db.season.findMany({
+    select: { id: true, name: true, isActive: true, startDate: true },
+    orderBy: { startDate: 'desc' },
+  })
+
   const selectedSeason =
     (seasonId ? seasons.find((s) => s.id === seasonId) : null) ??
     seasons.find((s) => s.isActive) ??
     seasons[0] ??
     null
+
+  const leagueSeasonWhere = selectedSeason
+    ? { seasonId: selectedSeason.id, matchType: MatchType.LEAGUE }
+    : null
 
   const [
     teamCount,
@@ -247,77 +273,140 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
     friendlyPlayerCount,
     friendlyCategoryCount,
     userCount,
-    topScorers,
     friendlyWithoutPhoto,
+    topScorers,
+    finishedCount,
+    scheduledCount,
+    totalSeasonMatches,
+    totalGoalsAgg,
+    redCards,
+    finishedMatches,
+    upcomingMatches,
+    recentResults,
+    nextScheduled,
+    pendingNoReferee,
+    pendingNoVenue,
   ] = await Promise.all([
     db.team.count(),
     db.player.count(),
     db.friendlyPlayer.count(),
     db.friendlyCategory.count({ where: { isActive: true } }),
     db.user.count(),
+    db.friendlyPlayer.count({ where: { photoMimeType: null } }),
     db.player.findMany({
       where: { goals: { gt: 0 } },
       orderBy: [{ goals: 'desc' }, { updatedAt: 'desc' }],
       take: 4,
-      include: {
+      select: {
+        goals: true,
         user: { select: { name: true } },
         team: { select: { name: true } },
       },
     }),
-    db.friendlyPlayer.count({ where: { photoMimeType: null } }),
+    leagueSeasonWhere
+      ? db.match.count({ where: { ...leagueSeasonWhere, status: MatchStatus.FINISHED } })
+      : Promise.resolve(0),
+    leagueSeasonWhere
+      ? db.match.count({
+          where: {
+            ...leagueSeasonWhere,
+            status: { in: [MatchStatus.SCHEDULED, MatchStatus.LIVE, MatchStatus.HALFTIME] },
+          },
+        })
+      : Promise.resolve(0),
+    leagueSeasonWhere ? db.match.count({ where: leagueSeasonWhere }) : Promise.resolve(0),
+    leagueSeasonWhere
+      ? db.match.aggregate({
+          where: { ...leagueSeasonWhere, status: MatchStatus.FINISHED },
+          _sum: { homeScore: true, awayScore: true },
+        })
+      : Promise.resolve({ _sum: { homeScore: 0, awayScore: 0 } }),
+    leagueSeasonWhere
+      ? db.matchEvent.count({
+          where: {
+            type: 'RED_CARD',
+            match: leagueSeasonWhere,
+          },
+        })
+      : Promise.resolve(0),
+    leagueSeasonWhere
+      ? db.match.findMany({
+          where: { ...leagueSeasonWhere, status: MatchStatus.FINISHED },
+          select: {
+            homeTeamId: true,
+            awayTeamId: true,
+            homeScore: true,
+            awayScore: true,
+            homeTeam: { select: { id: true, name: true, color: true } },
+            awayTeam: { select: { id: true, name: true, color: true } },
+          },
+        })
+      : Promise.resolve([]),
+    leagueSeasonWhere
+      ? db.match.findMany({
+          where: {
+            ...leagueSeasonWhere,
+            status: { in: [MatchStatus.SCHEDULED, MatchStatus.LIVE, MatchStatus.HALFTIME] },
+          },
+          select: matchListSelect,
+          orderBy: { scheduledAt: 'asc' },
+          take: 8,
+        })
+      : Promise.resolve([]),
+    leagueSeasonWhere
+      ? db.match.findMany({
+          where: { ...leagueSeasonWhere, status: MatchStatus.FINISHED },
+          select: matchListSelect,
+          orderBy: { scheduledAt: 'desc' },
+          take: 8,
+        })
+      : Promise.resolve([]),
+    leagueSeasonWhere
+      ? db.match.findFirst({
+          where: { ...leagueSeasonWhere, status: MatchStatus.SCHEDULED },
+          select: { scheduledAt: true },
+          orderBy: { scheduledAt: 'asc' },
+        })
+      : Promise.resolve(null),
+    leagueSeasonWhere
+      ? db.match.count({
+          where: { ...leagueSeasonWhere, status: MatchStatus.SCHEDULED, refereeId: null },
+        })
+      : Promise.resolve(0),
+    leagueSeasonWhere
+      ? db.match.count({
+          where: {
+            ...leagueSeasonWhere,
+            status: MatchStatus.SCHEDULED,
+            venue: null,
+            communeName: null,
+          },
+        })
+      : Promise.resolve(0),
   ])
 
-  const seasonMatches = selectedSeason
-    ? await db.match.findMany({
-        where: { seasonId: selectedSeason.id, matchType: MatchType.LEAGUE },
-        include: {
-          homeTeam: { select: { id: true, name: true, color: true } },
-          awayTeam: { select: { id: true, name: true, color: true } },
-        },
-        orderBy: { scheduledAt: 'asc' },
-      })
-    : []
-
-  const finished = seasonMatches.filter((m) => m.status === MatchStatus.FINISHED)
-  const upcoming = seasonMatches.filter(
-    (m) => m.status === MatchStatus.SCHEDULED || m.status === MatchStatus.LIVE || m.status === MatchStatus.HALFTIME
-  )
-  const results = [...finished].reverse()
-
-  const totalGoals = finished.reduce((sum, m) => sum + m.homeScore + m.awayScore, 0)
-  const redCards = selectedSeason
-    ? await db.matchEvent.count({
-        where: {
-          type: 'RED_CARD',
-          match: { seasonId: selectedSeason.id, matchType: MatchType.LEAGUE },
-        },
-      })
-    : 0
-
-  const scheduledUpcoming = upcoming.filter((m) => m.status === MatchStatus.SCHEDULED)
-  const withoutReferee = scheduledUpcoming.filter((m) => !m.refereeId).length
-  const withoutVenue = scheduledUpcoming.filter((m) => !m.venue && !m.communeName).length
-  const nextMatch = scheduledUpcoming[0]
+  const totalGoals =
+    (totalGoalsAgg._sum.homeScore ?? 0) + (totalGoalsAgg._sum.awayScore ?? 0)
+  const scheduledUpcoming = scheduledCount
+  const matchTotal = totalSeasonMatches || 1
+  const playedPct = Math.round((finishedCount / matchTotal) * 100)
 
   const subtitleParts: string[] = []
   if (selectedSeason) {
-    subtitleParts.push(`${finished.length} jugados · ${scheduledUpcoming.length} por jugar`)
-    if (nextMatch) {
+    subtitleParts.push(`${finishedCount} jugados · ${scheduledUpcoming} por jugar`)
+    if (nextScheduled) {
       subtitleParts.push(
         `próximo ${new Intl.DateTimeFormat(APP_LOCALE, {
           weekday: 'long',
           day: 'numeric',
           month: 'long',
           timeZone: APP_TIMEZONE,
-        }).format(nextMatch.scheduledAt)}`
+        }).format(nextScheduled.scheduledAt)}`
       )
     }
   } else {
     subtitleParts.push('Selecciona o crea una temporada para ver el calendario de liga.')
   }
-
-  const matchTotal = seasonMatches.length || 1
-  const playedPct = Math.round((finished.length / matchTotal) * 100)
 
   const kpis: AdminDashboardKpi[] = [
     {
@@ -338,18 +427,18 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
     },
     {
       label: 'Partidos',
-      value: String(finished.length),
-      unit: `de ${seasonMatches.length}`,
+      value: String(finishedCount),
+      unit: `de ${totalSeasonMatches}`,
       delta: `${playedPct}%`,
       pct: `${playedPct}%`,
-      foot: `${scheduledUpcoming.length} por jugar`,
+      foot: `${scheduledUpcoming} por jugar`,
     },
     {
       label: 'Goles',
       value: String(totalGoals),
       unit: 'en la liga',
-      delta: finished.length ? `${(totalGoals / finished.length).toFixed(1)} / partido` : '—',
-      pct: finished.length ? `${Math.min(100, playedPct)}%` : '0%',
+      delta: finishedCount ? `${(totalGoals / finishedCount).toFixed(1)} / partido` : '—',
+      pct: finishedCount ? `${Math.min(100, playedPct)}%` : '0%',
       foot: `${redCards} tarjetas rojas`,
     },
   ]
@@ -394,17 +483,17 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
   ]
 
   const todos: AdminDashboardTodo[] = []
-  if (withoutReferee > 0) {
+  if (pendingNoReferee > 0) {
     todos.push({
       dot: '#b91c1c',
-      title: `${withoutReferee} partido${withoutReferee === 1 ? '' : 's'} sin árbitro`,
+      title: `${pendingNoReferee} partido${pendingNoReferee === 1 ? '' : 's'} sin árbitro`,
       meta: 'Revisa el calendario próximo',
     })
   }
-  if (withoutVenue > 0) {
+  if (pendingNoVenue > 0) {
     todos.push({
       dot: '#f59e0b',
-      title: `${withoutVenue} partido${withoutVenue === 1 ? '' : 's'} sin sede confirmada`,
+      title: `${pendingNoVenue} partido${pendingNoVenue === 1 ? '' : 's'} sin sede confirmada`,
       meta: 'Agrega cancha o comuna',
     })
   }
@@ -429,9 +518,9 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
     seasonSubtitle: subtitleParts.join(' · '),
     seasons: seasons.map((s) => ({ id: s.id, name: s.name, isActive: s.isActive })),
     kpis,
-    upcoming: upcoming.map(toMatchRow).slice(0, 8),
-    results: results.map(toMatchRow).slice(0, 8),
-    standings: buildStandings(finished),
+    upcoming: upcomingMatches.map(toMatchRow),
+    results: recentResults.map(toMatchRow),
+    standings: buildStandings(finishedMatches),
     scorers: topScorers.map((p) => ({
       abbr: personInitials(p.user.name),
       name: p.user.name,
