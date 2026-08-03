@@ -1,18 +1,24 @@
 ﻿import { auth, signOut } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Role, getDashboardPath } from '@/lib/roles'
-import { DashboardShell } from '@/components/kelme/DashboardShell'
+import { AdminShell } from '@/components/admin/AdminShell'
+import type { AdminNavItem } from '@/components/admin/AdminNav'
 
 export const dynamic = 'force-dynamic'
 
-const ADMIN_NAV = [
+export const ADMIN_NAV: AdminNavItem[] = [
   { href: '/admin', label: 'Inicio' },
   { href: '/admin/teams', label: 'Equipos' },
   { href: '/admin/players', label: 'Jugadores' },
-  { href: '/admin/friendly-categories', label: 'Categorías amistosas' },
-  { href: '/admin/friendly-players', label: 'Jugadores amistosos' },
   { href: '/admin/matches', label: 'Partidos' },
   { href: '/admin/seasons', label: 'Temporadas' },
+  {
+    href: '/admin/friendly-players',
+    label: 'Amistosos',
+    match: (pathname) =>
+      pathname.startsWith('/admin/friendly-players') ||
+      pathname.startsWith('/admin/friendly-categories'),
+  },
   { href: '/admin/users', label: 'Usuarios' },
 ]
 
@@ -29,9 +35,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <DashboardShell nav={ADMIN_NAV} signOutAction={handleSignOut}>
+    <AdminShell nav={ADMIN_NAV} userName={session.user.name ?? 'Admin'} signOutAction={handleSignOut}>
       {children}
-    </DashboardShell>
+    </AdminShell>
   )
 }
-

@@ -1,27 +1,13 @@
-import Link from 'next/link'
+import { AdminDashboardHome } from '@/components/admin/AdminDashboardHome'
+import { getAdminDashboardData } from '@/lib/admin-dashboard'
 
-export default function AdminHomePage() {
-  return (
-    <div className="space-y-4">
-      <h1 className="font-display text-2xl font-bold">Panel de Administración</h1>
-      <p className="text-kelme-gray-400">Gestiona equipos, jugadores, temporadas y partidos.</p>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          { href: '/admin/teams', label: 'Equipos' },
-          { href: '/admin/players', label: 'Jugadores' },
-          { href: '/admin/seasons', label: 'Temporadas' },
-          { href: '/admin/matches', label: 'Partidos' },
-          { href: '/admin/users', label: 'Usuarios' },
-        ].map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="rounded-xl border border-kelme-border bg-kelme-surface p-6 hover:border-kelme-red"
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
-    </div>
-  )
+export default async function AdminHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ season?: string }>
+}) {
+  const { season } = await searchParams
+  const data = await getAdminDashboardData(season)
+
+  return <AdminDashboardHome data={data} />
 }
