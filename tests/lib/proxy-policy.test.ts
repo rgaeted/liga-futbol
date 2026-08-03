@@ -5,10 +5,9 @@ const baseRequest = {
   method: 'GET',
   pathname: '/admin',
   search: '',
-  accept: 'text/html',
-  rsc: null,
   maintenanceMode: undefined,
   redirectUrl: undefined,
+  requestOrigin: 'https://torneos-kelme.onrender.com',
 }
 
 describe('proxy policy', () => {
@@ -42,7 +41,6 @@ describe('proxy policy', () => {
         ...baseRequest,
         method: 'POST',
         pathname: '/api/matches/match-1/events',
-        accept: 'application/json',
         maintenanceMode: 'true',
       })
     ).toEqual({
@@ -58,13 +56,12 @@ describe('proxy policy', () => {
         ...baseRequest,
         method: 'GET',
         pathname: '/api/matches/match-1/live',
-        accept: 'application/json',
         maintenanceMode: 'true',
       })
     ).toBeNull()
   })
 
-  it('redirects private HTML pages during maintenance', () => {
+  it('redirects private page GETs during maintenance', () => {
     expect(
       decideMigrationRequest({
         ...baseRequest,
@@ -73,23 +70,11 @@ describe('proxy policy', () => {
     ).toEqual({ kind: 'redirect', location: '/mantenimiento' })
   })
 
-  it('redirects private RSC page navigations during maintenance', () => {
+  it('redirects an extensionless non-API GET during maintenance without RSC headers', () => {
     expect(
       decideMigrationRequest({
         ...baseRequest,
-        accept: '*/*',
-        rsc: '1',
-        maintenanceMode: 'true',
-      })
-    ).toEqual({ kind: 'redirect', location: '/mantenimiento' })
-  })
-
-  it('recognizes RSC navigation when Next.js strips the rsc header', () => {
-    expect(
-      decideMigrationRequest({
-        ...baseRequest,
-        accept: 'text/x-component',
-        rsc: null,
+        pathname: '/admin/settings',
         maintenanceMode: 'true',
       })
     ).toEqual({ kind: 'redirect', location: '/mantenimiento' })
@@ -119,17 +104,16 @@ describe('proxy policy', () => {
     })
   })
 
-  it('redirects RSC page GET navigations to Vercel', () => {
+  it('legacy-redirects an extensionless non-API GET without RSC headers', () => {
     expect(
       decideMigrationRequest({
         ...baseRequest,
-        accept: '*/*',
-        rsc: '1',
+        pathname: '/admin/settings',
         redirectUrl: 'https://torneos-kelme.vercel.app',
       })
     ).toEqual({
       kind: 'redirect',
-      location: 'https://torneos-kelme.vercel.app/admin',
+      location: 'https://torneos-kelme.vercel.app/admin/settings',
     })
   })
 
@@ -138,7 +122,6 @@ describe('proxy policy', () => {
       decideMigrationRequest({
         ...baseRequest,
         pathname: '/api/matches/match-1/live',
-        accept: 'application/json',
         redirectUrl: 'https://torneos-kelme.vercel.app',
       })
     ).toBeNull()
@@ -157,6 +140,15 @@ describe('proxy policy', () => {
         ...baseRequest,
         pathname: '/mantenimiento',
         redirectUrl: 'https://torneos-kelme.vercel.app',
+      })
+    ).toBeNull()
+  })
+
+  it('ignores a same-origin legacy redirect target', () => {
+    expect(
+      decideMigrationRequest({
+        ...baseRequest,
+        redirectUrl: 'https://torneos-kelme.onrender.com',
       })
     ).toBeNull()
   })

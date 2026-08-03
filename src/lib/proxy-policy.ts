@@ -43,24 +43,21 @@ export function decideMigrationRequest(input: {
   method: string
   pathname: string
   search: string
-  accept: string | null
-  rsc: string | null
   maintenanceMode: string | undefined
   redirectUrl: string | undefined
+  requestOrigin: string
 }): MigrationDecision | null {
   const isApi = input.pathname.startsWith('/api/')
-  const isNavigation =
-    input.method === 'GET' &&
-    !isApi &&
-    (input.accept?.includes('text/html') === true ||
-      input.accept?.includes('text/x-component') === true ||
-      input.rsc === '1')
+  const isNavigation = input.method === 'GET' && !isApi
   const isMaintenancePage = input.pathname.startsWith('/mantenimiento')
 
   if (input.redirectUrl && isNavigation && !isMaintenancePage) {
     try {
       const target = new URL(input.redirectUrl)
-      if (target.protocol === 'http:' || target.protocol === 'https:') {
+      if (
+        (target.protocol === 'http:' || target.protocol === 'https:') &&
+        target.origin !== input.requestOrigin
+      ) {
         target.pathname = input.pathname
         target.search = input.search
         target.hash = ''

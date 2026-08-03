@@ -12,10 +12,9 @@ export const proxy = auth((req) => {
     method: req.method,
     pathname,
     search,
-    accept: req.headers.get('accept'),
-    rsc: req.headers.get('rsc'),
     maintenanceMode: process.env.MIGRATION_MAINTENANCE_MODE,
     redirectUrl: process.env.MIGRATION_REDIRECT_URL,
+    requestOrigin: req.nextUrl.origin,
   })
 
   if (migrationDecision?.kind === 'json') {
