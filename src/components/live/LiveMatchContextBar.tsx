@@ -1,12 +1,8 @@
 import type { ReactNode } from 'react'
+import type { LiveMatchWeather } from '@/lib/live-match-snapshot'
 import { formatLiveWeatherTempC, formatLiveWeatherWindKmh } from '@/lib/match-weather'
 
-export type LiveMatchWeather = {
-  label: string
-  tempC: number
-  humidityPct: number
-  windKmh: number
-}
+export type { LiveMatchWeather } from '@/lib/live-match-snapshot'
 
 function MapPinIcon() {
   return (
