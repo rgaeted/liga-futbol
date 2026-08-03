@@ -3,7 +3,7 @@ import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 import { matchDisplayName } from '@/lib/match-label'
 import { resolveTeamColor } from '@/lib/team-color'
 import { teamInitials, personInitials } from '@/lib/player-name'
-import { MatchStatus, MatchType } from '@prisma/client'
+import { MatchStatus, MatchType, EventType } from '@prisma/client'
 
 export type AdminDashboardMatchRow = {
   id: string
@@ -278,14 +278,6 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
     finishedCount,
     scheduledCount,
     totalSeasonMatches,
-    totalGoalsAgg,
-    redCards,
-    finishedMatches,
-    upcomingMatches,
-    recentResults,
-    nextScheduled,
-    pendingNoReferee,
-    pendingNoVenue,
   ] = await Promise.all([
     db.team.count(),
     db.player.count(),
@@ -315,6 +307,18 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
         })
       : Promise.resolve(0),
     leagueSeasonWhere ? db.match.count({ where: leagueSeasonWhere }) : Promise.resolve(0),
+  ])
+
+  const [
+    totalGoalsAgg,
+    redCards,
+    finishedMatches,
+    upcomingMatches,
+    recentResults,
+    nextScheduled,
+    pendingNoReferee,
+    pendingNoVenue,
+  ] = await Promise.all([
     leagueSeasonWhere
       ? db.match.aggregate({
           where: { ...leagueSeasonWhere, status: MatchStatus.FINISHED },
@@ -324,7 +328,7 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
     leagueSeasonWhere
       ? db.matchEvent.count({
           where: {
-            type: 'RED_CARD',
+            type: EventType.RED_CARD,
             match: leagueSeasonWhere,
           },
         })

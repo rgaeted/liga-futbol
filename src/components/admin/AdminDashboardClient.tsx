@@ -1,0 +1,73 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { AdminDashboardHome } from '@/components/admin/AdminDashboardHome'
+import { AdminDashboardSkeleton } from '@/components/admin/AdminDashboardSkeleton'
+import type { AdminDashboardData } from '@/lib/admin-dashboard'
+
+export function AdminDashboardClient() {
+  const searchParams = useSearchParams()
+  const seasonId = searchParams.get('season')
+  const [data, setData] = useState<AdminDashboardData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    const params = new URLSearchParams()
+    if (seasonId) params.set('season', seasonId)
+    const query = params.toString()
+    const url = query ? `/api/admin/dashboard?${query}` : '/api/admin/dashboard'
+
+    try {
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) {
+        throw new Error(res.status === 401 ? 'Sesión expirada' : 'Error al cargar el panel')
+      }
+      setData(await res.json())
+    } catch (err) {
+      setData(null)
+      setError(err instanceof Error ? err.message : 'Error al cargar el panel')
+    } finally {
+      setLoading(false)
+    }
+  }, [seasonId])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  if (loading) return <AdminDashboardSkeleton />
+
+  if (error || !data) {
+    return (
+      <div className="rounded-[14px] border border-red-200 bg-white p-8 text-center">
+        <h1 className="font-display text-2xl font-bold text-zinc-900">No pudimos cargar el panel</h1>
+        <p className="mt-2 text-sm text-zinc-500">
+          {error ?? 'Hubo un problema al cargar los datos. Intenta de nuevo en unos segundos.'}
+        </p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="rounded-[10px] bg-[#b91c1c] px-4 py-2 font-ui text-sm font-semibold text-white hover:bg-[#9f1728]"
+          >
+            Reintentar
+          </button>
+          <Link
+            href="/admin/matches"
+            className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
+          >
+            Ir a partidos
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return <AdminDashboardHome data={data} />
+}

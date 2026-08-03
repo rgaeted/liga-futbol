@@ -1,26 +1,13 @@
 import { Suspense } from 'react'
-import { AdminDashboardHome } from '@/components/admin/AdminDashboardHome'
+import { AdminDashboardClient } from '@/components/admin/AdminDashboardClient'
 import { AdminDashboardSkeleton } from '@/components/admin/AdminDashboardSkeleton'
-import { getAdminDashboardData } from '@/lib/admin-dashboard'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
 
-async function AdminDashboardContent({ seasonId }: { seasonId?: string }) {
-  const data = await getAdminDashboardData(seasonId)
-  return <AdminDashboardHome data={data} />
-}
-
-export default async function AdminHomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ season?: string }>
-}) {
-  const { season } = await searchParams
-
+export default function AdminHomePage() {
   return (
     <Suspense fallback={<AdminDashboardSkeleton />}>
-      <AdminDashboardContent seasonId={season} />
+      <AdminDashboardClient />
     </Suspense>
   )
 }
