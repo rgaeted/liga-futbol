@@ -605,4 +605,3 @@ Cada plan debe dejar software verificable por separado. La producción actual no
 - Suite, typecheck y build pasan.
 - El corte se completa dentro de la ventana anunciada.
 - Render y Neon pueden retirarse después de siete días estables.
-
