@@ -3,6 +3,23 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+/** Neon pooler URLs break Prisma Migrate advisory locks (P1002). */
+function prismaCliDatabaseUrl(): string {
+  const direct = process.env["DIRECT_URL"];
+  if (direct) return direct;
+
+  const pooled = process.env["DATABASE_URL"];
+  if (!pooled) {
+    throw new Error("DATABASE_URL is required for Prisma CLI commands");
+  }
+
+  if (pooled.includes("-pooler.")) {
+    return pooled.replace("-pooler.", ".");
+  }
+
+  return pooled;
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -10,6 +27,6 @@ export default defineConfig({
     seed: "npx tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: prismaCliDatabaseUrl(),
   },
 });

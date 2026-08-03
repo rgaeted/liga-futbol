@@ -9,6 +9,8 @@ Stack: **Render** (web service free) + **Neon** (Postgres free) + **GitHub**.
 3. Copia la **connection string** (pooled) del dashboard. Debe verse así:
    `postgresql://usuario:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`
 4. Guárdala: es tu `DATABASE_URL` de producción.
+5. (Opcional) Copia también la connection string **direct** (sin `-pooler` en el host) como `DIRECT_URL`.
+   Si no la configuras, el build deriva la URL directa automáticamente a partir de `DATABASE_URL`.
 
 ## 2. Migrar y sembrar datos (desde tu equipo)
 
@@ -39,7 +41,8 @@ git push -u origin main
 2. **New > Blueprint** y selecciona el repo `liga-futbol`. Render detecta `render.yaml`.
 3. Render creará el web service `torneos-kelme`. Antes del primer deploy, completa
    las variables marcadas como *sync: false*:
-   - `DATABASE_URL` = la cadena de Neon (con `?sslmode=require`)
+   - `DATABASE_URL` = la cadena pooled de Neon (con `?sslmode=require`)
+   - `DIRECT_URL` = (opcional) cadena directa sin `-pooler`; si falta, el build la infiere
    - `NEXTAUTH_URL` = `https://torneos-kelme.onrender.com`
      (usa el nombre real que muestre Render si difiere)
 4. Lanza el deploy. El build corre migraciones + `next build` y luego `npm start`.
