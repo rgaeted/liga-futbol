@@ -3,7 +3,10 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+  compareDatabaseSnapshots,
   readRepositoryMigrations,
+  type DatabaseSnapshot,
+  type RepositoryMigration,
 } from '../../scripts/lib/database-migration-verifier'
 
 const temporaryRoots: string[] = []
@@ -27,6 +30,69 @@ async function createRepositoryWithMigrations(count: number): Promise<string> {
   }
 
   return root
+}
+
+function repositoryMigrations(): RepositoryMigration[] {
+  return Array.from({ length: 20 }, (_, index) => ({
+    name: `migration-${String(index + 1).padStart(2, '0')}`,
+    checksum: `checksum-${index + 1}`,
+  }))
+}
+
+function databaseSnapshot(): DatabaseSnapshot {
+  return {
+    tables: [
+      { schema: 'public', table: 'User', rowCount: 2 },
+      { schema: 'public', table: '_prisma_migrations', rowCount: 20 },
+    ],
+    migrations: repositoryMigrations().map((migration) => ({
+      name: migration.name,
+      checksum: migration.checksum,
+      finished: true,
+      rolledBack: false,
+    })),
+    users: [
+      { id: 'user-1', email: 'admin@liga.com' },
+      { id: 'user-2', email: 'jugador@liga.com' },
+    ],
+    matchesByStatusAndType: [
+      { key: 'FINISHED|LEAGUE', count: 1 },
+    ],
+    eventsByType: [{ key: 'GOAL', count: 2 }],
+    foreignKeyOrphans: [
+      {
+        key: 'public.Player.Player_userId_fkey',
+        count: 0,
+      },
+    ],
+    byteaColumns: [
+      {
+        key: 'public.FriendlyPlayer.photoData',
+        nonNullRows: 2,
+        totalBytes: 200,
+      },
+      {
+        key: 'public.Match.sideACrestData',
+        nonNullRows: 1,
+        totalBytes: 80,
+      },
+      {
+        key: 'public.Match.sideBCrestData',
+        nonNullRows: 1,
+        totalBytes: 90,
+      },
+      {
+        key: 'public.MatchTeamMvp.photoData',
+        nonNullRows: 1,
+        totalBytes: 110,
+      },
+      {
+        key: 'public.Team.crestData',
+        nonNullRows: 1,
+        totalBytes: 120,
+      },
+    ],
+  }
 }
 
 afterEach(async () => {
@@ -72,6 +138,69 @@ describe('readRepositoryMigrations', () => {
 
     await expect(readRepositoryMigrations(root)).rejects.toThrow(
       'Migration directory 20260000000020_migration_20 has no migration.sql',
+    )
+  })
+})
+
+describe('compareDatabaseSnapshots', () => {
+  it('accepts identical complete inventories', () => {
+    const source = databaseSnapshot()
+    const target = structuredClone(source)
+
+    expect(
+      compareDatabaseSnapshots(repositoryMigrations(), source, target),
+    ).toEqual({
+      ok: true,
+      differences: [],
+    })
+  })
+
+  it('reports missing tables instead of comparing a partial model list', () => {
+    const source = databaseSnapshot()
+    const target = structuredClone(source)
+    target.tables = target.tables.filter((entry) => entry.table !== 'User')
+
+    expect(
+      compareDatabaseSnapshots(repositoryMigrations(), source, target)
+        .differences,
+    ).toContain('tables differs between Neon and Supabase Preview')
+  })
+
+  it('reports repository, orphan and BYTEA differences', () => {
+    const source = databaseSnapshot()
+    const target = structuredClone(source)
+    target.migrations.pop()
+    target.foreignKeyOrphans[0].count = 1
+    target.byteaColumns[4].totalBytes = 119
+
+    const result = compareDatabaseSnapshots(
+      repositoryMigrations(),
+      source,
+      target,
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.differences).toEqual(
+      expect.arrayContaining([
+        'Supabase Preview migrations do not match repository migrations',
+        'Supabase Preview contains 1 foreign-key orphan(s) in public.Player.Player_userId_fkey',
+        'migrations differs between Neon and Supabase Preview',
+        'foreignKeyOrphans differs between Neon and Supabase Preview',
+        'byteaColumns differs between Neon and Supabase Preview',
+      ]),
+    )
+  })
+
+  it('requires exactly five BYTEA columns on both databases', () => {
+    const source = databaseSnapshot()
+    const target = structuredClone(source)
+    target.byteaColumns.pop()
+
+    expect(
+      compareDatabaseSnapshots(repositoryMigrations(), source, target)
+        .differences,
+    ).toContain(
+      'Supabase Preview must contain exactly 5 BYTEA columns; found 4',
     )
   })
 })
