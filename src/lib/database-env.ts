@@ -162,3 +162,29 @@ export function getPrismaCliDatabaseUrl(
 
   return getRuntimeDatabaseUrl(env)
 }
+
+export interface ServerlessPoolOptions {
+  max: 1
+  idleTimeoutMillis: 10_000
+  connectionTimeoutMillis: 10_000
+  allowExitOnIdle: true
+}
+
+export interface RuntimeDatabaseConfig {
+  connectionString: string
+  pool: ServerlessPoolOptions
+}
+
+export function getRuntimeDatabaseConfig(
+  env: DatabaseEnvironment = process.env,
+): RuntimeDatabaseConfig {
+  return {
+    connectionString: getRuntimeDatabaseUrl(env),
+    pool: {
+      max: 1,
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 10_000,
+      allowExitOnIdle: true,
+    },
+  }
+}

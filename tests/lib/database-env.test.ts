@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   getPrismaCliDatabaseUrl,
+  getRuntimeDatabaseConfig,
   getRuntimeDatabaseUrl,
   prismaCommandRequiresDirectUrl,
   requireDirectDatabaseUrl,
@@ -119,5 +120,24 @@ describe('Prisma CLI database selection', () => {
         ['generate'],
       ),
     ).toBe(sessionUrl)
+  })
+})
+
+describe('serverless pool configuration', () => {
+  it('limits each runtime instance to one PostgreSQL connection', () => {
+    expect(
+      getRuntimeDatabaseConfig({
+        VERCEL: '1',
+        DATABASE_URL: transactionUrl,
+      }),
+    ).toEqual({
+      connectionString: transactionUrl,
+      pool: {
+        max: 1,
+        idleTimeoutMillis: 10_000,
+        connectionTimeoutMillis: 10_000,
+        allowExitOnIdle: true,
+      },
+    })
   })
 })
