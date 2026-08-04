@@ -12,7 +12,7 @@ import {
 
 export interface VerificationEnvironment {
   neonUrl: string
-  supabasePreviewUrl: string
+  supabaseTargetUrl: string
   reportPath: string
 }
 
@@ -56,10 +56,10 @@ export function validateVerificationEnvironment(
   repositoryRoot: string = process.cwd(),
 ): VerificationEnvironment {
   const neonUrl = requirePostgresUrl(env, 'NEON_DIRECT_URL')
-  const supabasePreviewUrl = requirePostgresUrl(
-    env,
-    'SUPABASE_PREVIEW_SESSION_URL',
-  )
+  const supabaseTargetUrl =
+    env.SUPABASE_SESSION_URL?.trim()
+      ? requirePostgresUrl(env, 'SUPABASE_SESSION_URL')
+      : requirePostgresUrl(env, 'SUPABASE_PREVIEW_SESSION_URL')
   const reportValue = env.MIGRATION_REPORT_PATH
 
   if (!reportValue?.trim()) {
@@ -74,16 +74,16 @@ export function validateVerificationEnvironment(
 
   if (
     new URL(neonUrl).toString() ===
-    new URL(supabasePreviewUrl).toString()
+    new URL(supabaseTargetUrl).toString()
   ) {
     throw new Error(
-      'NEON_DIRECT_URL and SUPABASE_PREVIEW_SESSION_URL must reference different databases',
+      'NEON_DIRECT_URL and the Supabase session URL must reference different databases',
     )
   }
 
   return {
     neonUrl,
-    supabasePreviewUrl,
+    supabaseTargetUrl,
     reportPath,
   }
 }
@@ -99,7 +99,7 @@ export async function runDatabaseMigrationVerification(
   env: Readonly<Record<string, string | undefined>> = process.env,
   repositoryRoot: string = process.cwd(),
 ): Promise<number> {
-  const { neonUrl, supabasePreviewUrl, reportPath } =
+  const { neonUrl, supabaseTargetUrl, reportPath } =
     validateVerificationEnvironment(env, repositoryRoot)
   const repositoryMigrations =
     await readRepositoryMigrations(repositoryRoot)
@@ -109,15 +109,15 @@ export async function runDatabaseMigrationVerification(
     max: 1,
     application_name: 'liga-futbol-migration-source',
   })
-  const previewPool = new Pool({
-    connectionString: supabasePreviewUrl,
+  const targetPool = new Pool({
+    connectionString: supabaseTargetUrl,
     max: 1,
-    application_name: 'liga-futbol-migration-preview',
+    application_name: 'liga-futbol-migration-target',
   })
 
   try {
     const source = await collectDatabaseSnapshot(neonPool)
-    const target = await collectDatabaseSnapshot(previewPool)
+    const target = await collectDatabaseSnapshot(targetPool)
     const result = compareDatabaseSnapshots(
       repositoryMigrations,
       source,
@@ -153,7 +153,7 @@ export async function runDatabaseMigrationVerification(
       0,
     )
 
-    console.log('[verify-db] Neon and Supabase Preview snapshots match.')
+    console.log('[verify-db] Neon and Supabase target snapshots match.')
     console.log(
       `[verify-db] ${repositoryMigrations.length} repository migrations verified.`,
     )
@@ -166,7 +166,7 @@ export async function runDatabaseMigrationVerification(
     console.log('[verify-db] Report written outside repository.')
     return 0
   } finally {
-    await Promise.allSettled([neonPool.end(), previewPool.end()])
+    await Promise.allSettled([neonPool.end(), targetPool.end()])
   }
 }
 

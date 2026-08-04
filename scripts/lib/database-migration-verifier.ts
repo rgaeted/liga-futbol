@@ -244,6 +244,16 @@ interface ForeignKeyRow extends QueryResultRow {
   parentColumns: string[] | string
 }
 
+interface ParsedForeignKeyRow {
+  constraintName: string
+  childSchema: string
+  childTable: string
+  parentSchema: string
+  parentTable: string
+  childColumns: string[]
+  parentColumns: string[]
+}
+
 function parsePostgresTextArray(value: string[] | string): string[] {
   if (Array.isArray(value)) {
     return value
@@ -326,7 +336,7 @@ async function readGroupedCounts(
 
 async function readForeignKeys(
   client: PoolClient,
-): Promise<ForeignKeyRow[]> {
+): Promise<ParsedForeignKeyRow[]> {
   const result = await client.query<ForeignKeyRow>(`
     SELECT
       constraint_row.conname AS "constraintName",

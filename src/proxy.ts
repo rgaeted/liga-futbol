@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth'
 import { NextResponse } from 'next/server'
 import authConfig from '@/lib/auth.config'
+import { isDatabaseHealthRequest } from '@/lib/database-health'
 import { decideMigrationRequest, isPublicRequest } from '@/lib/proxy-policy'
 import { canAccess, getDashboardPath, type Role } from '@/lib/roles'
 
@@ -25,7 +26,12 @@ export const proxy = auth((req) => {
   if (migrationDecision?.kind === 'redirect') {
     return NextResponse.redirect(new URL(migrationDecision.location, req.url))
   }
-  if (isPublicRequest(req.method, pathname)) return NextResponse.next()
+  if (
+    isPublicRequest(req.method, pathname) ||
+    isDatabaseHealthRequest(req.method, pathname)
+  ) {
+    return NextResponse.next()
+  }
 
   if (!req.auth) {
     if (pathname.startsWith('/api/')) {
