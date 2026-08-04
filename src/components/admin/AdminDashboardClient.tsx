@@ -7,6 +7,13 @@ import { AdminDashboardHome } from '@/components/admin/AdminDashboardHome'
 import { AdminDashboardSkeleton } from '@/components/admin/AdminDashboardSkeleton'
 import type { AdminDashboardData } from '@/lib/admin-dashboard'
 
+function dashboardUrl(seasonId: string | null): string {
+  const params = new URLSearchParams()
+  if (seasonId) params.set('season', seasonId)
+  const query = params.toString()
+  return query ? `/api/admin/dashboard?${query}` : '/api/admin/dashboard'
+}
+
 export function AdminDashboardClient() {
   const searchParams = useSearchParams()
   const seasonId = searchParams.get('season')
@@ -14,46 +21,83 @@ export function AdminDashboardClient() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-
-    const params = new URLSearchParams()
-    if (seasonId) params.set('season', seasonId)
-    const query = params.toString()
-    const url = query ? `/api/admin/dashboard?${query}` : '/api/admin/dashboard'
-
-    try {
-      const res = await fetch(url, { cache: 'no-store' })
-      if (!res.ok) {
-        throw new Error(res.status === 401 ? 'Sesión expirada' : 'Error al cargar el panel')
-      }
-      setData(await res.json())
-    } catch (err) {
-      setData(null)
-      setError(err instanceof Error ? err.message : 'Error al cargar el panel')
-    } finally {
-      setLoading(false)
+  const fetchDashboard = useCallback(async (): Promise<AdminDashboardData> => {
+    const res = await fetch(dashboardUrl(seasonId), { cache: 'no-store' })
+    if (!res.ok) {
+      throw new Error(
+        res.status === 401 ? 'Sesión expirada' : 'Error al cargar el panel',
+      )
     }
+    return res.json() as Promise<AdminDashboardData>
   }, [seasonId])
 
+  const [loadedSeason, setLoadedSeason] = useState<string | null>(null)
+  const seasonKey = seasonId ?? ''
+  if (loadedSeason !== seasonKey) {
+    setLoadedSeason(seasonKey)
+    setLoading(true)
+    setError(null)
+    setData(null)
+  }
+
   useEffect(() => {
-    void load()
-  }, [load])
+    let cancelled = false
+
+    void fetchDashboard()
+      .then((payload) => {
+        if (cancelled) return
+        setData(payload)
+        setError(null)
+        setLoading(false)
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setData(null)
+        setError(
+          err instanceof Error ? err.message : 'Error al cargar el panel',
+        )
+        setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [fetchDashboard])
+
+  function retry() {
+    setLoading(true)
+    setError(null)
+    void fetchDashboard()
+      .then((payload) => {
+        setData(payload)
+        setError(null)
+        setLoading(false)
+      })
+      .catch((err: unknown) => {
+        setData(null)
+        setError(
+          err instanceof Error ? err.message : 'Error al cargar el panel',
+        )
+        setLoading(false)
+      })
+  }
 
   if (loading) return <AdminDashboardSkeleton />
 
   if (error || !data) {
     return (
       <div className="rounded-[14px] border border-red-200 bg-white p-8 text-center">
-        <h1 className="font-display text-2xl font-bold text-zinc-900">No pudimos cargar el panel</h1>
+        <h1 className="font-display text-2xl font-bold text-zinc-900">
+          No pudimos cargar el panel
+        </h1>
         <p className="mt-2 text-sm text-zinc-500">
-          {error ?? 'Hubo un problema al cargar los datos. Intenta de nuevo en unos segundos.'}
+          {error ??
+            'Hubo un problema al cargar los datos. Intenta de nuevo en unos segundos.'}
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <button
             type="button"
-            onClick={() => void load()}
+            onClick={retry}
             className="rounded-[10px] bg-[#b91c1c] px-4 py-2 font-ui text-sm font-semibold text-white hover:bg-[#9f1728]"
           >
             Reintentar

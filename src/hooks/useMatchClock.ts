@@ -22,14 +22,22 @@ export function useMatchClock(clock: SerializableClockState) {
     [clock.status, clock.clockStartedAt, clock.secondHalfStartedAt, clock.halftimeAt]
   )
 
-  const [minute, setMinute] = useState(() => getMatchMinute(fields))
+  const isTicking =
+    fields.status === 'LIVE' || fields.status === 'HALFTIME'
+  const staticMinute = getMatchMinute(fields)
+  const [liveMinute, setLiveMinute] = useState(staticMinute)
+  const [trackedFields, setTrackedFields] = useState(fields)
+
+  if (trackedFields !== fields) {
+    setTrackedFields(fields)
+    setLiveMinute(staticMinute)
+  }
 
   useEffect(() => {
-    setMinute(getMatchMinute(fields))
-    if (fields.status !== 'LIVE' && fields.status !== 'HALFTIME') return
-    const id = setInterval(() => setMinute(getMatchMinute(fields)), 1000)
+    if (!isTicking) return
+    const id = setInterval(() => setLiveMinute(getMatchMinute(fields)), 1000)
     return () => clearInterval(id)
-  }, [fields])
+  }, [fields, isTicking])
 
-  return minute
+  return isTicking ? liveMinute : staticMinute
 }

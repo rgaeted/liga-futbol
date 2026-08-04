@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import type { MatchMvpSide } from '@prisma/client'
 import { readApiError } from '@/lib/api-error'
 import { personInitials } from '@/lib/player-name'
@@ -32,6 +32,7 @@ function TeamMvpSidePicker({
   const router = useRouter()
   const [selectedId, setSelectedId] = useState(initial.playerId ?? '')
   const [mvp, setMvp] = useState(initial)
+  const [trackedInitial, setTrackedInitial] = useState(initial)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -40,10 +41,11 @@ function TeamMvpSidePicker({
   const canEdit = matchStatus === 'FINISHED'
   const hasCustomPhoto = Boolean(mvp.photoUrl?.includes('/mvp/'))
 
-  useEffect(() => {
+  if (trackedInitial !== initial) {
+    setTrackedInitial(initial)
     setSelectedId(initial.playerId ?? '')
     setMvp(initial)
-  }, [initial.playerId, initial.label, initial.photoUrl, initial.teamLabel])
+  }
 
   function applyUpdate(updated: TeamMvpSideView) {
     setSelectedId(updated.playerId ?? '')

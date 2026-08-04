@@ -16,23 +16,27 @@ export function useMatchRealtime({
   enabled: boolean
   onInvalidate: () => void
 }): MatchRealtimeStatus {
-  const [status, setStatus] = useState<MatchRealtimeStatus>('connecting')
+  const client = enabled ? getSupabaseRealtimeClient() : null
+  const [connectionStatus, setConnectionStatus] =
+    useState<MatchRealtimeStatus>('connecting')
+  const [subscriptionKey, setSubscriptionKey] = useState(
+    () => `${matchId}:${enabled}:${client ? 'ready' : 'missing'}`,
+  )
+
+  const currentKey = `${matchId}:${enabled}:${client ? 'ready' : 'missing'}`
+  if (subscriptionKey !== currentKey) {
+    setSubscriptionKey(currentKey)
+    if (enabled && client) {
+      setConnectionStatus('connecting')
+    }
+  }
 
   useEffect(() => {
-    if (!enabled) {
-      setStatus('degraded')
-      return
-    }
-    const client = getSupabaseRealtimeClient()
-    if (!client) {
-      setStatus('degraded')
-      return
-    }
+    if (!enabled || !client) return
 
     let active = true
-    setStatus('connecting')
     const timeout = window.setTimeout(() => {
-      if (active) setStatus('degraded')
+      if (active) setConnectionStatus('degraded')
     }, SUBSCRIPTION_TIMEOUT_MS)
 
     const channel = client
@@ -46,13 +50,13 @@ export function useMatchRealtime({
         if (!active) return
         if (subscriptionStatus === 'SUBSCRIBED') {
           window.clearTimeout(timeout)
-          setStatus('connected')
+          setConnectionStatus('connected')
         } else if (
           subscriptionStatus === 'CHANNEL_ERROR' ||
           subscriptionStatus === 'TIMED_OUT' ||
           subscriptionStatus === 'CLOSED'
         ) {
-          setStatus('degraded')
+          setConnectionStatus('degraded')
         }
       })
 
@@ -61,7 +65,8 @@ export function useMatchRealtime({
       window.clearTimeout(timeout)
       void client.removeChannel(channel)
     }
-  }, [enabled, matchId, onInvalidate])
+  }, [client, enabled, matchId, onInvalidate])
 
-  return status
+  if (!enabled || !client) return 'degraded'
+  return connectionStatus
 }

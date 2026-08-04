@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { EventType } from '@prisma/client'
 import {
   ALL_EVENT_TYPES,
@@ -79,10 +79,12 @@ export function MatchTimelineEditor({
 }: Props) {
   const router = useRouter()
   const [events, setEvents] = useState(initialEvents)
+  const [trackedInitialEvents, setTrackedInitialEvents] = useState(initialEvents)
 
-  useEffect(() => {
+  if (trackedInitialEvents !== initialEvents) {
+    setTrackedInitialEvents(initialEvents)
     setEvents(initialEvents)
-  }, [initialEvents])
+  }
   const [editing, setEditing] = useState<EditState | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)

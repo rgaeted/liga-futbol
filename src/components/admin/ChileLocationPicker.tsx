@@ -21,8 +21,12 @@ export function ChileLocationPicker({
   disabled = false,
 }: Props) {
   const [regions, setRegions] = useState<RegionOption[]>([])
-  const [communes, setCommunes] = useState<CommuneOption[]>([])
-  const [loadingCommunes, setLoadingCommunes] = useState(false)
+  const [communesByRegion, setCommunesByRegion] = useState<
+    Record<string, CommuneOption[]>
+  >({})
+  const communes = regionCode ? (communesByRegion[regionCode] ?? []) : []
+  const loadingCommunes =
+    Boolean(regionCode) && !(regionCode in communesByRegion)
 
   useEffect(() => {
     fetch('/api/chile-locations')
@@ -32,18 +36,30 @@ export function ChileLocationPicker({
   }, [])
 
   useEffect(() => {
-    if (!regionCode) {
-      setCommunes([])
-      return
-    }
+    if (!regionCode || regionCode in communesByRegion) return
 
-    setLoadingCommunes(true)
+    let cancelled = false
     fetch(`/api/chile-locations?regionCode=${encodeURIComponent(regionCode)}`)
       .then((res) => res.json())
-      .then((data: { communes: CommuneOption[] }) => setCommunes(data.communes ?? []))
-      .catch(() => setCommunes([]))
-      .finally(() => setLoadingCommunes(false))
-  }, [regionCode])
+      .then((data: { communes: CommuneOption[] }) => {
+        if (cancelled) return
+        setCommunesByRegion((current) => ({
+          ...current,
+          [regionCode]: data.communes ?? [],
+        }))
+      })
+      .catch(() => {
+        if (cancelled) return
+        setCommunesByRegion((current) => ({
+          ...current,
+          [regionCode]: [],
+        }))
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [communesByRegion, regionCode])
 
   function handleRegionChange(next: string) {
     onRegionChange(next)
