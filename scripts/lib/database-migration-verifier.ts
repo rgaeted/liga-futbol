@@ -45,10 +45,11 @@ export async function readRepositoryMigrations(
       throw new Error(`Migration directory ${name} has no migration.sql`)
     }
 
-    const sql = await readFile(sqlPath)
+    const sql = await readFile(sqlPath, 'utf8')
+    const normalized = sql.replace(/\r\n/g, '\n')
     migrations.push({
       name,
-      checksum: createHash('sha256').update(sql).digest('hex'),
+      checksum: createHash('sha256').update(normalized).digest('hex'),
     })
   }
 
@@ -239,8 +240,21 @@ interface ForeignKeyRow extends QueryResultRow {
   childTable: string
   parentSchema: string
   parentTable: string
-  childColumns: string[]
-  parentColumns: string[]
+  childColumns: string[] | string
+  parentColumns: string[] | string
+}
+
+function parsePostgresTextArray(value: string[] | string): string[] {
+  if (Array.isArray(value)) {
+    return value
+  }
+
+  if (value.startsWith('{') && value.endsWith('}')) {
+    const inner = value.slice(1, -1)
+    return inner === '' ? [] : inner.split(',')
+  }
+
+  return [value]
 }
 
 function quoteIdentifier(value: string): string {
@@ -362,7 +376,11 @@ async function readForeignKeys(
       constraint_row.conname
   `)
 
-  return result.rows
+  return result.rows.map((row) => ({
+    ...row,
+    childColumns: parsePostgresTextArray(row.childColumns),
+    parentColumns: parsePostgresTextArray(row.parentColumns),
+  }))
 }
 
 async function readForeignKeyOrphans(
