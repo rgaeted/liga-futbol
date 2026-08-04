@@ -1,82 +1,72 @@
-# Despliegue en producción (gratis)
+# Despliegue en producción
 
-Stack: **Render** (web service free) + **Neon** (Postgres free) + **GitHub**.
+Stack actual: **Vercel** (Next.js, región `gru1`) + **Supabase Production** (Postgres + Realtime, São Paulo) + **GitHub**.
 
-## 1. Base de datos en Neon
+**URL de producción:** https://torneos-kelme.vercel.app
 
-1. Crea una cuenta en https://neon.tech (login con GitHub).
-2. Crea un proyecto (región cercana, p. ej. AWS us-west / us-east).
-3. Copia la **connection string** (pooled) del dashboard. Debe verse así:
-   `postgresql://usuario:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`
-4. Guárdala: es tu `DATABASE_URL` de producción.
-5. Copia también la connection string **direct** de Neon como `DIRECT_URL`.
-   Es obligatoria para migraciones y scripts mutables; nunca se deriva desde
-   `DATABASE_URL`.
+Render (`torneos-kelme.onrender.com`) queda en **modo puente**: redirige navegación GET a Vercel y bloquea mutaciones (`503`). Se retirará tras la ventana de observación.
 
-## 2. Migrar y sembrar datos (desde tu equipo)
+## Vercel y Supabase Production
 
-Neon es accesible desde cualquier IP, así que corres esto localmente apuntando a Neon:
+- Runtime: Node.js 22.x.
+- Región Vercel: `gru1`.
+- Supabase Production: `torneos-kelme-production` (Free, sa-east-1).
+- Supabase Preview: `liga-futbol-preview` / ensayo aislado (no usar en prod).
+- Auth.js Credentials/JWT; Supabase Auth y Storage **no** se usan.
 
-```bash
-# Reemplaza por tu cadena de Neon
-$env:DATABASE_URL="postgresql://...neon.tech/neondb?sslmode=require"   # PowerShell
+### Variables de entorno (Production)
 
-npx prisma migrate deploy   # crea las tablas
-npx prisma db seed          # usuarios base (admin@liga.com, etc.)
-npm run db:seed:demo        # datos demo (opcional)
+| Variable | Uso |
+|----------|-----|
+| `DATABASE_URL` | Supavisor Transaction Mode, puerto 6543, `pgbouncer=true&connection_limit=1` |
+| `DIRECT_URL` | Supavisor Session Mode, puerto 5432 |
+| `AUTH_SECRET` | Secreto Auth.js (distinto al de Render; re-login obligatorio) |
+| `NEXTAUTH_URL` | `https://torneos-kelme.vercel.app` |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Production |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Clave publishable Production |
+| `SUPABASE_SECRET_KEY` | Clave secret Production (broadcast Realtime) |
+| `CRON_SECRET` | Bearer para `GET /api/health/database` (Vercel Cron, 12:00 UTC) |
+
+Valores reales: gestor de secretos, nunca en Git.
+
+### Builds y migraciones
+
+Vercel: `npm ci` + `npm run build` (genera Prisma Client; **no** ejecuta migraciones).
+
+Migraciones de esquema: manualmente con `DIRECT_URL` de Session Pooler, tras backup pre-release:
+
+```powershell
+npx prisma migrate status
+npx prisma migrate deploy
+npx prisma migrate status
 ```
 
-## 3. Subir el código a GitHub
+### Health diario
 
-Si el repo aún no está en GitHub, crea uno vacío en https://github.com/new
-(sin README) y luego:
+Vercel Cron llama `GET /api/health/database` a las 12:00 UTC con `Authorization: Bearer` usando `CRON_SECRET`.
 
-```bash
-git remote add origin https://github.com/<usuario>/liga-futbol.git
-git push -u origin main
-```
+### Verificar producción
 
-## 4. Desplegar en Render
+- Landing: https://torneos-kelme.vercel.app
+- Ayuda: `/ayuda`
+- Live: `/live/demo-match-live`
+- Login demo: `demo-admin@demo.torneoskelme.cl` / `password123`
 
-1. Crea cuenta en https://render.com (login con GitHub).
-2. **New > Blueprint** y selecciona el repo `liga-futbol`. Render detecta `render.yaml`.
-3. Render creará el web service `torneos-kelme`. Antes del primer deploy, completa
-   las variables marcadas como *sync: false*:
-   - `DATABASE_URL` = la cadena pooled de Neon (con `?sslmode=require`)
-   - `DIRECT_URL` = cadena directa sin `-pooler`; obligatoria para migraciones
-   - `NEXTAUTH_URL` = `https://torneos-kelme.onrender.com`
-     (usa el nombre real que muestre Render si difiere)
-4. Lanza el deploy. El build corre migraciones + `next build` y luego `npm start`.
+## Render (deprecación)
 
-## 5. Verificar
+`render.yaml` activa:
 
-- Abre `https://torneos-kelme.onrender.com` → landing pública.
-- Inicia sesión con `admin@liga.com` / `password123`.
-- Abre `https://torneos-kelme.onrender.com/live/demo-match-live` → marcador en vivo.
-- Como árbitro, registra un evento y confirma que el marcador se actualiza en vivo
-  (WebSocket).
+- `MIGRATION_MAINTENANCE_MODE=true`
+- `MIGRATION_REDIRECT_URL=https://torneos-kelme.vercel.app`
 
-## Notas
-
-- **Cold start:** el plan free duerme tras 15 min sin tráfico; el primer request
-  luego tarda ~50s. Es normal.
-- **Deploy automático:** cada `git push` a `main` redepliega.
-- **Cambios de esquema:** crea la migración local (`npx prisma migrate dev`),
-  commitea `prisma/migrations/` y haz push; Render aplica `migrate deploy` en el build.
+Efecto: GET públicos redirigen a Vercel; POST/PUT/PATCH/DELETE responden `503`. Neon ya no es fuente de verdad.
 
 ## Ensayo Supabase Preview
 
-La fase 2 usa exclusivamente un proyecto Supabase Preview aislado. El
-proyecto Supabase Production no se crea hasta la fase de corte.
+Procedimiento de ensayo Neon → Preview (fase 2):
 
-Contrato de conexión:
+[`docs/operations/supabase-preview-database-rehearsal.md`](operations/supabase-preview-database-rehearsal.md)
 
-- runtime: `DATABASE_URL` con Supavisor Transaction Mode, puerto 6543,
-  `pgbouncer=true` y `connection_limit=1`;
-- Prisma CLI: `DIRECT_URL` con Supavisor Session Mode, puerto 5432, o
-  conexión PostgreSQL directa;
-- ensayo: `NEON_DIRECT_URL` y `SUPABASE_PREVIEW_SESSION_URL`;
-- dump y reporte: siempre fuera del repositorio.
+Corte operacional, backups y rollback:
 
-Consulta
-[`docs/operations/supabase-preview-database-rehearsal.md`](operations/supabase-preview-database-rehearsal.md).
+[`docs/superpowers/plans/2026-08-03-vercel-supabase-cutover.md`](superpowers/plans/2026-08-03-vercel-supabase-cutover.md)

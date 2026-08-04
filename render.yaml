@@ -19,3 +19,7 @@ services:
         generateValue: true
       - key: NEXTAUTH_URL
         sync: false
+      - key: MIGRATION_MAINTENANCE_MODE
+        value: "true"
+      - key: MIGRATION_REDIRECT_URL
+        value: "https://torneos-kelme.vercel.app"
