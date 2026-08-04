@@ -4,7 +4,7 @@ Aplicación web multi-rol para gestionar una liga de fútbol de marca: administr
 
 ## Requisitos
 
-- Node.js 20+
+- Node.js 22.x
 - PostgreSQL (Docker recomendado)
 
 ## Configuración
@@ -107,3 +107,19 @@ Los datos demo se identifican por IDs con prefijo `demo-` y emails `@demo.torneo
 - **DT (Coach)** — citaciones y evaluaciones
 - **Árbitro** — control de partido en vivo
 - **Público** — marcador en `/live/[matchId]` (sin login)
+
+## Verificación de migración PostgreSQL
+
+El ensayo de fase 2 compara una rama Neon inmóvil con un proyecto Supabase
+Preview aislado. Supabase Production se crea recién en la fase de corte.
+
+```powershell
+npm run db:verify:migration
+```
+
+El comando requiere `NEON_DIRECT_URL`,
+`SUPABASE_PREVIEW_SESSION_URL` y `MIGRATION_REPORT_PATH`. El reporte debe
+guardarse fuera del repositorio.
+
+El procedimiento completo está en
+[`docs/operations/supabase-preview-database-rehearsal.md`](docs/operations/supabase-preview-database-rehearsal.md).

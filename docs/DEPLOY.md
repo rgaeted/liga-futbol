@@ -9,8 +9,9 @@ Stack: **Render** (web service free) + **Neon** (Postgres free) + **GitHub**.
 3. Copia la **connection string** (pooled) del dashboard. Debe verse así:
    `postgresql://usuario:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`
 4. Guárdala: es tu `DATABASE_URL` de producción.
-5. (Opcional) Copia también la connection string **direct** (sin `-pooler` en el host) como `DIRECT_URL`.
-   Si no la configuras, el build deriva la URL directa automáticamente a partir de `DATABASE_URL`.
+5. Copia también la connection string **direct** de Neon como `DIRECT_URL`.
+   Es obligatoria para migraciones y scripts mutables; nunca se deriva desde
+   `DATABASE_URL`.
 
 ## 2. Migrar y sembrar datos (desde tu equipo)
 
@@ -42,7 +43,7 @@ git push -u origin main
 3. Render creará el web service `torneos-kelme`. Antes del primer deploy, completa
    las variables marcadas como *sync: false*:
    - `DATABASE_URL` = la cadena pooled de Neon (con `?sslmode=require`)
-   - `DIRECT_URL` = (opcional) cadena directa sin `-pooler`; si falta, el build la infiere
+   - `DIRECT_URL` = cadena directa sin `-pooler`; obligatoria para migraciones
    - `NEXTAUTH_URL` = `https://torneos-kelme.onrender.com`
      (usa el nombre real que muestre Render si difiere)
 4. Lanza el deploy. El build corre migraciones + `next build` y luego `npm start`.
@@ -62,3 +63,20 @@ git push -u origin main
 - **Deploy automático:** cada `git push` a `main` redepliega.
 - **Cambios de esquema:** crea la migración local (`npx prisma migrate dev`),
   commitea `prisma/migrations/` y haz push; Render aplica `migrate deploy` en el build.
+
+## Ensayo Supabase Preview
+
+La fase 2 usa exclusivamente un proyecto Supabase Preview aislado. El
+proyecto Supabase Production no se crea hasta la fase de corte.
+
+Contrato de conexión:
+
+- runtime: `DATABASE_URL` con Supavisor Transaction Mode, puerto 6543,
+  `pgbouncer=true` y `connection_limit=1`;
+- Prisma CLI: `DIRECT_URL` con Supavisor Session Mode, puerto 5432, o
+  conexión PostgreSQL directa;
+- ensayo: `NEON_DIRECT_URL` y `SUPABASE_PREVIEW_SESSION_URL`;
+- dump y reporte: siempre fuera del repositorio.
+
+Consulta
+[`docs/operations/supabase-preview-database-rehearsal.md`](operations/supabase-preview-database-rehearsal.md).
