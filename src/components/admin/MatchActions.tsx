@@ -12,12 +12,17 @@ import { DeleteButton } from './DeleteButton'
 import { CrestUploadField } from './CrestUploadField'
 import { TeamColorPicker } from './TeamColorPicker'
 import {
-  FriendlyMatchRosterEditor,
+  convokedIdsFromPlayerSides,
   rosterEntriesFromSets,
   setsFromPlayerSides,
-  toggleFriendlyRosterSide,
+  setPlayerSide,
+  toggleConvocation,
+} from '@/lib/friendly-match-roster-ui'
+import {
+  FriendlyMatchConvocationPicker,
   type FriendlyRosterPlayer,
-} from './FriendlyMatchRosterEditor'
+} from './FriendlyMatchConvocationPicker'
+import { FriendlyMatchTeamAssigner } from './FriendlyMatchTeamAssigner'
 import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
 import { ChileLocationPicker } from './ChileLocationPicker'
 import { MatchWeatherPanel } from './MatchWeatherPanel'
@@ -80,14 +85,16 @@ export function MatchActions({
   const [sideAColor, setSideAColor] = useState(match.sideAColor)
   const [sideBColor, setSideBColor] = useState(match.sideBColor)
   const initialRoster = useMemo(() => setsFromPlayerSides(match.playerSides), [match.playerSides])
+  const [convokedIds, setConvokedIds] = useState(() =>
+    convokedIdsFromPlayerSides(match.playerSides)
+  )
+  const [convocationSearch, setConvocationSearch] = useState('')
   const [sideAIds, setSideAIds] = useState(initialRoster.sideAIds)
   const [sideBIds, setSideBIds] = useState(initialRoster.sideBIds)
   const [sideACaptainId, setSideACaptainId] = useState<string | null>(initialRoster.sideACaptainId)
   const [sideBCaptainId, setSideBCaptainId] = useState<string | null>(initialRoster.sideBCaptainId)
   const [sideACoachId, setSideACoachId] = useState<string | null>(initialRoster.sideACoachId)
   const [sideBCoachId, setSideBCoachId] = useState<string | null>(initialRoster.sideBCoachId)
-  const [sideASearch, setSideASearch] = useState('')
-  const [sideBSearch, setSideBSearch] = useState('')
   const [refereeEventTypes, setRefereeEventTypes] = useState<EventType[]>(
     resolveRefereeEventTypes(match.refereeEventTypes)
   )
@@ -102,33 +109,62 @@ export function MatchActions({
     [friendlyPlayers, match.friendlyCategoryId]
   )
 
+  const convoked = roster.filter((p) => convokedIds.has(p.id))
+
   function openEdit() {
     const next = setsFromPlayerSides(match.playerSides)
+    setConvokedIds(convokedIdsFromPlayerSides(match.playerSides))
+    setConvocationSearch('')
     setSideAIds(next.sideAIds)
     setSideBIds(next.sideBIds)
     setSideACaptainId(next.sideACaptainId)
     setSideBCaptainId(next.sideBCaptainId)
     setSideACoachId(next.sideACoachId)
     setSideBCoachId(next.sideBCoachId)
-    setSideASearch('')
-    setSideBSearch('')
     setRefereeEventTypes(resolveRefereeEventTypes(match.refereeEventTypes))
     setRegionCode(match.regionCode ?? '')
     setCommuneCode(match.communeCode ?? '')
     setEditing(true)
   }
 
-  function handleToggleSide(side: 'A' | 'B', playerId: string, checked: boolean) {
-    const next = toggleFriendlyRosterSide(side, playerId, checked, sideAIds, sideBIds)
+  function handleToggleConvocation(playerId: string, checked: boolean) {
+    const next = toggleConvocation({
+      playerId,
+      checked,
+      convokedIds,
+      sideAIds,
+      sideBIds,
+      sideACaptainId,
+      sideBCaptainId,
+      sideACoachId,
+      sideBCoachId,
+    })
+    setConvokedIds(next.convokedIds)
     setSideAIds(next.sideAIds)
     setSideBIds(next.sideBIds)
-    if (side === 'A') {
-      if (!checked && sideACaptainId === playerId) setSideACaptainId(null)
-      if (!checked && sideACoachId === playerId) setSideACoachId(null)
-    } else {
-      if (!checked && sideBCaptainId === playerId) setSideBCaptainId(null)
-      if (!checked && sideBCoachId === playerId) setSideBCoachId(null)
-    }
+    setSideACaptainId(next.sideACaptainId)
+    setSideBCaptainId(next.sideBCaptainId)
+    setSideACoachId(next.sideACoachId)
+    setSideBCoachId(next.sideBCoachId)
+  }
+
+  function handleSideChange(playerId: string, side: 'A' | 'B') {
+    const next = setPlayerSide({
+      playerId,
+      side,
+      sideAIds,
+      sideBIds,
+      sideACaptainId,
+      sideBCaptainId,
+      sideACoachId,
+      sideBCoachId,
+    })
+    setSideAIds(next.sideAIds)
+    setSideBIds(next.sideBIds)
+    setSideACaptainId(next.sideACaptainId)
+    setSideBCaptainId(next.sideBCaptainId)
+    setSideACoachId(next.sideACoachId)
+    setSideBCoachId(next.sideBCoachId)
   }
 
   async function save() {
@@ -149,6 +185,11 @@ export function MatchActions({
     if (match.matchType === 'FRIENDLY') {
       payload.sideAColor = sideAColor
       payload.sideBColor = sideBColor
+      if (convokedIds.size < 2) {
+        setSaving(false)
+        setError('Selecciona al menos dos jugadores convocados.')
+        return
+      }
       if (sideAIds.size < 1 || sideBIds.size < 1) {
         setSaving(false)
         setError('Selecciona al menos un jugador por lado.')
@@ -294,27 +335,29 @@ export function MatchActions({
       />
       {match.matchType === 'FRIENDLY' && (
         <>
-          <div className="md:col-span-3">
-            <p className="mb-2 text-sm font-medium text-kelme-gray-700">Jugadores por equipo</p>
-            <FriendlyMatchRosterEditor
+          <div className="md:col-span-3 space-y-4">
+            <FriendlyMatchConvocationPicker
               roster={roster}
+              convokedIds={convokedIds}
+              search={convocationSearch}
+              onSearchChange={setConvocationSearch}
+              onToggle={handleToggleConvocation}
+            />
+            <FriendlyMatchTeamAssigner
+              convoked={convoked}
               sideAName={match.sideAName ?? 'A'}
               sideBName={match.sideBName ?? 'B'}
               sideAIds={sideAIds}
               sideBIds={sideBIds}
-              sideASearch={sideASearch}
-              sideBSearch={sideBSearch}
               sideACaptainId={sideACaptainId}
               sideBCaptainId={sideBCaptainId}
               sideACoachId={sideACoachId}
               sideBCoachId={sideBCoachId}
-              onSideASearchChange={setSideASearch}
-              onSideBSearchChange={setSideBSearch}
+              onSideChange={handleSideChange}
               onSideACaptainChange={setSideACaptainId}
               onSideBCaptainChange={setSideBCaptainId}
               onSideACoachChange={setSideACoachId}
               onSideBCoachChange={setSideBCoachId}
-              onToggleSide={handleToggleSide}
             />
           </div>
           <div className="md:col-span-3">

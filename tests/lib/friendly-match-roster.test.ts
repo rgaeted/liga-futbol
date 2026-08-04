@@ -4,8 +4,8 @@ import { updateMatchSchema } from '@/lib/validations/match'
 import {
   rosterEntriesFromSets,
   setsFromPlayerSides,
-  toggleFriendlyRosterSide,
-} from '@/components/admin/FriendlyMatchRosterEditor'
+  setPlayerSide,
+} from '@/lib/friendly-match-roster-ui'
 
 describe('validateFriendlyRoster', () => {
   it('requires at least one player per side', () => {
@@ -43,11 +43,29 @@ describe('validateFriendlyRoster', () => {
 })
 
 describe('friendly roster helpers', () => {
-  it('toggles player between sides', () => {
-    const first = toggleFriendlyRosterSide('A', 'p1', true, new Set(), new Set())
+  it('moves player between sides', () => {
+    const first = setPlayerSide({
+      playerId: 'p1',
+      side: 'A',
+      sideAIds: new Set(),
+      sideBIds: new Set(),
+      sideACaptainId: null,
+      sideBCaptainId: null,
+      sideACoachId: null,
+      sideBCoachId: null,
+    })
     expect(first.sideAIds.has('p1')).toBe(true)
 
-    const moved = toggleFriendlyRosterSide('B', 'p1', true, first.sideAIds, first.sideBIds)
+    const moved = setPlayerSide({
+      playerId: 'p1',
+      side: 'B',
+      sideAIds: first.sideAIds,
+      sideBIds: first.sideBIds,
+      sideACaptainId: null,
+      sideBCaptainId: null,
+      sideACoachId: null,
+      sideBCoachId: null,
+    })
     expect(moved.sideAIds.has('p1')).toBe(false)
     expect(moved.sideBIds.has('p1')).toBe(true)
   })
