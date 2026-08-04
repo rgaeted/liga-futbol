@@ -125,3 +125,40 @@ export function requireDirectDatabaseUrl(
 
   return value as string
 }
+
+const MUTABLE_DB_COMMANDS = new Set(['push', 'execute', 'seed'])
+
+export function prismaCommandRequiresDirectUrl(
+  argv: readonly string[],
+): boolean {
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index]
+
+    if (token === 'migrate') {
+      return true
+    }
+
+    if (token === 'db' && MUTABLE_DB_COMMANDS.has(argv[index + 1] ?? '')) {
+      return true
+    }
+  }
+
+  return false
+}
+
+export function getPrismaCliDatabaseUrl(
+  env: DatabaseEnvironment = process.env,
+  argv: readonly string[] = process.argv.slice(2),
+): string {
+  if (env.DIRECT_URL?.trim()) {
+    return requireDirectDatabaseUrl(env)
+  }
+
+  if (prismaCommandRequiresDirectUrl(argv)) {
+    throw new Error(
+      'DIRECT_URL is required for Prisma migrate and mutable db commands',
+    )
+  }
+
+  return getRuntimeDatabaseUrl(env)
+}

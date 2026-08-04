@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  getPrismaCliDatabaseUrl,
   getRuntimeDatabaseUrl,
+  prismaCommandRequiresDirectUrl,
   requireDirectDatabaseUrl,
 } from '@/lib/database-env'
 
@@ -71,5 +73,51 @@ describe('database environment contract', () => {
     expect(() =>
       requireDirectDatabaseUrl({ DATABASE_URL: transactionUrl }),
     ).toThrow('DIRECT_URL is required')
+  })
+})
+
+describe('Prisma CLI database selection', () => {
+  it('requires DIRECT_URL for every migrate command', () => {
+    expect(prismaCommandRequiresDirectUrl(['migrate', 'status'])).toBe(true)
+    expect(prismaCommandRequiresDirectUrl(['migrate', 'deploy'])).toBe(true)
+    expect(prismaCommandRequiresDirectUrl(['migrate', 'dev'])).toBe(true)
+  })
+
+  it('requires DIRECT_URL for mutable db commands', () => {
+    expect(prismaCommandRequiresDirectUrl(['db', 'push'])).toBe(true)
+    expect(prismaCommandRequiresDirectUrl(['db', 'execute'])).toBe(true)
+    expect(prismaCommandRequiresDirectUrl(['db', 'seed'])).toBe(true)
+  })
+
+  it('allows generate to use DATABASE_URL when DIRECT_URL is absent', () => {
+    expect(
+      getPrismaCliDatabaseUrl(
+        { DATABASE_URL: transactionUrl },
+        ['generate'],
+      ),
+    ).toBe(transactionUrl)
+  })
+
+  it('rejects migrate status when DIRECT_URL is absent', () => {
+    expect(() =>
+      getPrismaCliDatabaseUrl(
+        { DATABASE_URL: transactionUrl },
+        ['migrate', 'status'],
+      ),
+    ).toThrow(
+      'DIRECT_URL is required for Prisma migrate and mutable db commands',
+    )
+  })
+
+  it('uses DIRECT_URL whenever it is available', () => {
+    expect(
+      getPrismaCliDatabaseUrl(
+        {
+          DATABASE_URL: transactionUrl,
+          DIRECT_URL: sessionUrl,
+        },
+        ['generate'],
+      ),
+    ).toBe(sessionUrl)
   })
 })
