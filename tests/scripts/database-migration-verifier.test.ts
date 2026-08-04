@@ -8,6 +8,7 @@ import {
   type DatabaseSnapshot,
   type RepositoryMigration,
 } from '../../scripts/lib/database-migration-verifier'
+import { validateVerificationEnvironment } from '../../scripts/verify-database-migration'
 
 const temporaryRoots: string[] = []
 
@@ -202,5 +203,57 @@ describe('compareDatabaseSnapshots', () => {
     ).toContain(
       'Supabase Preview must contain exactly 5 BYTEA columns; found 4',
     )
+  })
+})
+
+describe('validateVerificationEnvironment', () => {
+  it('requires Preview-specific URLs and an external report path', () => {
+    expect(() => validateVerificationEnvironment({}, process.cwd())).toThrow(
+      'NEON_DIRECT_URL is required',
+    )
+  })
+
+  it('rejects reports stored inside the repository', () => {
+    expect(() =>
+      validateVerificationEnvironment(
+        {
+          NEON_DIRECT_URL:
+            'postgresql://source:not-a-secret@neon.example.test:5432/app',
+          SUPABASE_PREVIEW_SESSION_URL:
+            'postgresql://target:not-a-secret@preview.example.test:5432/postgres',
+          MIGRATION_REPORT_PATH: path.join(
+            process.cwd(),
+            'database-report.json',
+          ),
+        },
+        process.cwd(),
+      ),
+    ).toThrow('MIGRATION_REPORT_PATH must be outside the repository')
+  })
+
+  it('accepts distinct databases and a temp report path', () => {
+    const reportPath = path.join(
+      os.tmpdir(),
+      'liga-futbol-database-report.json',
+    )
+
+    expect(
+      validateVerificationEnvironment(
+        {
+          NEON_DIRECT_URL:
+            'postgresql://source:not-a-secret@neon.example.test:5432/app',
+          SUPABASE_PREVIEW_SESSION_URL:
+            'postgresql://target:not-a-secret@preview.example.test:5432/postgres',
+          MIGRATION_REPORT_PATH: reportPath,
+        },
+        process.cwd(),
+      ),
+    ).toEqual({
+      neonUrl:
+        'postgresql://source:not-a-secret@neon.example.test:5432/app',
+      supabasePreviewUrl:
+        'postgresql://target:not-a-secret@preview.example.test:5432/postgres',
+      reportPath,
+    })
   })
 })
