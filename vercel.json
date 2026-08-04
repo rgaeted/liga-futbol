@@ -6,5 +6,18 @@
       "path": "/api/health/database",
       "schedule": "0 12 * * *"
     }
+  ],
+  "services": {
+    "torneos-kelme": {
+      "root": ".",
+      "framework": "nextjs",
+      "buildCommand": "npm ci --include=dev && npm run build"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": { "service": "torneos-kelme" }
+    }
   ]
 }
