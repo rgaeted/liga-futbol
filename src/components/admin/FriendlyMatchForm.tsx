@@ -11,6 +11,8 @@ import { FOOTBALL_FORMATS, FOOTBALL_FORMAT_LABELS } from '@/lib/football-format'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
 import {
   applyInitialSplitForUnassigned,
+  initialSideSplit,
+  mapToSideSets,
   rosterEntriesFromSets,
   setPlayerSide,
   toggleConvocation,
@@ -159,9 +161,13 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       setError('Ingresa fecha y hora del partido.')
       return
     }
-    const split = applyInitialSplitForUnassigned(convoked, sideAIds, sideBIds)
+    const split = mapToSideSets(initialSideSplit(convoked))
     setSideAIds(split.sideAIds)
     setSideBIds(split.sideBIds)
+    setSideACaptainId(null)
+    setSideBCaptainId(null)
+    setSideACoachId(null)
+    setSideBCoachId(null)
     setStep(2)
   }
 
@@ -183,6 +189,19 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       return
     }
 
+    if (!date || !time) {
+      setError('Ingresa fecha y hora del partido.')
+      return
+    }
+
+    let scheduledAt: string
+    try {
+      scheduledAt = scheduleInputToIso(date, time)
+    } catch {
+      setError('Fecha u hora inválida.')
+      return
+    }
+
     setLoading(true)
 
     const result = await submitJson('/api/matches', 'POST', {
@@ -196,7 +215,7 @@ export function FriendlyMatchForm({ referees, categories, friendlyPlayers }: Pro
       venue: venue || undefined,
       regionCode: regionCode || undefined,
       communeCode: communeCode || undefined,
-      scheduledAt: scheduleInputToIso(date, time),
+      scheduledAt,
       players: rosterEntriesFromSets(
         sideAIds,
         sideBIds,

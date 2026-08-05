@@ -97,9 +97,6 @@ export function toggleConvocation(input: {
 
   if (input.checked) {
     convokedIds.add(input.playerId)
-    if (!sideAIds.has(input.playerId) && !sideBIds.has(input.playerId)) {
-      sideAIds.add(input.playerId)
-    }
   } else {
     convokedIds.delete(input.playerId)
     sideAIds.delete(input.playerId)
@@ -129,14 +126,16 @@ export function rosterEntriesFromSets(
   sideACoachId: string | null = null,
   sideBCoachId: string | null = null
 ) {
+  const sideBOnly = [...sideBIds].filter((id) => !sideAIds.has(id))
+  const sideAOnly = [...sideAIds]
   return [
-    ...[...sideAIds].map((friendlyPlayerId) => ({
+    ...sideAOnly.map((friendlyPlayerId) => ({
       friendlyPlayerId,
       side: 'A' as const,
       isCaptain: friendlyPlayerId === sideACaptainId,
       isCoach: friendlyPlayerId === sideACoachId,
     })),
-    ...[...sideBIds].map((friendlyPlayerId) => ({
+    ...sideBOnly.map((friendlyPlayerId) => ({
       friendlyPlayerId,
       side: 'B' as const,
       isCaptain: friendlyPlayerId === sideBCaptainId,

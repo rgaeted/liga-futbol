@@ -139,6 +139,9 @@ export function MatchActions({
       sideACoachId,
       sideBCoachId,
     })
+    if (checked && !next.sideAIds.has(playerId) && !next.sideBIds.has(playerId)) {
+      next.sideAIds.add(playerId)
+    }
     setConvokedIds(next.convokedIds)
     setSideAIds(next.sideAIds)
     setSideBIds(next.sideBIds)

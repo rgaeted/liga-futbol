@@ -72,8 +72,10 @@ export function FriendlyMatchTeamAssigner({
     `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, 'es')
   )
 
-  function currentSide(playerId: string): FriendlySide {
-    return sideBIds.has(playerId) ? 'B' : 'A'
+  function currentSide(playerId: string): FriendlySide | null {
+    if (sideBIds.has(playerId)) return 'B'
+    if (sideAIds.has(playerId)) return 'A'
+    return null
   }
 
   return (
@@ -102,12 +104,12 @@ export function FriendlyMatchTeamAssigner({
                 <div className="flex gap-1" role="group" aria-label={`Equipo de ${playerLabel(p)}`}>
                   <SideToggle
                     side="A"
-                    current={currentSide(p.id)}
+                    current={currentSide(p.id) ?? 'A'}
                     onChange={() => onSideChange(p.id, 'A')}
                   />
                   <SideToggle
                     side="B"
-                    current={currentSide(p.id)}
+                    current={currentSide(p.id) ?? 'B'}
                     onChange={() => onSideChange(p.id, 'B')}
                   />
                 </div>

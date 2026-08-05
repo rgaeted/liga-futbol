@@ -8,6 +8,7 @@ import { buildMatchLocationFields, clearMatchWeatherFields } from '@/lib/match-l
 import { MatchType, Role } from '@prisma/client'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
   await requireRole([Role.ADMIN])
   const { id } = await params
   const parsed = updateMatchSchema.safeParse(await req.json())
@@ -105,6 +106,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   })
 
   return NextResponse.json(match)
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+    console.error('PUT /api/matches/[id] failed', error)
+    return NextResponse.json({ error: 'Error al guardar el partido' }, { status: 500 })
+  }
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {

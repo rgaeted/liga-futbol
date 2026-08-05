@@ -7,7 +7,7 @@ import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { deriveTeamColor } from '@/lib/team-color'
 import { Role } from '@prisma/client'
 import { DEFAULT_REFEREE_EVENT_TYPES, normalizeRefereeEventTypes } from '@/lib/match-referee-events'
-import { buildMatchLocationFields, clearMatchWeatherFields, locationChanged } from '@/lib/match-location'
+import { buildMatchLocationFields } from '@/lib/match-location'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -33,7 +33,16 @@ export async function GET(req: Request) {
   return NextResponse.json(matches)
 }
 
+const friendlyPlayerSummarySelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  primaryPosition: true,
+  photoMimeType: true,
+} as const
+
 export async function POST(req: Request) {
+  try {
   await requireRole([Role.ADMIN])
   const parsed = createMatchSchema.safeParse(await req.json())
   if (!parsed.success) {
@@ -151,11 +160,20 @@ export async function POST(req: Request) {
       where: { id: created.id },
       include: {
         friendlyCategory: { select: { id: true, name: true } },
-        friendlyPlayers: { include: { friendlyPlayer: true } },
+        friendlyPlayers: {
+          include: { friendlyPlayer: { select: friendlyPlayerSummarySelect } },
+        },
         referee: { select: { id: true, name: true } },
       },
     })
   })
 
   return NextResponse.json(match, { status: 201 })
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+    console.error('POST /api/matches failed', error)
+    return NextResponse.json({ error: 'Error al crear el partido' }, { status: 500 })
+  }
 }
