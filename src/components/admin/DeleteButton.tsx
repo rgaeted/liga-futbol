@@ -7,9 +7,10 @@ import { submitJson } from './submit'
 type Props = {
   url: string
   confirmMessage: string
+  variant?: 'inline' | 'card'
 }
 
-export function DeleteButton({ url, confirmMessage }: Props) {
+export function DeleteButton({ url, confirmMessage, variant = 'inline' }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -28,14 +29,25 @@ export function DeleteButton({ url, confirmMessage }: Props) {
   }
 
   return (
-    <span className="inline-flex items-center gap-2">
+    <span className={variant === 'card' ? 'inline-flex w-full' : 'inline-flex items-center gap-2'}>
       <button
         type="button"
         onClick={handleDelete}
         disabled={loading}
-        className="rounded-lg border border-kelme-border px-2 py-1 text-xs text-kelme-red hover:border-kelme-red disabled:opacity-50"
+        className={
+          variant === 'card'
+            ? 'inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50'
+            : 'rounded-lg border border-kelme-border px-2 py-1 text-xs text-kelme-red hover:border-kelme-red disabled:opacity-50'
+        }
       >
-        {loading ? '...' : 'Eliminar'}
+        {loading ? '...' : variant === 'card' ? (
+          <>
+            <span aria-hidden>🗑</span>
+            Eliminar
+          </>
+        ) : (
+          'Eliminar'
+        )}
       </button>
       {error && <span className="text-xs text-kelme-red">{error}</span>}
     </span>

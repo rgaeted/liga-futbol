@@ -67,13 +67,21 @@ export function MatchActions({
   match,
   referees,
   friendlyPlayers = [],
+  editing: controlledEditing,
+  onEditingChange,
+  hideIdleToolbar = false,
 }: {
   match: MatchRow
   referees: RefereeOption[]
   friendlyPlayers?: FriendlyRosterPlayer[]
+  editing?: boolean
+  onEditingChange?: (editing: boolean) => void
+  hideIdleToolbar?: boolean
 }) {
   const router = useRouter()
-  const [editing, setEditing] = useState(false)
+  const [internalEditing, setInternalEditing] = useState(false)
+  const editing = controlledEditing ?? internalEditing
+  const setEditing = onEditingChange ?? setInternalEditing
   const [refereeId, setRefereeId] = useState(match.refereeId ?? '')
   const [venue, setVenue] = useState(match.venue ?? '')
   const [regionCode, setRegionCode] = useState(match.regionCode ?? '')
@@ -229,6 +237,8 @@ export function MatchActions({
   }
 
   if (!editing) {
+    if (hideIdleToolbar) return null
+
     return (
       <span className="inline-flex w-full flex-col gap-2">
         <MatchWeatherPanel
@@ -266,7 +276,8 @@ export function MatchActions({
   }
 
   return (
-    <div className="mt-3 grid w-full gap-2 rounded-lg border border-kelme-border bg-kelme-gray-100 p-3 md:grid-cols-3">
+    <div className="border-t border-kelme-border px-5 py-4">
+      <div className="grid w-full gap-2 rounded-lg border border-kelme-border bg-kelme-gray-100 p-3 md:grid-cols-3">
       <input
         type="date"
         value={date}
@@ -420,6 +431,7 @@ export function MatchActions({
         </button>
       </span>
       {error && <p className="text-xs text-kelme-red md:col-span-3">{error}</p>}
+      </div>
     </div>
   )
 }
