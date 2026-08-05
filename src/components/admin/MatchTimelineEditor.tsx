@@ -61,24 +61,26 @@ function isGoalEvent(type: EventType) {
   return type === EventType.GOAL
 }
 
-function clearAssistIfInvalid(
+function clearAssistIfInvalid<T extends {
+  teamId: string
+  side: string
+  playerId: string
+  friendlyPlayerId: string
+  assistPlayerId: string
+  assistFriendlyPlayerId: string
+}>(
   matchType: 'LEAGUE' | 'FRIENDLY',
   players: RosterPlayer[],
-  state: {
-    teamId: string
-    side: string
-    scorerId: string
-    assistPlayerId: string
-    assistFriendlyPlayerId: string
-  }
-) {
+  state: T
+): T {
+  const scorerId = matchType === 'FRIENDLY' ? state.friendlyPlayerId : state.playerId
   const assistId = matchType === 'FRIENDLY' ? state.assistFriendlyPlayerId : state.assistPlayerId
   if (!assistId) return state
 
   const valid = assistCandidates(matchType, players, {
     teamId: state.teamId,
     side: state.side,
-    scorerId: state.scorerId,
+    scorerId,
   }).some((p) => p.id === assistId)
 
   if (valid) return state
