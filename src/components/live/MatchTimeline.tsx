@@ -9,6 +9,11 @@ export type TimelineEvent = {
   teamCrestSrc?: string | null
   teamColor?: string | null
   assistName: string | null
+  description?: string | null
+}
+
+function isGoalType(type: string) {
+  return type === 'GOAL' || type === 'OWN_GOAL'
 }
 
 const EVENT_LABELS: Record<string, string> = {
@@ -104,7 +109,13 @@ function TimelineRow({ event }: { event: TimelineEvent }) {
 
       <span className="min-w-0 shrink-0 font-ui text-sm text-white/90">{eventLabel(event.type)}</span>
 
-      <span className="min-w-0 flex-1" />
+      {isGoalType(event.type) && event.description ? (
+        <span className="min-w-0 flex-1 px-2 text-center font-display text-sm font-semibold italic tracking-wide text-amber-200/90 sm:text-base">
+          &ldquo;{event.description}&rdquo;
+        </span>
+      ) : (
+        <span className="min-w-0 flex-1" />
+      )}
 
       {(event.playerName || event.assistName) && (
         <span className="min-w-0 truncate text-right font-ui text-sm text-white/70">

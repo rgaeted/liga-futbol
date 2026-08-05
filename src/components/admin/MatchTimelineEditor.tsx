@@ -58,7 +58,7 @@ type EditState = {
 }
 
 function isGoalEvent(type: EventType) {
-  return type === EventType.GOAL
+  return type === EventType.GOAL || type === EventType.OWN_GOAL
 }
 
 function clearAssistIfInvalid<T extends {
@@ -157,7 +157,7 @@ export function MatchTimelineEditor({
             minute: editing.minute,
             friendlyPlayerId: editing.friendlyPlayerId || null,
             side: editing.side || null,
-            description: editing.description || null,
+            description: isGoalEvent(editing.type) ? editing.description || null : null,
             ...(isGoalEvent(editing.type)
               ? { assistFriendlyPlayerId: editing.assistFriendlyPlayerId || null }
               : { assistFriendlyPlayerId: null }),
@@ -167,7 +167,7 @@ export function MatchTimelineEditor({
             minute: editing.minute,
             playerId: editing.playerId || null,
             teamId: editing.teamId || null,
-            description: editing.description || null,
+            description: isGoalEvent(editing.type) ? editing.description || null : null,
             ...(isGoalEvent(editing.type)
               ? { assistPlayerId: editing.assistPlayerId || null }
               : { assistPlayerId: null }),
@@ -451,6 +451,7 @@ export function MatchTimelineEditor({
               <th className="px-4 py-3">Evento</th>
               <th className="px-4 py-3">Jugador</th>
               <th className="px-4 py-3">Asistencia</th>
+              <th className="px-4 py-3">Jugada del gol</th>
               <th className="px-4 py-3">Acciones</th>
             </tr>
           </thead>
@@ -601,6 +602,22 @@ export function MatchTimelineEditor({
                       '—'
                     )}
                   </td>
+                  <td className="px-4 py-3">
+                    {isGoalEvent(editing.type) ? (
+                      <input
+                        type="text"
+                        value={editing.description}
+                        onChange={(e) =>
+                          setEditing({ ...editing, description: e.target.value })
+                        }
+                        placeholder='Ej. "Golazo de rabona"'
+                        maxLength={120}
+                        className="w-full min-w-[10rem] rounded border border-kelme-border px-2 py-1"
+                      />
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td className="space-x-2 px-4 py-3">
                     <button
                       type="button"
@@ -625,6 +642,17 @@ export function MatchTimelineEditor({
                   <td className="px-4 py-3">{EVENT_TYPE_LABELS[event.type]}</td>
                   <td className="px-4 py-3">{event.playerName ?? '—'}</td>
                   <td className="px-4 py-3">{event.assistName ?? '—'}</td>
+                  <td className="max-w-xs px-4 py-3 text-kelme-gray-300">
+                    {isGoalEvent(event.type) ? (
+                      event.description ? (
+                        <span className="italic">&ldquo;{event.description}&rdquo;</span>
+                      ) : (
+                        <span className="text-kelme-gray-500">Sin descripción</span>
+                      )
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td className="space-x-2 px-4 py-3">
                     <button
                       type="button"

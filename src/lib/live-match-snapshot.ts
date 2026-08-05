@@ -39,6 +39,7 @@ export type LiveMatchEvent = {
   createdAt: string
   playerName: string | null
   assistName: string | null
+  description: string | null
   teamName: string | null
   teamCrestSrc: string | null
   teamColor: string | null
@@ -290,6 +291,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
         assistName: event.assistFriendlyPlayer
           ? `${event.assistFriendlyPlayer.firstName} ${event.assistFriendlyPlayer.lastName}`
           : event.assistPlayer?.user.name ?? null,
+        description: event.description,
         teamName,
         teamCrestSrc: resolveEventTeamCrest(teamName, teamVisual),
         teamColor: resolveEventTeamColor(teamName, teamVisual),

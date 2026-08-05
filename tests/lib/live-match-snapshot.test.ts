@@ -71,6 +71,7 @@ const match = {
       friendlyPlayer: null,
       assistPlayer: { user: { name: 'Asistente Local' } },
       assistFriendlyPlayer: null,
+      description: 'Golazo de rabona',
     },
   ],
 } as unknown as LiveMatchRecord
@@ -110,6 +111,7 @@ describe('live match snapshot', () => {
           id: 'event-1',
           playerName: 'Jugador Local',
           assistName: 'Asistente Local',
+          description: 'Golazo de rabona',
           teamName: 'Local',
           teamColor: '#CD212A',
         },
