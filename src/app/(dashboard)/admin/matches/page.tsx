@@ -1,6 +1,5 @@
+import Link from 'next/link'
 import { db } from '@/lib/db'
-import { MatchForm } from '@/components/admin/MatchForm'
-import { FriendlyMatchForm } from '@/components/admin/FriendlyMatchForm'
 import { AdminMatchCard } from '@/components/admin/AdminMatchCard'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { formatScheduleDateInput, formatScheduleTimeInput } from '@/lib/schedule-datetime'
@@ -8,7 +7,7 @@ import { MatchType, Role } from '@prisma/client'
 import { matchSideHasCrest } from '@/lib/match-side-crest'
 
 export default async function AdminMatchesPage() {
-  const [matches, seasons, teams, referees, friendlyCategories, friendlyPlayers] = await Promise.all([
+  const [matches, referees, friendlyPlayers] = await Promise.all([
     db.match.findMany({
       include: {
         homeTeam: true,
@@ -20,13 +19,10 @@ export default async function AdminMatchesPage() {
       },
       orderBy: { scheduledAt: 'desc' },
     }),
-    db.season.findMany({ orderBy: { startDate: 'desc' } }),
-    db.team.findMany({ orderBy: { name: 'asc' } }),
     db.user.findMany({
       where: { role: Role.REFEREE },
       select: { id: true, name: true },
     }),
-    db.friendlyCategory.findMany({ orderBy: { name: 'asc' } }),
     db.friendlyPlayer.findMany({
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
       select: {
@@ -51,25 +47,23 @@ export default async function AdminMatchesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold">Partidos</h1>
-      <MatchForm
-        seasons={seasons.map((s) => ({
-          id: s.id,
-          name: s.name,
-          footballFormat: s.footballFormat,
-        }))}
-        teams={teams}
-        referees={referees}
-      />
-      <FriendlyMatchForm
-        referees={referees}
-        categories={friendlyCategories.map((c) => ({
-          id: c.id,
-          name: c.name,
-          isActive: c.isActive,
-        }))}
-        friendlyPlayers={rosterPlayers}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-2xl font-bold">Partidos</h1>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/matches/new"
+            className="inline-flex items-center justify-center rounded-xl bg-kelme-red px-4 py-2.5 text-sm font-semibold text-white hover:bg-kelme-red-dark"
+          >
+            Crear partido
+          </Link>
+          <Link
+            href="/admin/matches/new/friendly"
+            className="inline-flex items-center justify-center rounded-xl border border-kelme-border bg-white px-4 py-2.5 text-sm font-semibold text-kelme-gray-800 hover:bg-kelme-gray-50"
+          >
+            Crear amistoso
+          </Link>
+        </div>
+      </div>
       <div className="space-y-4">
         {matches.map((match) => {
           const title = matchDisplayName(match)
