@@ -146,6 +146,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
   )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [extraPlayers, setExtraPlayers] = useState<FriendlyRosterPlayer[]>([])
 
   const { regionName, communeName } = useChileLocationLabels(data.regionCode, data.communeCode)
 
@@ -153,7 +154,19 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
   const sideAIds = useMemo(() => new Set(data.sideAIds), [data.sideAIds])
   const sideBIds = useMemo(() => new Set(data.sideBIds), [data.sideBIds])
 
-  const roster = friendlyPlayers.filter((player) => player.categoryIds.includes(data.categoryId))
+  const roster = useMemo(() => {
+    const base = friendlyPlayers.filter((player) =>
+      player.categoryIds.includes(data.categoryId)
+    )
+    const byId = new Map(base.map((player) => [player.id, player]))
+    for (const extra of extraPlayers) {
+      if (extra.categoryIds.includes(data.categoryId)) {
+        byId.set(extra.id, extra)
+      }
+    }
+    return [...byId.values()]
+  }, [data.categoryId, extraPlayers, friendlyPlayers])
+
   const convoked = roster.filter((player) => convokedIds.has(player.id))
   const category = activeCategories.find((item) => item.id === data.categoryId)
   const referee = referees.find((item) => item.id === data.refereeId)
@@ -167,6 +180,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
   }
 
   function resetRosterState() {
+    setExtraPlayers([])
     patch({
       convokedIds: [],
       convocationSearch: '',
@@ -184,6 +198,17 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
     patch({ categoryId })
     resetRosterState()
     setError('')
+  }
+
+  function handlePlayerCreated(player: FriendlyRosterPlayer) {
+    setExtraPlayers((current) => {
+      if (current.some((p) => p.id === player.id)) return current
+      return [...current, player]
+    })
+    setData((current) => ({
+      ...current,
+      convokedIds: [...new Set([...current.convokedIds, player.id])],
+    }))
   }
 
   function handleToggleConvocation(playerId: string, checked: boolean) {
@@ -523,10 +548,12 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
               search={data.convocationSearch}
               onSearchChange={(convocationSearch) => patch({ convocationSearch })}
               onToggle={handleToggleConvocation}
+              categoryId={data.categoryId}
+              onPlayerCreated={handlePlayerCreated}
             />
             <button
               type="button"
-              disabled={roster.length === 0}
+              disabled={convokedIds.size < 2}
               onClick={goToTeamsPhase}
               className="rounded-lg bg-kelme-red px-4 py-2 font-semibold text-white hover:bg-kelme-red-dark disabled:opacity-50"
             >

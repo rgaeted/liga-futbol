@@ -106,18 +106,30 @@ export function MatchActions({
   const [refereeEventTypes, setRefereeEventTypes] = useState<EventType[]>(
     resolveRefereeEventTypes(match.refereeEventTypes)
   )
+  const [extraPlayers, setExtraPlayers] = useState<FriendlyRosterPlayer[]>([])
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const roster = useMemo(
-    () =>
-      match.friendlyCategoryId
-        ? friendlyPlayers.filter((p) => p.categoryIds.includes(match.friendlyCategoryId!))
-        : [],
-    [friendlyPlayers, match.friendlyCategoryId]
-  )
+  const roster = useMemo(() => {
+    const base = match.friendlyCategoryId
+      ? friendlyPlayers.filter((p) => p.categoryIds.includes(match.friendlyCategoryId!))
+      : []
+    const byId = new Map(base.map((p) => [p.id, p]))
+    for (const extra of extraPlayers) {
+      byId.set(extra.id, extra)
+    }
+    return [...byId.values()]
+  }, [extraPlayers, friendlyPlayers, match.friendlyCategoryId])
 
   const convoked = roster.filter((p) => convokedIds.has(p.id))
+
+  function handlePlayerCreated(player: FriendlyRosterPlayer) {
+    setExtraPlayers((current) => {
+      if (current.some((p) => p.id === player.id)) return current
+      return [...current, player]
+    })
+    setConvokedIds((current) => new Set([...current, player.id]))
+  }
 
   function openEdit() {
     const next = setsFromPlayerSides(match.playerSides)
@@ -356,6 +368,8 @@ export function MatchActions({
               search={convocationSearch}
               onSearchChange={setConvocationSearch}
               onToggle={handleToggleConvocation}
+              categoryId={match.friendlyCategoryId}
+              onPlayerCreated={handlePlayerCreated}
             />
             <FriendlyMatchTeamAssigner
               convoked={convoked}

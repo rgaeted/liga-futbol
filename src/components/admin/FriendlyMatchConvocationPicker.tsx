@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+import { readApiError } from '@/lib/api-error'
 import { FriendlyPlayerAvatar } from './FriendlyPlayerAvatar'
 
 export type FriendlyRosterPlayer = {
@@ -32,6 +34,10 @@ type Props = {
   search: string
   onSearchChange: (value: string) => void
   onToggle: (playerId: string, checked: boolean) => void
+  /** Categoría del partido — requerida para el alta rápida */
+  categoryId?: string | null
+  /** Tras crear: el padre agrega al roster local y marca convocado */
+  onPlayerCreated?: (player: FriendlyRosterPlayer) => void
 }
 
 export function FriendlyMatchConvocationPicker({
@@ -40,8 +46,78 @@ export function FriendlyMatchConvocationPicker({
   search,
   onSearchChange,
   onToggle,
+  categoryId,
+  onPlayerCreated,
 }: Props) {
   const filtered = filterRoster(roster, search)
+  const canQuickCreate = Boolean(categoryId && onPlayerCreated)
+
+  const [showCreate, setShowCreate] = useState(false)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState('')
+
+  function resetCreateForm() {
+    setFirstName('')
+    setLastName('')
+    setCreateError('')
+    setShowCreate(false)
+  }
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!categoryId || !onPlayerCreated) return
+
+    const first = firstName.trim()
+    const last = lastName.trim()
+    if (!first || !last) {
+      setCreateError('Ingresa nombre y apellido.')
+      return
+    }
+
+    setCreating(true)
+    setCreateError('')
+
+    try {
+      const res = await fetch('/api/friendly-players', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: first,
+          lastName: last,
+          friendlyCategoryIds: [categoryId],
+        }),
+      })
+
+      if (!res.ok) {
+        setCreateError(await readApiError(res))
+        return
+      }
+
+      const created = (await res.json()) as {
+        id: string
+        firstName: string
+        lastName: string
+        primaryPosition?: string | null
+        photoMimeType?: string | null
+        categories?: Array<{ friendlyCategoryId: string }>
+      }
+
+      onPlayerCreated({
+        id: created.id,
+        firstName: created.firstName,
+        lastName: created.lastName,
+        primaryPosition: created.primaryPosition ?? null,
+        hasPhoto: Boolean(created.photoMimeType),
+        categoryIds:
+          created.categories?.map((c) => c.friendlyCategoryId) ?? [categoryId],
+      })
+      resetCreateForm()
+    } finally {
+      setCreating(false)
+    }
+  }
 
   return (
     <fieldset className="rounded-lg border border-kelme-border bg-white p-3">
@@ -53,8 +129,71 @@ export function FriendlyMatchConvocationPicker({
           </span>
         )}
       </legend>
-      {roster.length === 0 ? (
+
+      {canQuickCreate && (
+        <div className="mb-3">
+          {!showCreate ? (
+            <button
+              type="button"
+              onClick={() => setShowCreate(true)}
+              className="text-sm font-semibold text-kelme-red hover:underline"
+            >
+              + Nuevo jugador
+            </button>
+          ) : (
+            <form
+              onSubmit={(e) => void handleCreate(e)}
+              className="space-y-2 rounded-lg border border-kelme-border bg-kelme-gray-50 p-3"
+            >
+              <p className="text-xs font-medium text-kelme-gray-600">
+                Alta rápida (queda en esta categoría y convocado)
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Nombre"
+                  autoFocus
+                  className="rounded-lg border border-kelme-border bg-white px-3 py-1.5 text-sm"
+                />
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Apellido"
+                  className="rounded-lg border border-kelme-border bg-white px-3 py-1.5 text-sm"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="rounded-lg bg-kelme-red px-3 py-1.5 text-sm font-semibold text-white hover:bg-kelme-red-dark disabled:opacity-50"
+                >
+                  {creating ? 'Creando…' : 'Crear'}
+                </button>
+                <button
+                  type="button"
+                  disabled={creating}
+                  onClick={resetCreateForm}
+                  className="rounded-lg border border-kelme-border bg-white px-3 py-1.5 text-sm font-semibold text-kelme-gray-700 hover:bg-kelme-gray-50 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+              {createError ? <p className="text-sm text-kelme-red">{createError}</p> : null}
+            </form>
+          )}
+        </div>
+      )}
+
+      {roster.length === 0 && !canQuickCreate ? (
         <p className="text-sm text-kelme-gray-400">No hay jugadores en esta categoría.</p>
+      ) : roster.length === 0 ? (
+        <p className="text-sm text-kelme-gray-400">
+          No hay jugadores en esta categoría. Crea uno con el botón de arriba.
+        </p>
       ) : (
         <>
           <input
