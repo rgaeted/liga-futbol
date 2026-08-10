@@ -97,6 +97,7 @@ describe('live match snapshot', () => {
       preferCreatedAtOrder: false,
       friendlySideByPlayer: {},
       friendlyPaidByPlayerId: {},
+      friendlyGalletaPlayerIds: [],
       homeScore: 2,
       awayScore: 1,
       homeTeam: { name: 'Local', color: '#CD212A', crestSrc: null },
@@ -144,6 +145,7 @@ describe('live match snapshot', () => {
           side: 'A',
           slotKey: null,
           paid: true,
+          isGalleta: true,
           isCaptain: false,
           isCoach: false,
           friendlyPlayer: {
@@ -157,6 +159,7 @@ describe('live match snapshot', () => {
           side: 'B',
           slotKey: null,
           paid: false,
+          isGalleta: false,
           isCaptain: false,
           isCoach: false,
           friendlyPlayer: {
@@ -174,5 +177,6 @@ describe('live match snapshot', () => {
       'fp-1': true,
       'fp-2': false,
     })
+    expect(snapshot.friendlyGalletaPlayerIds).toEqual(['fp-1'])
   })
 })

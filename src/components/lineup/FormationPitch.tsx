@@ -20,6 +20,7 @@ type Props = {
   mvpPlayerIds?: string[]
   captainPlayerIds?: string[]
   paidByPlayerId?: Record<string, boolean>
+  galletaPlayerIds?: string[]
 }
 
 function PitchSurface() {
@@ -79,6 +80,7 @@ function PlayerCircle({
   playerId,
   isMvp,
   isCaptain,
+  isGalleta,
   paidByPlayerId,
 }: {
   label: string
@@ -89,6 +91,7 @@ function PlayerCircle({
   playerId?: string | null
   isMvp?: boolean
   isCaptain?: boolean
+  isGalleta?: boolean
   paidByPlayerId?: Record<string, boolean>
 }) {
   const dim = size === 'live' ? 'h-10 w-10' : 'h-12 w-12'
@@ -98,7 +101,7 @@ function PlayerCircle({
   const borderClass = playerPhotoBorderClass(filled, size, playerId ?? null, paidByPlayerId)
 
   return (
-    <div className={`relative shrink-0 ${isMvp || isCaptain ? 'z-20' : ''}`}>
+    <div className={`relative shrink-0 ${isMvp || isCaptain || isGalleta ? 'z-20' : ''}`}>
       <div
         className={`flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${captainRing} ${borderClass} ${
           filled ? 'bg-white text-emerald-900' : 'bg-black/25 text-white/60'
@@ -117,6 +120,14 @@ function PlayerCircle({
           title="MVP"
         >
           ★
+        </span>
+      )}
+      {isGalleta && (
+        <span
+          className="absolute -right-1.5 -bottom-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-amber-50 text-[11px] leading-none shadow-md"
+          title="Galleta"
+        >
+          🍪
         </span>
       )}
       {isCaptain && (
@@ -138,6 +149,7 @@ function LivePlayerMarker({
   mvpPlayerIds,
   captainPlayerIds,
   paidByPlayerId,
+  galletaPlayerIds,
 }: {
   slot: LineupView['pitch'][number]
   top: string
@@ -145,10 +157,12 @@ function LivePlayerMarker({
   mvpPlayerIds?: string[]
   captainPlayerIds?: string[]
   paidByPlayerId?: Record<string, boolean>
+  galletaPlayerIds?: string[]
 }) {
   const filled = Boolean(slot.playerName)
   const isMvp = Boolean(slot.playerId && mvpPlayerIds?.includes(slot.playerId))
   const isCaptain = Boolean(slot.playerId && captainPlayerIds?.includes(slot.playerId))
+  const isGalleta = Boolean(slot.playerId && galletaPlayerIds?.includes(slot.playerId))
 
   return (
     <div
@@ -164,6 +178,7 @@ function LivePlayerMarker({
         playerId={slot.playerId}
         isMvp={isMvp}
         isCaptain={isCaptain}
+        isGalleta={isGalleta}
         paidByPlayerId={paidByPlayerId}
       />
       {filled && (
@@ -188,6 +203,7 @@ export function FormationPitch({
   mvpPlayerIds,
   captainPlayerIds,
   paidByPlayerId,
+  galletaPlayerIds,
 }: Props) {
   const maxRow = Math.max(...lineup.pitch.map((s) => s.row), 0)
   const compact = lineup.pitch.length < 11
@@ -226,6 +242,7 @@ export function FormationPitch({
               mvpPlayerIds={mvpPlayerIds}
               captainPlayerIds={captainPlayerIds}
               paidByPlayerId={paidByPlayerId}
+              galletaPlayerIds={galletaPlayerIds}
             />
           )
         }

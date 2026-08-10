@@ -7,6 +7,7 @@ import { footballFormatLabel } from '@/lib/football-format'
 import { matchStatusBadgeClass, matchStatusLabel } from '@/lib/match-status-ui'
 import { APP_LOCALE } from '@/lib/locale'
 import { FriendlyPaidIconToggle } from '@/components/admin/FriendlyPaidIconToggle'
+import { FriendlyGalletaIconToggle } from '@/components/admin/FriendlyGalletaIconToggle'
 import { MatchActions, type MatchRow } from '@/components/admin/MatchActions'
 import { DeleteButton } from '@/components/admin/DeleteButton'
 import type { FriendlyRosterPlayer } from '@/components/admin/FriendlyMatchConvocationPicker'
@@ -16,6 +17,7 @@ type FriendlyPlayerRow = {
   side: 'A' | 'B'
   label: string
   paid: boolean
+  isGalleta: boolean
   isCaptain: boolean
   isCoach: boolean
 }
@@ -87,6 +89,7 @@ function SideColumn({
           const suffix = [
             player.isCaptain ? 'Capitán' : null,
             player.isCoach ? 'DT' : null,
+            player.isGalleta ? 'Galleta' : null,
           ]
             .filter(Boolean)
             .join(' · ')
@@ -99,6 +102,11 @@ function SideColumn({
                   matchId={matchId}
                   participationId={player.participationId}
                   initialPaid={player.paid}
+                />
+                <FriendlyGalletaIconToggle
+                  matchId={matchId}
+                  participationId={player.participationId}
+                  initialIsGalleta={player.isGalleta}
                 />
                 <span className="min-w-0 truncate text-sm text-kelme-gray-800">
                   {player.label}

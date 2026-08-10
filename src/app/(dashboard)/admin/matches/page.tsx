@@ -82,6 +82,7 @@ export default async function AdminMatchesPage() {
                     side: part.side,
                     label: `${fp.firstName} ${fp.lastName}`.trim(),
                     paid: part.paid,
+                    isGalleta: part.isGalleta,
                     isCaptain: part.isCaptain,
                     isCoach: part.isCoach,
                   }

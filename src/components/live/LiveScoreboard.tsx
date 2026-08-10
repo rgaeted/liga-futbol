@@ -26,6 +26,8 @@ export function LiveScoreboard({
 
   const paidByPlayerId =
     match.matchType === MatchType.FRIENDLY ? match.friendlyPaidByPlayerId : undefined
+  const galletaPlayerIds =
+    match.matchType === MatchType.FRIENDLY ? match.friendlyGalletaPlayerIds : undefined
 
   const sortedEvents = useMemo(
     () =>
@@ -149,6 +151,7 @@ export function LiveScoreboard({
             <p className="mb-4 text-center font-ui text-xs uppercase tracking-widest text-white/40">
               {footballFormatLabel(match.footballFormat)}
               {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
+              {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
             </p>
             <div className="grid gap-5 sm:grid-cols-2">
               {match.formations.map((side) =>
@@ -164,6 +167,7 @@ export function LiveScoreboard({
                       mvpPlayerIds={match.mvpPlayerIds}
                       captainPlayerIds={match.captainPlayerIds}
                       paidByPlayerId={paidByPlayerId}
+                      galletaPlayerIds={galletaPlayerIds}
                     />
                     {side.lineup.bench.length > 0 && (
                       <p className="mt-2 text-center text-xs text-white/40">

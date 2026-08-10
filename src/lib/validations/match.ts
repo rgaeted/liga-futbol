@@ -155,9 +155,14 @@ export const updateFriendlyPaidSchema = z.object({
   paid: z.boolean(),
 })
 
+export const updateFriendlyGalletaSchema = z.object({
+  isGalleta: z.boolean(),
+})
+
 export type CreateMatchInput = z.infer<typeof createMatchSchema>
 export type UpdateMatchInput = z.infer<typeof updateMatchSchema>
 export type UpdateFriendlyPaidInput = z.infer<typeof updateFriendlyPaidSchema>
+export type UpdateFriendlyGalletaInput = z.infer<typeof updateFriendlyGalletaSchema>
 
 export const fetchMatchWeatherSchema = z
   .object({

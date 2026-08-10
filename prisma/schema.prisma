@@ -286,6 +286,7 @@ model FriendlyMatchPlayer {
   friendlyPlayer   FriendlyPlayer @relation(fields: [friendlyPlayerId], references: [id])
   side             FriendlySide
   paid             Boolean        @default(false)
+  isGalleta        Boolean        @default(false)
   isStarter        Boolean        @default(false)
   isCaptain        Boolean        @default(false)
   isCoach          Boolean        @default(false)
