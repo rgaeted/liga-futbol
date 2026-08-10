@@ -96,6 +96,7 @@ describe('live match snapshot', () => {
       sideBName: null,
       preferCreatedAtOrder: false,
       friendlySideByPlayer: {},
+      friendlyPaidByPlayerId: {},
       homeScore: 2,
       awayScore: 1,
       homeTeam: { name: 'Local', color: '#CD212A', crestSrc: null },
@@ -126,6 +127,52 @@ describe('live match snapshot', () => {
         humidityPct: 55,
         windKmh: 9,
       },
+    })
+  })
+
+  it('maps friendly payment status by player id', () => {
+    const friendlyMatch = {
+      ...match,
+      matchType: MatchType.FRIENDLY,
+      homeTeamId: null,
+      awayTeamId: null,
+      sideAName: 'Blancos',
+      sideBName: 'Negros',
+      friendlyPlayers: [
+        {
+          friendlyPlayerId: 'fp-1',
+          side: 'A',
+          slotKey: null,
+          paid: true,
+          isCaptain: false,
+          isCoach: false,
+          friendlyPlayer: {
+            firstName: 'Juan',
+            lastName: 'Pérez',
+            photoMimeType: 'image/jpeg',
+          },
+        },
+        {
+          friendlyPlayerId: 'fp-2',
+          side: 'B',
+          slotKey: null,
+          paid: false,
+          isCaptain: false,
+          isCoach: false,
+          friendlyPlayer: {
+            firstName: 'Pedro',
+            lastName: 'Gómez',
+            photoMimeType: null,
+          },
+        },
+      ],
+    } as unknown as LiveMatchRecord
+
+    const snapshot = buildLiveMatchSnapshot(friendlyMatch)
+
+    expect(snapshot.friendlyPaidByPlayerId).toEqual({
+      'fp-1': true,
+      'fp-2': false,
     })
   })
 })

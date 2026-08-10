@@ -19,6 +19,7 @@ type Props = {
   coachLabel?: string | null
   mvpPlayerIds?: string[]
   captainPlayerIds?: string[]
+  paidByPlayerId?: Record<string, boolean>
 }
 
 function PitchSurface() {
@@ -56,35 +57,51 @@ function PitchSurface() {
   )
 }
 
+function playerPhotoBorderClass(
+  filled: boolean,
+  size: 'live' | 'editor',
+  playerId: string | null,
+  paidByPlayerId?: Record<string, boolean>
+): string {
+  if (!filled) return 'border-dashed border-white/50'
+  if (size === 'live' && playerId && paidByPlayerId && playerId in paidByPlayerId) {
+    return paidByPlayerId[playerId] ? 'border-emerald-400' : 'border-red-500'
+  }
+  return 'border-white/90'
+}
+
 function PlayerCircle({
   label,
   playerName,
   photoUrl,
   filled,
   size,
+  playerId,
   isMvp,
   isCaptain,
+  paidByPlayerId,
 }: {
   label: string
   playerName: string | null
   photoUrl: string | null
   filled: boolean
   size: 'live' | 'editor'
+  playerId?: string | null
   isMvp?: boolean
   isCaptain?: boolean
+  paidByPlayerId?: Record<string, boolean>
 }) {
   const dim = size === 'live' ? 'h-10 w-10' : 'h-12 w-12'
   const textSize = size === 'live' ? 'text-[11px]' : 'text-[10px]'
   const mvpRing = isMvp ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-emerald-800' : ''
   const captainRing = isCaptain && !isMvp ? 'ring-2 ring-sky-300 ring-offset-1 ring-offset-emerald-800' : ''
+  const borderClass = playerPhotoBorderClass(filled, size, playerId ?? null, paidByPlayerId)
 
   return (
     <div className={`relative shrink-0 ${isMvp || isCaptain ? 'z-20' : ''}`}>
       <div
-        className={`flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${captainRing} ${
-          filled
-            ? 'border-white/90 bg-white text-emerald-900'
-            : 'border-dashed border-white/50 bg-black/25 text-white/60'
+        className={`flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${captainRing} ${borderClass} ${
+          filled ? 'bg-white text-emerald-900' : 'bg-black/25 text-white/60'
         }`}
       >
         {filled && photoUrl ? (
@@ -120,12 +137,14 @@ function LivePlayerMarker({
   left,
   mvpPlayerIds,
   captainPlayerIds,
+  paidByPlayerId,
 }: {
   slot: LineupView['pitch'][number]
   top: string
   left: string
   mvpPlayerIds?: string[]
   captainPlayerIds?: string[]
+  paidByPlayerId?: Record<string, boolean>
 }) {
   const filled = Boolean(slot.playerName)
   const isMvp = Boolean(slot.playerId && mvpPlayerIds?.includes(slot.playerId))
@@ -142,8 +161,10 @@ function LivePlayerMarker({
         photoUrl={slot.playerPhotoUrl}
         filled={filled}
         size="live"
+        playerId={slot.playerId}
         isMvp={isMvp}
         isCaptain={isCaptain}
+        paidByPlayerId={paidByPlayerId}
       />
       {filled && (
         <span className="mt-1 max-w-[4.75rem] truncate text-center text-[9px] font-medium leading-tight text-white drop-shadow-sm">
@@ -166,6 +187,7 @@ export function FormationPitch({
   coachLabel,
   mvpPlayerIds,
   captainPlayerIds,
+  paidByPlayerId,
 }: Props) {
   const maxRow = Math.max(...lineup.pitch.map((s) => s.row), 0)
   const compact = lineup.pitch.length < 11
@@ -203,6 +225,7 @@ export function FormationPitch({
               left={left}
               mvpPlayerIds={mvpPlayerIds}
               captainPlayerIds={captainPlayerIds}
+              paidByPlayerId={paidByPlayerId}
             />
           )
         }
@@ -224,6 +247,7 @@ export function FormationPitch({
               photoUrl={slot.playerPhotoUrl}
               filled={filled}
               size="editor"
+              playerId={slot.playerId}
               isMvp={isMvp}
               isCaptain={isCaptain}
             />

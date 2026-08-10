@@ -67,6 +67,7 @@ export type LiveMatchSnapshot = {
   status: string
   preferCreatedAtOrder: boolean
   friendlySideByPlayer: Record<string, 'A' | 'B'>
+  friendlyPaidByPlayerId: Record<string, boolean>
   clock: SerializableClockState
   events: LiveMatchEvent[]
   footballFormat: FootballFormat
@@ -133,6 +134,9 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
   })
   const friendlySideByPlayer = new Map(
     match.friendlyPlayers.map((player) => [player.friendlyPlayerId, player.side])
+  )
+  const friendlyPaidByPlayerId = Object.fromEntries(
+    match.friendlyPlayers.map((player) => [player.friendlyPlayerId, player.paid])
   )
   const formationSides = buildMatchFormationSides({
     matchType: match.matchType,
@@ -260,6 +264,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
       string,
       'A' | 'B'
     >,
+    friendlyPaidByPlayerId,
     clock: {
       status: match.status,
       clockStartedAt: match.clockStartedAt?.toISOString() ?? null,

@@ -11,6 +11,7 @@ import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
 import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import { TeamCrest } from '@/components/TeamCrest'
 import { footballFormatLabel } from '@/lib/football-format'
+import { MatchType } from '@prisma/client'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
 import { personInitials } from '@/lib/player-name'
 
@@ -22,6 +23,9 @@ export function LiveScoreboard({
   const { snapshot: match } = useLiveMatchSnapshot({
     initialSnapshot: initialMatch,
   })
+
+  const paidByPlayerId =
+    match.matchType === MatchType.FRIENDLY ? match.friendlyPaidByPlayerId : undefined
 
   const sortedEvents = useMemo(
     () =>
@@ -144,6 +148,7 @@ export function LiveScoreboard({
             </h2>
             <p className="mb-4 text-center font-ui text-xs uppercase tracking-widest text-white/40">
               {footballFormatLabel(match.footballFormat)}
+              {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
             </p>
             <div className="grid gap-5 sm:grid-cols-2">
               {match.formations.map((side) =>
@@ -158,6 +163,7 @@ export function LiveScoreboard({
                       coachLabel={side.coachLabel}
                       mvpPlayerIds={match.mvpPlayerIds}
                       captainPlayerIds={match.captainPlayerIds}
+                      paidByPlayerId={paidByPlayerId}
                     />
                     {side.lineup.bench.length > 0 && (
                       <p className="mt-2 text-center text-xs text-white/40">
