@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import type { EventType, FootballFormat, MatchType } from '@prisma/client'
 import { FOOTBALL_FORMATS, footballFormatLabel } from '@/lib/football-format'
 import { resolveRefereeEventTypes } from '@/lib/match-referee-events'
+import { MATCH_STATUSES, matchStatusLabel } from '@/lib/match-status-ui'
 import { matchSideCrestUrl } from '@/lib/match-side-crest'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
 import { submitJson } from './submit'
@@ -60,8 +61,6 @@ export type MatchRow = {
 }
 
 type RefereeOption = { id: string; name: string }
-
-const STATUSES = ['SCHEDULED', 'LIVE', 'HALFTIME', 'FINISHED', 'CANCELLED'] as const
 
 export function MatchActions({
   match,
@@ -307,8 +306,10 @@ export function MatchActions({
         onChange={(e) => setStatus(e.target.value)}
         className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
       >
-        {STATUSES.map((s) => (
-          <option key={s} value={s}>{s}</option>
+        {MATCH_STATUSES.map((s) => (
+          <option key={s} value={s}>
+            {matchStatusLabel(s)}
+          </option>
         ))}
       </select>
       <select

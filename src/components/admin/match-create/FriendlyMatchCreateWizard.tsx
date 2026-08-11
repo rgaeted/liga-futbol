@@ -35,7 +35,7 @@ import {
   type RefereeEventPreset,
 } from '@/lib/match-referee-event-presets'
 import { scheduleInputToIso } from '@/lib/schedule-datetime'
-import { APP_LOCALE } from '@/lib/locale'
+import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
 const DRAFT_KEY = 'match-create-draft:friendly'
 
@@ -106,12 +106,14 @@ function formatScheduleLabel(date: string, time: string): string {
   try {
     const iso = scheduleInputToIso(date, time)
     return new Intl.DateTimeFormat(APP_LOCALE, {
+      timeZone: APP_TIMEZONE,
       weekday: 'short',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      hourCycle: 'h23',
     }).format(new Date(iso))
   } catch {
     return `${date} ${time}`

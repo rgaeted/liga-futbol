@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { matchDisplayName } from '@/lib/match-label'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 
 export default async function PlayerMatchesPage() {
   const session = await auth()
@@ -51,7 +52,7 @@ export default async function PlayerMatchesPage() {
               </div>
               <div className="text-right">
                 <p className="font-mono">{match.homeScore} - {match.awayScore}</p>
-                <p className="text-xs text-kelme-gray-400">{match.status}</p>
+                <p className="text-xs text-kelme-gray-400">{matchStatusLabel(match.status)}</p>
                 {match.status === 'LIVE' && (
                   <Link href={`/live/${match.id}`} className="text-xs text-red-400">EN VIVO</Link>
                 )}

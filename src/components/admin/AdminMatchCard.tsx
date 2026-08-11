@@ -6,6 +6,10 @@ import { MatchType } from '@prisma/client'
 import { footballFormatLabel } from '@/lib/football-format'
 import { matchStatusBadgeClass, matchStatusLabel } from '@/lib/match-status-ui'
 import { APP_LOCALE } from '@/lib/locale'
+import {
+  formatScheduleDateLabel,
+  formatScheduleTimeLabel,
+} from '@/lib/schedule-datetime'
 import { FriendlyPaidIconToggle } from '@/components/admin/FriendlyPaidIconToggle'
 import { FriendlyGalletaIconToggle } from '@/components/admin/FriendlyGalletaIconToggle'
 import { MatchActions, type MatchRow } from '@/components/admin/MatchActions'
@@ -40,17 +44,6 @@ type Props = {
   match: MatchRow
   referees: RefereeOption[]
   rosterPlayers: FriendlyRosterPlayer[]
-}
-
-function formatAdminMatchDate(date: Date): string {
-  const weekday = new Intl.DateTimeFormat(APP_LOCALE, { weekday: 'long' }).format(date)
-  const day = new Intl.DateTimeFormat(APP_LOCALE, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date)
-  const capitalized = weekday.charAt(0).toUpperCase() + weekday.slice(1)
-  return `${capitalized} ${day.replace(/\//g, '-')}`
 }
 
 function SideColumn({
@@ -149,12 +142,9 @@ export function AdminMatchCard({
   const sideB = friendlyPlayers.filter((player) => player.side === 'B')
   const paidTotal = friendlyPlayers.filter((player) => player.paid).length
   const unpaidTotal = friendlyPlayers.length - paidTotal
-
-  const timeLabel = scheduledAt.toLocaleTimeString(APP_LOCALE, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+  const when = scheduledAt instanceof Date ? scheduledAt : new Date(scheduledAt)
+  const dateLabel = formatScheduleDateLabel(when)
+  const timeLabel = formatScheduleTimeLabel(when)
 
   return (
     <article className="overflow-hidden rounded-2xl border border-kelme-border bg-white shadow-sm">
@@ -180,7 +170,7 @@ export function AdminMatchCard({
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-kelme-gray-50 px-3 py-1.5 text-xs text-kelme-gray-700">
             <span aria-hidden>📅</span>
-            {formatAdminMatchDate(scheduledAt)}
+            {dateLabel}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-kelme-gray-50 px-3 py-1.5 text-xs text-kelme-gray-700">
             <span aria-hidden>🕐</span>

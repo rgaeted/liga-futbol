@@ -6,6 +6,7 @@ import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
 import { EVENT_TYPE_LABELS, eventNeedsPlayer } from '@/lib/event-labels'
 import { refereePanelEvents } from '@/lib/match-referee-events'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 
@@ -194,7 +195,7 @@ export function MatchControlPanel({
     <div className="mx-auto max-w-lg space-y-6 text-kelme-gray-900">
       <div className="text-center">
         <p className="font-ui text-sm uppercase tracking-widest text-kelme-red">
-          {status === 'LIVE' ? '● EN VIVO' : status}
+          {status === 'LIVE' ? '● EN VIVO' : matchStatusLabel(status)}
         </p>
         <MatchClockDisplay clock={{ ...clock, status }} className="text-kelme-gray-900" />
         <p className="font-display text-5xl font-extrabold tabular-nums">

@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   formatScheduleDateInput,
+  formatScheduleDateLabel,
   formatScheduleTimeInput,
+  formatScheduleTimeLabel,
   scheduleInputToIso,
 } from '@/lib/schedule-datetime'
 
@@ -21,5 +23,12 @@ describe('schedule-datetime', () => {
     expect(date).toBe('2026-07-21')
     expect(time).toBe('19:30')
     expect(scheduleInputToIso(date, time)).toBe(stored.toISOString())
+  })
+
+  it('labels evening Chile matches without UTC midnight drift', () => {
+    // 20:30 Chile (UTC-4 invierno) = 00:30 UTC del día siguiente
+    const stored = new Date('2026-07-22T00:30:00.000Z')
+    expect(formatScheduleDateLabel(stored)).toMatch(/21-07-2026/)
+    expect(formatScheduleTimeLabel(stored)).toBe('20:30')
   })
 })

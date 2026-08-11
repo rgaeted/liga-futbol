@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { matchDisplayName } from '@/lib/match-label'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 
 export default async function RefereeDashboardPage() {
   const session = await auth()
@@ -25,7 +26,7 @@ export default async function RefereeDashboardPage() {
         >
           <p className="font-semibold">{matchDisplayName(match)}</p>
           <p className="text-sm text-kelme-gray-400">
-            {match.scheduledAt.toLocaleString('es-CL')} · {match.status}
+            {match.scheduledAt.toLocaleString('es-CL')} · {matchStatusLabel(match.status)}
           </p>
         </Link>
       ))}

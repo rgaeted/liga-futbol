@@ -1,4 +1,4 @@
-import { APP_TIMEZONE } from '@/lib/locale'
+import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
 /** yyyy-mm-dd para `<input type="date">` en la zona horaria de la app. */
 export function formatScheduleDateInput(date: Date, timeZone = APP_TIMEZONE): string {
@@ -22,6 +22,32 @@ export function formatScheduleTimeInput(date: Date, timeZone = APP_TIMEZONE): st
   const hour = parts.find((p) => p.type === 'hour')?.value ?? '00'
   const minute = parts.find((p) => p.type === 'minute')?.value ?? '00'
   return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`
+}
+
+/** Fecha legible para UI admin (ej. "Lunes 21-07-2026"). */
+export function formatScheduleDateLabel(date: Date, timeZone = APP_TIMEZONE): string {
+  const weekday = new Intl.DateTimeFormat(APP_LOCALE, {
+    timeZone,
+    weekday: 'long',
+  }).format(date)
+  const day = new Intl.DateTimeFormat(APP_LOCALE, {
+    timeZone,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)
+  const capitalized = weekday.charAt(0).toUpperCase() + weekday.slice(1)
+  return `${capitalized} ${day.replace(/\//g, '-')}`
+}
+
+/** Hora legible 24h para UI (ej. "20:30"). */
+export function formatScheduleTimeLabel(date: Date, timeZone = APP_TIMEZONE): string {
+  return new Intl.DateTimeFormat(APP_LOCALE, {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(date)
 }
 
 function partsToUtcMs(parts: Intl.DateTimeFormatPart[]): number {

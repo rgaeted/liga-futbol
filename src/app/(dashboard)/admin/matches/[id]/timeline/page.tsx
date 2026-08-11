@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 import { MatchTimelineEditor } from '@/components/admin/MatchTimelineEditor'
 import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
 import { buildMatchTeamMvps, MATCH_MVP_INCLUDE } from '@/lib/match-mvp'
@@ -126,7 +127,7 @@ export default async function AdminMatchTimelinePage({
         <h1 className="font-display text-2xl font-bold">Cronología — {title}</h1>
       </div>
       <p className="text-sm text-kelme-gray-400">
-        Marcador actual: {match.homeScore} - {match.awayScore} · {match.status}
+        Marcador actual: {match.homeScore} - {match.awayScore} · {matchStatusLabel(match.status)}
         {mvpSummary && (
           <span className="ml-2 font-semibold text-amber-700">· ⭐ {mvpSummary}</span>
         )}

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { MarketingShell } from './MarketingShell'
-import { APP_LOCALE } from '@/lib/locale'
+import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 
 export type LiveMatchPreview = {
   id: string
@@ -33,18 +34,15 @@ const FEATURES = [
   },
 ]
 
-const STATUS_LABELS: Record<string, string> = {
-  LIVE: 'En vivo',
-  HALFTIME: 'Entretiempo',
-}
-
 function formatMatchTime(iso: string) {
   return new Date(iso).toLocaleString(APP_LOCALE, {
+    timeZone: APP_TIMEZONE,
     weekday: 'short',
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    hourCycle: 'h23',
   })
 }
 
@@ -129,7 +127,7 @@ export function LandingPage({ liveMatches }: { liveMatches: LiveMatchPreview[] }
                       </span>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-kelme-red px-2.5 py-0.5 font-ui text-xs font-semibold text-white">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                        {STATUS_LABELS[match.status] ?? match.status}
+                        {matchStatusLabel(match.status)}
                       </span>
                     </div>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-4">

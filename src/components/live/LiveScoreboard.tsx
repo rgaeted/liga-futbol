@@ -12,6 +12,7 @@ import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import { TeamCrest } from '@/components/TeamCrest'
 import { footballFormatLabel } from '@/lib/football-format'
 import { MatchType } from '@prisma/client'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
 import { personInitials } from '@/lib/player-name'
 
@@ -54,7 +55,7 @@ export function LiveScoreboard({
               EN VIVO
             </span>
           ) : (
-            match.status
+            matchStatusLabel(match.status)
           )}
         </p>
 
