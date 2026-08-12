@@ -3,6 +3,8 @@ import {
   EventType,
   MatchStatus,
   Role,
+  SeasonRosterStatus,
+  SeasonTeamStatus,
   type PrismaClient,
 } from '@prisma/client'
 import {
@@ -355,7 +357,83 @@ async function main() {
   })
 
   console.log('✅ Datos demo cargados correctamente\n')
+  await seedMobileEdition(season.id, teamNorte, teamSur, playersNorte, playersSur)
   printCredentials()
+}
+
+async function seedMobileEdition(
+  seasonId: string,
+  teamNorte: { id: string; name: string; color: string | null; crestMimeType: string | null; crestData: Uint8Array | null },
+  teamSur: { id: string; name: string; color: string | null; crestMimeType: string | null; crestData: Uint8Array | null },
+  playersNorte: { id: string; jerseyNumber: number | null; position: string | null }[],
+  playersSur: { id: string; jerseyNumber: number | null; position: string | null }[],
+) {
+  await prisma.seasonMobileConfig.upsert({
+    where: { seasonId },
+    update: {
+      slug: 'torneos-kelme-2026',
+      displayName: 'Torneos Kelme 2026',
+      shortName: 'Kelme 2026',
+      primaryColor: '#CD212A',
+      secondaryColor: '#FFFFFF',
+      isPublished: false,
+      publishedAt: null,
+    },
+    create: {
+      seasonId,
+      slug: 'torneos-kelme-2026',
+      displayName: 'Torneos Kelme 2026',
+      shortName: 'Kelme 2026',
+      primaryColor: '#CD212A',
+      secondaryColor: '#FFFFFF',
+      isPublished: false,
+    },
+  })
+
+  for (const [index, team] of [
+    { team: teamNorte, players: playersNorte },
+    { team: teamSur, players: playersSur },
+  ].entries()) {
+    const seasonTeam = await prisma.seasonTeam.upsert({
+      where: { seasonId_teamId: { seasonId, teamId: team.team.id } },
+      update: {
+        displayName: team.team.name,
+        color: team.team.color,
+        crestMimeType: team.team.crestMimeType,
+        crestData: team.team.crestData ? Buffer.from(team.team.crestData) : undefined,
+        status: SeasonTeamStatus.REGISTERED,
+        sortOrder: index,
+      },
+      create: {
+        seasonId,
+        teamId: team.team.id,
+        displayName: team.team.name,
+        color: team.team.color,
+        crestMimeType: team.team.crestMimeType,
+        crestData: team.team.crestData ? Buffer.from(team.team.crestData) : undefined,
+        status: SeasonTeamStatus.REGISTERED,
+        sortOrder: index,
+      },
+    })
+
+    for (const player of team.players) {
+      await prisma.seasonRosterEntry.upsert({
+        where: { seasonTeamId_playerId: { seasonTeamId: seasonTeam.id, playerId: player.id } },
+        update: {
+          jerseyNumber: player.jerseyNumber,
+          position: player.position,
+          status: SeasonRosterStatus.ACTIVE,
+        },
+        create: {
+          seasonTeamId: seasonTeam.id,
+          playerId: player.id,
+          jerseyNumber: player.jerseyNumber,
+          position: player.position,
+          status: SeasonRosterStatus.ACTIVE,
+        },
+      })
+    }
+  }
 }
 
 async function seedCallUps(
@@ -435,6 +513,10 @@ function printCredentials() {
   console.log('Finalizado:  /live/demo-match-finished')
   console.log('En vivo:     /live/demo-match-live')
   console.log('Programado:  citaciones en /coach (DT Norte o Sur)')
+  console.log('')
+  console.log('── App móvil demo (no publicada) ──')
+  console.log('Slug:        torneos-kelme-2026')
+  console.log('Admin:       /admin/seasons/demo-season-2026/mobile')
   console.log('')
   console.log('── Borrar datos demo ──')
   console.log('npm run db:clear:demo')
