@@ -1,0 +1,184 @@
+import { z } from 'zod'
+
+const matchStatusCodeSchema = z.enum([
+  'SCHEDULED',
+  'LIVE',
+  'HALFTIME',
+  'FINISHED',
+  'CANCELLED',
+])
+
+const isoDateSchema = z.string().datetime({ offset: true })
+
+const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/)
+
+export const mobileTeamRefSchema = z.object({
+  seasonTeamId: z.string().min(1),
+  teamId: z.string().min(1),
+  name: z.string().min(1),
+  color: z.string().min(1),
+  crestUrl: z.string().nullable(),
+  initials: z.string().min(1),
+})
+
+export const mobileMatchSummarySchema = z.object({
+  id: z.string().min(1),
+  scheduledAt: isoDateSchema,
+  status: matchStatusCodeSchema,
+  statusLabel: z.string().min(1),
+  home: mobileTeamRefSchema,
+  away: mobileTeamRefSchema,
+  homeScore: z.number().int().min(0),
+  awayScore: z.number().int().min(0),
+  venue: z.string().nullable(),
+  locationLabel: z.string().nullable(),
+})
+
+export const mobileMatchDetailSchema = mobileMatchSummarySchema.extend({
+  footballFormat: z.string().min(1),
+  weather: z
+    .object({
+      label: z.string(),
+      tempC: z.number(),
+      humidityPct: z.number(),
+      windKmh: z.number(),
+    })
+    .nullable(),
+})
+
+export const mobileLeagueConfigSchema = z.object({
+  slug: z.string().min(1),
+  displayName: z.string().min(1),
+  shortName: z.string().nullable(),
+  description: z.string().nullable(),
+  logoUrl: z.string().nullable(),
+  primaryColor: hexColorSchema.nullable(),
+  secondaryColor: hexColorSchema.nullable(),
+  footballFormat: z.string().min(1),
+  season: z.object({
+    startDate: isoDateSchema,
+    endDate: isoDateSchema,
+  }),
+})
+
+export const mobileStandingRowSchema = z.object({
+  rank: z.number().int().min(1),
+  seasonTeamId: z.string().min(1),
+  teamId: z.string().min(1),
+  name: z.string().min(1),
+  color: z.string().min(1),
+  crestUrl: z.string().nullable(),
+  pj: z.number().int().min(0),
+  pg: z.number().int().min(0),
+  pe: z.number().int().min(0),
+  pp: z.number().int().min(0),
+  gf: z.number().int().min(0),
+  gc: z.number().int().min(0),
+  dg: z.number().int(),
+  pts: z.number().int().min(0),
+})
+
+export const mobilePlayerStatsDtoSchema = z.object({
+  goals: z.number().int().min(0),
+  assists: z.number().int().min(0),
+  yellowCards: z.number().int().min(0),
+  redCards: z.number().int().min(0),
+  mvpCount: z.number().int().min(0),
+})
+
+export const mobileStatRowSchema = z.object({
+  rosterEntryId: z.string().min(1),
+  playerId: z.string().min(1),
+  playerName: z.string().min(1),
+  teamName: z.string().min(1),
+  jerseyNumber: z.number().int().nullable(),
+  position: z.string().nullable(),
+  value: z.number().int().min(0),
+  stats: mobilePlayerStatsDtoSchema,
+})
+
+export const mobileStatsResponseSchema = z.object({
+  scorers: z.array(mobileStatRowSchema),
+  assists: z.array(mobileStatRowSchema),
+  yellowCards: z.array(mobileStatRowSchema),
+  redCards: z.array(mobileStatRowSchema),
+  mvps: z.array(mobileStatRowSchema),
+})
+
+export const mobileTeamListItemSchema = mobileTeamRefSchema.extend({
+  nextMatchAt: isoDateSchema.nullable(),
+})
+
+export const mobileRosterPlayerSchema = z.object({
+  rosterEntryId: z.string().min(1),
+  playerId: z.string().min(1),
+  name: z.string().min(1),
+  jerseyNumber: z.number().int().nullable(),
+  position: z.string().nullable(),
+  stats: mobilePlayerStatsDtoSchema,
+})
+
+export const mobileTeamDetailSchema = mobileTeamRefSchema.extend({
+  roster: z.array(mobileRosterPlayerSchema),
+  upcomingMatches: z.array(mobileMatchSummarySchema),
+  recentResults: z.array(mobileMatchSummarySchema),
+})
+
+export const mobilePlayerDetailSchema = z.object({
+  rosterEntryId: z.string().min(1),
+  playerId: z.string().min(1),
+  name: z.string().min(1),
+  teamName: z.string().min(1),
+  seasonTeamId: z.string().min(1),
+  jerseyNumber: z.number().int().nullable(),
+  position: z.string().nullable(),
+  stats: mobilePlayerStatsDtoSchema,
+})
+
+export const mobileLiveClockSchema = z.object({
+  status: matchStatusCodeSchema,
+  clockStartedAt: isoDateSchema.nullable(),
+  secondHalfStartedAt: isoDateSchema.nullable(),
+  halftimeAt: isoDateSchema.nullable(),
+})
+
+export const mobileLiveEventSchema = z.object({
+  id: z.string().min(1),
+  type: z.string().min(1),
+  minute: z.number().int().min(0),
+  createdAt: isoDateSchema,
+  playerName: z.string().nullable(),
+  assistName: z.string().nullable(),
+  description: z.string().nullable(),
+  teamName: z.string().nullable(),
+  teamCrestUrl: z.string().nullable(),
+  teamColor: z.string().nullable(),
+})
+
+export const mobileLiveSnapshotSchema = z.object({
+  id: z.string().min(1),
+  status: matchStatusCodeSchema,
+  home: mobileTeamRefSchema,
+  away: mobileTeamRefSchema,
+  homeScore: z.number().int().min(0),
+  awayScore: z.number().int().min(0),
+  clock: mobileLiveClockSchema,
+  events: z.array(mobileLiveEventSchema),
+  venue: z.string().nullable(),
+  locationLabel: z.string().nullable(),
+  weather: z
+    .object({
+      label: z.string(),
+      tempC: z.number(),
+      humidityPct: z.number(),
+      windKmh: z.number(),
+    })
+    .nullable(),
+})
+
+export function mobilePaginatedSchema<T extends z.ZodType>(itemSchema: T) {
+  return z.object({
+    items: z.array(itemSchema),
+    nextCursor: z.string().nullable(),
+  })
+}
