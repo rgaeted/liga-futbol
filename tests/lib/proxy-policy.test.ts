@@ -23,7 +23,15 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/api/matches/match-1/crest/A')).toBe(true)
     expect(isPublicRequest('GET', '/api/matches/match-1/mvp/home/photo')).toBe(true)
     expect(isPublicRequest('GET', '/api/matches/match-1/formations')).toBe(true)
+    expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga')).toBe(true)
+    expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/home')).toBe(true)
+    expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/matches')).toBe(true)
     expect(isPublicRequest('POST', '/api/friendly-players/claim')).toBe(true)
+  })
+
+  it('keeps admin routes private', () => {
+    expect(isPublicRequest('GET', '/api/admin/seasons/season-1/mobile')).toBe(false)
+    expect(isPublicRequest('PUT', '/api/admin/seasons/season-1/mobile')).toBe(false)
   })
 
   it('makes only GET live snapshots public', () => {

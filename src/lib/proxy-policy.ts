@@ -18,6 +18,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     method === 'GET' && /^\/api\/matches\/[^/]+\/formations$/.test(pathname)
   const isLiveSnapshotGet =
     method === 'GET' && /^\/api\/matches\/[^/]+\/live$/.test(pathname)
+  const isMobileLeagueGet =
+    method === 'GET' && /^\/api\/mobile\/v1\/leagues\/[^/]+(\/.*)?$/.test(pathname)
   const isClaimPost =
     method === 'POST' && pathname === '/api/friendly-players/claim'
 
@@ -35,6 +37,7 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isMatchMvpPhotoGet ||
     isFormationsGet ||
     isLiveSnapshotGet ||
+    isMobileLeagueGet ||
     isClaimPost
   )
 }
