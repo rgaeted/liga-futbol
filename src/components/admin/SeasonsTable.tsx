@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import type { FootballFormat } from '@prisma/client'
@@ -154,6 +155,12 @@ export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
                       >
                         Editar
                       </button>
+                      <Link
+                        href={`/admin/seasons/${season.id}/mobile`}
+                        className="rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red"
+                      >
+                        App móvil
+                      </Link>
                       <DeleteButton
                         url={`/api/seasons/${season.id}`}
                         confirmMessage={`¿Eliminar la temporada ${season.name}?`}
