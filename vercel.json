@@ -5,6 +5,10 @@
     {
       "path": "/api/health/database",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/jobs/notifications/process",
+      "schedule": "*/2 * * * *"
     }
   ],
   "services": {

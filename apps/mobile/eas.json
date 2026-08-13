@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "liga-invierno-kelme-puerto-varas-2026-dev",
+      "env": {
+        "EDITION": "liga-invierno-kelme-puerto-varas-2026"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "liga-invierno-kelme-puerto-varas-2026-preview",
+      "env": {
+        "EDITION": "liga-invierno-kelme-puerto-varas-2026"
+      }
+    },
+    "production": {
+      "channel": "liga-invierno-kelme-puerto-varas-2026",
+      "env": {
+        "EDITION": "liga-invierno-kelme-puerto-varas-2026"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

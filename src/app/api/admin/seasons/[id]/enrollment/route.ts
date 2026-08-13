@@ -69,7 +69,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireRole([Role.ADMIN])
-    const { id: seasonId } = await params
+    const { id: id } = await params
     const parsed = seasonEnrollmentSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos de inscripción inválidos' }, { status: 400 })
@@ -84,7 +84,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       const submittedTeamIds = new Set(parsed.data.teams.map((t) => t.teamId))
 
       await tx.seasonTeam.updateMany({
-        where: { seasonId, teamId: { notIn: [...submittedTeamIds] } },
+        where: { seasonId: id, teamId: { notIn: [...submittedTeamIds] } },
         data: { status: SeasonTeamStatus.WITHDRAWN },
       })
 
@@ -93,9 +93,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         if (!dbTeam) continue
 
         const seasonTeam = await tx.seasonTeam.upsert({
-          where: { seasonId_teamId: { seasonId, teamId: team.teamId } },
+          where: { seasonId_teamId: { seasonId: id, teamId: team.teamId } },
           create: {
-            seasonId,
+            seasonId: id,
             teamId: team.teamId,
             displayName: team.displayName,
             color: team.color ?? dbTeam.color,

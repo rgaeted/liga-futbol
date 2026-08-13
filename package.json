@@ -6,10 +6,6 @@
     "apps/*",
     "packages/*"
   ],
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "engines": {
     "node": "22.x"
   },
@@ -21,6 +17,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:contracts": "npm run test --workspace @liga/mobile-contracts",
+    "test:mobile": "npm run test --workspace @liga/mobile",
+    "typecheck:mobile": "npm run typecheck --workspace @liga/mobile",
+    "lint:mobile": "npm run lint --workspace @liga/mobile",
+    "mobile:assets": "node scripts/generate-mobile-edition-assets.mjs",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:clear:demo": "tsx prisma/clear-demo.ts",
     "db:verify:migration": "tsx scripts/verify-database-migration.ts",
@@ -41,7 +41,8 @@
     "react-dom": "19.2.4",
     "react-hook-form": "^7.80.0",
     "zod": "^4.4.3",
-    "@liga/mobile-contracts": "*"
+    "@liga/mobile-contracts": "*",
+    "@liga/mobile-core": "*"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

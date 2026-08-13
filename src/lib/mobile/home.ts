@@ -1,6 +1,10 @@
 import type { MobileHomeResponse } from '@liga/mobile-contracts'
 import { MatchStatus, MatchType } from '@prisma/client'
 import { db } from '@/lib/db'
+import {
+  listHomeSponsors,
+  listRecentPublishedArticles,
+} from '@/lib/editorial/public-queries'
 import type { ResolvedMobileLeague } from '@/lib/mobile/league-context'
 import { listRecentAndUpcomingMatches } from '@/lib/mobile/matches'
 import { serializeMobileLeagueConfig, serializeMobileMatchSummary } from '@/lib/mobile/serializers'
@@ -43,12 +47,17 @@ export async function getMobileHome(league: ResolvedMobileLeague): Promise<Mobil
     }
   }
 
+  const [recentArticles, sponsors] = await Promise.all([
+    listRecentPublishedArticles(league, 3),
+    listHomeSponsors(league),
+  ])
+
   return {
     league: serializeMobileLeagueConfig(league.config, league.season),
     featuredLiveMatch,
     upcomingMatches: upcoming,
     recentResults: recent,
-    recentArticles: [],
-    sponsors: [],
+    recentArticles,
+    sponsors,
   }
 }

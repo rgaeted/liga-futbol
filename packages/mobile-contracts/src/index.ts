@@ -22,3 +22,14 @@ export type {
   MobileGalleryDetail,
   MobileSponsor,
 } from './content.js'
+export type {
+  MobilePlatformCode,
+  MobileInstallationStatusCode,
+  NotificationKindCode,
+  RegisterInstallationRequest,
+  RegisterInstallationResponse,
+  TeamSubscriptionInput,
+  ReplaceSubscriptionsRequest,
+  ReplaceSubscriptionsResponse,
+} from './installations.js'
+export type { MobilePushData } from './notifications.js'

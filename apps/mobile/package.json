@@ -1,0 +1,52 @@
+{
+  "name": "@liga/mobile",
+  "version": "0.0.1",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@liga/mobile-contracts": "*",
+    "@liga/mobile-core": "*",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@supabase/supabase-js": "^2.112.0",
+    "@tanstack/react-query": "^5.90.12",
+    "expo": "~57.0.12",
+    "expo-constants": "~57.0.10",
+    "expo-font": "~57.0.1",
+    "expo-linking": "~57.0.5",
+    "expo-notifications": "~0.32.15",
+    "expo-router": "~57.0.12",
+    "expo-splash-screen": "~57.0.6",
+    "expo-status-bar": "~57.0.1",
+    "expo-web-browser": "^57.0.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-native": "0.86.2",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-web": "~0.21.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "~19.2.2",
+    "@vitejs/plugin-react": "^6.0.2",
+    "eslint": "^9",
+    "eslint-config-expo": "~10.0.0",
+    "jsdom": "^29.1.1",
+    "msw": "^2.12.4",
+    "react-test-renderer": "19.2.4",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.9"
+  }
+}

@@ -68,10 +68,51 @@ enum SeasonRosterStatus {
   INACTIVE
 }
 
+enum EditorialStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum SponsorPlacement {
+  HOME
+  SPONSORS_PAGE
+  FOOTER
+}
+
 enum DominantFoot {
   RIGHT
   LEFT
   BOTH
+}
+
+enum MobilePlatform {
+  IOS
+  ANDROID
+}
+
+enum MobileInstallationStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum NotificationKind {
+  MATCH_START
+  GOAL
+  MATCH_FINISH
+}
+
+enum NotificationOutboxStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  INVALID_TOKEN
 }
 
 model User {
@@ -86,6 +127,7 @@ model User {
   friendlyPlayer FriendlyPlayer?
   coachedTeam   Team?    @relation("TeamCoach")
   refereeMatches Match[] @relation("MatchReferee")
+  articles       Article[]
 }
 
 model Team {
@@ -137,7 +179,12 @@ model Season {
   matches        Match[]
   mobileConfig   SeasonMobileConfig?
   seasonTeams    SeasonTeam[]
-  createdAt      DateTime       @default(now())
+  articles              Article[]
+  galleries             Gallery[]
+  sponsors              Sponsor[]
+  mobileInstallations   MobileInstallation[]
+  notificationOutbox    NotificationOutbox[]
+  createdAt             DateTime       @default(now())
 }
 
 model FriendlyCategory {
@@ -198,9 +245,10 @@ model Match {
   callUps      CallUp[]
   friendlyPlayers FriendlyMatchPlayer[]
   formations   MatchFormation[]
-  teamMvps     MatchTeamMvp[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  teamMvps            MatchTeamMvp[]
+  notificationOutbox  NotificationOutbox[]
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 }
 
 model MatchFormation {
@@ -234,8 +282,9 @@ model MatchEvent {
   side             FriendlySide?
   teamId      String?
   description String?
-  metadata    Json?
-  createdAt   DateTime  @default(now())
+  metadata           Json?
+  notificationOutbox NotificationOutbox[]
+  createdAt          DateTime  @default(now())
 }
 
 model CallUp {
@@ -356,9 +405,11 @@ model SeasonTeam {
   crestData      Bytes?
   status         SeasonTeamStatus @default(REGISTERED)
   sortOrder      Int              @default(0)
-  rosterEntries  SeasonRosterEntry[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  rosterEntries     SeasonRosterEntry[]
+  teamSubscriptions TeamSubscription[]
+  notificationOutbox NotificationOutbox[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   @@unique([seasonId, teamId])
   @@index([seasonId, status])
@@ -378,4 +429,151 @@ model SeasonRosterEntry {
 
   @@unique([seasonTeamId, playerId])
   @@index([seasonTeamId, status])
+}
+
+model Article {
+  id               String          @id @default(cuid())
+  seasonId         String
+  season           Season          @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  title            String
+  summary          String?
+  body             String
+  coverStoragePath String?
+  coverMimeType    String?
+  status           EditorialStatus @default(DRAFT)
+  publishedAt      DateTime?
+  authorId         String
+  author           User            @relation(fields: [authorId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([seasonId, status, publishedAt])
+}
+
+model Gallery {
+  id               String          @id @default(cuid())
+  seasonId         String
+  season           Season          @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  coverStoragePath String?
+  coverMimeType    String?
+  status           EditorialStatus @default(DRAFT)
+  publishedAt      DateTime?
+  sortOrder        Int             @default(0)
+  photos           GalleryPhoto[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([seasonId, status, publishedAt])
+}
+
+model GalleryPhoto {
+  id          String   @id @default(cuid())
+  galleryId   String
+  gallery     Gallery  @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  storagePath String
+  mimeType    String
+  altText     String?
+  caption     String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([galleryId, sortOrder])
+}
+
+model Sponsor {
+  id                String           @id @default(cuid())
+  seasonId          String
+  season            Season           @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  name              String
+  logoStoragePath   String?
+  logoMimeType      String?
+  bannerStoragePath String?
+  bannerMimeType    String?
+  websiteUrl        String?
+  placement         SponsorPlacement @default(SPONSORS_PAGE)
+  startsAt          DateTime?
+  endsAt            DateTime?
+  isActive          Boolean          @default(true)
+  sortOrder         Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([seasonId, isActive, sortOrder])
+}
+
+model MobileInstallation {
+  id            String                   @id
+  seasonId      String
+  season        Season                   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  expoPushToken String
+  platform      MobilePlatform
+  appVersion    String?
+  status        MobileInstallationStatus @default(ACTIVE)
+  lastSeenAt    DateTime
+  subscriptions TeamSubscription[]
+  deliveries    NotificationDelivery[]
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@index([seasonId, status])
+}
+
+model TeamSubscription {
+  installationId   String
+  installation       MobileInstallation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  seasonTeamId       String
+  seasonTeam         SeasonTeam         @relation(fields: [seasonTeamId], references: [id], onDelete: Cascade)
+  notifyMatchStart   Boolean            @default(true)
+  notifyGoals        Boolean            @default(true)
+  notifyFinal        Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@id([installationId, seasonTeamId])
+  @@index([seasonTeamId])
+}
+
+model NotificationOutbox {
+  id            String                   @id @default(cuid())
+  seasonId      String
+  season        Season                   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  matchId       String
+  match         Match                    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  kind          NotificationKind
+  seasonTeamId  String?
+  seasonTeam    SeasonTeam?              @relation(fields: [seasonTeamId], references: [id], onDelete: SetNull)
+  matchEventId  String?
+  matchEvent    MatchEvent?              @relation(fields: [matchEventId], references: [id], onDelete: SetNull)
+  payload       Json
+  status        NotificationOutboxStatus @default(PENDING)
+  dedupeKey     String                   @unique
+  attempts      Int                      @default(0)
+  nextRetryAt   DateTime?
+  lastError     String?
+  deliveries    NotificationDelivery[]
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@index([seasonId, matchId])
+}
+
+model NotificationDelivery {
+  id              String                     @id @default(cuid())
+  outboxId        String
+  outbox          NotificationOutbox         @relation(fields: [outboxId], references: [id], onDelete: Cascade)
+  installationId  String
+  installation    MobileInstallation         @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  status          NotificationDeliveryStatus @default(PENDING)
+  expoTicketId    String?
+  attempts        Int                        @default(0)
+  lastError       String?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+
+  @@unique([outboxId, installationId])
+  @@index([installationId, status])
 }

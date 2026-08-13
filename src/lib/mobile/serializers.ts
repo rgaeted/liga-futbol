@@ -6,6 +6,7 @@ import type {
   MobileTeamRef,
 } from '@liga/mobile-contracts'
 import type { SeasonMobileConfig, Season, SeasonTeam } from '@prisma/client'
+import { serializeMobileLeagueLogoUrl } from '@/lib/editorial/mobile-serializers'
 import { formatChileLocation } from '@/lib/chile-locations'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import { teamInitials } from '@/lib/player-name'
@@ -45,7 +46,7 @@ export function serializeMobileLeagueConfig(
     displayName: config.displayName,
     shortName: config.shortName,
     description: config.description,
-    logoUrl: config.logoStoragePath,
+    logoUrl: serializeMobileLeagueLogoUrl(config.logoStoragePath),
     primaryColor: config.primaryColor,
     secondaryColor: config.secondaryColor,
     footballFormat: season.footballFormat,

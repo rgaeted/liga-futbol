@@ -20,6 +20,14 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     method === 'GET' && /^\/api\/matches\/[^/]+\/live$/.test(pathname)
   const isMobileLeagueGet =
     method === 'GET' && /^\/api\/mobile\/v1\/leagues\/[^/]+(\/.*)?$/.test(pathname)
+  const isMobileInstallationPost =
+    method === 'POST' && /^\/api\/mobile\/v1\/leagues\/[^/]+\/installations$/.test(pathname)
+  const isMobileInstallationSubscriptionsPut =
+    method === 'PUT' &&
+    /^\/api\/mobile\/v1\/leagues\/[^/]+\/installations\/[^/]+\/subscriptions$/.test(pathname)
+  const isMobileInstallationDelete =
+    method === 'DELETE' &&
+    /^\/api\/mobile\/v1\/leagues\/[^/]+\/installations\/[^/]+$/.test(pathname)
   const isClaimPost =
     method === 'POST' && pathname === '/api/friendly-players/claim'
 
@@ -28,6 +36,7 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     pathname.startsWith('/login') ||
     pathname.startsWith('/register') ||
     pathname.startsWith('/ayuda') ||
+    pathname.startsWith('/privacidad/app') ||
     pathname.startsWith('/live') ||
     pathname.startsWith('/mantenimiento') ||
     pathname.startsWith('/api/auth') ||
@@ -38,6 +47,9 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isFormationsGet ||
     isLiveSnapshotGet ||
     isMobileLeagueGet ||
+    isMobileInstallationPost ||
+    isMobileInstallationSubscriptionsPut ||
+    isMobileInstallationDelete ||
     isClaimPost
   )
 }

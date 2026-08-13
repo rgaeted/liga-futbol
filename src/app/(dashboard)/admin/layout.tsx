@@ -13,6 +13,16 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: '/admin/matches', label: 'Partidos' },
   { href: '/admin/seasons', label: 'Temporadas' },
   {
+    href: '/admin/content',
+    label: 'Contenido',
+    activePrefixes: [
+      '/admin/content',
+      '/admin/content/articles',
+      '/admin/content/galleries',
+      '/admin/content/sponsors',
+    ],
+  },
+  {
     href: '/admin/friendly-players',
     label: 'Amistosos',
     activePrefixes: ['/admin/friendly-players', '/admin/friendly-categories'],

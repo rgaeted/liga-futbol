@@ -16,6 +16,7 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/login')).toBe(true)
     expect(isPublicRequest('GET', '/register')).toBe(true)
     expect(isPublicRequest('GET', '/ayuda')).toBe(true)
+    expect(isPublicRequest('GET', '/privacidad/app')).toBe(true)
     expect(isPublicRequest('GET', '/live/match-1')).toBe(true)
     expect(isPublicRequest('GET', '/api/auth/session')).toBe(true)
     expect(isPublicRequest('GET', '/api/friendly-players/player-1/photo')).toBe(true)
@@ -26,12 +27,33 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga')).toBe(true)
     expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/home')).toBe(true)
     expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/matches')).toBe(true)
+    expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/articles')).toBe(true)
+    expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/galleries')).toBe(true)
+    expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/sponsors')).toBe(true)
     expect(isPublicRequest('POST', '/api/friendly-players/claim')).toBe(true)
+  })
+
+  it('allows only the intended mobile installation mutations', () => {
+    expect(isPublicRequest('POST', '/api/mobile/v1/leagues/demo-liga/installations')).toBe(true)
+    expect(
+      isPublicRequest(
+        'PUT',
+        '/api/mobile/v1/leagues/demo-liga/installations/inst-1/subscriptions',
+      ),
+    ).toBe(true)
+    expect(
+      isPublicRequest('DELETE', '/api/mobile/v1/leagues/demo-liga/installations/inst-1'),
+    ).toBe(true)
+    expect(isPublicRequest('POST', '/api/mobile/v1/leagues/demo-liga/custom')).toBe(false)
+    expect(isPublicRequest('GET', '/api/jobs/notifications/process')).toBe(false)
+    expect(isPublicRequest('POST', '/api/jobs/notifications/process')).toBe(false)
   })
 
   it('keeps admin routes private', () => {
     expect(isPublicRequest('GET', '/api/admin/seasons/season-1/mobile')).toBe(false)
     expect(isPublicRequest('PUT', '/api/admin/seasons/season-1/mobile')).toBe(false)
+    expect(isPublicRequest('POST', '/api/admin/seasons/season-1/articles')).toBe(false)
+    expect(isPublicRequest('POST', '/api/admin/seasons/season-1/galleries/g1/photos')).toBe(false)
   })
 
   it('makes only GET live snapshots public', () => {

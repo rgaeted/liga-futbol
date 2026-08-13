@@ -5,7 +5,9 @@ import { updateMatchSchema } from '@/lib/validations/match'
 import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { syncFriendlyMatchRoster } from '@/lib/friendly-match-roster'
 import { buildMatchLocationFields, clearMatchWeatherFields } from '@/lib/match-location'
-import { MatchType, Role } from '@prisma/client'
+import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
+import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigger-process'
+import { MatchStatus, MatchType, NotificationKind, Role } from '@prisma/client'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -23,6 +25,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     select: {
       id: true,
       matchType: true,
+      status: true,
+      seasonId: true,
+      homeTeamId: true,
+      awayTeamId: true,
+      homeScore: true,
+      awayScore: true,
       friendlyCategoryId: true,
       regionCode: true,
       communeCode: true,
@@ -104,6 +112,32 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       include: { homeTeam: true, awayTeam: true },
     })
   })
+
+  if (
+    match.matchType === MatchType.LEAGUE &&
+    match.seasonId &&
+    rest.status &&
+    rest.status !== existing.status
+  ) {
+    if (existing.status === MatchStatus.SCHEDULED && match.status === MatchStatus.LIVE) {
+      await safeEnqueueMatchNotification({
+        kind: NotificationKind.MATCH_START,
+        match,
+      })
+    } else if (
+      existing.status !== MatchStatus.FINISHED &&
+      match.status === MatchStatus.FINISHED
+    ) {
+      await safeEnqueueMatchNotification({
+        kind: NotificationKind.MATCH_FINISH,
+        match,
+      })
+    }
+  }
+
+  if (match.matchType === MatchType.LEAGUE) {
+    triggerNotificationProcessing()
+  }
 
   return NextResponse.json(match)
   } catch (error) {

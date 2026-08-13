@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth'
 import { createMatchEventSchema } from '@/lib/validations/match-event'
 import { GAME_EVENT_TYPES, registerMatchEvent } from '@/lib/match-events'
 import { isRefereeEventEnabled } from '@/lib/match-referee-events'
+import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigger-process'
 import { EventType, MatchStatus, MatchType, Role } from '@prisma/client'
 
 const PLAYER_EVENT_TYPES: EventType[] = [
@@ -158,5 +159,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { minute: _minute, ...eventInput } = data
 
   const result = await registerMatchEvent(matchId, eventInput, { minuteOverride })
+
+  if (match.matchType === MatchType.LEAGUE) {
+    triggerNotificationProcessing()
+  }
+
   return NextResponse.json(result, { status: 201 })
 }

@@ -5,9 +5,9 @@ import { db } from '@/lib/db'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { mobileConfigSchema } from '@/lib/validations/mobile-season'
 
-async function countRegisteredTeamsForSeason(seasonId: string): Promise<number> {
+async function countRegisteredTeamsForSeason(id: string): Promise<number> {
   return db.seasonTeam.count({
-    where: { seasonId, status: SeasonTeamStatus.REGISTERED },
+    where: { seasonId: id, status: SeasonTeamStatus.REGISTERED },
   })
 }
 

@@ -1,9 +1,10 @@
 import { db } from '@/lib/db'
-import { EventType, MatchStatus, MatchType } from '@prisma/client'
+import { EventType, MatchStatus, MatchType, NotificationKind } from '@prisma/client'
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 import type { CreateMatchEventInput } from '@/lib/validations/match-event'
 import { getMatchMinute } from '@/lib/match-clock'
 import { syncLeaguePlayerStats } from '@/lib/match-reconcile'
+import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
 
 const eventInclude = {
   player: {
@@ -115,6 +116,31 @@ export async function registerMatchEvent(
   }
 
   await publishMatchInvalidation(matchId)
+
+  if (match.matchType === MatchType.LEAGUE) {
+    if (input.type === EventType.KICKOFF && match.status === MatchStatus.SCHEDULED) {
+      await safeEnqueueMatchNotification({
+        kind: NotificationKind.MATCH_START,
+        match: updatedMatch,
+      })
+    } else if (input.type === EventType.GOAL || input.type === EventType.OWN_GOAL) {
+      await safeEnqueueMatchNotification({
+        kind: NotificationKind.GOAL,
+        match: updatedMatch,
+        matchEvent: {
+          id: event.id,
+          type: input.type,
+          teamId: input.teamId ?? null,
+          playerName: event.player?.user?.name ?? null,
+        },
+      })
+    } else if (input.type === EventType.FULLTIME) {
+      await safeEnqueueMatchNotification({
+        kind: NotificationKind.MATCH_FINISH,
+        match: updatedMatch,
+      })
+    }
+  }
 
   return { event, match: updatedMatch }
 }
