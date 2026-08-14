@@ -1,8 +1,7 @@
 import 'dotenv/config'
-import { PrismaClient } from '@prisma/client'
+import { MembershipRole, PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
-import { Role } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { requireDirectDatabaseUrl } from '../src/lib/database-env'
 
@@ -13,55 +12,83 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
+async function upsertMembershipUser(
+  email: string,
+  name: string,
+  role: MembershipRole,
+  organizationId: string,
+  passwordHash: string,
+  isPlatformAdmin = false,
+) {
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: { name, passwordHash, isPlatformAdmin },
+    create: { email, name, passwordHash, isPlatformAdmin },
+  })
+  await prisma.organizationMembership.upsert({
+    where: {
+      organizationId_userId: { organizationId, userId: user.id },
+    },
+    update: { role },
+    create: { organizationId, userId: user.id, role },
+  })
+  return user
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash('password123', 10)
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@liga.com' },
-    update: {},
+  const kelmeOrg = await prisma.organization.upsert({
+    where: { slug: 'kelme' },
+    update: { name: 'Torneos Kelme' },
     create: {
-      email: 'admin@liga.com',
-      name: 'Admin Liga',
-      passwordHash,
-      role: Role.ADMIN,
+      id: 'org_kelme',
+      slug: 'kelme',
+      name: 'Torneos Kelme',
+      primaryColor: '#CD212A',
+      secondaryColor: '#FFFFFF',
     },
   })
+
+  const admin = await upsertMembershipUser(
+    'admin@liga.com',
+    'Admin Liga',
+    MembershipRole.ORG_ADMIN,
+    kelmeOrg.id,
+    passwordHash,
+    true,
+  )
 
   const team = await prisma.team.upsert({
     where: { id: 'seed-team-1' },
-    update: { name: 'Kelme FC' },
+    update: { name: 'Kelme FC', organizationId: kelmeOrg.id },
     create: {
       id: 'seed-team-1',
       name: 'Kelme FC',
+      organizationId: kelmeOrg.id,
     },
   })
 
-  const coach = await prisma.user.upsert({
-    where: { email: 'dt@liga.com' },
-    update: {},
-    create: {
-      email: 'dt@liga.com',
-      name: 'Director Técnico',
-      passwordHash,
-      role: Role.COACH,
-    },
-  })
+  const coach = await upsertMembershipUser(
+    'dt@liga.com',
+    'Director Técnico',
+    MembershipRole.COACH,
+    kelmeOrg.id,
+    passwordHash,
+  )
 
   await prisma.team.update({
     where: { id: team.id },
     data: { coachId: coach.id },
   })
 
-  const playerUser = await prisma.user.upsert({
-    where: { email: 'jugador@liga.com' },
-    update: {},
-    create: {
-      email: 'jugador@liga.com',
-      name: 'Juan Pérez',
-      passwordHash,
-      role: Role.PLAYER,
-    },
-  })
+  const playerUser = await upsertMembershipUser(
+    'jugador@liga.com',
+    'Juan Pérez',
+    MembershipRole.PLAYER,
+    kelmeOrg.id,
+    passwordHash,
+  )
 
   await prisma.player.upsert({
     where: { userId: playerUser.id },
@@ -74,18 +101,15 @@ async function main() {
     },
   })
 
-  await prisma.user.upsert({
-    where: { email: 'arbitro@liga.com' },
-    update: {},
-    create: {
-      email: 'arbitro@liga.com',
-      name: 'Árbitro Principal',
-      passwordHash,
-      role: Role.REFEREE,
-    },
-  })
+  await upsertMembershipUser(
+    'arbitro@liga.com',
+    'Árbitro Principal',
+    MembershipRole.REFEREE,
+    kelmeOrg.id,
+    passwordHash,
+  )
 
-  console.log('Seed OK:', { admin: admin.email })
+  console.log('Seed OK:', { admin: admin.email, organization: kelmeOrg.slug })
 }
 
 main()
