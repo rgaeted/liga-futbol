@@ -5,15 +5,16 @@ import { GalleryForm } from '@/components/admin/content/GalleriesTable'
 import { GalleryPhotoGrid } from '@/components/admin/content/GalleryPhotoGrid'
 import { db } from '@/lib/db'
 import { editorialPublicUrl } from '@/lib/editorial/urls'
+import { orgPath } from '@/lib/tenant-paths'
 
 export default async function AdminGalleryDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ organizationSlug: string; id: string }>
   searchParams: Promise<{ season?: string }>
 }) {
-  const { id } = await params
+  const { organizationSlug, id } = await params
   const query = await searchParams
   const seasons = await db.season.findMany({ orderBy: { startDate: 'desc' } })
 

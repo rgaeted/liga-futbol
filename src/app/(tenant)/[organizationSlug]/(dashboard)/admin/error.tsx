@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useOrgPath } from '@/hooks/useOrgPath'
 
 export default function AdminError({
   reset,
@@ -8,6 +9,8 @@ export default function AdminError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const orgPath = useOrgPath()
+
   return (
     <div className="rounded-[14px] border border-red-200 bg-white p-8 text-center">
       <h1 className="font-display text-2xl font-bold text-zinc-900">No pudimos cargar el panel</h1>
@@ -23,7 +26,7 @@ export default function AdminError({
           Reintentar
         </button>
         <Link
-          href="/admin/matches"
+          href={orgPath('/admin/matches')}
           className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
         >
           Ir a partidos

@@ -4,21 +4,22 @@ import { ContentSeasonBar } from '@/components/admin/content/ContentSeasonBar'
 import { EditorialImageUpload } from '@/components/admin/content/EditorialImageUpload'
 import { db } from '@/lib/db'
 import { editorialPublicUrl } from '@/lib/editorial/urls'
+import { orgPath } from '@/lib/tenant-paths'
 
 export default async function AdminArticleDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ organizationSlug: string; id: string }>
   searchParams: Promise<{ season?: string }>
 }) {
-  const { id } = await params
+  const { organizationSlug, id } = await params
   const query = await searchParams
   const seasons = await db.season.findMany({ orderBy: { startDate: 'desc' } })
 
   if (id === 'new') {
     const selectedSeasonId = query.season ?? seasons[0]?.id
-    if (!selectedSeasonId) redirect('/admin/content/articles')
+    if (!selectedSeasonId) redirect(orgPath(organizationSlug, '/admin/content/articles'))
     return (
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold">Nueva noticia</h1>
