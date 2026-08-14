@@ -4,6 +4,9 @@ export type MigrationDecision =
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 
+const tenantLive = /^\/[^/]+\/live(?:\/|$)/
+const tenantAyuda = /^\/[^/]+\/ayuda(?:\/|$)/
+
 export function isPublicRequest(method: string, pathname: string): boolean {
   const isPhotoGet =
     method === 'GET' && /^\/api\/friendly-players\/[^/]+\/photo$/.test(pathname)
@@ -30,6 +33,9 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     /^\/api\/mobile\/v1\/leagues\/[^/]+\/installations\/[^/]+$/.test(pathname)
   const isClaimPost =
     method === 'POST' && pathname === '/api/friendly-players/claim'
+  const isTenantPublicGet =
+    (method === 'GET' || method === 'HEAD') &&
+    (tenantLive.test(pathname) || tenantAyuda.test(pathname))
 
   return (
     pathname === '/' ||
@@ -40,6 +46,7 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     pathname.startsWith('/live') ||
     pathname.startsWith('/mantenimiento') ||
     pathname.startsWith('/api/auth') ||
+    isTenantPublicGet ||
     isPhotoGet ||
     isTeamCrestGet ||
     isMatchCrestGet ||

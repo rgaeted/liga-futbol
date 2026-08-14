@@ -33,6 +33,14 @@ describe('proxy policy', () => {
     expect(isPublicRequest('POST', '/api/friendly-players/claim')).toBe(true)
   })
 
+  it('treats tenant live and help routes as public', () => {
+    expect(isPublicRequest('GET', '/kelme/live/match-1')).toBe(true)
+    expect(isPublicRequest('GET', '/kelme/ayuda')).toBe(true)
+    expect(isPublicRequest('GET', '/plataforma')).toBe(false)
+    expect(isPublicRequest('GET', '/organizaciones')).toBe(false)
+    expect(isPublicRequest('GET', '/kelme/admin')).toBe(false)
+  })
+
   it('allows only the intended mobile installation mutations', () => {
     expect(isPublicRequest('POST', '/api/mobile/v1/leagues/demo-liga/installations')).toBe(true)
     expect(
