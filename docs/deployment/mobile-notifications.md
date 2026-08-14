@@ -30,7 +30,7 @@ Migration: `20260812160000_mobile_notifications`
 | Setting | Value |
 |---------|-------|
 | Path | `/api/jobs/notifications/process` |
-| Schedule | `*/2 * * * *` (every 2 minutes) |
+| Schedule | `0 13 * * *` (daily on Vercel Hobby; use `*/2 * * * *` on Pro or external scheduler) |
 | Auth | `Authorization: Bearer $CRON_SECRET` |
 
 Configured in `vercel.json`. Requires a Vercel plan that supports sub-hourly crons. If unavailable, use Supabase pg_cron or an external scheduler hitting the same URL with the same Bearer token.
