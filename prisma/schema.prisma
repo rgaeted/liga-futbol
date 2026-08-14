@@ -6,12 +6,17 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  PLAYER
-  ADMIN
+enum MembershipRole {
+  ORG_ADMIN
   COACH
   REFEREE
+  PLAYER
   FRIENDLY_COACH
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  PAUSED
 }
 
 enum MatchStatus {
@@ -116,22 +121,60 @@ enum NotificationDeliveryStatus {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String
-  name          String
-  role          Role
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  player        Player?
-  friendlyPlayer FriendlyPlayer?
-  coachedTeam   Team?    @relation("TeamCoach")
-  refereeMatches Match[] @relation("MatchReferee")
-  articles       Article[]
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String
+  name             String
+  isPlatformAdmin  Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  player           Player?
+  friendlyPlayer   FriendlyPlayer?
+  coachedTeam      Team?    @relation("TeamCoach")
+  refereeMatches   Match[]  @relation("MatchReferee")
+  articles         Article[]
+  memberships      OrganizationMembership[]
+}
+
+model Organization {
+  id               String             @id @default(cuid())
+  slug             String             @unique
+  name             String
+  logoStoragePath  String?
+  primaryColor     String
+  secondaryColor   String
+  status           OrganizationStatus @default(ACTIVE)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  memberships      OrganizationMembership[]
+  seasons          Season[]
+  teams            Team[]
+  matches          Match[]
+  friendlyCategories FriendlyCategory[]
+  friendlyPlayers  FriendlyPlayer[]
+  articles         Article[]
+  galleries        Gallery[]
+  sponsors         Sponsor[]
+}
+
+model OrganizationMembership {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           MembershipRole
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([organizationId, userId])
+  @@index([userId])
 }
 
 model Team {
   id            String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name          String
   logoUrl       String?
   crestMimeType String?
@@ -171,6 +214,8 @@ model Player {
 
 model Season {
   id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
   startDate      DateTime
   endDate        DateTime
@@ -189,6 +234,8 @@ model Season {
 
 model FriendlyCategory {
   id          String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name        String
   description String?
   isActive    Boolean  @default(true)
@@ -200,6 +247,8 @@ model FriendlyCategory {
 
 model Match {
   id           String      @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   matchType    MatchType   @default(LEAGUE)
   seasonId     String?
   season       Season?     @relation(fields: [seasonId], references: [id])
@@ -313,6 +362,8 @@ model PlayerEvaluation {
 
 model FriendlyPlayer {
   id             String                @id @default(cuid())
+  organizationId String
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   firstName      String
   lastName       String
   dominantFoot   DominantFoot?
@@ -433,6 +484,8 @@ model SeasonRosterEntry {
 
 model Article {
   id               String          @id @default(cuid())
+  organizationId   String
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   seasonId         String
   season           Season          @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   title            String
@@ -452,6 +505,8 @@ model Article {
 
 model Gallery {
   id               String          @id @default(cuid())
+  organizationId   String
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   seasonId         String
   season           Season          @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   title            String
@@ -485,6 +540,8 @@ model GalleryPhoto {
 
 model Sponsor {
   id                String           @id @default(cuid())
+  organizationId    String
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   seasonId          String
   season            Season           @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   name              String
