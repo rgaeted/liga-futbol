@@ -31,6 +31,11 @@ CREATE TABLE "OrganizationMembership" (
     CONSTRAINT "OrganizationMembership_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateIndex (required before ON CONFLICT inserts)
+CREATE UNIQUE INDEX "Organization_slug_key" ON "Organization"("slug");
+CREATE UNIQUE INDEX "OrganizationMembership_organizationId_userId_key" ON "OrganizationMembership"("organizationId", "userId");
+CREATE INDEX "OrganizationMembership_userId_idx" ON "OrganizationMembership"("userId");
+
 -- AlterTable
 ALTER TABLE "User" ADD COLUMN "isPlatformAdmin" BOOLEAN NOT NULL DEFAULT false;
 
@@ -117,15 +122,6 @@ ON CONFLICT ("organizationId", "userId") DO NOTHING;
 -- Drop legacy User.role
 ALTER TABLE "User" DROP COLUMN "role";
 DROP TYPE "Role";
-
--- CreateIndex
-CREATE UNIQUE INDEX "Organization_slug_key" ON "Organization"("slug");
-
--- CreateIndex
-CREATE INDEX "OrganizationMembership_userId_idx" ON "OrganizationMembership"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "OrganizationMembership_organizationId_userId_key" ON "OrganizationMembership"("organizationId", "userId");
 
 -- AddForeignKey
 ALTER TABLE "OrganizationMembership" ADD CONSTRAINT "OrganizationMembership_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
