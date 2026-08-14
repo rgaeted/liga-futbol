@@ -46,6 +46,14 @@ enum MatchType {
   FRIENDLY
 }
 
+enum ChallengeStatus {
+  NONE
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
 enum FriendlySide {
   A
   B
@@ -163,6 +171,7 @@ model Organization {
   seasons          Season[]
   teams            Team[]
   matches          Match[]
+  guestMatches     Match[] @relation("MatchGuestOrg")
   friendlyCategories FriendlyCategory[]
   friendlyPlayers  FriendlyPlayer[]
   players          Player[]
@@ -315,8 +324,13 @@ model Match {
   formations   MatchFormation[]
   teamMvps            MatchTeamMvp[]
   notificationOutbox  NotificationOutbox[]
+  guestOrganizationId String?
+  guestOrganization   Organization? @relation("MatchGuestOrg", fields: [guestOrganizationId], references: [id], onDelete: Restrict)
+  challengeStatus     ChallengeStatus @default(NONE)
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
+
+  @@index([guestOrganizationId, challengeStatus])
 }
 
 model MatchFormation {

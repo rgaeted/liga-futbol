@@ -15,6 +15,7 @@ export function buildAdminNav(slug: string): AdminNavItem[] {
     { href: base('/admin/teams'), label: 'Equipos' },
     { href: base('/admin/players'), label: 'Jugadores' },
     { href: base('/admin/matches'), label: 'Partidos' },
+    { href: base('/admin/challenges'), label: 'Desafíos', activePrefixes: [base('/admin/challenges')] },
     { href: base('/admin/seasons'), label: 'Temporadas' },
     {
       href: base('/admin/content'),

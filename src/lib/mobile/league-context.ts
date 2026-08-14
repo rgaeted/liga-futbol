@@ -1,10 +1,11 @@
-import { MatchType, type Season, type SeasonMobileConfig } from '@prisma/client'
+import { MatchType, OrganizationStatus, type Season, type SeasonMobileConfig } from '@prisma/client'
 import { db } from '@/lib/db'
 import { MobileApiError } from '@/lib/mobile/errors'
+import { pausedOrganizationPayload } from '@/lib/organization-status'
 
 export type ResolvedMobileLeague = {
   config: SeasonMobileConfig
-  season: Season
+  season: Season & { organization: { status: OrganizationStatus } }
   seasonTeamByTeamId: Map<
     string,
     { id: string; displayName: string; color: string | null; crestMimeType: string | null }
@@ -22,6 +23,7 @@ export async function resolvePublishedLeagueBySlug(slug: string): Promise<Resolv
     include: {
       season: {
         include: {
+          organization: { select: { status: true } },
           seasonTeams: {
             where: { status: 'REGISTERED' },
             select: {
@@ -38,6 +40,10 @@ export async function resolvePublishedLeagueBySlug(slug: string): Promise<Resolv
   })
 
   if (!config) return null
+
+  if (config.season.organization.status === OrganizationStatus.PAUSED) {
+    throw new MobileApiError(503, pausedOrganizationPayload().error)
+  }
 
   const seasonTeamByTeamId = new Map(
     config.season.seasonTeams.map((st) => [st.teamId, st]),

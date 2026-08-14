@@ -7,7 +7,7 @@ import { requireOrganizationId } from '@/lib/tenant-access'
 import { AdminMatchCard } from '@/components/admin/AdminMatchCard'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { formatScheduleDateInput, formatScheduleTimeInput } from '@/lib/schedule-datetime'
-import { MatchType } from '@prisma/client'
+import { ChallengeStatus, MatchType } from '@prisma/client'
 import { matchSideHasCrest } from '@/lib/match-side-crest'
 
 export default async function AdminMatchesPage({
@@ -25,13 +25,36 @@ export default async function AdminMatchesPage({
 
   const [matches, refereeMemberships, friendlyPlayers] = await Promise.all([
     db.match.findMany({
-      where: { organizationId },
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                organizationId,
+                NOT: {
+                  challengeStatus: {
+                    in: [ChallengeStatus.DECLINED, ChallengeStatus.CANCELLED],
+                  },
+                },
+              },
+              {
+                guestOrganizationId: organizationId,
+                challengeStatus: {
+                  in: [ChallengeStatus.PENDING, ChallengeStatus.ACCEPTED],
+                },
+              },
+            ],
+          },
+        ],
+      },
       include: {
         homeTeam: true,
         awayTeam: true,
         referee: { select: { name: true } },
         season: true,
         friendlyCategory: { select: { id: true, name: true } },
+        guestOrganization: { select: { id: true, name: true } },
+        organization: { select: { id: true, name: true } },
         friendlyPlayers: { include: { friendlyPlayer: true } },
       },
       orderBy: { scheduledAt: 'desc' },
@@ -110,12 +133,20 @@ export default async function AdminMatchesPage({
                 })
               : []
 
+          const challengeHint =
+            match.challengeStatus === ChallengeStatus.PENDING
+              ? match.organizationId === organizationId
+                ? `Esperando a ${match.guestOrganization?.name ?? match.sideBName ?? 'visitante'}`
+                : `Esperando tu respuesta — ${match.organization.name}`
+              : null
+
           return (
             <AdminMatchCard
               key={match.id}
               title={title}
               matchType={match.matchType}
               typeBadge={typeBadge}
+              challengeHint={challengeHint}
               scheduledAt={match.scheduledAt}
               refereeName={match.referee?.name ?? null}
               footballFormat={match.footballFormat}

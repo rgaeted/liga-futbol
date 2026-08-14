@@ -6,6 +6,7 @@ import {
 } from '@/lib/validations/friendly-player'
 import {
   createMatchSchema,
+  createFriendlyChallengeSchema,
   updateFriendlyPaidSchema,
 } from '@/lib/validations/match'
 
@@ -212,5 +213,50 @@ describe('friendly match validations', () => {
 
   it('updateFriendlyPaidSchema accepts boolean', () => {
     expect(updateFriendlyPaidSchema.safeParse({ paid: true }).success).toBe(true)
+  })
+})
+
+describe('friendly challenge validations', () => {
+  it('intra-org schema still fails without side B', () => {
+    const result = createMatchSchema.safeParse({
+      matchType: 'FRIENDLY',
+      friendlyCategoryId: 'cat-1',
+      sideAName: 'Blancos',
+      sideBName: 'Negros',
+      scheduledAt: new Date().toISOString(),
+      players: [
+        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+      ],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('challenge schema succeeds with only side A captain and DT', () => {
+    const result = createFriendlyChallengeSchema.safeParse({
+      matchType: 'FRIENDLY',
+      guestOrganizationSlug: 'other-org',
+      friendlyCategoryId: 'cat-1',
+      sideAName: 'Kelme',
+      scheduledAt: new Date().toISOString(),
+      players: [
+        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+      ],
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('challenge schema fails if a side B player is present', () => {
+    const result = createFriendlyChallengeSchema.safeParse({
+      matchType: 'FRIENDLY',
+      guestOrganizationSlug: 'other-org',
+      friendlyCategoryId: 'cat-1',
+      sideAName: 'Kelme',
+      scheduledAt: new Date().toISOString(),
+      players: [
+        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
+      ],
+    })
+    expect(result.success).toBe(false)
   })
 })

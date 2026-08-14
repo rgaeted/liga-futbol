@@ -65,13 +65,28 @@ export default async function AdminContentPage({
             </Link>
           </div>
           {mobileConfig ? (
-            <MobileEditionLogoUpload
-              seasonId={selectedSeasonId}
-              logoStoragePath={mobileConfig.logoStoragePath}
-            />
+            <>
+              <section className="rounded-lg border border-kelme-border p-4 text-sm">
+                <h2 className="font-display text-lg font-semibold">App de esta edición</h2>
+                <p className="mt-2 text-zinc-600">
+                  Estado: {mobileConfig.isPublished ? 'Publicado' : 'Borrador'} · Slug:{' '}
+                  <span className="font-mono text-xs">{mobileConfig.slug}</span>
+                </p>
+              </section>
+              <MobileEditionLogoUpload
+                seasonId={selectedSeasonId}
+                logoStoragePath={mobileConfig.logoStoragePath}
+              />
+            </>
           ) : (
             <p className="rounded-lg border border-kelme-border p-4 text-sm text-zinc-600">
-              Configura la edición móvil de esta temporada antes de subir el logo.
+              Configura la edición móvil de esta temporada antes de subir el logo.{' '}
+              <Link
+                href={orgPath(organizationSlug, `/admin/seasons/${selectedSeasonId}/mobile`)}
+                className="text-kelme-red hover:underline"
+              >
+                Ir al wizard móvil
+              </Link>
             </p>
           )}
         </>

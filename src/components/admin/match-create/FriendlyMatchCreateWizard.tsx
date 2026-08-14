@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { EventType, FootballFormat } from '@prisma/client'
@@ -42,10 +42,14 @@ const DRAFT_KEY = 'match-create-draft:friendly'
 
 type Referee = { id: string; name: string }
 type FriendlyCategoryOption = { id: string; name: string; isActive: boolean }
+type OrganizationDirectoryItem = { id: string; slug: string; name: string; logoUrl: string | null }
+type FriendlyMode = 'intra' | 'challenge'
 
 type FriendlyDraft = {
   openStep: number
   rosterPhase: 'convocation' | 'teams'
+  friendlyMode: FriendlyMode
+  guestOrganizationSlug: string
   categoryId: string
   sideAName: string
   sideBName: string
@@ -79,6 +83,8 @@ function createInitialDraft(categories: FriendlyCategoryOption[]): FriendlyDraft
   return {
     openStep: 1,
     rosterPhase: 'convocation',
+    friendlyMode: 'intra',
+    guestOrganizationSlug: '',
     categoryId: firstActive?.id ?? '',
     sideAName: '',
     sideBName: '',
@@ -124,6 +130,15 @@ function formatScheduleLabel(date: string, time: string): string {
 function validateRoster(draft: FriendlyDraft): string | null {
   const sideAIds = new Set(draft.sideAIds)
   const sideBIds = new Set(draft.sideBIds)
+  if (draft.friendlyMode === 'challenge') {
+    if (sideAIds.size < 1) {
+      return 'Selecciona al menos un jugador para tu lado.'
+    }
+    if (!draft.sideACaptainId || !draft.sideACoachId) {
+      return 'Debes elegir un capitán y un DT para tu lado.'
+    }
+    return null
+  }
   if (sideAIds.size < 1 || sideBIds.size < 1) {
     return 'Selecciona al menos un jugador por lado.'
   }
@@ -151,6 +166,33 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [extraPlayers, setExtraPlayers] = useState<FriendlyRosterPlayer[]>([])
+  const [organizationDirectory, setOrganizationDirectory] = useState<OrganizationDirectoryItem[]>(
+    []
+  )
+  const [directoryLoading, setDirectoryLoading] = useState(false)
+
+  useEffect(() => {
+    if (data.friendlyMode !== 'challenge') return
+    let cancelled = false
+    setDirectoryLoading(true)
+    void fetch('/api/admin/organizations-directory')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('No se pudo cargar el directorio')
+        return response.json() as Promise<OrganizationDirectoryItem[]>
+      })
+      .then((items) => {
+        if (!cancelled) setOrganizationDirectory(items)
+      })
+      .catch(() => {
+        if (!cancelled) setError('No se pudo cargar las organizaciones disponibles.')
+      })
+      .finally(() => {
+        if (!cancelled) setDirectoryLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [data.friendlyMode])
 
   const { regionName, communeName } = useChileLocationLabels(data.regionCode, data.communeCode)
 
@@ -174,9 +216,28 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
   const convoked = roster.filter((player) => convokedIds.has(player.id))
   const category = activeCategories.find((item) => item.id === data.categoryId)
   const referee = referees.find((item) => item.id === data.refereeId)
+  const selectedGuestOrg = organizationDirectory.find(
+    (item) => item.slug === data.guestOrganizationSlug
+  )
 
   function patch(partial: Partial<FriendlyDraft>) {
-    setData((current) => ({ ...current, ...partial }))
+    setData((current) => {
+      const next = { ...current, ...partial }
+      if (partial.friendlyMode === 'intra') {
+        next.guestOrganizationSlug = ''
+      }
+      if (partial.friendlyMode === 'challenge') {
+        next.sideBIds = []
+        next.sideBCaptainId = null
+        next.sideBCoachId = null
+      }
+      const guestSlug = partial.guestOrganizationSlug ?? next.guestOrganizationSlug
+      if (guestSlug) {
+        const guest = organizationDirectory.find((item) => item.slug === guestSlug)
+        if (guest) next.sideBName = guest.name
+      }
+      return next
+    })
   }
 
   function setOpenStep(step: number) {
@@ -263,11 +324,28 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
 
   function goToTeamsPhase() {
     setError('')
-    if (convokedIds.size < 2) {
-      setError('Selecciona al menos dos jugadores convocados.')
+    const minimumConvoked = data.friendlyMode === 'challenge' ? 1 : 2
+    if (convokedIds.size < minimumConvoked) {
+      setError(
+        data.friendlyMode === 'challenge'
+          ? 'Selecciona al menos un jugador convocado.'
+          : 'Selecciona al menos dos jugadores convocados.'
+      )
       return
     }
     const split = mapToSideSets(initialSideSplit(convoked))
+    if (data.friendlyMode === 'challenge') {
+      patch({
+        rosterPhase: 'teams',
+        sideAIds: [...convokedIds],
+        sideBIds: [],
+        sideACaptainId: null,
+        sideBCaptainId: null,
+        sideACoachId: null,
+        sideBCoachId: null,
+      })
+      return
+    }
     patch({
       rosterPhase: 'teams',
       sideAIds: [...split.sideAIds],
@@ -287,7 +365,17 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
       setOpenStep(1)
       return
     }
-    if (!data.sideAName.trim() || !data.sideBName.trim()) {
+    if (data.friendlyMode === 'challenge' && !data.guestOrganizationSlug) {
+      setError('Selecciona la organización que quieres desafiar.')
+      setOpenStep(1)
+      return
+    }
+    if (!data.sideAName.trim()) {
+      setError('Ingresa el nombre de tu lado.')
+      setOpenStep(1)
+      return
+    }
+    if (data.friendlyMode === 'intra' && !data.sideBName.trim()) {
       setError('Ingresa el nombre de ambos lados.')
       setOpenStep(1)
       return
@@ -316,27 +404,58 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
     }
 
     setLoading(true)
-    const result = await submitJson('/api/matches', 'POST', {
-      matchType: 'FRIENDLY',
-      friendlyCategoryId: data.categoryId,
-      footballFormat: data.footballFormat,
-      sideAName: data.sideAName,
-      sideBName: data.sideBName,
-      refereeId: data.refereeId || undefined,
-      refereeEventTypes: data.refereeEventTypes,
-      venue: data.venue || undefined,
-      regionCode: data.regionCode || undefined,
-      communeCode: data.communeCode || undefined,
-      scheduledAt,
-      players: rosterEntriesFromSets(
-        sideAIds,
-        sideBIds,
-        data.sideACaptainId,
-        data.sideBCaptainId,
-        data.sideACoachId,
-        data.sideBCoachId
-      ),
-    })
+    const sideBName =
+      data.friendlyMode === 'challenge'
+        ? selectedGuestOrg?.name ?? data.sideBName
+        : data.sideBName
+
+    const payload =
+      data.friendlyMode === 'challenge'
+        ? {
+            matchType: 'FRIENDLY' as const,
+            guestOrganizationSlug: data.guestOrganizationSlug,
+            friendlyCategoryId: data.categoryId,
+            footballFormat: data.footballFormat,
+            sideAName: data.sideAName,
+            sideBName,
+            refereeId: data.refereeId || undefined,
+            refereeEventTypes: data.refereeEventTypes,
+            venue: data.venue || undefined,
+            regionCode: data.regionCode || undefined,
+            communeCode: data.communeCode || undefined,
+            scheduledAt,
+            players: rosterEntriesFromSets(
+              sideAIds,
+              new Set<string>(),
+              data.sideACaptainId,
+              null,
+              data.sideACoachId,
+              null
+            ),
+          }
+        : {
+            matchType: 'FRIENDLY' as const,
+            friendlyCategoryId: data.categoryId,
+            footballFormat: data.footballFormat,
+            sideAName: data.sideAName,
+            sideBName: data.sideBName,
+            refereeId: data.refereeId || undefined,
+            refereeEventTypes: data.refereeEventTypes,
+            venue: data.venue || undefined,
+            regionCode: data.regionCode || undefined,
+            communeCode: data.communeCode || undefined,
+            scheduledAt,
+            players: rosterEntriesFromSets(
+              sideAIds,
+              sideBIds,
+              data.sideACaptainId,
+              data.sideBCaptainId,
+              data.sideACoachId,
+              data.sideBCoachId
+            ),
+          }
+
+    const result = await submitJson('/api/matches', 'POST', payload)
     setLoading(false)
 
     if (!result.ok) {
@@ -368,16 +487,27 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
   }
 
   const rosterReady =
-    sideAIds.size >= 1 &&
-    sideBIds.size >= 1 &&
-    Boolean(data.sideACaptainId) &&
-    Boolean(data.sideBCaptainId) &&
-    Boolean(data.sideACoachId) &&
-    Boolean(data.sideBCoachId)
+    data.friendlyMode === 'challenge'
+      ? sideAIds.size >= 1 &&
+        Boolean(data.sideACaptainId) &&
+        Boolean(data.sideACoachId)
+      : sideAIds.size >= 1 &&
+        sideBIds.size >= 1 &&
+        Boolean(data.sideACaptainId) &&
+        Boolean(data.sideBCaptainId) &&
+        Boolean(data.sideACoachId) &&
+        Boolean(data.sideBCoachId)
 
   const matchTitle =
-    data.sideAName.trim() && data.sideBName.trim()
-      ? `${data.sideAName.trim()} vs ${data.sideBName.trim()}`
+    data.sideAName.trim() &&
+    (data.friendlyMode === 'challenge'
+      ? selectedGuestOrg?.name || data.sideBName.trim()
+      : data.sideBName.trim())
+      ? `${data.sideAName.trim()} vs ${
+          data.friendlyMode === 'challenge'
+            ? selectedGuestOrg?.name ?? data.sideBName.trim()
+            : data.sideBName.trim()
+        }`
       : ''
 
   const summaryRows = [
@@ -429,6 +559,44 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
         onToggle={() => setOpenStep(1)}
       >
         <div className="grid gap-3 md:grid-cols-2">
+          <fieldset className="md:col-span-2 space-y-2">
+            <legend className="text-sm font-semibold text-kelme-gray-800">Tipo de amistoso</legend>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="friendlyMode"
+                checked={data.friendlyMode === 'intra'}
+                onChange={() => patch({ friendlyMode: 'intra', rosterPhase: 'convocation' })}
+              />
+              Solo mi organización
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="friendlyMode"
+                checked={data.friendlyMode === 'challenge'}
+                onChange={() => patch({ friendlyMode: 'challenge', rosterPhase: 'convocation' })}
+              />
+              Desafiar a otra liga
+            </label>
+          </fieldset>
+          {data.friendlyMode === 'challenge' ? (
+            <select
+              value={data.guestOrganizationSlug}
+              onChange={(event) => patch({ guestOrganizationSlug: event.target.value })}
+              className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+              required
+            >
+              <option value="">
+                {directoryLoading ? 'Cargando organizaciones…' : 'Organización visitante'}
+              </option>
+              {organizationDirectory.map((item) => (
+                <option key={item.id} value={item.slug}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
           <select
             value={data.categoryId}
             onChange={(e) => onCategoryChange(e.target.value)}
@@ -448,13 +616,19 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
             required
           />
-          <input
-            value={data.sideBName}
-            onChange={(e) => patch({ sideBName: e.target.value })}
-            placeholder="Nombre lado B (visitante)"
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
-            required
-          />
+          {data.friendlyMode === 'intra' ? (
+            <input
+              value={data.sideBName}
+              onChange={(e) => patch({ sideBName: e.target.value })}
+              placeholder="Nombre lado B (visitante)"
+              className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+              required
+            />
+          ) : (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+              Lado B: {selectedGuestOrg?.name ?? 'El visitante arma su lado cuando acepte.'}
+            </div>
+          )}
           <select
             value={data.refereeId}
             onChange={(e) => patch({ refereeId: e.target.value })}
@@ -557,11 +731,40 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             />
             <button
               type="button"
-              disabled={convokedIds.size < 2}
+              disabled={convokedIds.size < (data.friendlyMode === 'challenge' ? 1 : 2)}
               onClick={goToTeamsPhase}
               className="rounded-lg bg-kelme-red px-4 py-2 font-semibold text-white hover:bg-kelme-red-dark disabled:opacity-50"
             >
               Continuar a equipos
+            </button>
+          </div>
+        ) : data.friendlyMode === 'challenge' ? (
+          <div className="space-y-4">
+            <p className="text-sm text-kelme-gray-600">
+              Asigna capitán y DT solo para tu lado. El visitante completa su plantel al aceptar.
+            </p>
+            <FriendlyMatchTeamAssigner
+              convoked={convoked}
+              sideAName={data.sideAName || 'A'}
+              sideBName={selectedGuestOrg?.name || 'Visitante'}
+              sideAIds={sideAIds}
+              sideBIds={new Set<string>()}
+              sideACaptainId={data.sideACaptainId}
+              sideBCaptainId={null}
+              sideACoachId={data.sideACoachId}
+              sideBCoachId={null}
+              onSideChange={(playerId) => handleSideChange(playerId, 'A')}
+              onSideACaptainChange={(sideACaptainId) => patch({ sideACaptainId })}
+              onSideBCaptainChange={() => undefined}
+              onSideACoachChange={(sideACoachId) => patch({ sideACoachId })}
+              onSideBCoachChange={() => undefined}
+            />
+            <button
+              type="button"
+              onClick={() => patch({ rosterPhase: 'convocation' })}
+              className="rounded-lg border border-kelme-border px-4 py-2 font-semibold hover:bg-kelme-gray-50"
+            >
+              Volver a convocatoria
             </button>
           </div>
         ) : (

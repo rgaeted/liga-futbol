@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { SeasonTeamStatus } from '@prisma/client'
 import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
 import { db } from '@/lib/db'
+import { parseMobileEditionSlug } from '@/lib/mobile-edition-slug'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { mobileConfigSchema } from '@/lib/validations/mobile-season'
 
@@ -37,27 +38,46 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await requireAdminSeason(id)
     const parsed = mobileConfigSchema.safeParse(await req.json())
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
+      const slugIssue = parsed.error.issues.find((issue) => issue.path[0] === 'slug')
+      return NextResponse.json(
+        { error: slugIssue?.message ?? 'Datos inválidos' },
+        { status: 400 },
+      )
+    }
+
+    const parsedSlug = parseMobileEditionSlug(parsed.data.slug)
+    if (!parsedSlug.ok) {
+      return NextResponse.json(
+        { error: parsedSlug.error === 'reserved' ? 'El slug está reservado' : 'Slug inválido' },
+        { status: 400 },
+      )
     }
 
     const existing = await db.seasonMobileConfig.findUnique({ where: { seasonId: id } })
     const wantsPublish = parsed.data.isPublished === true
 
+    if (existing && existing.slug !== parsed.data.slug) {
+      return NextResponse.json(
+        { error: 'El slug no se puede cambiar después' },
+        { status: 400 },
+      )
+    }
+
     if (wantsPublish) {
       const registered = await countRegisteredTeamsForSeason(id)
-      if (registered < 2) {
+      if (registered < 1) {
         return NextResponse.json(
-          { error: 'Debes inscribir al menos dos equipos antes de publicar' },
+          { error: 'Debes inscribir al menos un equipo antes de publicar' },
           { status: 400 },
         )
       }
-    }
-
-    if (existing?.isPublished && existing.slug !== parsed.data.slug) {
-      return NextResponse.json(
-        { error: 'El slug no se puede cambiar después de publicar' },
-        { status: 400 },
-      )
+      const logoPath = existing?.logoStoragePath
+      if (!logoPath) {
+        return NextResponse.json(
+          { error: 'Sube el logo de la edición antes de publicar' },
+          { status: 400 },
+        )
+      }
     }
 
     const now = new Date()

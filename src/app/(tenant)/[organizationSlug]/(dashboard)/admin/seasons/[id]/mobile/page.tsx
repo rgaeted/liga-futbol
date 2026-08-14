@@ -46,6 +46,8 @@ export default async function SeasonMobileAdminPage({
       <SeasonMobilePageClient
         seasonId={season.id}
         seasonName={season.name}
+        organizationSlug={organizationSlug}
+        slugLocked={config !== null}
         config={
           config
             ? {

@@ -86,6 +86,54 @@ function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEnt
   }
 }
 
+function refineChallengeFriendlyPlayers(
+  data: { players: z.infer<typeof friendlyPlayerEntry>[] },
+  ctx: z.RefinementCtx
+) {
+  if (data.players.some((player) => player.side !== 'A')) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'En un desafío solo puedes incluir jugadores del lado A',
+      path: ['players'],
+    })
+  }
+
+  if (data.players.length < 1) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Debe haber al menos un jugador en el lado A',
+      path: ['players'],
+    })
+  }
+
+  const ids = data.players.map((player) => player.friendlyPlayerId)
+  if (new Set(ids).size !== ids.length) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Un jugador no puede estar dos veces en el mismo partido',
+      path: ['players'],
+    })
+  }
+
+  const captains = data.players.filter((player) => player.isCaptain)
+  if (captains.length !== 1) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Debes elegir un capitán para el equipo local (lado A)',
+      path: ['players'],
+    })
+  }
+
+  const coaches = data.players.filter((player) => player.isCoach)
+  if (coaches.length !== 1) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Debes elegir un DT para el equipo local (lado A)',
+      path: ['players'],
+    })
+  }
+}
+
 export const createLeagueMatchSchema = z
   .object({
     matchType: z.literal('LEAGUE').default('LEAGUE'),
@@ -116,6 +164,64 @@ export const createFriendlyMatchSchema = z
   .merge(locationFieldsSchema)
   .superRefine(refineFriendlyPlayers)
   .superRefine(refineChileLocation)
+
+export const createFriendlyChallengeSchema = z
+  .object({
+    matchType: z.literal('FRIENDLY'),
+    guestOrganizationSlug: z.string().min(1),
+    friendlyCategoryId: id,
+    footballFormat: footballFormatSchema.default('FUTBOL_11'),
+    sideAName: z.string().min(1),
+    sideBName: z.string().min(1).optional(),
+    refereeId: id.optional(),
+    refereeEventTypes: refereeEventTypesSchema,
+    scheduledAt: z.string().datetime(),
+    venue: z.string().optional(),
+    players: z.array(friendlyPlayerEntry).min(1),
+  })
+  .merge(locationFieldsSchema)
+  .superRefine(refineChallengeFriendlyPlayers)
+  .superRefine(refineChileLocation)
+
+function refineGuestChallengeRosterPlayers(
+  data: { players: z.infer<typeof friendlyPlayerEntry>[] },
+  ctx: z.RefinementCtx
+) {
+  if (data.players.some((player) => player.side !== 'B')) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Solo puedes editar jugadores del lado B',
+      path: ['players'],
+    })
+  }
+  if (data.players.length < 1) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Debe haber al menos un jugador en tu lado',
+      path: ['players'],
+    })
+  }
+  const captains = data.players.filter((player) => player.isCaptain)
+  if (captains.length !== 1) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Debes elegir un capitán para tu equipo',
+      path: ['players'],
+    })
+  }
+  const coaches = data.players.filter((player) => player.isCoach)
+  if (coaches.length !== 1) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Debes elegir un DT para tu equipo',
+      path: ['players'],
+    })
+  }
+}
+
+export const updateGuestChallengeRosterSchema = z.object({
+  players: z.array(friendlyPlayerEntry).min(1),
+}).superRefine(refineGuestChallengeRosterPlayers)
 
 export const createMatchSchema = z.preprocess((raw) => {
   if (raw && typeof raw === 'object' && !('matchType' in (raw as object))) {

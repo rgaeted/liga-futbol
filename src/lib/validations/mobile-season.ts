@@ -1,9 +1,11 @@
 import { z } from 'zod'
+import { parseMobileEditionSlug } from '@/lib/mobile-edition-slug'
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const hexColorRegex = /^#[0-9A-Fa-f]{6}$/
 
-export const mobileConfigSchema = z.object({
+export const mobileConfigSchema = z
+  .object({
   slug: z.string().regex(slugRegex, 'El slug debe usar solo letras minúsculas, números y guiones'),
   displayName: z.string().min(1).max(120),
   shortName: z.string().min(1).max(120).optional().nullable(),
@@ -12,6 +14,16 @@ export const mobileConfigSchema = z.object({
   secondaryColor: z.string().regex(hexColorRegex, 'Color inválido').optional().nullable(),
   isPublished: z.boolean().optional(),
 })
+  .superRefine((data, ctx) => {
+    const parsed = parseMobileEditionSlug(data.slug)
+    if (!parsed.ok) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['slug'],
+        message: parsed.error === 'reserved' ? 'El slug está reservado' : 'Slug inválido',
+      })
+    }
+  })
 
 export const seasonEnrollmentTeamSchema = z.object({
   teamId: z.string().min(1),

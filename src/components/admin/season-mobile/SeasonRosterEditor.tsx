@@ -12,6 +12,8 @@ import {
 type SeasonMobilePageClientProps = {
   seasonId: string
   seasonName: string
+  organizationSlug: string
+  slugLocked: boolean
   config: {
     slug: string
     displayName: string
@@ -27,6 +29,8 @@ type SeasonMobilePageClientProps = {
 export function SeasonMobilePageClient({
   seasonId,
   seasonName,
+  organizationSlug,
+  slugLocked,
   config,
   teams,
 }: SeasonMobilePageClientProps) {
@@ -92,6 +96,8 @@ export function SeasonMobilePageClient({
 
       <MobileConfigForm
         seasonId={seasonId}
+        organizationSlug={organizationSlug}
+        slugLocked={slugLocked}
         initial={{
           slug: config?.slug ?? seasonName.toLowerCase().replace(/\s+/g, '-'),
           displayName: config?.displayName ?? seasonName,

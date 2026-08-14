@@ -101,7 +101,7 @@ export function LiveScoreboard({
             <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
               <TeamCrest
                 name={match.homeTeam.name}
-                src={match.homeTeam.crestSrc}
+                src={match.homeTeam.crestSrc ?? match.organization.logoUrl}
                 color={match.homeTeam.color}
                 size="lg"
               />
@@ -123,7 +123,7 @@ export function LiveScoreboard({
             <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
               <TeamCrest
                 name={match.awayTeam.name}
-                src={match.awayTeam.crestSrc}
+                src={match.awayTeam.crestSrc ?? match.guestOrganization?.logoUrl}
                 color={match.awayTeam.color}
                 size="lg"
               />

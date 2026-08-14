@@ -33,6 +33,7 @@ type Props = {
   title: string
   matchType: MatchType
   typeBadge: string
+  challengeHint?: string | null
   scheduledAt: Date
   refereeName: string | null
   footballFormat: MatchRow['footballFormat']
@@ -124,6 +125,7 @@ export function AdminMatchCard({
   title,
   matchType,
   typeBadge,
+  challengeHint,
   scheduledAt,
   refereeName,
   footballFormat,
@@ -166,6 +168,11 @@ export function AdminMatchCard({
             >
               {typeBadge}
             </span>
+            {challengeHint ? (
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
+                {challengeHint}
+              </span>
+            ) : null}
           </div>
         </div>
 

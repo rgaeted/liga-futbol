@@ -3,11 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PUT } from '@/app/api/matches/[id]/route'
 
 vi.mock('@/lib/auth', () => ({
-  requireRole: vi.fn().mockResolvedValue({ user: { role: 'ADMIN' } }),
+  requireOrgRole: vi.fn().mockResolvedValue({ organizationId: 'org-host' }),
 }))
 
 vi.mock('@/lib/mobile/notifications/enqueue', () => ({
   safeEnqueueMatchNotification: vi.fn(),
+}))
+
+vi.mock('@/lib/mobile/notifications/trigger-process', () => ({
+  triggerNotificationProcessing: vi.fn(),
 }))
 
 vi.mock('@/lib/db', () => ({
@@ -25,6 +29,9 @@ import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue
 
 const existingMatch = {
   id: 'match-1',
+  organizationId: 'org-host',
+  guestOrganizationId: null,
+  challengeStatus: 'NONE',
   matchType: MatchType.LEAGUE,
   status: MatchStatus.SCHEDULED,
   seasonId: 'season-1',
@@ -36,6 +43,7 @@ const existingMatch = {
   regionCode: null,
   communeCode: null,
   scheduledAt: new Date('2026-08-20T20:00:00.000Z'),
+  friendlyPlayers: [],
 }
 
 describe('PUT /api/matches/[id] notifications', () => {

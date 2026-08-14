@@ -102,6 +102,7 @@ describe('live match snapshot', () => {
     expect(snapshot).toMatchObject({
       id: 'match-1',
       organization: { name: 'Torneos Kelme', logoUrl: null },
+      guestOrganization: null,
       matchType: MatchType.LEAGUE,
       homeTeamId: 'home',
       awayTeamId: 'away',
@@ -191,5 +192,38 @@ describe('live match snapshot', () => {
       'fp-2': false,
     })
     expect(snapshot.friendlyGalletaPlayerIds).toEqual(['fp-1'])
+  })
+
+  it('includes guest organization branding on challenge friendlies', () => {
+    const challengeMatch = {
+      ...match,
+      matchType: MatchType.FRIENDLY,
+      homeTeamId: null,
+      awayTeamId: null,
+      sideAName: 'Kelme',
+      sideBName: 'Rival FC',
+      guestOrganization: {
+        name: 'Rival FC',
+        logoStoragePath: 'orgs/rival/logo.png',
+      },
+      friendlyPlayers: [],
+    } as unknown as LiveMatchRecord
+
+    const snapshot = buildLiveMatchSnapshot(challengeMatch)
+
+    expect(snapshot.guestOrganization).toEqual({
+      name: 'Rival FC',
+      logoUrl: null,
+    })
+    expect(snapshot.awayTeam.crestSrc).toBeNull()
+  })
+
+  it('returns null when slug does not match host organization', async () => {
+    const kelmeMatch = {
+      ...match,
+      organization: { name: 'Kelme', slug: 'kelme', logoStoragePath: null },
+    } as unknown as LiveMatchRecord
+    vi.mocked(db.match.findUnique).mockResolvedValue(kelmeMatch)
+    await expect(getLiveMatchSnapshot('match-1', 'other')).resolves.toBeNull()
   })
 })

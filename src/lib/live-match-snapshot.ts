@@ -61,6 +61,10 @@ export type LiveMatchSnapshot = {
     name: string
     logoUrl: string | null
   }
+  guestOrganization: {
+    name: string
+    logoUrl: string | null
+  } | null
   matchType: MatchType
   homeTeamId: string | null
   awayTeamId: string | null
@@ -93,6 +97,7 @@ export type LiveMatchSnapshot = {
 
 const LIVE_MATCH_INCLUDE = {
   organization: { select: { name: true, slug: true, logoStoragePath: true } },
+  guestOrganization: { select: { name: true, logoStoragePath: true } },
   homeTeam: { include: { coach: { select: { name: true } } } },
   awayTeam: { include: { coach: { select: { name: true } } } },
   formations: true,
@@ -178,7 +183,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
     match.matchType === MatchType.FRIENDLY
       ? matchSideHasCrest(match, 'A')
         ? matchSideCrestUrl(match.id, 'A')
-        : null
+        : editorialPublicUrl(match.organization.logoStoragePath)
       : match.homeTeam && teamHasCrest(match.homeTeam)
         ? teamCrestUrl(match.homeTeam.id)
         : null
@@ -186,7 +191,9 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
     match.matchType === MatchType.FRIENDLY
       ? matchSideHasCrest(match, 'B')
         ? matchSideCrestUrl(match.id, 'B')
-        : null
+        : match.guestOrganization
+          ? editorialPublicUrl(match.guestOrganization.logoStoragePath)
+          : null
       : match.awayTeam && teamHasCrest(match.awayTeam)
         ? teamCrestUrl(match.awayTeam.id)
         : null
@@ -264,6 +271,12 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
       name: match.organization.name,
       logoUrl: editorialPublicUrl(match.organization.logoStoragePath),
     },
+    guestOrganization: match.guestOrganization
+      ? {
+          name: match.guestOrganization.name,
+          logoUrl: editorialPublicUrl(match.guestOrganization.logoStoragePath),
+        }
+      : null,
     matchType: match.matchType,
     homeTeamId: match.homeTeamId,
     awayTeamId: match.awayTeamId,
