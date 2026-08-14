@@ -23,9 +23,16 @@ export async function listAdminSponsors(seasonId: string) {
 }
 
 export async function createSponsor(seasonId: string, input: CreateSponsorInput) {
+  const season = await db.season.findUnique({
+    where: { id: seasonId },
+    select: { organizationId: true },
+  })
+  if (!season) throw new Error('NotFound')
+
   return db.sponsor.create({
     data: {
       seasonId,
+      organizationId: season.organizationId,
       name: input.name,
       websiteUrl: input.websiteUrl ?? null,
       placement: input.placement ?? SponsorPlacement.SPONSORS_PAGE,

@@ -15,11 +15,18 @@ export async function createArticle(
   authorId: string,
   input: CreateArticleInput,
 ) {
+  const season = await db.season.findUnique({
+    where: { id: seasonId },
+    select: { organizationId: true },
+  })
+  if (!season) throw new Error('NotFound')
+
   const now = new Date()
   const status = input.status ?? EditorialStatus.DRAFT
   return db.article.create({
     data: {
       seasonId,
+      organizationId: season.organizationId,
       authorId,
       title: input.title,
       summary: input.summary ?? null,

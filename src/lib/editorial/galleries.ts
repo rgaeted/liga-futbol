@@ -12,11 +12,18 @@ export async function listAdminGalleries(seasonId: string) {
 }
 
 export async function createGallery(seasonId: string, input: CreateGalleryInput) {
+  const season = await db.season.findUnique({
+    where: { id: seasonId },
+    select: { organizationId: true },
+  })
+  if (!season) throw new Error('NotFound')
+
   const now = new Date()
   const status = input.status ?? EditorialStatus.DRAFT
   return db.gallery.create({
     data: {
       seasonId,
+      organizationId: season.organizationId,
       title: input.title,
       description: input.description ?? null,
       sortOrder: input.sortOrder ?? 0,
