@@ -33,6 +33,7 @@ function resolveEditionKey(): string {
 }
 
 const edition = EDITIONS[resolveEditionKey() as keyof typeof EDITIONS]
+const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? edition.apiBaseUrl
 const assetsDir = path.join(edition.assetsDir, 'assets')
 
 const config: ExpoConfig = {
@@ -49,6 +50,7 @@ const config: ExpoConfig = {
     infoPlist: {
       NSUserNotificationsUsageDescription:
         'Te avisaremos cuando empiece un partido en vivo o cuando tu equipo juegue.',
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
@@ -77,18 +79,19 @@ const config: ExpoConfig = {
     ],
   ],
   experiments: {
-    typedRoutes: true,
+    typedRoutes: false,
   },
   extra: {
     editionKey: edition.key,
     leagueSlug: edition.slug,
-    apiBaseUrl: edition.apiBaseUrl,
+    apiBaseUrl,
     supabaseUrl: edition.supabaseUrl,
     supabaseAnonKey: edition.supabaseAnonKey,
     primaryColor: edition.primaryColor,
     secondaryColor: edition.secondaryColor,
     eas: {
-      projectId: process.env.EAS_PROJECT_ID ?? undefined,
+      projectId:
+        process.env.EAS_PROJECT_ID ?? '82b41e84-1be0-4d1d-b7e3-99296e490606',
     },
   },
 }

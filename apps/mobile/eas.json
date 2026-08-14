@@ -19,6 +19,12 @@
         "EDITION": "liga-invierno-kelme-puerto-varas-2026"
       }
     },
+    "preview-ios": {
+      "distribution": "store",
+      "env": {
+        "EDITION": "liga-invierno-kelme-puerto-varas-2026"
+      }
+    },
     "production": {
       "channel": "liga-invierno-kelme-puerto-varas-2026",
       "env": {

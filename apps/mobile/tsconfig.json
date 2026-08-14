@@ -3,12 +3,27 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": ["./*"],
-      "@liga/mobile-contracts": ["../../packages/mobile-contracts/src/index.ts"],
-      "@liga/mobile-contracts/schemas": ["../../packages/mobile-contracts/src/schemas/index.ts"],
-      "@liga/mobile-core": ["../../packages/mobile-core/src/index.ts"]
+      "@/*": [
+        "./*"
+      ],
+      "@liga/mobile-contracts": [
+        "../../packages/mobile-contracts/src/index.ts"
+      ],
+      "@liga/mobile-contracts/schemas": [
+        "../../packages/mobile-contracts/src/schemas/index.ts"
+      ],
+      "@liga/mobile-core": [
+        "../../packages/mobile-core/src/index.ts"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "exclude": ["src/test/**", "tests/**", "components/**"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "src/test/**",
+    "tests/**",
+    "components/**"
+  ]
 }
