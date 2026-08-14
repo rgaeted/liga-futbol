@@ -95,7 +95,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
         <tbody>
           {users.map((user) => {
             const extraTags = user.roleTags.filter((tag) => {
-              if (role === 'ADMIN' && tag.id === 'admin') return false
+              if (role === 'ORG_ADMIN' && tag.id === 'admin') return false
               if (role === 'COACH' && tag.id === 'coach_league') return false
               if (role === 'REFEREE' && tag.id === 'referee') return false
               if (role === 'PLAYER' && tag.id === 'player') return false
