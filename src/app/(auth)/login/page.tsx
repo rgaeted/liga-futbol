@@ -4,7 +4,6 @@ import { signIn } from 'next-auth/react'
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 
 function safeCallbackUrl(raw: string | null): string {
   if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/'
@@ -35,7 +34,20 @@ function LoginForm() {
       return
     }
 
-    // Recarga completa para que la cookie de sesión viaje en la siguiente petición.
+    const shouldUsePostLogin =
+      callbackUrl === '/' ||
+      callbackUrl.startsWith('/login') ||
+      callbackUrl.startsWith('/register')
+
+    if (shouldUsePostLogin) {
+      const res = await fetch('/api/auth/post-login')
+      if (res.ok) {
+        const { path } = (await res.json()) as { path: string }
+        window.location.assign(path)
+        return
+      }
+    }
+
     window.location.assign(callbackUrl)
   }
 
@@ -43,9 +55,7 @@ function LoginForm() {
     <form onSubmit={handleSubmit} className="card-kelme space-y-4 p-8 shadow-sm">
       <div className="text-center">
         <h1 className="font-display text-xl font-bold text-kelme-gray-900">Ingresar</h1>
-        <p className="mt-1 font-ui text-sm text-kelme-gray-400">
-          Accede a tu panel de Torneos Kelme
-        </p>
+        <p className="mt-1 font-ui text-sm text-kelme-gray-400">Accede a AdminTorneo</p>
       </div>
       <input name="email" type="email" placeholder="Email" required className="input-kelme" />
       <input name="password" type="password" placeholder="Contraseña" required className="input-kelme" />
@@ -68,7 +78,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-kelme-bg px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <KelmeLogo size="lg" />
+          <span className="font-display text-2xl font-bold text-kelme-gray-900">AdminTorneo</span>
         </div>
         <Suspense
           fallback={

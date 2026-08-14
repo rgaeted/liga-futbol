@@ -1,10 +1,12 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
+import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 import authConfig from '@/lib/auth.config'
 import type { MembershipRole } from '@/lib/membership-role'
 import { assertSameOrganization } from '@/lib/org-scope'
+import { ORG_COOKIE } from '@/lib/org-cookie'
 
 export { assertSameOrganization }
 
@@ -67,9 +69,28 @@ export async function requirePlatformAdmin() {
 
 export async function requireOrgRole(allowed: MembershipRole[]) {
   const session = await auth()
-  const role = session?.user?.membershipRole
-  const orgId = session?.user?.activeOrganizationId
-  if (!session || !role || !orgId || !allowed.includes(role)) {
+  if (!session?.user?.id) throw new Error('Unauthorized')
+
+  const cookieStore = await cookies()
+  const orgIdFromCookie = cookieStore.get(ORG_COOKIE)?.value
+
+  if (orgIdFromCookie) {
+    const membership = await db.organizationMembership.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: orgIdFromCookie,
+          userId: session.user.id,
+        },
+      },
+    })
+    if (membership && allowed.includes(membership.role)) {
+      return { session, organizationId: orgIdFromCookie, role: membership.role }
+    }
+  }
+
+  const role = session.user.membershipRole
+  const orgId = session.user.activeOrganizationId
+  if (!role || !orgId || !allowed.includes(role)) {
     throw new Error('Unauthorized')
   }
   return { session, organizationId: orgId, role }
