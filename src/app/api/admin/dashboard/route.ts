@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { unstable_cache } from 'next/cache'
 import { requireOrgRole } from '@/lib/auth'
 import { MembershipRole } from '@/lib/membership-role'
-import { assertSeasonInOrganization } from '@/lib/org-scope'
+import { assertSeasonInOrganization } from '@/lib/admin-season-route'
 import { getAdminDashboardData } from '@/lib/admin-dashboard'
 
 const getCachedDashboard = unstable_cache(
