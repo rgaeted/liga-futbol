@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from 'next-auth'
+import type { MembershipRole } from '@/lib/membership-role'
 
 export default {
   trustHost: true,
@@ -21,9 +22,9 @@ export default {
       if (session.user) {
         session.user.id = token.id as string
         session.user.isPlatformAdmin = token.isPlatformAdmin as boolean
-        session.user.membershipRole = token.membershipRole
-        session.user.activeOrganizationId = token.activeOrganizationId
-        session.user.activeOrganizationSlug = token.activeOrganizationSlug
+        session.user.membershipRole = token.membershipRole as MembershipRole | null
+        session.user.activeOrganizationId = token.activeOrganizationId as string | null
+        session.user.activeOrganizationSlug = token.activeOrganizationSlug as string | null
       }
       return session
     },
