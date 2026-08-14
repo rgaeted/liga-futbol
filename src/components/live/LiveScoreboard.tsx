@@ -48,10 +48,10 @@ export function LiveScoreboard({
           <KelmeLogo size="sm" variant="dark" />
         </div>
 
-        <p className="mb-2 text-center font-ui text-sm uppercase tracking-widest text-kelme-red">
+        <p className="mb-2 text-center font-ui text-sm uppercase tracking-widest text-org-primary">
           {isLive ? (
             <span className="live-pulse inline-flex items-center gap-2">
-              <span className="inline-block h-2 w-2 rounded-full bg-kelme-red" />
+              <span className="inline-block h-2 w-2 rounded-full bg-org-primary" />
               EN VIVO
             </span>
           ) : (

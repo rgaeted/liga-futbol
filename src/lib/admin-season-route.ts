@@ -1,6 +1,18 @@
 import { requireOrgRole } from '@/lib/auth'
+import { db } from '@/lib/db'
 import { MembershipRole } from '@/lib/membership-role'
-import { assertSeasonInOrganization } from '@/lib/org-scope'
+import { assertSameOrganization } from '@/lib/org-scope'
+
+export async function assertSeasonInOrganization(seasonId: string, organizationId: string) {
+  const season = await db.season.findUnique({
+    where: { id: seasonId },
+    select: { organizationId: true },
+  })
+  if (!season) {
+    throw new Error('NotFound')
+  }
+  assertSameOrganization(season.organizationId, organizationId)
+}
 
 export async function requireAdminSeason(seasonId: string) {
   const ctx = await requireOrgRole([MembershipRole.ORG_ADMIN])

@@ -7,6 +7,8 @@
   --kelme-green: #008C45;
   --kelme-black: #000000;
   --kelme-white: #FFFFFF;
+  --org-primary: var(--kelme-red);
+  --org-secondary: #ffffff;
   --gray-900: #3D3D3D;
   --gray-600: #54595F;
   --gray-400: #7A7A7A;
@@ -92,4 +94,12 @@ body {
 
 .live-pulse {
   animation: kelme-pulse 1.4s ease-in-out infinite;
+}
+
+.bg-org-primary {
+  background-color: var(--org-primary);
+}
+
+.text-org-primary {
+  color: var(--org-primary);
 }

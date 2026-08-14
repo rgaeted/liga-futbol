@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import {
   EventType,
   MatchStatus,
-  Role,
+  MembershipRole,
   SeasonRosterStatus,
   SeasonTeamStatus,
   type PrismaClient,
@@ -29,23 +29,38 @@ async function upsertUser(
   id: string,
   email: string,
   name: string,
-  role: Role,
-  passwordHash: string
+  role: MembershipRole,
+  organizationId: string,
+  passwordHash: string,
+  isPlatformAdmin = false,
 ) {
-  return prisma.user.upsert({
+  const user = await prisma.user.upsert({
     where: { email },
-    update: { name, role, passwordHash },
-    create: { id, email, name, role, passwordHash },
+    update: {
+      name,
+      passwordHash,
+      ...(isPlatformAdmin ? { isPlatformAdmin: true } : {}),
+    },
+    create: { id, email, name, passwordHash, isPlatformAdmin },
   })
+  await prisma.organizationMembership.upsert({
+    where: {
+      organizationId_userId: { organizationId, userId: user.id },
+    },
+    update: { role },
+    create: { organizationId, userId: user.id, role },
+  })
+  return user
 }
 
 async function upsertPlayer(
   data: PlayerSeed,
   teamId: string,
+  organizationId: string,
   passwordHash: string,
   stats?: { goals?: number; assists?: number; yellowCards?: number; redCards?: number }
 ) {
-  await upsertUser(data.userId, data.email, data.name, Role.PLAYER, passwordHash)
+  await upsertUser(data.userId, data.email, data.name, MembershipRole.PLAYER, organizationId, passwordHash)
   return prisma.player.upsert({
     where: { userId: data.userId },
     update: {
@@ -93,65 +108,85 @@ async function main() {
 
   console.log('🌱 Cargando datos demo Torneos Kelme...\n')
 
+  const kelmeOrg = await prisma.organization.upsert({
+    where: { slug: 'kelme' },
+    update: { name: 'Torneos Kelme' },
+    create: {
+      id: 'org_kelme',
+      slug: 'kelme',
+      name: 'Torneos Kelme',
+      primaryColor: '#CD212A',
+      secondaryColor: '#FFFFFF',
+    },
+  })
+  const organizationId = kelmeOrg.id
+
   // --- Usuarios base demo (admin opcional para pruebas) ---
   await upsertUser(
     `${DEMO_ID_PREFIX}user-admin`,
     `demo-admin${DEMO_EMAIL_DOMAIN}`,
     'Admin Demo Kelme',
-    Role.ADMIN,
-    passwordHash
+    MembershipRole.ORG_ADMIN,
+    organizationId,
+    passwordHash,
   )
 
   const coachNorte = await upsertUser(
     `${DEMO_ID_PREFIX}user-coach-norte`,
     `demo-dt-norte${DEMO_EMAIL_DOMAIN}`,
     'DT Kelme Norte',
-    Role.COACH,
-    passwordHash
+    MembershipRole.COACH,
+    organizationId,
+    passwordHash,
   )
 
   const coachSur = await upsertUser(
     `${DEMO_ID_PREFIX}user-coach-sur`,
     `demo-dt-sur${DEMO_EMAIL_DOMAIN}`,
     'DT Kelme Sur',
-    Role.COACH,
-    passwordHash
+    MembershipRole.COACH,
+    organizationId,
+    passwordHash,
   )
 
   const referee1 = await upsertUser(
     `${DEMO_ID_PREFIX}user-referee-1`,
     `demo-arbitro${DEMO_EMAIL_DOMAIN}`,
     'Árbitro Demo',
-    Role.REFEREE,
-    passwordHash
+    MembershipRole.REFEREE,
+    organizationId,
+    passwordHash,
   )
 
   await upsertUser(
     `${DEMO_ID_PREFIX}user-referee-2`,
     `demo-arbitro-2${DEMO_EMAIL_DOMAIN}`,
     'Árbitro Suplente',
-    Role.REFEREE,
-    passwordHash
+    MembershipRole.REFEREE,
+    organizationId,
+    passwordHash,
   )
 
   // --- Equipos ---
   const teamNorte = await prisma.team.upsert({
     where: { id: `${DEMO_ID_PREFIX}team-norte` },
-    update: { name: 'Kelme Norte FC', coachId: coachNorte.id },
+    update: { name: 'Kelme Norte FC', coachId: coachNorte.id, organizationId },
     create: {
       id: `${DEMO_ID_PREFIX}team-norte`,
       name: 'Kelme Norte FC',
       coachId: coachNorte.id,
+      organizationId,
     },
   })
 
   const teamSur = await prisma.team.upsert({
     where: { id: `${DEMO_ID_PREFIX}team-sur` },
-    update: { name: 'Kelme Sur FC', coachId: coachSur.id },
+    update: { name: 'Kelme Sur FC', coachId: coachSur.id, organizationId },
     create: {
       id: `${DEMO_ID_PREFIX}team-sur`,
       name: 'Kelme Sur FC',
       coachId: coachSur.id,
+      organizationId,
     },
   })
 
@@ -180,7 +215,7 @@ async function main() {
 
   const playersNorte = await Promise.all(
     norteRoster.map((p, i) =>
-      upsertPlayer(p, teamNorte.id, passwordHash, {
+      upsertPlayer(p, teamNorte.id, organizationId, passwordHash, {
         goals: i === 5 ? 3 : i === 6 ? 1 : 0,
         assists: i === 4 ? 2 : 0,
         yellowCards: i === 2 ? 1 : 0,
@@ -190,7 +225,7 @@ async function main() {
 
   const playersSur = await Promise.all(
     surRoster.map((p, i) =>
-      upsertPlayer(p, teamSur.id, passwordHash, {
+      upsertPlayer(p, teamSur.id, organizationId, passwordHash, {
         goals: i === 4 ? 2 : 0,
         yellowCards: i === 3 ? 1 : 0,
       })
@@ -205,6 +240,7 @@ async function main() {
       startDate: new Date('2026-03-01'),
       endDate: new Date('2026-11-30'),
       isActive: true,
+      organizationId,
     },
     create: {
       id: `${DEMO_ID_PREFIX}season-2026`,
@@ -212,6 +248,7 @@ async function main() {
       startDate: new Date('2026-03-01'),
       endDate: new Date('2026-11-30'),
       isActive: true,
+      organizationId,
     },
   })
 
@@ -230,6 +267,7 @@ async function main() {
     },
     create: {
       id: `${DEMO_ID_PREFIX}match-finished`,
+      organizationId,
       seasonId: season.id,
       homeTeamId: teamNorte.id,
       awayTeamId: teamSur.id,
@@ -256,6 +294,7 @@ async function main() {
     },
     create: {
       id: `${DEMO_ID_PREFIX}match-live`,
+      organizationId,
       seasonId: season.id,
       homeTeamId: teamNorte.id,
       awayTeamId: teamSur.id,
@@ -308,6 +347,7 @@ async function main() {
     },
     create: {
       id: `${DEMO_ID_PREFIX}match-scheduled`,
+      organizationId,
       seasonId: season.id,
       homeTeamId: teamSur.id,
       awayTeamId: teamNorte.id,

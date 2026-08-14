@@ -5,7 +5,6 @@ import { requireOrganizationId } from '@/lib/tenant-access'
 import { TeamForm } from '@/components/admin/TeamForm'
 import { TeamsTable } from '@/components/admin/TeamsTable'
 import { teamHasCrest } from '@/lib/team-crest'
-import { resolveTeamColor } from '@/lib/team-color'
 
 export default async function AdminTeamsPage({
   params,
@@ -59,9 +58,8 @@ export default async function AdminTeamsPage({
         coaches={coaches.map((c) => ({
           id: c.id,
           name: c.name,
-          hasTeam: Boolean(c.coachedTeam),
+          assignedTeamId: c.coachedTeam?.id ?? null,
         }))}
-        resolveColor={resolveTeamColor}
       />
     </div>
   )
