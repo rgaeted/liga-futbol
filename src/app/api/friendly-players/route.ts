@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { formatApiError } from '@/lib/api-error'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { createFriendlyPlayerSchema } from '@/lib/validations/friendly-player'
@@ -8,7 +8,7 @@ import {
   createUserForFriendlyPlayer,
   syncFriendlyPlayerCategories,
 } from '@/lib/friendly-player-categories'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 const friendlyPlayerInclude = {
   user: { select: { id: true, email: true } },
@@ -19,14 +19,17 @@ const friendlyPlayerInclude = {
 
 export async function GET(req: Request) {
   try {
-    await requireRole([Role.ADMIN])
+    const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
     const { searchParams } = new URL(req.url)
     const categoryId = searchParams.get('categoryId')
 
     const players = await db.friendlyPlayer.findMany({
-      where: categoryId
-        ? { categories: { some: { friendlyCategoryId: categoryId } } }
-        : undefined,
+      where: {
+        organizationId,
+        ...(categoryId
+          ? { categories: { some: { friendlyCategoryId: categoryId } } }
+          : {}),
+      },
       include: friendlyPlayerInclude,
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     })
@@ -43,7 +46,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await requireRole([Role.ADMIN])
+    const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
     const parsed = createFriendlyPlayerSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json(
@@ -64,7 +67,7 @@ export async function POST(req: Request) {
     } = parsed.data
 
     const categories = await db.friendlyCategory.findMany({
-      where: { id: { in: friendlyCategoryIds } },
+      where: { id: { in: friendlyCategoryIds }, organizationId },
       select: { id: true },
     })
     if (categories.length !== friendlyCategoryIds.length) {
@@ -75,6 +78,7 @@ export async function POST(req: Request) {
       let userId: string | undefined
       if (email && password) {
         userId = await createUserForFriendlyPlayer(tx, {
+          organizationId,
           firstName,
           lastName,
           email,
@@ -84,6 +88,7 @@ export async function POST(req: Request) {
 
       const created = await tx.friendlyPlayer.create({
         data: {
+          organizationId,
           firstName,
           lastName,
           ...(dominantFoot ? { dominantFoot } : {}),

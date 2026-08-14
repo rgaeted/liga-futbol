@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { MatchStatus, Role } from '@prisma/client'
-import { auth } from '@/lib/auth'
+import { MatchStatus } from '@prisma/client'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { db } from '@/lib/db'
 import {
   buildMatchTeamMvps,
@@ -14,10 +14,16 @@ import {
 } from '@/lib/match-mvp-photo'
 import { matchSideNames } from '@/lib/match-label'
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
+import { MembershipRole } from '@/lib/membership-role'
+import type { MembershipRole as MembershipRoleType } from '@/lib/membership-role'
 
-async function canEditMvp(userId: string, role: Role, match: { refereeId: string | null }) {
-  if (role === Role.ADMIN) return true
-  if (role === Role.REFEREE && match.refereeId === userId) return true
+async function canEditMvp(
+  userId: string,
+  role: MembershipRoleType,
+  match: { refereeId: string | null }
+) {
+  if (role === MembershipRole.ORG_ADMIN) return true
+  if (role === MembershipRole.REFEREE && match.refereeId === userId) return true
   return false
 }
 
@@ -48,10 +54,16 @@ export async function GET(_req: Request, { params }: RouteParams) {
 }
 
 export async function POST(req: Request, { params }: RouteParams) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  let authContext: Awaited<ReturnType<typeof requireOrgRole>>
+  try {
+    authContext = await requireOrgRole([
+      MembershipRole.ORG_ADMIN,
+      MembershipRole.REFEREE,
+    ])
+  } catch {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
+  const { organizationId, role, session } = authContext
 
   const { id, side: sideParam } = await params
   const side = parseMatchMvpSideParam(sideParam)
@@ -63,6 +75,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     where: { id },
     select: {
       id: true,
+      organizationId: true,
       matchType: true,
       status: true,
       refereeId: true,
@@ -76,8 +89,9 @@ export async function POST(req: Request, { params }: RouteParams) {
   if (!match) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(match.organizationId, organizationId)
 
-  if (!(await canEditMvp(session.user.id, session.user.role as Role, match))) {
+  if (!(await canEditMvp(session.user.id, role, match))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
 
@@ -140,10 +154,16 @@ export async function POST(req: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(_req: Request, { params }: RouteParams) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  let authContext: Awaited<ReturnType<typeof requireOrgRole>>
+  try {
+    authContext = await requireOrgRole([
+      MembershipRole.ORG_ADMIN,
+      MembershipRole.REFEREE,
+    ])
+  } catch {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
+  const { organizationId, role, session } = authContext
 
   const { id, side: sideParam } = await params
   const side = parseMatchMvpSideParam(sideParam)
@@ -155,6 +175,7 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
     where: { id },
     select: {
       id: true,
+      organizationId: true,
       matchType: true,
       status: true,
       refereeId: true,
@@ -168,8 +189,9 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   if (!match) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(match.organizationId, organizationId)
 
-  if (!(await canEditMvp(session.user.id, session.user.role as Role, match))) {
+  if (!(await canEditMvp(session.user.id, role, match))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
 

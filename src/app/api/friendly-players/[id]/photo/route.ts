@@ -31,15 +31,19 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { requireRole } = await import('@/lib/auth')
-  const { Role } = await import('@prisma/client')
-  await requireRole([Role.ADMIN])
+  const { requireOrgRole, assertSameOrganization } = await import('@/lib/auth')
+  const { MembershipRole } = await import('@/lib/membership-role')
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
 
   const { id } = await params
-  const exists = await db.friendlyPlayer.findUnique({ where: { id }, select: { id: true } })
+  const exists = await db.friendlyPlayer.findUnique({
+    where: { id },
+    select: { id: true, organizationId: true },
+  })
   if (!exists) {
     return NextResponse.json({ error: 'Jugador no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(exists.organizationId, organizationId)
 
   const form = await req.formData()
   const file = form.get('photo')
@@ -66,11 +70,19 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { requireRole } = await import('@/lib/auth')
-  const { Role } = await import('@prisma/client')
-  await requireRole([Role.ADMIN])
+  const { requireOrgRole, assertSameOrganization } = await import('@/lib/auth')
+  const { MembershipRole } = await import('@/lib/membership-role')
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
 
   const { id } = await params
+  const exists = await db.friendlyPlayer.findUnique({
+    where: { id },
+    select: { organizationId: true },
+  })
+  if (!exists) {
+    return NextResponse.json({ error: 'Jugador no encontrado' }, { status: 404 })
+  }
+  assertSameOrganization(exists.organizationId, organizationId)
   await db.friendlyPlayer.update({
     where: { id },
     data: { photoMimeType: null, photoData: null },

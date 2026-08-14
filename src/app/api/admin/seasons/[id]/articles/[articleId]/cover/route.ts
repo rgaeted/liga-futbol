@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { Role } from '@prisma/client'
-import { requireRole } from '@/lib/auth'
+import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
 import { db } from '@/lib/db'
 import { articleCoverStoragePath } from '@/lib/editorial/articles'
 import { editorialImageExtension, validateEditorialImage } from '@/lib/editorial/image'
@@ -16,8 +15,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string; articleId: string }> },
 ) {
   try {
-    await requireRole([Role.ADMIN])
     const { id: seasonId, articleId } = await params
+    await requireAdminSeason(seasonId)
 
     const article = await db.article.findFirst({
       where: { id: articleId, seasonId },
@@ -57,6 +56,10 @@ export async function POST(
 
     return NextResponse.json({ ok: true, coverStoragePath: storagePath })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
@@ -68,8 +71,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; articleId: string }> },
 ) {
   try {
-    await requireRole([Role.ADMIN])
     const { id: seasonId, articleId } = await params
+    await requireAdminSeason(seasonId)
 
     const article = await db.article.findFirst({
       where: { id: articleId, seasonId },
@@ -90,6 +93,10 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })

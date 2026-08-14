@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { submitJson } from './submit'
 
 const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Admin',
+  ORG_ADMIN: 'Admin',
   COACH: 'DT',
   REFEREE: 'Árbitro',
 }

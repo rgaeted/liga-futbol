@@ -1,27 +1,46 @@
+import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { MembershipRole } from '@/lib/membership-role'
+import { requireOrganizationId } from '@/lib/tenant-access'
 import { UserForm } from '@/components/admin/UserForm'
 import { UsersTable } from '@/components/admin/UsersTable'
 import { resolveUserRoleTags } from '@/lib/user-roles-display'
+import { auth } from '@/lib/auth'
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  params,
+}: {
+  params: Promise<{ organizationSlug: string }>
+}) {
+  const { organizationSlug } = await params
   const session = await auth()
-  const users = await db.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      coachedTeam: { select: { id: true } },
-      friendlyPlayer: {
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    notFound()
+  }
+
+  const memberships = await db.organizationMembership.findMany({
+    where: { organizationId },
+    include: {
+      user: {
         select: {
           id: true,
-          participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+          email: true,
+          name: true,
+          coachedTeam: { select: { id: true } },
+          friendlyPlayer: {
+            select: {
+              id: true,
+              participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+            },
+          },
+          player: { select: { teamId: true } },
         },
       },
-      player: { select: { teamId: true } },
     },
-    orderBy: [{ role: 'asc' }, { name: 'asc' }],
+    orderBy: [{ role: 'asc' }, { user: { name: 'asc' } }],
   })
 
   return (
@@ -33,17 +52,17 @@ export default async function AdminUsersPage() {
       </p>
       <UserForm />
       <UsersTable
-        users={users.map((u) => ({
-          id: u.id,
-          email: u.email,
-          name: u.name,
-          role: u.role,
+        users={memberships.map((m) => ({
+          id: m.user.id,
+          email: m.user.email,
+          name: m.user.name,
+          role: m.role,
           roleTags: resolveUserRoleTags({
-            role: u.role,
-            hasCoachedTeam: Boolean(u.coachedTeam),
-            hasLeagueTeam: Boolean(u.player?.teamId),
-            hasFriendlyProfile: Boolean(u.friendlyPlayer),
-            isFriendlyCoach: Boolean(u.friendlyPlayer?.participations.length),
+            role: m.role,
+            hasCoachedTeam: Boolean(m.user.coachedTeam),
+            hasLeagueTeam: Boolean(m.user.player?.teamId),
+            hasFriendlyProfile: Boolean(m.user.friendlyPlayer),
+            isFriendlyCoach: Boolean(m.user.friendlyPlayer?.participations.length),
           }),
         }))}
         currentUserId={session!.user.id}

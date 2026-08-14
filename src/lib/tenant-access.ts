@@ -15,6 +15,17 @@ export async function findTenantMembership(userId: string, organizationSlug: str
   })
 }
 
+export async function requireOrganizationId(slug: string): Promise<string> {
+  const org = await db.organization.findUnique({
+    where: { slug },
+    select: { id: true, status: true },
+  })
+  if (!org || org.status !== 'ACTIVE') {
+    throw new Error('OrganizationNotFound')
+  }
+  return org.id
+}
+
 export async function activeOrganizationIdForUser(userId: string): Promise<string | null> {
   const cookieStore = await cookies()
   const orgId = cookieStore.get(ORG_COOKIE)?.value

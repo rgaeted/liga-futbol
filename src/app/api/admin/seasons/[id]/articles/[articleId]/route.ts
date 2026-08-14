@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server'
-import { Role } from '@prisma/client'
-import { requireRole } from '@/lib/auth'
 import { deleteArticle, updateArticle } from '@/lib/editorial/articles'
 import { bestEffortDeleteEditorialObjects } from '@/lib/editorial/storage'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { updateArticleSchema } from '@/lib/validations/editorial'
+import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
 
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string; articleId: string }> },
 ) {
   try {
-    await requireRole([Role.ADMIN])
     const { id: seasonId, articleId } = await params
+    await requireAdminSeason(seasonId)
     const parsed = updateArticleSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
@@ -24,6 +23,10 @@ export async function PUT(
     }
     return NextResponse.json({ article })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
@@ -35,8 +38,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; articleId: string }> },
 ) {
   try {
-    await requireRole([Role.ADMIN])
     const { id: seasonId, articleId } = await params
+    await requireAdminSeason(seasonId)
     const removed = await deleteArticle(seasonId, articleId)
     if (!removed) {
       return NextResponse.json({ error: 'Artículo no encontrado' }, { status: 404 })
@@ -47,6 +50,10 @@ export async function DELETE(
     }
     return NextResponse.json({ ok: true })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })

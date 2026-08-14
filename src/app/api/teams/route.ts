@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole } from '@/lib/auth'
 import { createTeamSchema } from '@/lib/validations/team'
 import { deriveTeamColor } from '@/lib/team-color'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function GET() {
-  await requireRole([Role.ADMIN, Role.COACH, Role.PLAYER, Role.REFEREE])
+  const { organizationId } = await requireOrgRole([
+    MembershipRole.ORG_ADMIN,
+    MembershipRole.COACH,
+    MembershipRole.PLAYER,
+    MembershipRole.REFEREE,
+  ])
   const teams = await db.team.findMany({
+    where: { organizationId },
     include: {
       coach: { select: { id: true, name: true } },
       _count: { select: { players: true } },
@@ -18,7 +24,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const body = await req.json()
   const parsed = createTeamSchema.safeParse(body)
   if (!parsed.success) {
@@ -26,6 +32,7 @@ export async function POST(req: Request) {
   }
 
   const data = {
+    organizationId,
     name: parsed.data.name,
     logoUrl: parsed.data.logoUrl || null,
     color: parsed.data.color ?? deriveTeamColor(parsed.data.name),

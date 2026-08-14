@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { formatApiError } from '@/lib/api-error'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { updateFriendlyPlayerSchema } from '@/lib/validations/friendly-player'
@@ -8,7 +8,7 @@ import {
   createUserForFriendlyPlayer,
   syncFriendlyPlayerCategories,
 } from '@/lib/friendly-player-categories'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 const friendlyPlayerInclude = {
   user: { select: { id: true, email: true } },
@@ -22,7 +22,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireRole([Role.ADMIN])
+    const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
     const { id } = await params
 
     const existing = await db.friendlyPlayer.findUnique({
@@ -32,6 +32,7 @@ export async function PUT(
     if (!existing) {
       return NextResponse.json({ error: 'Jugador no encontrado' }, { status: 404 })
     }
+    assertSameOrganization(existing.organizationId, organizationId)
 
     const parsed = updateFriendlyPlayerSchema.safeParse(await req.json())
     if (!parsed.success) {
@@ -52,7 +53,7 @@ export async function PUT(
 
     if (friendlyCategoryIds) {
       const categories = await db.friendlyCategory.findMany({
-        where: { id: { in: friendlyCategoryIds } },
+        where: { id: { in: friendlyCategoryIds }, organizationId },
         select: { id: true },
       })
       if (categories.length !== friendlyCategoryIds.length) {
@@ -64,6 +65,7 @@ export async function PUT(
       let userId = existing.userId
       if (email && password && !userId) {
         userId = await createUserForFriendlyPlayer(tx, {
+          organizationId,
           firstName: profile.firstName ?? existing.firstName,
           lastName: profile.lastName ?? existing.lastName,
           email,
@@ -104,8 +106,17 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
+
+  const existing = await db.friendlyPlayer.findUnique({
+    where: { id },
+    select: { organizationId: true },
+  })
+  if (!existing) {
+    return NextResponse.json({ error: 'Jugador no encontrado' }, { status: 404 })
+  }
+  assertSameOrganization(existing.organizationId, organizationId)
 
   const participationCount = await db.friendlyMatchPlayer.count({
     where: { friendlyPlayerId: id },

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { Role } from '@prisma/client'
-import { requireRole } from '@/lib/auth'
+import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
 import { reorderGalleryPhotos } from '@/lib/editorial/gallery-photos'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { reorderGalleryPhotosSchema } from '@/lib/validations/editorial'
@@ -10,8 +9,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string; galleryId: string }> },
 ) {
   try {
-    await requireRole([Role.ADMIN])
     const { id: seasonId, galleryId } = await params
+    await requireAdminSeason(seasonId)
     const parsed = reorderGalleryPhotosSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
@@ -27,6 +26,10 @@ export async function PUT(
 
     return NextResponse.json({ ok: true })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })

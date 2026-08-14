@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { Role, SeasonTeamStatus } from '@prisma/client'
-import { requireRole } from '@/lib/auth'
+import { SeasonTeamStatus } from '@prisma/client'
+import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
 import { db } from '@/lib/db'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { mobileConfigSchema } from '@/lib/validations/mobile-season'
@@ -13,14 +13,18 @@ async function countRegisteredTeamsForSeason(id: string): Promise<number> {
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireRole([Role.ADMIN])
     const { id } = await params
+    await requireAdminSeason(id)
     const config = await db.seasonMobileConfig.findUnique({ where: { seasonId: id } })
     if (!config) {
       return NextResponse.json({ config: null })
     }
     return NextResponse.json({ config })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
@@ -29,8 +33,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireRole([Role.ADMIN])
     const { id } = await params
+    await requireAdminSeason(id)
     const parsed = mobileConfigSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
@@ -84,6 +88,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     return NextResponse.json({ config })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })

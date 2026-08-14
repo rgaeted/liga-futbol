@@ -1,11 +1,11 @@
 ﻿import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { formatApiError } from '@/lib/api-error'
 import { createMatchSchema } from '@/lib/validations/match'
 import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { deriveTeamColor } from '@/lib/team-color'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 import { DEFAULT_REFEREE_EVENT_TYPES, normalizeRefereeEventTypes } from '@/lib/match-referee-events'
 import { buildMatchLocationFields } from '@/lib/match-location'
 
@@ -43,7 +43,7 @@ const friendlyPlayerSummarySelect = {
 
 export async function POST(req: Request) {
   try {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const parsed = createMatchSchema.safeParse(await req.json())
   if (!parsed.success) {
     return NextResponse.json(
@@ -69,8 +69,12 @@ export async function POST(req: Request) {
     if (!season) {
       return NextResponse.json({ error: 'Temporada no encontrada' }, { status: 400 })
     }
+    if (season.organizationId !== organizationId) {
+      return NextResponse.json({ error: 'Temporada no válida para esta organización' }, { status: 400 })
+    }
     const match = await db.match.create({
       data: {
+        organizationId,
         matchType: 'LEAGUE',
         seasonId: data.seasonId,
         footballFormat: season.footballFormat,
@@ -97,6 +101,9 @@ export async function POST(req: Request) {
   }
   if (!category.isActive) {
     return NextResponse.json({ error: 'La categoría no está activa' }, { status: 400 })
+  }
+  if (category.organizationId !== organizationId) {
+    return NextResponse.json({ error: 'Categoría no válida para esta organización' }, { status: 400 })
   }
 
   const playerIds = data.players.map((p) => p.friendlyPlayerId)
@@ -131,6 +138,7 @@ export async function POST(req: Request) {
   const match = await db.$transaction(async (tx) => {
     const created = await tx.match.create({
       data: {
+        organizationId,
         matchType: 'FRIENDLY',
         friendlyCategoryId: data.friendlyCategoryId,
         footballFormat: data.footballFormat,

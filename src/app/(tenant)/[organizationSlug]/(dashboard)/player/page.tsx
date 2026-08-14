@@ -4,12 +4,20 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { MatchStatus } from '@prisma/client'
 import { matchDisplayName } from '@/lib/match-label'
-import { Role } from '@/lib/roles'
+import { MembershipRole } from '@/lib/membership-role'
+import { orgPath } from '@/lib/tenant-paths'
 
-export default async function PlayerDashboardPage() {
+export default async function PlayerDashboardPage({
+  params,
+}: {
+  params: Promise<{ organizationSlug: string }>
+}) {
+  const { organizationSlug } = await params
   const session = await auth()
   if (!session) redirect('/login')
-  if (session.user.role === Role.FRIENDLY_COACH) redirect('/player/friendly-matches')
+  if (session.user.membershipRole === MembershipRole.FRIENDLY_COACH) {
+    redirect(orgPath(organizationSlug, '/player/friendly-matches'))
+  }
 
   const player = await db.player.findUnique({
     where: { userId: session.user.id },
@@ -79,7 +87,7 @@ export default async function PlayerDashboardPage() {
         />
       </section>
 
-      <Link href="/player/matches" className="text-kelme-red hover:underline">
+      <Link href={orgPath(organizationSlug, '/player/matches')} className="text-kelme-red hover:underline">
         Ver todos mis partidos →
       </Link>
     </div>

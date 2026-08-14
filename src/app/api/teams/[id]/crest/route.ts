@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { validateImageUpload } from '@/lib/image-upload'
 import { teamHasCrest } from '@/lib/team-crest'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function GET(
   _req: Request,
@@ -29,15 +31,16 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { requireRole } = await import('@/lib/auth')
-  const { Role } = await import('@prisma/client')
-  await requireRole([Role.ADMIN])
-
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
-  const exists = await db.team.findUnique({ where: { id }, select: { id: true } })
+  const exists = await db.team.findUnique({
+    where: { id },
+    select: { id: true, organizationId: true },
+  })
   if (!exists) {
     return NextResponse.json({ error: 'Equipo no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(exists.organizationId, organizationId)
 
   const form = await req.formData()
   const file = form.get('crest')
@@ -64,11 +67,18 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { requireRole } = await import('@/lib/auth')
-  const { Role } = await import('@prisma/client')
-  await requireRole([Role.ADMIN])
-
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
+
+  const exists = await db.team.findUnique({
+    where: { id },
+    select: { organizationId: true },
+  })
+  if (!exists) {
+    return NextResponse.json({ error: 'Equipo no encontrado' }, { status: 404 })
+  }
+  assertSameOrganization(exists.organizationId, organizationId)
+
   await db.team.update({
     where: { id },
     data: { crestMimeType: null, crestData: null },

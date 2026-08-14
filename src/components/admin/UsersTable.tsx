@@ -16,7 +16,7 @@ export type UserRow = {
 }
 
 const ACCESS_ROLE_LABELS: Record<(typeof accessRoles)[number], string> = {
-  ADMIN: 'Admin',
+  ORG_ADMIN: 'Admin',
   COACH: 'DT liga',
   REFEREE: 'Árbitro',
   FRIENDLY_COACH: 'DT amistoso',

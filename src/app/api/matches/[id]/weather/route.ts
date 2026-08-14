@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { fetchWeatherForMatch } from '@/lib/match-weather'
 import { buildMatchLocationFields } from '@/lib/match-location'
 import { fetchMatchWeatherSchema } from '@/lib/validations/match'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
 
   const rawBody = await req.json().catch(() => ({}))
@@ -20,6 +20,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     where: { id },
     select: {
       id: true,
+      organizationId: true,
       scheduledAt: true,
       communeLat: true,
       communeLon: true,
@@ -30,6 +31,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!match) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(match.organizationId, organizationId)
 
   const { regionCode, communeCode, scheduledAt } = parsed.data
   let lat = match.communeLat

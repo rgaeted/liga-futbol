@@ -1,52 +1,55 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole } from '@/lib/auth'
 import { createUserSchema } from '@/lib/validations/user'
-import { Role } from '@prisma/client'
-
+import { MembershipRole } from '@/lib/membership-role'
 import { resolveUserRoleTags } from '@/lib/user-roles-display'
 
 export async function GET() {
-  await requireRole([Role.ADMIN])
-  const users = await db.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      createdAt: true,
-      coachedTeam: { select: { id: true } },
-      friendlyPlayer: {
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
+  const memberships = await db.organizationMembership.findMany({
+    where: { organizationId },
+    include: {
+      user: {
         select: {
           id: true,
-          participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+          email: true,
+          name: true,
+          createdAt: true,
+          coachedTeam: { select: { id: true } },
+          friendlyPlayer: {
+            select: {
+              id: true,
+              participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+            },
+          },
+          player: { select: { teamId: true } },
         },
       },
-      player: { select: { teamId: true } },
     },
-    orderBy: [{ role: 'asc' }, { name: 'asc' }],
+    orderBy: [{ role: 'asc' }, { user: { name: 'asc' } }],
   })
   return NextResponse.json(
-    users.map((u) => ({
-      id: u.id,
-      email: u.email,
-      name: u.name,
-      role: u.role,
-      createdAt: u.createdAt,
+    memberships.map((m) => ({
+      id: m.user.id,
+      email: m.user.email,
+      name: m.user.name,
+      role: m.role,
+      createdAt: m.user.createdAt,
       roleTags: resolveUserRoleTags({
-        role: u.role,
-        hasCoachedTeam: Boolean(u.coachedTeam),
-        hasLeagueTeam: Boolean(u.player?.teamId),
-        hasFriendlyProfile: Boolean(u.friendlyPlayer),
-        isFriendlyCoach: Boolean(u.friendlyPlayer?.participations.length),
+        role: m.role,
+        hasCoachedTeam: Boolean(m.user.coachedTeam),
+        hasLeagueTeam: Boolean(m.user.player?.teamId),
+        hasFriendlyProfile: Boolean(m.user.friendlyPlayer),
+        isFriendlyCoach: Boolean(m.user.friendlyPlayer?.participations.length),
       }),
     }))
   )
 }
 
 export async function POST(req: Request) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const parsed = createUserSchema.safeParse(await req.json())
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
@@ -60,9 +63,15 @@ export async function POST(req: Request) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
-  const user = await db.user.create({
-    data: { email, name, passwordHash, role },
-    select: { id: true, email: true, name: true, role: true },
+  const user = await db.$transaction(async (tx) => {
+    const created = await tx.user.create({
+      data: { email, name, passwordHash },
+      select: { id: true, email: true, name: true },
+    })
+    await tx.organizationMembership.create({
+      data: { organizationId, userId: created.id, role },
+    })
+    return { ...created, role }
   })
   return NextResponse.json(user, { status: 201 })
 }

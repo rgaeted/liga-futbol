@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client'
+import type { MembershipRole } from '@/lib/membership-role'
 
 export type UserRoleTagId =
   | 'admin'
@@ -22,7 +22,7 @@ const TAG_META: Record<UserRoleTagId, { label: string; priority: number }> = {
 export type UserRoleTag = { id: UserRoleTagId; label: string }
 
 export type UserRoleContext = {
-  role: Role
+  role: MembershipRole
   hasCoachedTeam: boolean
   hasLeagueTeam: boolean
   hasFriendlyProfile: boolean
@@ -33,15 +33,15 @@ export type UserRoleContext = {
 export function resolveUserRoleTags(input: UserRoleContext): UserRoleTag[] {
   const ids = new Set<UserRoleTagId>()
 
-  if (input.role === Role.ADMIN) ids.add('admin')
-  if (input.role === Role.COACH || input.hasCoachedTeam) ids.add('coach_league')
-  if (input.role === Role.REFEREE) ids.add('referee')
-  if (input.role === Role.FRIENDLY_COACH || input.isFriendlyCoach) ids.add('coach_friendly')
+  if (input.role === 'ORG_ADMIN') ids.add('admin')
+  if (input.role === 'COACH' || input.hasCoachedTeam) ids.add('coach_league')
+  if (input.role === 'REFEREE') ids.add('referee')
+  if (input.role === 'FRIENDLY_COACH' || input.isFriendlyCoach) ids.add('coach_friendly')
   if (input.hasLeagueTeam) ids.add('player_league')
   if (input.hasFriendlyProfile) ids.add('player_friendly')
 
   if (
-    input.role === Role.PLAYER &&
+    input.role === 'PLAYER' &&
     !ids.has('player_league') &&
     !ids.has('player_friendly') &&
     !ids.has('coach_friendly')

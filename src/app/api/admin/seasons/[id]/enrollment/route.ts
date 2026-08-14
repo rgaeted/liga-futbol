@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { Role, SeasonRosterStatus, SeasonTeamStatus } from '@prisma/client'
-import { requireRole } from '@/lib/auth'
+import { SeasonRosterStatus, SeasonTeamStatus } from '@prisma/client'
+import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
 import { db } from '@/lib/db'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import {
@@ -11,10 +11,11 @@ import { seasonEnrollmentSchema } from '@/lib/validations/mobile-season'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireRole([Role.ADMIN])
     const { id } = await params
+    const { organizationId } = await requireAdminSeason(id)
 
     const teams = await db.team.findMany({
+      where: { organizationId },
       orderBy: { name: 'asc' },
       include: {
         players: {
@@ -60,6 +61,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       })),
     })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
@@ -68,8 +73,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireRole([Role.ADMIN])
     const { id: id } = await params
+    const { organizationId } = await requireAdminSeason(id)
     const parsed = seasonEnrollmentSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos de inscripción inválidos' }, { status: 400 })
@@ -90,7 +95,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
       for (const [index, team] of parsed.data.teams.entries()) {
         const dbTeam = await tx.team.findUnique({ where: { id: team.teamId } })
-        if (!dbTeam) continue
+        if (!dbTeam || dbTeam.organizationId !== organizationId) continue
 
         const seasonTeam = await tx.seasonTeam.upsert({
           where: { seasonId_teamId: { seasonId: id, teamId: team.teamId } },
@@ -151,6 +156,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       registeredTeams: countRegisteredTeams(parsed.data),
     })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })

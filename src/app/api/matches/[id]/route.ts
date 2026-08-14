@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { updateMatchSchema } from '@/lib/validations/match'
 import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { syncFriendlyMatchRoster } from '@/lib/friendly-match-roster'
 import { buildMatchLocationFields, clearMatchWeatherFields } from '@/lib/match-location'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
 import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigger-process'
-import { MatchStatus, MatchType, NotificationKind, Role } from '@prisma/client'
+import { MatchStatus, MatchType, NotificationKind } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
   const parsed = updateMatchSchema.safeParse(await req.json())
   if (!parsed.success) {
@@ -24,6 +25,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     where: { id },
     select: {
       id: true,
+      organizationId: true,
       matchType: true,
       status: true,
       seasonId: true,
@@ -40,6 +42,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (!existing) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(existing.organizationId, organizationId)
 
   if (players && existing.matchType !== MatchType.FRIENDLY) {
     return NextResponse.json(
@@ -150,8 +153,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
+
+  const existing = await db.match.findUnique({
+    where: { id },
+    select: { organizationId: true },
+  })
+  if (!existing) {
+    return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
+  }
+  assertSameOrganization(existing.organizationId, organizationId)
 
   await db.$transaction([
     db.matchEvent.deleteMany({ where: { matchId: id } }),

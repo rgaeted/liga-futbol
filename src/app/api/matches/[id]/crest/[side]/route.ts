@@ -47,9 +47,9 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string; side: string }> }
 ) {
-  const { requireRole } = await import('@/lib/auth')
-  const { Role } = await import('@prisma/client')
-  await requireRole([Role.ADMIN])
+  const { requireOrgRole, assertSameOrganization } = await import('@/lib/auth')
+  const { MembershipRole } = await import('@/lib/membership-role')
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
 
   const { id, side: rawSide } = await params
   const side = parseSide(rawSide)
@@ -59,11 +59,12 @@ export async function POST(
 
   const exists = await db.match.findUnique({
     where: { id },
-    select: { id: true, matchType: true },
+    select: { id: true, matchType: true, organizationId: true },
   })
   if (!exists) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(exists.organizationId, organizationId)
   if (exists.matchType !== 'FRIENDLY') {
     return NextResponse.json(
       { error: 'Los escudos de liga se editan en Equipos' },
@@ -98,15 +99,24 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string; side: string }> }
 ) {
-  const { requireRole } = await import('@/lib/auth')
-  const { Role } = await import('@prisma/client')
-  await requireRole([Role.ADMIN])
+  const { requireOrgRole, assertSameOrganization } = await import('@/lib/auth')
+  const { MembershipRole } = await import('@/lib/membership-role')
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
 
   const { id, side: rawSide } = await params
   const side = parseSide(rawSide)
   if (!side) {
     return NextResponse.json({ error: 'Lado inválido' }, { status: 400 })
   }
+
+  const exists = await db.match.findUnique({
+    where: { id },
+    select: { organizationId: true },
+  })
+  if (!exists) {
+    return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
+  }
+  assertSameOrganization(exists.organizationId, organizationId)
 
   const crestData =
     side === 'A'

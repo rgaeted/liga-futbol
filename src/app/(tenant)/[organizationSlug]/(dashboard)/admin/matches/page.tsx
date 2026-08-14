@@ -1,10 +1,13 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { orgPath } from '@/lib/tenant-paths'
+import { MembershipRole } from '@/lib/membership-role'
+import { requireOrganizationId } from '@/lib/tenant-access'
 import { AdminMatchCard } from '@/components/admin/AdminMatchCard'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { formatScheduleDateInput, formatScheduleTimeInput } from '@/lib/schedule-datetime'
-import { MatchType, Role } from '@prisma/client'
+import { MatchType } from '@prisma/client'
 import { matchSideHasCrest } from '@/lib/match-side-crest'
 
 export default async function AdminMatchesPage({
@@ -13,8 +16,16 @@ export default async function AdminMatchesPage({
   params: Promise<{ organizationSlug: string }>
 }) {
   const { organizationSlug } = await params
-  const [matches, referees, friendlyPlayers] = await Promise.all([
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    notFound()
+  }
+
+  const [matches, refereeMemberships, friendlyPlayers] = await Promise.all([
     db.match.findMany({
+      where: { organizationId },
       include: {
         homeTeam: true,
         awayTeam: true,
@@ -25,11 +36,13 @@ export default async function AdminMatchesPage({
       },
       orderBy: { scheduledAt: 'desc' },
     }),
-    db.user.findMany({
-      where: { role: Role.REFEREE },
-      select: { id: true, name: true },
+    db.organizationMembership.findMany({
+      where: { organizationId, role: MembershipRole.REFEREE },
+      include: { user: { select: { id: true, name: true } } },
+      orderBy: { user: { name: 'asc' } },
     }),
     db.friendlyPlayer.findMany({
+      where: { organizationId },
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
       select: {
         id: true,
@@ -41,6 +54,8 @@ export default async function AdminMatchesPage({
       },
     }),
   ])
+
+  const referees = refereeMemberships.map((m) => m.user)
 
   const rosterPlayers = friendlyPlayers.map((p) => ({
     id: p.id,

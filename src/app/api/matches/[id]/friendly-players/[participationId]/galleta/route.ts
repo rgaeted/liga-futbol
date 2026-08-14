@@ -1,15 +1,25 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { updateFriendlyGalletaSchema } from '@/lib/validations/match'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string; participationId: string }> }
 ) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id: matchId, participationId } = await params
+
+  const match = await db.match.findUnique({
+    where: { id: matchId },
+    select: { organizationId: true },
+  })
+  if (!match) {
+    return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
+  }
+  assertSameOrganization(match.organizationId, organizationId)
+
   const parsed = updateFriendlyGalletaSchema.safeParse(await req.json())
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })

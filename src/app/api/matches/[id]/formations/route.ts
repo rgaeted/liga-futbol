@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { MatchType, Role } from '@prisma/client'
+import { MatchType } from '@prisma/client'
 import { db } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
+import { MembershipRole } from '@/lib/membership-role'
 import { friendlyCoachSideForUser } from '@/lib/friendly-match-coach'
 import { upsertMatchFormationSchema } from '@/lib/validations/formation'
 import {
@@ -76,10 +77,18 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.role) {
+  let authContext: Awaited<ReturnType<typeof requireOrgRole>>
+  try {
+    authContext = await requireOrgRole([
+      MembershipRole.ORG_ADMIN,
+      MembershipRole.COACH,
+      MembershipRole.PLAYER,
+      MembershipRole.FRIENDLY_COACH,
+    ])
+  } catch {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
+  const { organizationId, role, session } = authContext
 
   const { id: matchId } = await params
 
@@ -87,15 +96,16 @@ export async function PUT(
   if (!match) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(match.organizationId, organizationId)
 
   if (match.matchType === MatchType.LEAGUE) {
-    if (session.user.role !== Role.COACH && session.user.role !== Role.ADMIN) {
+    if (role !== MembershipRole.COACH && role !== MembershipRole.ORG_ADMIN) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
   } else if (
-    session.user.role !== Role.ADMIN &&
-    session.user.role !== Role.PLAYER &&
-    session.user.role !== Role.FRIENDLY_COACH
+    role !== MembershipRole.ORG_ADMIN &&
+    role !== MembershipRole.PLAYER &&
+    role !== MembershipRole.FRIENDLY_COACH
   ) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
@@ -137,8 +147,10 @@ export async function PUT(
     if (data.teamId !== match.homeTeamId && data.teamId !== match.awayTeamId) {
       return NextResponse.json({ error: 'Equipo no pertenece al partido' }, { status: 400 })
     }
-    if (session.user.role === Role.COACH) {
-      const team = await db.team.findUnique({ where: { coachId: session.user.id } })
+    if (role === MembershipRole.COACH) {
+      const team = await db.team.findFirst({
+        where: { coachId: session.user.id, organizationId },
+      })
       if (!team || team.id !== data.teamId) {
         return NextResponse.json({ error: 'Solo puedes editar tu equipo' }, { status: 403 })
       }
@@ -201,11 +213,11 @@ export async function PUT(
     if (!data.side) {
       return NextResponse.json({ error: 'side requerido' }, { status: 400 })
     }
-    if (session.user.role === Role.ADMIN) {
+    if (role === MembershipRole.ORG_ADMIN) {
       // admin puede editar cualquier lado
     } else if (
-      session.user.role === Role.PLAYER ||
-      session.user.role === Role.FRIENDLY_COACH
+      role === MembershipRole.PLAYER ||
+      role === MembershipRole.FRIENDLY_COACH
     ) {
       const coachSide = await friendlyCoachSideForUser(session.user.id, matchId)
       if (!coachSide || coachSide !== data.side) {

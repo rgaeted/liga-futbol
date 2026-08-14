@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-const staffRoles = ['ADMIN', 'COACH', 'REFEREE'] as const
-export const accessRoles = ['ADMIN', 'COACH', 'REFEREE', 'FRIENDLY_COACH', 'PLAYER'] as const
+const staffRoles = ['ORG_ADMIN', 'COACH', 'REFEREE'] as const
+export const accessRoles = ['ORG_ADMIN', 'COACH', 'REFEREE', 'FRIENDLY_COACH', 'PLAYER'] as const
 
 export const createUserSchema = z.object({
   email: z.string().email(),

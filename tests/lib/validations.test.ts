@@ -76,6 +76,15 @@ describe('season validations', () => {
 })
 
 describe('user validations', () => {
+  it('createUserSchema accepts ORG_ADMIN role', () => {
+    const result = createUserSchema.safeParse({
+      email: 'admin@liga.com',
+      name: 'Admin Org',
+      password: 'password123',
+      role: 'ORG_ADMIN',
+    })
+    expect(result.success).toBe(true)
+  })
   it('createUserSchema accepts staff roles', () => {
     const result = createUserSchema.safeParse({
       email: 'nuevo-dt@liga.com',
@@ -93,6 +102,10 @@ describe('user validations', () => {
   })
   it('updateUserSchema allows changing name without password', () => {
     const result = updateUserSchema.safeParse({ name: 'Nombre Nuevo' })
+    expect(result.success).toBe(true)
+  })
+  it('updateUserSchema allows changing access role to ORG_ADMIN', () => {
+    const result = updateUserSchema.safeParse({ role: 'ORG_ADMIN' })
     expect(result.success).toBe(true)
   })
   it('updateUserSchema allows changing access role to PLAYER', () => {

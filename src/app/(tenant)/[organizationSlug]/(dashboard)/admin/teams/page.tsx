@@ -1,22 +1,43 @@
+import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
+import { requireOrganizationId } from '@/lib/tenant-access'
 import { TeamForm } from '@/components/admin/TeamForm'
 import { TeamsTable } from '@/components/admin/TeamsTable'
 import { teamHasCrest } from '@/lib/team-crest'
 import { resolveTeamColor } from '@/lib/team-color'
 
-export default async function AdminTeamsPage() {
-  const [teams, coaches] = await Promise.all([
+export default async function AdminTeamsPage({
+  params,
+}: {
+  params: Promise<{ organizationSlug: string }>
+}) {
+  const { organizationSlug } = await params
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    notFound()
+  }
+
+  const [teams, coachMemberships] = await Promise.all([
     db.team.findMany({
+      where: { organizationId },
       include: { coach: true, _count: { select: { players: true } } },
       orderBy: { name: 'asc' },
     }),
-    db.user.findMany({
-      where: { role: Role.COACH },
-      select: { id: true, name: true, coachedTeam: { select: { id: true } } },
-      orderBy: { name: 'asc' },
+    db.organizationMembership.findMany({
+      where: { organizationId, role: MembershipRole.COACH },
+      include: {
+        user: {
+          select: { id: true, name: true, coachedTeam: { select: { id: true } } },
+        },
+      },
+      orderBy: { user: { name: 'asc' } },
     }),
   ])
+
+  const coaches = coachMemberships.map((m) => m.user)
 
   return (
     <div className="space-y-6">
@@ -38,8 +59,9 @@ export default async function AdminTeamsPage() {
         coaches={coaches.map((c) => ({
           id: c.id,
           name: c.name,
-          assignedTeamId: c.coachedTeam?.id ?? null,
+          hasTeam: Boolean(c.coachedTeam),
         }))}
+        resolveColor={resolveTeamColor}
       />
     </div>
   )

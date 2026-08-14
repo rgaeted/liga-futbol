@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { Role } from '@prisma/client'
-import { requireRole } from '@/lib/auth'
+import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
 import {
   addGalleryPhoto,
   galleryPhotoStoragePath,
@@ -17,14 +16,18 @@ export async function GET(
   { params }: { params: Promise<{ id: string; galleryId: string }> },
 ) {
   try {
-    await requireRole([Role.ADMIN])
     const { id: seasonId, galleryId } = await params
+    await requireAdminSeason(seasonId)
     const photos = await listGalleryPhotos(galleryId, seasonId)
     if (!photos) {
       return NextResponse.json({ error: 'Galería no encontrada' }, { status: 404 })
     }
     return NextResponse.json({ photos })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
@@ -36,8 +39,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string; galleryId: string }> },
 ) {
   try {
-    await requireRole([Role.ADMIN])
     const { id: seasonId, galleryId } = await params
+    await requireAdminSeason(seasonId)
     const form = await req.formData()
     const file = form.get('photo')
     if (!(file instanceof File)) {
@@ -75,6 +78,10 @@ export async function POST(
 
     return NextResponse.json({ photo }, { status: 201 })
   } catch (error) {
+    const mappedSeason = mapAdminSeasonRouteError(error)
+    if (mappedSeason) {
+      return NextResponse.json({ error: mappedSeason.message }, { status: mappedSeason.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })

@@ -2,7 +2,7 @@
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { claimFriendlyPlayerSchema } from '@/lib/validations/friendly-player'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function POST(req: Request) {
   const parsed = claimFriendlyPlayerSchema.safeParse(await req.json())
@@ -32,7 +32,14 @@ export async function POST(req: Request) {
 
   await db.$transaction(async (tx) => {
     const user = await tx.user.create({
-      data: { email, passwordHash, name, role: Role.PLAYER },
+      data: { email, passwordHash, name },
+    })
+    await tx.organizationMembership.create({
+      data: {
+        organizationId: friendlyPlayer.organizationId,
+        userId: user.id,
+        role: MembershipRole.PLAYER,
+      },
     })
     await tx.player.create({
       data: { userId: user.id },

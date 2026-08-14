@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
-import { Role } from '@prisma/client'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { updateFriendlyCategorySchema } from '@/lib/validations/friendly-category'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
   const parsed = updateFriendlyCategorySchema.safeParse(await req.json())
   if (!parsed.success) {
@@ -19,6 +19,7 @@ export async function PUT(
   if (!existing) {
     return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 404 })
   }
+  assertSameOrganization(existing.organizationId, organizationId)
 
   const category = await db.friendlyCategory.update({
     where: { id },
@@ -37,7 +38,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
 
   const existing = await db.friendlyCategory.findUnique({
@@ -47,6 +48,8 @@ export async function DELETE(
   if (!existing) {
     return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 404 })
   }
+  assertSameOrganization(existing.organizationId, organizationId)
+
   if (existing._count.playerMemberships > 0 || existing._count.matches > 0) {
     return NextResponse.json(
       {

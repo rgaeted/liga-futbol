@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { createMatchEventSchema } from '@/lib/validations/match-event'
 import { GAME_EVENT_TYPES, registerMatchEvent } from '@/lib/match-events'
 import { isRefereeEventEnabled } from '@/lib/match-referee-events'
 import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigger-process'
-import { EventType, MatchStatus, MatchType, Role } from '@prisma/client'
+import { EventType, MatchStatus, MatchType } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 const PLAYER_EVENT_TYPES: EventType[] = [
   EventType.GOAL,
@@ -39,12 +40,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireRole([Role.REFEREE, Role.ADMIN])
+  const { organizationId, role, session } = await requireOrgRole([
+    MembershipRole.REFEREE,
+    MembershipRole.ORG_ADMIN,
+  ])
   const { id: matchId } = await params
 
   const match = await db.match.findUniqueOrThrow({ where: { id: matchId } })
+  assertSameOrganization(match.organizationId, organizationId)
 
-  if (session.user.role === Role.REFEREE && match.refereeId !== session.user.id) {
+  if (role === MembershipRole.REFEREE && match.refereeId !== session.user.id) {
     return NextResponse.json({ error: 'No eres el árbitro asignado' }, { status: 403 })
   }
 
@@ -54,10 +59,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const data = parsed.data
-  const isAdmin = session.user.role === Role.ADMIN
+  const isAdmin = role === MembershipRole.ORG_ADMIN
 
   if (
-    session.user.role === Role.REFEREE &&
+    role === MembershipRole.REFEREE &&
     !isRefereeEventEnabled(match.refereeEventTypes, data.type)
   ) {
     return NextResponse.json(
@@ -67,7 +72,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   if (
-    session.user.role === Role.REFEREE &&
+    role === MembershipRole.REFEREE &&
     isGameEvent(data.type) &&
     match.status !== MatchStatus.LIVE
   ) {

@@ -1,12 +1,13 @@
 import type { Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 type Tx = Prisma.TransactionClient
 
 export async function createUserForFriendlyPlayer(
   tx: Tx,
   params: {
+    organizationId: string
     firstName: string
     lastName: string
     email: string
@@ -19,7 +20,13 @@ export async function createUserForFriendlyPlayer(
       email: params.email,
       passwordHash,
       name: `${params.firstName} ${params.lastName}`.trim(),
-      role: Role.PLAYER,
+    },
+  })
+  await tx.organizationMembership.create({
+    data: {
+      organizationId: params.organizationId,
+      userId: user.id,
+      role: MembershipRole.PLAYER,
     },
   })
   await tx.player.create({

@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { updateSeasonSchema } from '@/lib/validations/season'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
+
+  const existing = await db.season.findUnique({
+    where: { id },
+    select: { organizationId: true },
+  })
+  if (!existing) {
+    return NextResponse.json({ error: 'Temporada no encontrada' }, { status: 404 })
+  }
+  assertSameOrganization(existing.organizationId, organizationId)
+
   const parsed = updateSeasonSchema.safeParse(await req.json())
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
@@ -25,8 +35,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole([Role.ADMIN])
+  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
+
+  const existing = await db.season.findUnique({
+    where: { id },
+    select: { organizationId: true },
+  })
+  if (!existing) {
+    return NextResponse.json({ error: 'Temporada no encontrada' }, { status: 404 })
+  }
+  assertSameOrganization(existing.organizationId, organizationId)
 
   const matchCount = await db.match.count({ where: { seasonId: id } })
   if (matchCount > 0) {

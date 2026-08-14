@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { minCallUpSize } from '@/lib/football-format'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 const callUpSchema = z.object({
   matchId: z.string().min(1),
@@ -15,12 +15,24 @@ const callUpSchema = z.object({
 })
 
 export async function GET(req: Request) {
-  await requireRole([Role.COACH, Role.ADMIN])
+  const { organizationId } = await requireOrgRole([
+    MembershipRole.COACH,
+    MembershipRole.ORG_ADMIN,
+  ])
   const { searchParams } = new URL(req.url)
   const matchId = searchParams.get('matchId')
   if (!matchId) {
     return NextResponse.json({ error: 'matchId required' }, { status: 400 })
   }
+
+  const match = await db.match.findUnique({
+    where: { id: matchId },
+    select: { organizationId: true },
+  })
+  if (!match) {
+    return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
+  }
+  assertSameOrganization(match.organizationId, organizationId)
 
   const callUps = await db.callUp.findMany({
     where: { matchId },
@@ -30,7 +42,10 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await requireRole([Role.COACH, Role.ADMIN])
+  const { organizationId, role, session } = await requireOrgRole([
+    MembershipRole.COACH,
+    MembershipRole.ORG_ADMIN,
+  ])
   const parsed = callUpSchema.safeParse(await req.json())
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
@@ -42,6 +57,7 @@ export async function POST(req: Request) {
   if (!match) {
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
+  assertSameOrganization(match.organizationId, organizationId)
 
   const minPlayers = minCallUpSize(match.footballFormat)
   if (playerIds.length < minPlayers) {
@@ -52,8 +68,10 @@ export async function POST(req: Request) {
   }
 
   let teamIdFilter: string | undefined
-  if (session.user.role === Role.COACH) {
-    const team = await db.team.findUnique({ where: { coachId: session.user.id } })
+  if (role === MembershipRole.COACH) {
+    const team = await db.team.findFirst({
+      where: { coachId: session.user.id, organizationId },
+    })
     if (!team) {
       return NextResponse.json({ error: 'No tienes equipo asignado' }, { status: 403 })
     }

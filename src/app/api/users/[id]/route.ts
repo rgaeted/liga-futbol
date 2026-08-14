@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole } from '@/lib/auth'
 import { updateUserSchema } from '@/lib/validations/user'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireRole([Role.ADMIN])
+  const { organizationId, session } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
   const parsed = updateUserSchema.safeParse(await req.json())
   if (!parsed.success) {
@@ -15,46 +15,70 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
   const { password, role, ...rest } = parsed.data
 
-  if (session.user.id === id && role && role !== Role.ADMIN) {
+  if (session.user.id === id && role && role !== MembershipRole.ORG_ADMIN) {
     return NextResponse.json(
       { error: 'No puedes cambiar tu propio rol de acceso' },
       { status: 409 }
     )
   }
 
-  const existing = await db.user.findUnique({
-    where: { id },
-    select: { role: true },
+  const membership = await db.organizationMembership.findUnique({
+    where: {
+      organizationId_userId: { organizationId, userId: id },
+    },
   })
-  if (!existing) {
+  if (!membership) {
     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
   }
 
   const user = await db.$transaction(async (tx) => {
-    if (role && role !== Role.COACH && existing.role === Role.COACH) {
-      await tx.team.updateMany({ where: { coachId: id }, data: { coachId: null } })
+    if (role && role !== MembershipRole.COACH && membership.role === MembershipRole.COACH) {
+      await tx.team.updateMany({
+        where: { coachId: id, organizationId },
+        data: { coachId: null },
+      })
+    }
+
+    if (role) {
+      await tx.organizationMembership.update({
+        where: {
+          organizationId_userId: { organizationId, userId: id },
+        },
+        data: { role },
+      })
     }
 
     return tx.user.update({
       where: { id },
       data: {
         ...rest,
-        ...(role ? { role } : {}),
         ...(password ? { passwordHash: await bcrypt.hash(password, 10) } : {}),
       },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true },
     })
   })
 
-  return NextResponse.json(user)
+  const updatedMembership = await db.organizationMembership.findUniqueOrThrow({
+    where: { organizationId_userId: { organizationId, userId: id } },
+    select: { role: true },
+  })
+
+  return NextResponse.json({ ...user, role: updatedMembership.role })
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireRole([Role.ADMIN])
+  const { organizationId, session } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id } = await params
 
   if (session.user.id === id) {
     return NextResponse.json({ error: 'No puedes eliminar tu propio usuario' }, { status: 409 })
+  }
+
+  const membership = await db.organizationMembership.findUnique({
+    where: { organizationId_userId: { organizationId, userId: id } },
+  })
+  if (!membership) {
+    return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
   }
 
   const user = await db.user.findUnique({
@@ -71,11 +95,34 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     )
   }
 
-  // Desvincular relaciones antes de borrar (sin onDelete cascade en el schema)
-  await db.$transaction([
-    db.team.updateMany({ where: { coachId: id }, data: { coachId: null } }),
-    db.match.updateMany({ where: { refereeId: id }, data: { refereeId: null } }),
-    db.user.delete({ where: { id } }),
-  ])
+  const otherMemberships = await db.organizationMembership.count({
+    where: { userId: id, organizationId: { not: organizationId } },
+  })
+
+  if (otherMemberships > 0) {
+    await db.$transaction([
+      db.team.updateMany({
+        where: { coachId: id, organizationId },
+        data: { coachId: null },
+      }),
+      db.match.updateMany({
+        where: { refereeId: id, organizationId },
+        data: { refereeId: null },
+      }),
+      db.organizationMembership.delete({
+        where: { organizationId_userId: { organizationId, userId: id } },
+      }),
+    ])
+  } else {
+    await db.$transaction([
+      db.team.updateMany({ where: { coachId: id }, data: { coachId: null } }),
+      db.match.updateMany({ where: { refereeId: id }, data: { refereeId: null } }),
+      db.organizationMembership.delete({
+        where: { organizationId_userId: { organizationId, userId: id } },
+      }),
+      db.user.delete({ where: { id } }),
+    ])
+  }
+
   return NextResponse.json({ ok: true })
 }

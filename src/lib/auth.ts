@@ -8,7 +8,7 @@ import type { MembershipRole } from '@/lib/membership-role'
 import { assertSameOrganization } from '@/lib/org-scope'
 import { ORG_COOKIE } from '@/lib/org-cookie'
 
-export { assertSameOrganization }
+export { assertSameOrganization, pausedOrganizationPayload } from '@/lib/org-scope'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
