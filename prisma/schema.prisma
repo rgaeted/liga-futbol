@@ -128,6 +128,13 @@ enum NotificationDeliveryStatus {
   INVALID_TOKEN
 }
 
+enum RefereeShareInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
 model User {
   id               String   @id @default(cuid())
   email            String   @unique
@@ -141,6 +148,9 @@ model User {
   refereeMatches   Match[]  @relation("MatchReferee")
   articles         Article[]
   memberships      OrganizationMembership[]
+  refereeProfile         RefereeProfile?
+  refereeShareInvites    RefereeShareInvite[] @relation("RefereeShareReferee")
+  refereeShareInvitesSent RefereeShareInvite[] @relation("RefereeShareInvitedBy")
 }
 
 model Person {
@@ -178,6 +188,37 @@ model Organization {
   articles         Article[]
   galleries        Gallery[]
   sponsors         Sponsor[]
+  refereeSharesFrom RefereeShareInvite[] @relation("RefereeShareFrom")
+  refereeSharesTo   RefereeShareInvite[] @relation("RefereeShareTo")
+}
+
+model RefereeProfile {
+  userId           String   @id
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone            String?
+  whatsapp         String?
+  notes            String?
+  photoStoragePath String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model RefereeShareInvite {
+  id                 String                   @id @default(cuid())
+  refereeUserId      String
+  refereeUser        User                     @relation("RefereeShareReferee", fields: [refereeUserId], references: [id], onDelete: Cascade)
+  fromOrganizationId String
+  fromOrganization   Organization             @relation("RefereeShareFrom", fields: [fromOrganizationId], references: [id], onDelete: Cascade)
+  toOrganizationId   String
+  toOrganization     Organization             @relation("RefereeShareTo", fields: [toOrganizationId], references: [id], onDelete: Cascade)
+  invitedByUserId    String
+  invitedByUser      User                     @relation("RefereeShareInvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  status             RefereeShareInviteStatus @default(PENDING)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@index([toOrganizationId, status])
+  @@index([refereeUserId])
 }
 
 model OrganizationMembership {

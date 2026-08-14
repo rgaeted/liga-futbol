@@ -33,6 +33,7 @@ export function buildAdminNav(slug: string): AdminNavItem[] {
       activePrefixes: [base('/admin/friendly-players'), base('/admin/friendly-categories')],
     },
     { href: base('/admin/users'), label: 'Usuarios' },
+    { href: base('/admin/referees'), label: 'Árbitros', activePrefixes: [base('/admin/referees')] },
   ]
 }
 

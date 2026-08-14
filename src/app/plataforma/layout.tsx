@@ -19,6 +19,9 @@ export default async function PlataformaLayout({ children }: { children: React.R
             <Link href="/plataforma" className="text-zinc-300 hover:text-white">
               Empresas
             </Link>
+            <Link href="/plataforma/arbitros" className="text-zinc-300 hover:text-white">
+              Árbitros
+            </Link>
             <Link href="/plataforma/apps" className="text-zinc-300 hover:text-white">
               Apps
             </Link>
