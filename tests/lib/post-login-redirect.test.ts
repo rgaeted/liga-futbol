@@ -1,0 +1,44 @@
+import { describe, expect, it } from 'vitest'
+import { resolvePostLoginPath } from '@/lib/post-login-redirect'
+import { MembershipRole } from '@/lib/membership-role'
+
+describe('resolvePostLoginPath', () => {
+  it('sends platform admin without memberships to /plataforma', () => {
+    expect(
+      resolvePostLoginPath({
+        isPlatformAdmin: true,
+        memberships: [],
+      }),
+    ).toBe('/plataforma')
+  })
+
+  it('sends a user with one active membership to their dashboard', () => {
+    expect(
+      resolvePostLoginPath({
+        isPlatformAdmin: false,
+        memberships: [{ slug: 'kelme', role: MembershipRole.COACH, status: 'ACTIVE' }],
+      }),
+    ).toBe('/kelme/coach')
+  })
+
+  it('sends a user with several memberships to the picker', () => {
+    expect(
+      resolvePostLoginPath({
+        isPlatformAdmin: false,
+        memberships: [
+          { slug: 'kelme', role: MembershipRole.ORG_ADMIN, status: 'ACTIVE' },
+          { slug: 'otra', role: MembershipRole.REFEREE, status: 'ACTIVE' },
+        ],
+      }),
+    ).toBe('/organizaciones')
+  })
+
+  it('ignores paused orgs when counting memberships', () => {
+    expect(
+      resolvePostLoginPath({
+        isPlatformAdmin: false,
+        memberships: [{ slug: 'kelme', role: MembershipRole.ORG_ADMIN, status: 'PAUSED' }],
+      }),
+    ).toBe('/login?error=sin-acceso')
+  })
+})

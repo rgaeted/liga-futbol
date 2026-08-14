@@ -3,6 +3,10 @@ import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import authConfig from '@/lib/auth.config'
+import type { MembershipRole } from '@/lib/membership-role'
+import { assertSameOrganization } from '@/lib/org-scope'
+
+export { assertSameOrganization }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -17,6 +21,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await db.user.findUnique({
           where: { email: credentials.email as string },
+          include: {
+            memberships: {
+              include: {
+                organization: {
+                  select: { id: true, slug: true, status: true },
+                },
+              },
+            },
+          },
         })
         if (!user) return null
 
@@ -26,21 +39,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         )
         if (!valid) return null
 
+        const activeMemberships = user.memberships.filter(
+          (m) => m.organization.status === 'ACTIVE'
+        )
+        const singleMembership =
+          activeMemberships.length === 1 ? activeMemberships[0] : null
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
+          isPlatformAdmin: user.isPlatformAdmin,
+          membershipRole: (singleMembership?.role ?? null) as MembershipRole | null,
+          activeOrganizationId: singleMembership?.organization.id ?? null,
+          activeOrganizationSlug: singleMembership?.organization.slug ?? null,
         }
       },
     }),
   ],
 })
 
-export async function requireRole(allowedRoles: string[]) {
+export async function requirePlatformAdmin() {
   const session = await auth()
-  if (!session?.user?.role || !allowedRoles.includes(session.user.role)) {
+  if (!session?.user?.isPlatformAdmin) throw new Error('Unauthorized')
+  return session
+}
+
+export async function requireOrgRole(allowed: MembershipRole[]) {
+  const session = await auth()
+  const role = session?.user?.membershipRole
+  const orgId = session?.user?.activeOrganizationId
+  if (!session || !role || !orgId || !allowed.includes(role)) {
     throw new Error('Unauthorized')
   }
-  return session
+  return { session, organizationId: orgId, role }
+}
+
+/** @deprecated Use requireOrgRole instead */
+export async function requireRole(_allowedRoles: string[]) {
+  throw new Error('requireRole is deprecated; use requireOrgRole')
 }

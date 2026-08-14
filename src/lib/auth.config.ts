@@ -9,15 +9,21 @@ export default {
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.role = user.role
         token.id = user.id
+        token.isPlatformAdmin = user.isPlatformAdmin
+        token.membershipRole = user.membershipRole
+        token.activeOrganizationId = user.activeOrganizationId
+        token.activeOrganizationSlug = user.activeOrganizationSlug
       }
       return token
     },
     session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as typeof session.user.role
         session.user.id = token.id as string
+        session.user.isPlatformAdmin = token.isPlatformAdmin as boolean
+        session.user.membershipRole = token.membershipRole
+        session.user.activeOrganizationId = token.activeOrganizationId
+        session.user.activeOrganizationSlug = token.activeOrganizationSlug
       }
       return session
     },
