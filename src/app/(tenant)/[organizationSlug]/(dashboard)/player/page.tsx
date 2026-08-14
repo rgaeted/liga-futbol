@@ -19,8 +19,8 @@ export default async function PlayerDashboardPage({
     redirect(orgPath(organizationSlug, '/player/friendly-matches'))
   }
 
-  const player = await db.player.findUnique({
-    where: { userId: session.user.id },
+  const player = await db.player.findFirst({
+    where: { person: { userId: session.user.id } },
     include: {
       team: true,
       callUps: {
@@ -74,6 +74,7 @@ export default async function PlayerDashboardPage({
         <MatchList
           items={upcoming}
           playerId={player.id}
+          organizationSlug={organizationSlug}
           emptyText="No hay partidos programados."
         />
       </section>
@@ -83,6 +84,7 @@ export default async function PlayerDashboardPage({
         <MatchList
           items={played.slice(0, 5)}
           playerId={player.id}
+          organizationSlug={organizationSlug}
           emptyText="Aún no has jugado partidos."
         />
       </section>
@@ -106,6 +108,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
 function MatchList({
   items,
   playerId,
+  organizationSlug,
   emptyText,
 }: {
   items: Array<{
@@ -124,6 +127,7 @@ function MatchList({
     }
   }>
   playerId: string
+  organizationSlug: string
   emptyText: string
 }) {
   if (items.length === 0) return <p className="text-kelme-gray-400">{emptyText}</p>
@@ -145,7 +149,7 @@ function MatchList({
             </span>
           </div>
           {match.status === 'LIVE' && (
-            <Link href={`/live/${match.id}`} className="font-ui text-xs text-kelme-red">
+            <Link href={orgPath(organizationSlug, `/live/${match.id}`)} className="font-ui text-xs text-kelme-red">
               EN VIVO →
             </Link>
           )}

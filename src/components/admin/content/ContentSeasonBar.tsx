@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useOrgPath } from '@/hooks/useOrgPath'
 
 type SeasonOption = {
   id: string
@@ -15,6 +16,7 @@ export function ContentSeasonBar({
   seasons: SeasonOption[]
   selectedSeasonId: string | null
 }) {
+  const orgPath = useOrgPath()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -43,23 +45,23 @@ export function ContentSeasonBar({
       </div>
       {selectedSeasonId ? (
         <div className="flex flex-wrap gap-2 text-sm">
-          <Link href={`/admin/content?season=${selectedSeasonId}`} className="rounded-lg px-3 py-2 hover:bg-zinc-100">
+          <Link href={orgPath(`/admin/content?season=${selectedSeasonId}`)} className="rounded-lg px-3 py-2 hover:bg-zinc-100">
             Resumen
           </Link>
           <Link
-            href={`/admin/content/articles?season=${selectedSeasonId}`}
+            href={orgPath(`/admin/content/articles?season=${selectedSeasonId}`)}
             className="rounded-lg px-3 py-2 hover:bg-zinc-100"
           >
             Noticias
           </Link>
           <Link
-            href={`/admin/content/galleries?season=${selectedSeasonId}`}
+            href={orgPath(`/admin/content/galleries?season=${selectedSeasonId}`)}
             className="rounded-lg px-3 py-2 hover:bg-zinc-100"
           >
             Galerías
           </Link>
           <Link
-            href={`/admin/content/sponsors?season=${selectedSeasonId}`}
+            href={orgPath(`/admin/content/sponsors?season=${selectedSeasonId}`)}
             className="rounded-lg px-3 py-2 hover:bg-zinc-100"
           >
             Patrocinadores

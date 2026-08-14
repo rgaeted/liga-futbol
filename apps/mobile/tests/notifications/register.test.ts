@@ -79,4 +79,18 @@ describe('registerForLeagueNotifications', () => {
     expect(result).toEqual({ registered: false, reason: 'permission-denied' })
     expect(mocks.registerInstallation).not.toHaveBeenCalled()
   })
+
+  it('returns no-token when Expo push token fetch times out', async () => {
+    vi.spyOn(Notifications, 'getPermissionsAsync').mockResolvedValue({
+      status: 'granted',
+    } as never)
+    vi.spyOn(Notifications, 'getExpoPushTokenAsync').mockImplementation(
+      () => new Promise(() => undefined),
+    )
+
+    const result = await registerForLeagueNotifications()
+
+    expect(result).toEqual({ registered: false, reason: 'no-token' })
+    expect(mocks.registerInstallation).not.toHaveBeenCalled()
+  }, 12_000)
 })

@@ -13,7 +13,7 @@ export async function createUserForFriendlyPlayer(
     email: string
     password: string
   }
-): Promise<string> {
+): Promise<{ userId: string; personId: string }> {
   const passwordHash = await bcrypt.hash(params.password, 10)
   const user = await tx.user.create({
     data: {
@@ -29,10 +29,17 @@ export async function createUserForFriendlyPlayer(
       role: MembershipRole.PLAYER,
     },
   })
-  await tx.player.create({
-    data: { userId: user.id },
+  const person = await tx.person.create({
+    data: {
+      userId: user.id,
+      firstName: params.firstName,
+      lastName: params.lastName,
+    },
   })
-  return user.id
+  await tx.player.create({
+    data: { personId: person.id, organizationId: params.organizationId },
+  })
+  return { userId: user.id, personId: person.id }
 }
 
 export async function syncFriendlyPlayerCategories(
@@ -54,4 +61,10 @@ export function mapFriendlyPlayerCategoryIds(
   memberships: Array<{ friendlyCategoryId: string }>
 ): string[] {
   return memberships.map((m) => m.friendlyCategoryId)
+}
+
+export function mapFriendlyPlayerResponse<
+  T extends { person: { user: { id: string; email: string } | null } },
+>(player: T) {
+  return { ...player, user: player.person.user }
 }

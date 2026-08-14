@@ -4,6 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import { CallUpForm } from '@/components/coach/CallUpForm'
 import { matchDisplayName } from '@/lib/match-label'
 import { footballFormatLabel } from '@/lib/football-format'
+import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 function slotsFromCallUps(
   callUps: Array<{ playerId: string; slotKey: string | null }>
@@ -28,7 +29,7 @@ export default async function CoachCallUpPage({
     where: { coachId: session.user.id },
     include: {
       players: {
-        include: { user: { select: { name: true } } },
+        include: PLAYER_PERSON_NAME_INCLUDE,
         orderBy: { jerseyNumber: 'asc' },
       },
     },

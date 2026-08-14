@@ -13,6 +13,7 @@ import {
   DEMO_ID_PREFIX,
   DEMO_PASSWORD,
 } from './lib/db-client'
+import { splitPersonName } from '../src/lib/person-name'
 
 const { prisma, pool } = createPrismaClient()
 
@@ -61,8 +62,16 @@ async function upsertPlayer(
   stats?: { goals?: number; assists?: number; yellowCards?: number; redCards?: number }
 ) {
   await upsertUser(data.userId, data.email, data.name, MembershipRole.PLAYER, organizationId, passwordHash)
-  return prisma.player.upsert({
+  const { firstName, lastName } = splitPersonName(data.name)
+  const person = await prisma.person.upsert({
     where: { userId: data.userId },
+    update: { firstName, lastName },
+    create: { userId: data.userId, firstName, lastName },
+  })
+  return prisma.player.upsert({
+    where: {
+      personId_organizationId: { personId: person.id, organizationId },
+    },
     update: {
       teamId,
       jerseyNumber: data.jerseyNumber,
@@ -74,7 +83,8 @@ async function upsertPlayer(
     },
     create: {
       id: data.id,
-      userId: data.userId,
+      personId: person.id,
+      organizationId,
       teamId,
       jerseyNumber: data.jerseyNumber,
       position: data.position,

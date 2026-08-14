@@ -13,6 +13,11 @@ vi.mock('@/lib/db', () => ({
 
 const match = {
   id: 'match-1',
+  organization: {
+    name: 'Torneos Kelme',
+    slug: 'kelme',
+    logoStoragePath: null,
+  },
   matchType: MatchType.LEAGUE,
   footballFormat: FootballFormat.FUTBOL_7,
   homeTeamId: 'home',
@@ -65,11 +70,13 @@ const match = {
       friendlyPlayerId: null,
       player: {
         teamId: 'home',
-        user: { name: 'Jugador Local' },
+        person: { firstName: 'Jugador', lastName: 'Local', user: { name: 'Jugador Local' } },
         team: { id: 'home', name: 'Local' },
       },
       friendlyPlayer: null,
-      assistPlayer: { user: { name: 'Asistente Local' } },
+      assistPlayer: {
+        person: { firstName: 'Asistente', lastName: 'Local', user: { name: 'Asistente Local' } },
+      },
       assistFriendlyPlayer: null,
       description: 'Golazo de rabona',
     },
@@ -84,11 +91,17 @@ describe('live match snapshot', () => {
     await expect(getLiveMatchSnapshot('missing')).resolves.toBeNull()
   })
 
+  it('returns null when the organization slug does not match', async () => {
+    vi.mocked(db.match.findUnique).mockResolvedValue(match)
+    await expect(getLiveMatchSnapshot('match-1', 'other-org')).resolves.toBeNull()
+  })
+
   it('preserves the complete public LiveScoreboard DTO', () => {
     const snapshot = buildLiveMatchSnapshot(match)
 
     expect(snapshot).toMatchObject({
       id: 'match-1',
+      organization: { name: 'Torneos Kelme', logoUrl: null },
       matchType: MatchType.LEAGUE,
       homeTeamId: 'home',
       awayTeamId: 'away',

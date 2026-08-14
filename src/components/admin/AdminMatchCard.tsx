@@ -13,6 +13,7 @@ import {
 import { FriendlyPaidIconToggle } from '@/components/admin/FriendlyPaidIconToggle'
 import { FriendlyGalletaIconToggle } from '@/components/admin/FriendlyGalletaIconToggle'
 import { MatchActions, type MatchRow } from '@/components/admin/MatchActions'
+import { useOrgPath } from '@/hooks/useOrgPath'
 import { DeleteButton } from '@/components/admin/DeleteButton'
 import type { FriendlyRosterPlayer } from '@/components/admin/FriendlyMatchConvocationPicker'
 
@@ -136,6 +137,7 @@ export function AdminMatchCard({
   referees,
   rosterPlayers,
 }: Props) {
+  const orgPath = useOrgPath()
   const [editing, setEditing] = useState(false)
 
   const sideA = friendlyPlayers.filter((player) => player.side === 'A')
@@ -249,21 +251,21 @@ export function AdminMatchCard({
       <div className="space-y-2 px-5 py-4">
         <div className="grid grid-cols-3 gap-2">
           <Link
-            href={`/live/${match.id}`}
+            href={orgPath(`/live/${match.id}`)}
             className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
           >
             <span aria-hidden>📡</span>
             Ver en vivo
           </Link>
           <Link
-            href={`/admin/matches/${match.id}/timeline`}
+            href={orgPath(`/admin/matches/${match.id}/timeline`)}
             className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-white px-3 py-2.5 text-sm font-semibold text-kelme-gray-800 hover:bg-kelme-gray-50"
           >
             <span aria-hidden>🕐</span>
             Cronología
           </Link>
           <Link
-            href={`/admin/matches/${match.id}/lineup`}
+            href={orgPath(`/admin/matches/${match.id}/lineup`)}
             className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-white px-3 py-2.5 text-sm font-semibold text-kelme-gray-800 hover:bg-kelme-gray-50"
           >
             <span aria-hidden>👥</span>

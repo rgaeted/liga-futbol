@@ -8,6 +8,7 @@ import {
   validateSeasonEnrollment,
 } from '@/lib/season-enrollment-validation'
 import { seasonEnrollmentSchema } from '@/lib/validations/mobile-season'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -19,7 +20,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       orderBy: { name: 'asc' },
       include: {
         players: {
-          include: { user: { select: { name: true } } },
+          include: PLAYER_PERSON_NAME_INCLUDE,
           orderBy: { jerseyNumber: 'asc' },
         },
       },
@@ -46,7 +47,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         color: team.color,
         players: team.players.map((p) => ({
           id: p.id,
-          name: p.user.name,
+          name: playerDisplayName(p),
           jerseyNumber: p.jerseyNumber,
           position: p.position,
         })),

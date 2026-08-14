@@ -17,7 +17,9 @@ describe('resolveTeamMvpLabel', () => {
         friendlyPlayerId: null,
         photoMimeType: null,
         photoData: null,
-        player: { user: { name: 'Juan Pérez' } },
+        player: {
+          person: { firstName: 'Juan', lastName: 'Pérez', user: { name: 'Juan Pérez' } },
+        },
       })
     ).toBe('Juan Pérez')
   })
@@ -49,7 +51,9 @@ describe('buildMatchTeamMvps', () => {
           friendlyPlayerId: null,
           photoMimeType: null,
           photoData: null,
-          player: { user: { name: 'Juan' } },
+          player: {
+            person: { firstName: 'Juan', lastName: '', user: { name: 'Juan' } },
+          },
         },
       ],
     })
@@ -98,7 +102,9 @@ describe('teamMvpPlayerIds', () => {
           friendlyPlayerId: null,
           photoMimeType: null,
           photoData: null,
-          player: { user: { name: 'Juan' } },
+          player: {
+            person: { firstName: 'Juan', lastName: '', user: { name: 'Juan' } },
+          },
         }),
         buildTeamMvpView('m-1', 'AWAY', 'Visita', null),
       ])

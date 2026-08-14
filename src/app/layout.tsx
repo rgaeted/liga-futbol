@@ -4,12 +4,15 @@ import { montserrat, poppins, roboto } from '@/lib/fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Torneos Kelme',
-  description: 'Plataforma oficial de gestión de torneos KELME con marcador en vivo',
+  title: {
+    default: 'AdminTorneo',
+    template: '%s · AdminTorneo',
+  },
+  description: 'Plataforma SaaS para administrar ligas de fútbol con marcador en vivo',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    title: 'Torneos Kelme',
+    title: 'AdminTorneo',
   },
 }
 
@@ -18,7 +21,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#CD212A',
+  themeColor: '#18181b',
 }
 
 export default function RootLayout({

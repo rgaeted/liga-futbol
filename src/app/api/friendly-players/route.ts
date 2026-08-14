@@ -6,12 +6,14 @@ import { mapPrismaError } from '@/lib/prisma-errors'
 import { createFriendlyPlayerSchema } from '@/lib/validations/friendly-player'
 import {
   createUserForFriendlyPlayer,
+  mapFriendlyPlayerResponse,
   syncFriendlyPlayerCategories,
 } from '@/lib/friendly-player-categories'
+import { assertPersonFichaAvailable, loadPersonFichaOrgIds } from '@/lib/person'
 import { MembershipRole } from '@/lib/membership-role'
 
 const friendlyPlayerInclude = {
-  user: { select: { id: true, email: true } },
+  person: { include: { user: { select: { id: true, email: true } } } },
   categories: {
     include: { friendlyCategory: { select: { id: true, name: true } } },
   },
@@ -33,7 +35,7 @@ export async function GET(req: Request) {
       include: friendlyPlayerInclude,
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     })
-    return NextResponse.json(players)
+    return NextResponse.json(players.map(mapFriendlyPlayerResponse))
   } catch (error) {
     const mapped = mapPrismaError(error)
     if (mapped) {
@@ -64,6 +66,7 @@ export async function POST(req: Request) {
       primaryPosition,
       secondaryPosition,
       friendlyCategoryIds,
+      personId: existingPersonId,
     } = parsed.data
 
     const categories = await db.friendlyCategory.findMany({
@@ -75,27 +78,46 @@ export async function POST(req: Request) {
     }
 
     const player = await db.$transaction(async (tx) => {
-      let userId: string | undefined
+      let personId = existingPersonId
+
       if (email && password) {
-        userId = await createUserForFriendlyPlayer(tx, {
+        const created = await createUserForFriendlyPlayer(tx, {
           organizationId,
           firstName,
           lastName,
           email,
           password,
         })
+        personId = created.personId
+      } else if (!personId) {
+        const person = await tx.person.create({
+          data: { firstName, lastName },
+        })
+        personId = person.id
       }
+
+      const fichaIds = await loadPersonFichaOrgIds(tx, personId)
+      assertPersonFichaAvailable({
+        ...fichaIds,
+        organizationId,
+        kind: 'friendly',
+      })
 
       const created = await tx.friendlyPlayer.create({
         data: {
           organizationId,
+          personId,
           firstName,
           lastName,
           ...(dominantFoot ? { dominantFoot } : {}),
           ...(primaryPosition ? { primaryPosition } : {}),
           ...(secondaryPosition ? { secondaryPosition } : {}),
-          ...(userId ? { userId } : {}),
         },
+      })
+
+      await tx.person.update({
+        where: { id: personId },
+        data: { firstName, lastName },
       })
 
       await syncFriendlyPlayerCategories(tx, created.id, friendlyCategoryIds)
@@ -106,11 +128,14 @@ export async function POST(req: Request) {
       })
     })
 
-    return NextResponse.json(player, { status: 201 })
+    return NextResponse.json(mapFriendlyPlayerResponse(player), { status: 201 })
   } catch (error) {
     const mapped = mapPrismaError(error)
     if (mapped) {
       return NextResponse.json({ error: mapped.message }, { status: mapped.status })
+    }
+    if (error instanceof Error && 'status' in error && error.status === 409) {
+      return NextResponse.json({ error: error.message }, { status: 409 })
     }
     console.error('POST /api/friendly-players', error)
     return NextResponse.json({ error: 'Error al crear jugador amistoso' }, { status: 500 })

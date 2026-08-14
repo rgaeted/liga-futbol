@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { minCallUpSize } from '@/lib/football-format'
 import { MembershipRole } from '@/lib/membership-role'
+import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 const callUpSchema = z.object({
   matchId: z.string().min(1),
@@ -36,7 +37,7 @@ export async function GET(req: Request) {
 
   const callUps = await db.callUp.findMany({
     where: { matchId },
-    include: { player: { include: { user: { select: { name: true } } } } },
+    include: { player: { include: PLAYER_PERSON_NAME_INCLUDE } },
   })
   return NextResponse.json(callUps)
 }
@@ -113,7 +114,7 @@ export async function POST(req: Request) {
 
   const callUps = await db.callUp.findMany({
     where: { matchId, playerId: { in: playerIds } },
-    include: { player: { include: { user: { select: { name: true } } } } },
+    include: { player: { include: PLAYER_PERSON_NAME_INCLUDE } },
   })
 
   return NextResponse.json(callUps, { status: 201 })

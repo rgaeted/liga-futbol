@@ -7,10 +7,10 @@ export const dynamic = 'force-dynamic'
 export default async function LiveMatchPage({
   params,
 }: {
-  params: Promise<{ matchId: string }>
+  params: Promise<{ organizationSlug: string; matchId: string }>
 }) {
-  const { matchId } = await params
-  const snapshot = await getLiveMatchSnapshot(matchId)
+  const { organizationSlug, matchId } = await params
+  const snapshot = await getLiveMatchSnapshot(matchId, organizationSlug)
   if (!snapshot) notFound()
   return <LiveScoreboard initialMatch={snapshot} />
 }

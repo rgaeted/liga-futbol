@@ -78,6 +78,7 @@ export const createFriendlyPlayerSchema = z
     friendlyCategoryIds: z.array(id).min(1, { message: 'Selecciona al menos una categoría' }),
     email: optionalEmail,
     password: optionalPassword,
+    personId: z.preprocess(emptyToUndefined, id.optional()),
     ...profileFields,
   })
   .superRefine((data, ctx) => {

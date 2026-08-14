@@ -128,12 +128,25 @@ model User {
   isPlatformAdmin  Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  player           Player?
-  friendlyPlayer   FriendlyPlayer?
+  person           Person?
   coachedTeam      Team?    @relation("TeamCoach")
   refereeMatches   Match[]  @relation("MatchReferee")
   articles         Article[]
   memberships      OrganizationMembership[]
+}
+
+model Person {
+  id            String   @id @default(cuid())
+  userId        String?  @unique
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  firstName     String
+  lastName      String
+  photoMimeType String?
+  photoData     Bytes?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  players          Player[]
+  friendlyPlayers  FriendlyPlayer[]
 }
 
 model Organization {
@@ -152,6 +165,7 @@ model Organization {
   matches          Match[]
   friendlyCategories FriendlyCategory[]
   friendlyPlayers  FriendlyPlayer[]
+  players          Player[]
   articles         Article[]
   galleries        Gallery[]
   sponsors         Sponsor[]
@@ -191,25 +205,30 @@ model Team {
 }
 
 model Player {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id])
-  teamId       String?
-  team         Team?    @relation(fields: [teamId], references: [id])
-  jerseyNumber Int?
-  position     String?
-  goals        Int      @default(0)
-  assists      Int      @default(0)
-  yellowCards  Int      @default(0)
-  redCards     Int      @default(0)
-  callUps      CallUp[]
-  evaluations  PlayerEvaluation[]
-  matchEvents  MatchEvent[]
-  goalAssists  MatchEvent[] @relation("GoalAssists")
-  teamMvps     MatchTeamMvp[]
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  personId       String
+  person         Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  teamId         String?
+  team           Team?        @relation(fields: [teamId], references: [id])
+  jerseyNumber   Int?
+  position       String?
+  goals          Int          @default(0)
+  assists        Int          @default(0)
+  yellowCards    Int          @default(0)
+  redCards       Int          @default(0)
+  callUps        CallUp[]
+  evaluations    PlayerEvaluation[]
+  matchEvents    MatchEvent[]
+  goalAssists    MatchEvent[] @relation("GoalAssists")
+  teamMvps       MatchTeamMvp[]
   seasonRosterEntries SeasonRosterEntry[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([personId, organizationId])
+  @@index([organizationId])
 }
 
 model Season {
@@ -364,6 +383,8 @@ model FriendlyPlayer {
   id             String                @id @default(cuid())
   organizationId String
   organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  personId       String
+  person         Person                @relation(fields: [personId], references: [id], onDelete: Cascade)
   firstName      String
   lastName       String
   dominantFoot   DominantFoot?
@@ -372,14 +393,14 @@ model FriendlyPlayer {
   photoMimeType  String?
   photoData      Bytes?
   categories     FriendlyPlayerCategory[]
-  userId         String?               @unique
-  user           User?                 @relation(fields: [userId], references: [id])
   participations FriendlyMatchPlayer[]
   matchEvents    MatchEvent[]
   goalAssists    MatchEvent[] @relation("FriendlyGoalAssists")
   teamMvps       MatchTeamMvp[]
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt
+
+  @@unique([personId, organizationId])
 }
 
 model FriendlyPlayerCategory {

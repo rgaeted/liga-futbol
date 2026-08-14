@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { matchDisplayName } from '@/lib/match-label'
 import { matchStatusLabel } from '@/lib/match-status-ui'
+import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 export default async function CoachDashboardPage() {
   const session = await auth()
@@ -12,7 +13,7 @@ export default async function CoachDashboardPage() {
   const team = await db.team.findUnique({
     where: { coachId: session.user.id },
     include: {
-      players: { include: { user: { select: { name: true } } } },
+      players: { include: PLAYER_PERSON_NAME_INCLUDE },
     },
   })
 

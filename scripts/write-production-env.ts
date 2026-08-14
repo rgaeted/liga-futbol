@@ -79,7 +79,6 @@ async function main() {
     `SUPABASE_SECRET_KEY="${secret}"`,
     '',
     'MIGRATION_MAINTENANCE_MODE="false"',
-    'MIGRATION_REDIRECT_URL=""',
     '',
   ]
 

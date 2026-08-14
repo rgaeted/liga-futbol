@@ -3,6 +3,7 @@ import path from 'path'
 
 export default defineConfig({
   test: {
+    exclude: ['**/node_modules/**', '**/.worktrees/**'],
     environment: 'node',
     globals: true,
     setupFiles: ['./tests/setup.ts'],

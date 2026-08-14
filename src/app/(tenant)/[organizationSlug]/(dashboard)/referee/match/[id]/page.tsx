@@ -5,13 +5,14 @@ import { MatchControlPanel } from '@/components/referee/MatchControlPanel'
 import { matchSideNames } from '@/lib/match-label'
 import { buildMatchTeamMvps, MATCH_MVP_INCLUDE } from '@/lib/match-mvp'
 import { resolveRefereeEventTypes } from '@/lib/match-referee-events'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 async function getTeamPlayers(matchId: string, teamId: string) {
   const callUps = await db.callUp.findMany({
     where: { matchId, player: { teamId } },
     include: {
       player: {
-        include: { user: { select: { name: true } } },
+        include: PLAYER_PERSON_NAME_INCLUDE,
       },
     },
   })
@@ -21,7 +22,7 @@ async function getTeamPlayers(matchId: string, teamId: string) {
 
   return db.player.findMany({
     where: { teamId },
-    include: { user: { select: { name: true } } },
+    include: PLAYER_PERSON_NAME_INCLUDE,
     orderBy: { jerseyNumber: 'asc' },
   })
 }
@@ -120,7 +121,7 @@ export default async function RefereeMatchPage({
         name: match.homeTeam.name,
         players: homePlayers.map((p) => ({
           id: p.id,
-          label: p.user.name,
+          label: playerDisplayName(p),
         })),
       }}
       awayTeam={{
@@ -128,7 +129,7 @@ export default async function RefereeMatchPage({
         name: match.awayTeam.name,
         players: awayPlayers.map((p) => ({
           id: p.id,
-          label: p.user.name,
+          label: playerDisplayName(p),
         })),
       }}
     />

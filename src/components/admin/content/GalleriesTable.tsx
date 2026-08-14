@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from '@/components/admin/submit'
+import { useOrgPath } from '@/hooks/useOrgPath'
 
 type GalleryRow = {
   id: string
@@ -20,6 +21,7 @@ export function GalleriesTable({
   seasonId: string
   galleries: GalleryRow[]
 }) {
+  const orgPath = useOrgPath()
   return (
     <div className="overflow-hidden rounded-lg border border-kelme-border">
       <table className="min-w-full text-sm">
@@ -39,7 +41,7 @@ export function GalleriesTable({
               <td className="p-3">{gallery.photoCount}</td>
               <td className="p-3">
                 <Link
-                  href={`/admin/content/galleries/${gallery.id}?season=${seasonId}`}
+                  href={orgPath(`/admin/content/galleries/${gallery.id}?season=${seasonId}`)}
                   className="text-kelme-red hover:underline"
                 >
                   Editar

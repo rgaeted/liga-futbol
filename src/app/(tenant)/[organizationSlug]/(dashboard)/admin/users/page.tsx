@@ -30,13 +30,22 @@ export default async function AdminUsersPage({
           email: true,
           name: true,
           coachedTeam: { select: { id: true } },
-          friendlyPlayer: {
+          person: {
             select: {
-              id: true,
-              participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+              players: {
+                where: { organizationId },
+                select: { teamId: true },
+                take: 1,
+              },
+              friendlyPlayers: {
+                where: { organizationId },
+                select: {
+                  id: true,
+                  participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+                },
+              },
             },
           },
-          player: { select: { teamId: true } },
         },
       },
     },
@@ -60,9 +69,11 @@ export default async function AdminUsersPage({
           roleTags: resolveUserRoleTags({
             role: m.role,
             hasCoachedTeam: Boolean(m.user.coachedTeam),
-            hasLeagueTeam: Boolean(m.user.player?.teamId),
-            hasFriendlyProfile: Boolean(m.user.friendlyPlayer),
-            isFriendlyCoach: Boolean(m.user.friendlyPlayer?.participations.length),
+            hasLeagueTeam: Boolean(m.user.person?.players[0]?.teamId),
+            hasFriendlyProfile: Boolean(m.user.person?.friendlyPlayers.length),
+            isFriendlyCoach: Boolean(
+              m.user.person?.friendlyPlayers.some((fp) => fp.participations.length),
+            ),
           }),
         }))}
         currentUserId={session!.user.id}

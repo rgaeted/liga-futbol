@@ -16,10 +16,34 @@ function resolvePlatform(): MobilePlatformCode {
   return Platform.OS === 'ios' ? 'IOS' : 'ANDROID'
 }
 
+const PERMISSION_TIMEOUT_MS = 15_000
+const PUSH_TOKEN_TIMEOUT_MS = 10_000
+
+async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<null>((resolve) => {
+        timeoutId = setTimeout(() => resolve(null), ms)
+      }),
+    ])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+}
+
 export async function registerForLeagueNotifications(): Promise<RegisterNotificationsResult> {
   let permission = await Notifications.getPermissionsAsync()
   if (permission.status !== 'granted') {
-    permission = await Notifications.requestPermissionsAsync()
+    const requested = await withTimeout(
+      Notifications.requestPermissionsAsync(),
+      PERMISSION_TIMEOUT_MS,
+    )
+    if (!requested) {
+      return { registered: false, reason: 'permission-denied' }
+    }
+    permission = requested
   }
 
   if (permission.status !== 'granted') {
@@ -31,8 +55,11 @@ export async function registerForLeagueNotifications(): Promise<RegisterNotifica
     return { registered: false, reason: 'no-project-id' }
   }
 
-  const tokenResult = await Notifications.getExpoPushTokenAsync({ projectId })
-  if (!tokenResult.data) {
+  const tokenResult = await withTimeout(
+    Notifications.getExpoPushTokenAsync({ projectId }),
+    PUSH_TOKEN_TIMEOUT_MS,
+  )
+  if (!tokenResult?.data) {
     return { registered: false, reason: 'no-token' }
   }
 

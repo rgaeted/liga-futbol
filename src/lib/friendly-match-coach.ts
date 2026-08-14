@@ -32,8 +32,8 @@ export async function friendlyCoachSideForUser(
   userId: string,
   matchId: string
 ): Promise<FriendlySide | null> {
-  const profile = await db.friendlyPlayer.findUnique({
-    where: { userId },
+  const profile = await db.friendlyPlayer.findFirst({
+    where: { person: { userId } },
     select: { id: true },
   })
   if (!profile) return null
@@ -74,8 +74,8 @@ export function resolveFriendlyCoaches(
 }
 
 export async function listFriendlyCoachMatchesForUser(userId: string) {
-  const profile = await db.friendlyPlayer.findUnique({
-    where: { userId },
+  const profile = await db.friendlyPlayer.findFirst({
+    where: { person: { userId } },
     select: { id: true },
   })
   if (!profile) return []

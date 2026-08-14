@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 import { registerForLeagueNotifications } from '@/src/notifications/register'
 import { syncFavoriteTeamSubscriptions } from '@/src/notifications/sync-subscriptions'
 import { completeOnboarding } from '@/src/storage/onboarding'
@@ -7,14 +8,21 @@ import { theme } from '@/src/theme'
 
 export default function NotificationOnboardingScreen() {
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
   async function handleContinue() {
-    const registration = await registerForLeagueNotifications()
-    if (registration.registered) {
-      await syncFavoriteTeamSubscriptions()
+    if (loading) return
+    setLoading(true)
+    try {
+      const registration = await registerForLeagueNotifications()
+      if (registration.registered) {
+        await syncFavoriteTeamSubscriptions()
+      }
+    } finally {
+      await completeOnboarding()
+      router.replace('/(tabs)')
+      setLoading(false)
     }
-    await completeOnboarding()
-    router.replace('/(tabs)')
   }
 
   return (
@@ -25,9 +33,15 @@ export default function NotificationOnboardingScreen() {
       </Text>
       <Pressable
         accessibilityRole="button"
+        accessibilityState={{ disabled: loading, busy: loading }}
+        disabled={loading}
         onPress={() => void handleContinue()}
-        style={styles.button}>
-        <Text style={styles.buttonLabel}>Continuar</Text>
+        style={[styles.button, loading && styles.buttonDisabled]}>
+        {loading ? (
+          <ActivityIndicator color={theme.secondary} />
+        ) : (
+          <Text style={styles.buttonLabel}>Continuar</Text>
+        )}
       </Pressable>
     </View>
   )
@@ -49,6 +63,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
   },
+  buttonDisabled: { opacity: 0.7 },
   buttonLabel: { color: theme.secondary, fontWeight: '700' },
 })

@@ -3,6 +3,7 @@ import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { buildLineupView, type LineupView } from '@/lib/match-lineup'
 import { matchSideNames } from '@/lib/match-label'
 import { normalizeSchemeForFormat } from '@/lib/formations'
+import { playerDisplayName, type PlayerNameSource } from '@/lib/person-name'
 
 export type FormationSideView = {
   key: string
@@ -13,9 +14,8 @@ export type FormationSideView = {
 type LeagueCallUp = {
   playerId: string
   slotKey: string | null
-  player: {
+  player: PlayerNameSource & {
     teamId: string | null
-    user: { name: string }
   }
 }
 
@@ -63,11 +63,11 @@ function leagueSide(
         .map((c) => ({
           slotKey: c.slotKey!,
           playerId: c.playerId,
-          playerName: c.player.user.name,
+          playerName: playerDisplayName(c.player),
         })),
       bench: teamCallUps
         .filter((c) => !c.slotKey)
-        .map((c) => ({ playerId: c.playerId, playerName: c.player.user.name })),
+        .map((c) => ({ playerId: c.playerId, playerName: playerDisplayName(c.player) })),
     }),
   }
 }

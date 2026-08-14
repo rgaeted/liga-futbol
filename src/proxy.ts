@@ -14,10 +14,7 @@ export const proxy = auth((req) => {
   const migrationDecision = decideMigrationRequest({
     method: req.method,
     pathname,
-    search,
     maintenanceMode: process.env.MIGRATION_MAINTENANCE_MODE,
-    redirectUrl: process.env.MIGRATION_REDIRECT_URL,
-    requestOrigin: req.nextUrl.origin,
   })
 
   if (migrationDecision?.kind === 'json') {

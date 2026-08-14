@@ -2,13 +2,17 @@
 import { FriendlyPlayerForm } from '@/components/admin/FriendlyPlayerForm'
 import { FriendlyPlayersTable } from '@/components/admin/FriendlyPlayersTable'
 import { mapFriendlyPlayerCategoryIds } from '@/lib/friendly-player-categories'
+import { orgPath } from '@/lib/tenant-paths'
 import Link from 'next/link'
 
 export default async function AdminFriendlyPlayersPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ organizationSlug: string }>
   searchParams: Promise<{ categoryId?: string }>
 }) {
+  const { organizationSlug } = await params
   const { categoryId } = await searchParams
 
   const categories = await db.friendlyCategory.findMany({
@@ -23,6 +27,7 @@ export default async function AdminFriendlyPlayersPage({
         orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
         select: {
           id: true,
+          personId: true,
           firstName: true,
           lastName: true,
           dominantFoot: true,
@@ -30,12 +35,21 @@ export default async function AdminFriendlyPlayersPage({
           secondaryPosition: true,
           photoMimeType: true,
           categories: { select: { friendlyCategoryId: true } },
-          user: { select: { email: true } },
+          person: { select: { user: { select: { email: true } } } },
         },
       })
     : []
 
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId)
+
+  const allOrgPlayers = await db.friendlyPlayer.findMany({
+    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    select: { personId: true, firstName: true, lastName: true },
+  })
+  const mergeOptions = allOrgPlayers.map((p) => ({
+    personId: p.personId,
+    label: `${p.firstName} ${p.lastName}`.trim(),
+  }))
 
   return (
     <div className="space-y-6">
@@ -44,7 +58,7 @@ export default async function AdminFriendlyPlayersPage({
       {categories.length === 0 ? (
         <p className="text-kelme-gray-400">
           Primero crea una{' '}
-          <Link href="/admin/friendly-categories" className="text-kelme-red hover:underline">
+          <Link href={orgPath(organizationSlug, '/admin/friendly-categories')} className="text-kelme-red hover:underline">
             categoría amistosa
           </Link>
           .
@@ -55,7 +69,7 @@ export default async function AdminFriendlyPlayersPage({
             {categories.map((category) => (
               <Link
                 key={category.id}
-                href={`/admin/friendly-players?categoryId=${category.id}`}
+                href={orgPath(organizationSlug, `/admin/friendly-players?categoryId=${category.id}`)}
                 className={`rounded-lg px-3 py-1.5 text-sm ${
                   category.id === selectedCategoryId
                     ? 'bg-kelme-red text-white'
@@ -80,11 +94,13 @@ export default async function AdminFriendlyPlayersPage({
           />
           <FriendlyPlayersTable
             categories={categories}
+            mergeOptions={mergeOptions}
             players={players.map((p) => ({
               id: p.id,
+              personId: p.personId,
               firstName: p.firstName,
               lastName: p.lastName,
-              email: p.user?.email ?? null,
+              email: p.person.user?.email ?? null,
               hasPhoto: Boolean(p.photoMimeType),
               dominantFoot: p.dominantFoot,
               primaryPosition: p.primaryPosition,

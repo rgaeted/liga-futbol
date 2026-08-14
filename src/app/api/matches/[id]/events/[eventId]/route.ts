@@ -5,6 +5,7 @@ import { updateMatchEventSchema } from '@/lib/validations/match-event'
 import { reconcileMatchState } from '@/lib/match-reconcile'
 import { EventType, MatchType } from '@prisma/client'
 import { MembershipRole } from '@/lib/membership-role'
+import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 async function assertMatchInOrganization(matchId: string, organizationId: string) {
   const match = await db.match.findUnique({
@@ -95,9 +96,9 @@ export async function PATCH(
       ...(data.description !== undefined ? { description: data.description } : {}),
     },
     include: {
-      player: { include: { user: { select: { name: true } } } },
+      player: { include: PLAYER_PERSON_NAME_INCLUDE },
       friendlyPlayer: { select: { firstName: true, lastName: true } },
-      assistPlayer: { include: { user: { select: { name: true } } } },
+      assistPlayer: { include: { person: { include: { user: { select: { name: true } } } } } },
       assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
     },
   })

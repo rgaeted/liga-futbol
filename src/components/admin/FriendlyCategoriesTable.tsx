@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
+import { useOrgPath } from '@/hooks/useOrgPath'
 
 export type FriendlyCategoryRow = {
   id: string
@@ -19,6 +20,7 @@ export function FriendlyCategoriesTable({
 }: {
   categories: FriendlyCategoryRow[]
 }) {
+  const orgPath = useOrgPath()
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
@@ -124,7 +126,7 @@ export function FriendlyCategoriesTable({
                   <td className="p-3">
                     <span className="inline-flex items-center gap-2">
                       <a
-                        href={`/admin/friendly-players?categoryId=${category.id}`}
+                        href={orgPath(`/admin/friendly-players?categoryId=${category.id}`)}
                         className="rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red"
                       >
                         Jugadores

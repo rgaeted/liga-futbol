@@ -7,30 +7,32 @@ import { buildMatchTeamMvps, MATCH_MVP_INCLUDE } from '@/lib/match-mvp'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MatchType } from '@prisma/client'
+import { orgPath } from '@/lib/tenant-paths'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 async function getLeaguePlayers(matchId: string, homeTeamId: string, awayTeamId: string) {
   const callUps = await db.callUp.findMany({
     where: { matchId },
-    include: { player: { include: { user: { select: { name: true } } } } },
+    include: { player: { include: PLAYER_PERSON_NAME_INCLUDE } },
   })
 
   if (callUps.length > 0) {
     return callUps.map((c) => ({
       id: c.playerId,
-      label: c.player.user.name,
+      label: playerDisplayName(c.player),
       teamId: c.player.teamId,
     }))
   }
 
   const players = await db.player.findMany({
     where: { teamId: { in: [homeTeamId, awayTeamId] } },
-    include: { user: { select: { name: true } } },
+    include: PLAYER_PERSON_NAME_INCLUDE,
     orderBy: { jerseyNumber: 'asc' },
   })
 
   return players.map((p) => ({
     id: p.id,
-    label: p.user.name,
+    label: playerDisplayName(p),
     teamId: p.teamId,
   }))
 }
@@ -38,9 +40,9 @@ async function getLeaguePlayers(matchId: string, homeTeamId: string, awayTeamId:
 export default async function AdminMatchTimelinePage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ organizationSlug: string; id: string }>
 }) {
-  const { id } = await params
+  const { organizationSlug, id } = await params
 
   const match = await db.match.findUnique({
     where: { id },
@@ -49,9 +51,9 @@ export default async function AdminMatchTimelinePage({
       awayTeam: true,
       events: {
         include: {
-          player: { include: { user: { select: { name: true } } } },
+          player: { include: PLAYER_PERSON_NAME_INCLUDE },
           friendlyPlayer: { select: { firstName: true, lastName: true } },
-          assistPlayer: { include: { user: { select: { name: true } } } },
+          assistPlayer: { include: { person: { include: { user: { select: { name: true } } } } } },
           assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
         },
         orderBy: { minute: 'asc' },
@@ -112,16 +114,16 @@ export default async function AdminMatchTimelinePage({
     description: e.description,
     playerName: e.friendlyPlayer
       ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
-      : (e.player?.user.name ?? null),
+      : (e.player ? playerDisplayName(e.player) : null),
     assistName: e.assistFriendlyPlayer
       ? `${e.assistFriendlyPlayer.firstName} ${e.assistFriendlyPlayer.lastName}`
-      : (e.assistPlayer?.user.name ?? null),
+      : (e.assistPlayer ? playerDisplayName(e.assistPlayer) : null),
   }))
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <Link href="/admin/matches" className="text-sm text-kelme-red hover:underline">
+        <Link href={orgPath(organizationSlug, '/admin/matches')} className="text-sm text-kelme-red hover:underline">
           ← Partidos
         </Link>
         <h1 className="font-display text-2xl font-bold">Cronología — {title}</h1>

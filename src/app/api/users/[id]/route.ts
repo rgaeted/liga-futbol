@@ -83,12 +83,18 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   const user = await db.user.findUnique({
     where: { id },
-    include: { player: { select: { id: true } } },
+    include: {
+      person: {
+        select: {
+          players: { where: { organizationId }, select: { id: true }, take: 1 },
+        },
+      },
+    },
   })
   if (!user) {
     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
   }
-  if (user.player) {
+  if (user.person?.players[0]) {
     return NextResponse.json(
       { error: 'Es un jugador: elimínalo desde la sección Jugadores' },
       { status: 409 }

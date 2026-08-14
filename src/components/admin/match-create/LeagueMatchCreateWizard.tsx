@@ -12,6 +12,7 @@ import { useChileLocationLabels } from '@/components/admin/match-create/useChile
 import { ChileLocationPicker } from '@/components/admin/ChileLocationPicker'
 import { MatchRefereeEventsPicker } from '@/components/admin/MatchRefereeEventsPicker'
 import { submitJson } from '@/components/admin/submit'
+import { useOrgPath } from '@/hooks/useOrgPath'
 import { footballFormatLabel } from '@/lib/football-format'
 import { isConfigurableRefereeEvent } from '@/lib/match-referee-events'
 import {
@@ -84,6 +85,7 @@ function formatScheduleLabel(date: string, time: string): string {
 
 export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
   const router = useRouter()
+  const orgPath = useOrgPath()
   const { data, setData, savedAtLabel, hydrated, clearDraft } = useMatchCreateDraft(
     DRAFT_KEY,
     createInitialDraft()
@@ -153,7 +155,7 @@ export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
     }
 
     clearDraft()
-    router.push('/admin/matches')
+    router.push(orgPath('/admin/matches'))
     router.refresh()
   }
 

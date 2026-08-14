@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from '@/components/admin/submit'
+import { useOrgPath } from '@/hooks/useOrgPath'
 
 type SponsorRow = {
   id: string
@@ -21,6 +22,7 @@ export function SponsorsTable({
   seasonId: string
   sponsors: SponsorRow[]
 }) {
+  const orgPath = useOrgPath()
   return (
     <div className="overflow-hidden rounded-lg border border-kelme-border">
       <table className="min-w-full text-sm">
@@ -37,7 +39,7 @@ export function SponsorsTable({
             <tr key={sponsor.id} className="border-t border-kelme-border">
               <td className="p-3">
                 <Link
-                  href={`/admin/content/sponsors?season=${seasonId}&edit=${sponsor.id}`}
+                  href={orgPath(`/admin/content/sponsors?season=${seasonId}&edit=${sponsor.id}`)}
                   className="text-kelme-red hover:underline"
                 >
                   {sponsor.name}

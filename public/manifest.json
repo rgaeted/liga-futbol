@@ -1,11 +1,11 @@
 {
-  "name": "Torneos Kelme",
-  "short_name": "Torneos Kelme",
-  "description": "Plataforma oficial de gestión de torneos KELME con marcador en vivo",
+  "name": "AdminTorneo",
+  "short_name": "AdminTorneo",
+  "description": "Plataforma SaaS para administrar ligas de fútbol con marcador en vivo",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#CD212A",
+  "theme_color": "#18181b",
   "orientation": "portrait",
   "icons": [
     {

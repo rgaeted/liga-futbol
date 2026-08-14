@@ -7,6 +7,7 @@ import type { FootballFormat } from '@prisma/client'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
 import { FOOTBALL_FORMATS, FOOTBALL_FORMAT_LABELS } from '@/lib/football-format'
+import { useOrgPath } from '@/hooks/useOrgPath'
 
 export type SeasonRow = {
   id: string
@@ -18,6 +19,7 @@ export type SeasonRow = {
 }
 
 export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
+  const orgPath = useOrgPath()
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
@@ -156,7 +158,7 @@ export function SeasonsTable({ seasons }: { seasons: SeasonRow[] }) {
                         Editar
                       </button>
                       <Link
-                        href={`/admin/seasons/${season.id}/mobile`}
+                        href={orgPath(`/admin/seasons/${season.id}/mobile`)}
                         className="rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red"
                       >
                         App móvil

@@ -18,6 +18,7 @@ import {
 } from '@/components/admin/FriendlyMatchConvocationPicker'
 import { FriendlyMatchTeamAssigner } from '@/components/admin/FriendlyMatchTeamAssigner'
 import { submitJson } from '@/components/admin/submit'
+import { useOrgPath } from '@/hooks/useOrgPath'
 import {
   FOOTBALL_FORMATS,
   FOOTBALL_FORMAT_LABELS,
@@ -136,6 +137,7 @@ function validateRoster(draft: FriendlyDraft): string | null {
 }
 
 export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayers }: Props) {
+  const orgPath = useOrgPath()
   const router = useRouter()
   const activeCategories = categories.filter((category) => category.isActive)
   const initialDraft = useMemo(
@@ -343,7 +345,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
     }
 
     clearDraft()
-    router.push('/admin/matches')
+    router.push(orgPath('/admin/matches'))
     router.refresh()
   }
 
@@ -358,7 +360,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
         <p className="mt-2 text-sm text-kelme-gray-500">
           Primero crea una categoría amistosa activa.
         </p>
-        <Link href="/admin/friendly-categories" className="mt-4 inline-block text-sm text-kelme-red hover:underline">
+        <Link href={orgPath('/admin/friendly-categories')} className="mt-4 inline-block text-sm text-kelme-red hover:underline">
           Ir a categorías amistosas
         </Link>
       </div>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { AdminDashboardHome } from '@/components/admin/AdminDashboardHome'
 import { AdminDashboardSkeleton } from '@/components/admin/AdminDashboardSkeleton'
+import { useOrgPath } from '@/hooks/useOrgPath'
 import type { AdminDashboardData } from '@/lib/admin-dashboard'
 
 function dashboardUrl(seasonId: string | null): string {
@@ -15,6 +16,7 @@ function dashboardUrl(seasonId: string | null): string {
 }
 
 export function AdminDashboardClient() {
+  const orgPath = useOrgPath()
   const searchParams = useSearchParams()
   const seasonId = searchParams.get('season')
   const [data, setData] = useState<AdminDashboardData | null>(null)
@@ -103,7 +105,7 @@ export function AdminDashboardClient() {
             Reintentar
           </button>
           <Link
-            href="/admin/matches"
+            href={orgPath('/admin/matches')}
             className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
           >
             Ir a partidos

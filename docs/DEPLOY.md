@@ -4,8 +4,6 @@ Stack actual: **Vercel** (Next.js, región `gru1`) + **Supabase Production** (Po
 
 **URL de producción:** https://torneos-kelme.vercel.app
 
-Render (`torneos-kelme.onrender.com`) queda en **modo puente**: redirige navegación GET a Vercel y bloquea mutaciones (`503`). Se retirará tras la ventana de observación.
-
 ## Vercel y Supabase Production
 
 - Runtime: Node.js 22.x.
@@ -20,7 +18,7 @@ Render (`torneos-kelme.onrender.com`) queda en **modo puente**: redirige navegac
 |----------|-----|
 | `DATABASE_URL` | Supavisor Transaction Mode, puerto 6543, `pgbouncer=true&connection_limit=1` |
 | `DIRECT_URL` | Supavisor Session Mode, puerto 5432 |
-| `AUTH_SECRET` | Secreto Auth.js (distinto al de Render; re-login obligatorio) |
+| `AUTH_SECRET` | Secreto Auth.js |
 | `NEXTAUTH_URL` | `https://torneos-kelme.vercel.app` |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Production |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Clave publishable Production |
@@ -49,17 +47,8 @@ Vercel Cron llama `GET /api/health/database` a las 12:00 UTC con `Authorization:
 
 - Landing: https://torneos-kelme.vercel.app
 - Ayuda: `/ayuda`
-- Live: `/live/demo-match-live`
+- Live (Kelme): `/kelme/live/demo-match-live`
 - Login demo: `demo-admin@demo.torneoskelme.cl` / `password123`
-
-## Render (deprecación)
-
-`render.yaml` activa:
-
-- `MIGRATION_MAINTENANCE_MODE=true`
-- `MIGRATION_REDIRECT_URL=https://torneos-kelme.vercel.app`
-
-Efecto: GET públicos redirigen a Vercel; POST/PUT/PATCH/DELETE responden `503`. Neon ya no es fuente de verdad.
 
 ## Ensayo Supabase Preview
 

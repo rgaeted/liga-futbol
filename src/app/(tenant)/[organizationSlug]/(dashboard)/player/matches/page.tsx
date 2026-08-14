@@ -4,17 +4,23 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { matchDisplayName } from '@/lib/match-label'
 import { matchStatusLabel } from '@/lib/match-status-ui'
+import { orgPath } from '@/lib/tenant-paths'
 
-export default async function PlayerMatchesPage() {
+export default async function PlayerMatchesPage({
+  params,
+}: {
+  params: Promise<{ organizationSlug: string }>
+}) {
+  const { organizationSlug } = await params
   const session = await auth()
   if (!session) redirect('/login')
 
-  const player = await db.player.findUnique({
-    where: { userId: session.user.id },
+  const player = await db.player.findFirst({
+    where: { person: { userId: session.user.id } },
     select: { id: true },
   })
 
-  if (!player) redirect('/player')
+  if (!player) redirect(orgPath(organizationSlug, '/player'))
 
   const callUps = await db.callUp.findMany({
     where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
@@ -54,7 +60,7 @@ export default async function PlayerMatchesPage() {
                 <p className="font-mono">{match.homeScore} - {match.awayScore}</p>
                 <p className="text-xs text-kelme-gray-400">{matchStatusLabel(match.status)}</p>
                 {match.status === 'LIVE' && (
-                  <Link href={`/live/${match.id}`} className="text-xs text-red-400">EN VIVO</Link>
+                  <Link href={orgPath(organizationSlug, `/live/${match.id}`)} className="text-xs text-red-400">EN VIVO</Link>
                 )}
               </div>
             </div>

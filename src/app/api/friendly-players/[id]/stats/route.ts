@@ -29,7 +29,11 @@ export async function GET(
   assertSameOrganization(friendlyPlayer.organizationId, organizationId)
 
   const isAdmin = role === MembershipRole.ORG_ADMIN
-  const isOwner = friendlyPlayer.userId === session.user.id
+  const person = await db.person.findUnique({
+    where: { id: friendlyPlayer.personId },
+    select: { userId: true },
+  })
+  const isOwner = person?.userId === session.user.id
   if (!isAdmin && !isOwner) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

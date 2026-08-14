@@ -1,15 +1,16 @@
 import { db } from '@/lib/db'
 import { PlayerForm } from '@/components/admin/PlayerForm'
 import { PlayersTable } from '@/components/admin/PlayersTable'
+import { playerDisplayName } from '@/lib/person-name'
 
 export default async function AdminPlayersPage() {
   const [players, teams] = await Promise.all([
     db.player.findMany({
       include: {
-        user: { select: { name: true, email: true } },
+        person: { include: { user: { select: { name: true, email: true } } } },
         team: { select: { id: true, name: true } },
       },
-      orderBy: { user: { name: 'asc' } },
+      orderBy: { person: { firstName: 'asc' } },
     }),
     db.team.findMany({ orderBy: { name: 'asc' } }),
   ])
@@ -21,8 +22,8 @@ export default async function AdminPlayersPage() {
       <PlayersTable
         players={players.map((p) => ({
           id: p.id,
-          name: p.user.name,
-          email: p.user.email,
+          name: playerDisplayName(p),
+          email: p.person.user?.email ?? '',
           teamId: p.team?.id ?? null,
           teamName: p.team?.name ?? null,
           jerseyNumber: p.jerseyNumber,

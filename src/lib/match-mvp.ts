@@ -1,6 +1,7 @@
 import type { MatchMvpSide, MatchType } from '@prisma/client'
 import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { matchMvpPhotoUrl, matchTeamMvpHasPhoto } from '@/lib/match-mvp-photo'
+import { playerDisplayName, type PlayerNameSource } from '@/lib/person-name'
 
 export type TeamMvpSideView = {
   side: MatchMvpSide
@@ -16,7 +17,7 @@ type TeamMvpRow = {
   friendlyPlayerId: string | null
   photoMimeType: string | null
   photoData: Uint8Array | Buffer | null
-  player?: { user: { name: string } } | null
+  player?: PlayerNameSource | null
   friendlyPlayer?: {
     firstName: string
     lastName: string
@@ -32,7 +33,7 @@ export function resolveTeamMvpLabel(row: TeamMvpRow): string | null {
   if (row.friendlyPlayer) {
     return `${row.friendlyPlayer.firstName} ${row.friendlyPlayer.lastName}`.trim()
   }
-  return row.player?.user.name ?? null
+  return row.player ? playerDisplayName(row.player) : null
 }
 
 export function resolveTeamMvpPhotoUrl(
@@ -136,7 +137,7 @@ export async function assertMvpInMatchRoster(
 }
 
 export const MATCH_MVP_INCLUDE = {
-  player: { include: { user: { select: { name: true } } } },
+  player: { include: { person: { include: { user: { select: { name: true } } } } } },
   friendlyPlayer: {
     select: { firstName: true, lastName: true, photoMimeType: true },
   },

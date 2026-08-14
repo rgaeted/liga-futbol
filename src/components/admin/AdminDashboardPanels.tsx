@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useOrgPath } from '@/hooks/useOrgPath'
 import type {
   AdminDashboardMatchRow,
   AdminDashboardScorerRow,
@@ -11,7 +12,13 @@ import type {
 } from '@/lib/admin-dashboard'
 import { contrastTextColor } from '@/lib/team-color'
 
-function MatchRows({ rows }: { rows: AdminDashboardMatchRow[] }) {
+function MatchRows({
+  rows,
+  orgPath,
+}: {
+  rows: AdminDashboardMatchRow[]
+  orgPath: (path: string) => string
+}) {
   if (rows.length === 0) {
     return (
       <div className="px-5 py-10 text-center text-sm text-zinc-500">
@@ -25,7 +32,7 @@ function MatchRows({ rows }: { rows: AdminDashboardMatchRow[] }) {
       {rows.map((m) => (
         <Link
           key={m.id}
-          href={`/live/${m.id}`}
+          href={orgPath(`/live/${m.id}`)}
           className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-center gap-3 border-b border-zinc-100 px-5 py-3.5 transition-colors hover:bg-[#fafafa] max-lg:grid-cols-1 max-lg:gap-2"
         >
           <div className="leading-tight">
@@ -91,6 +98,7 @@ export function AdminDashboardPanels({
   tiles,
   todos,
 }: Props) {
+  const orgPath = useOrgPath()
   const [tab, setTab] = useState<'proximos' | 'resultados'>('proximos')
   const matches = tab === 'proximos' ? upcoming : results
 
@@ -112,11 +120,11 @@ export function AdminDashboardPanels({
                 Resultados
               </button>
             </div>
-            <Link href="/admin/matches" className="font-ui text-[13px] font-semibold text-[#b91c1c] hover:underline">
+            <Link href={orgPath('/admin/matches')} className="font-ui text-[13px] font-semibold text-[#b91c1c] hover:underline">
               Ver calendario completo →
             </Link>
           </div>
-          <MatchRows rows={matches} />
+          <MatchRows rows={matches} orgPath={orgPath} />
         </section>
 
         <section>
@@ -130,7 +138,7 @@ export function AdminDashboardPanels({
             {tiles.map((t) => (
               <Link
                 key={t.href}
-                href={t.href}
+                href={orgPath(t.href)}
                 className="flex items-center gap-3.5 rounded-xl border border-zinc-200 bg-white p-4 text-zinc-900 transition hover:-translate-y-px hover:border-zinc-300 hover:shadow-[0_4px_14px_rgba(24,24,27,0.07)]"
               >
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#fdf2f3] font-display text-lg font-bold text-[#b91c1c]">
@@ -152,7 +160,7 @@ export function AdminDashboardPanels({
             <h2 className="font-display text-xl font-bold uppercase tracking-wide text-zinc-900">
               Tabla de posiciones
             </h2>
-            <Link href="/admin/teams" className="text-xs font-semibold text-[#b91c1c] hover:underline">
+            <Link href={orgPath('/admin/teams')} className="text-xs font-semibold text-[#b91c1c] hover:underline">
               Completa
             </Link>
           </div>

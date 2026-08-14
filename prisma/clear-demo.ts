@@ -20,7 +20,7 @@ async function main() {
     where: {
       OR: [
         { id: { startsWith: DEMO_ID_PREFIX } },
-        { userId: { in: demoUserIds } },
+        { person: { userId: { in: demoUserIds } } },
       ],
     },
     select: { id: true },

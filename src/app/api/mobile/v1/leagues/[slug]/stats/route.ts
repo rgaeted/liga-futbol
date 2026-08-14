@@ -2,6 +2,7 @@ import { MatchType } from '@prisma/client'
 import { db } from '@/lib/db'
 import { withPublishedLeague } from '@/lib/mobile/route-handler'
 import { aggregateSeasonPlayerStats, type RosterRow } from '@/lib/mobile/season-stats'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +18,7 @@ export async function GET(
         seasonTeam: { seasonId: league.season.id, status: 'REGISTERED' },
       },
       include: {
-        player: { include: { user: { select: { name: true } } } },
+        player: { include: PLAYER_PERSON_NAME_INCLUDE },
         seasonTeam: { select: { displayName: true } },
       },
     })
@@ -25,7 +26,7 @@ export async function GET(
     const roster: RosterRow[] = rosterEntries.map((entry) => ({
       rosterEntryId: entry.id,
       playerId: entry.playerId,
-      playerName: entry.player.user.name,
+      playerName: playerDisplayName(entry.player),
       teamName: entry.seasonTeam.displayName,
       jerseyNumber: entry.jerseyNumber,
       position: entry.position,

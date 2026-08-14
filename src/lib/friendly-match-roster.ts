@@ -108,12 +108,13 @@ export async function syncFriendlyMatchRoster(
 
     const fp = await tx.friendlyPlayer.findUnique({
       where: { id: entry.friendlyPlayerId },
-      select: { userId: true, organizationId: true },
+      select: { organizationId: true, person: { select: { userId: true } } },
     })
-    if (fp?.userId) {
+    const coachUserId = fp?.person.userId
+    if (coachUserId) {
       await tx.organizationMembership.updateMany({
         where: {
-          userId: fp.userId,
+          userId: coachUserId,
           organizationId: fp.organizationId,
           role: MembershipRole.PLAYER,
         },

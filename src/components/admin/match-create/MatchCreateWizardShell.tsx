@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import Link from 'next/link'
+import { useOrgPath } from '@/hooks/useOrgPath'
 
 type Props = {
   variant: 'league' | 'friendly'
@@ -36,8 +37,10 @@ export function MatchCreateWizardShell({
   disabled = false,
   error,
   onSubmit,
-  backHref = '/admin/matches',
+  backHref,
 }: Props) {
+  const orgPath = useOrgPath()
+  const resolvedBackHref = backHref ?? orgPath('/admin/matches')
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -63,7 +66,7 @@ export function MatchCreateWizardShell({
               ) : null}
             </div>
             <p className="mt-1 text-sm text-kelme-gray-500">{subtitle}</p>
-            <Link href={backHref} className="mt-2 inline-block text-sm text-kelme-red hover:underline">
+            <Link href={resolvedBackHref} className="mt-2 inline-block text-sm text-kelme-red hover:underline">
               ← Volver a partidos
             </Link>
           </div>

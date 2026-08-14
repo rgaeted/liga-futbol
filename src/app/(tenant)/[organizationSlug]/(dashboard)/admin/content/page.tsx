@@ -3,17 +3,21 @@ import { redirect } from 'next/navigation'
 import { ContentSeasonBar } from '@/components/admin/content/ContentSeasonBar'
 import { MobileEditionLogoUpload } from '@/components/admin/content/MobileEditionLogoUpload'
 import { db } from '@/lib/db'
+import { orgPath } from '@/lib/tenant-paths'
 
 export default async function AdminContentPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ organizationSlug: string }>
   searchParams: Promise<{ season?: string }>
 }) {
-  const params = await searchParams
+  const { organizationSlug } = await params
+  const query = await searchParams
   const seasons = await db.season.findMany({ orderBy: { startDate: 'desc' } })
-  const selectedSeasonId = params.season ?? seasons[0]?.id ?? null
+  const selectedSeasonId = query.season ?? seasons[0]?.id ?? null
   if (!selectedSeasonId && seasons.length > 0) {
-    redirect(`/admin/content?season=${seasons[0].id}`)
+    redirect(orgPath(organizationSlug, `/admin/content?season=${seasons[0].id}`))
   }
 
   const mobileConfig = selectedSeasonId
@@ -39,21 +43,21 @@ export default async function AdminContentPage({
         <>
           <div className="grid gap-4 md:grid-cols-3">
             <Link
-              href={`/admin/content/articles?season=${selectedSeasonId}`}
+              href={orgPath(organizationSlug, `/admin/content/articles?season=${selectedSeasonId}`)}
               className="rounded-lg border border-kelme-border p-4 hover:bg-kelme-gray-50"
             >
               <p className="text-sm text-zinc-500">Noticias</p>
               <p className="text-2xl font-bold">{articleCount}</p>
             </Link>
             <Link
-              href={`/admin/content/galleries?season=${selectedSeasonId}`}
+              href={orgPath(organizationSlug, `/admin/content/galleries?season=${selectedSeasonId}`)}
               className="rounded-lg border border-kelme-border p-4 hover:bg-kelme-gray-50"
             >
               <p className="text-sm text-zinc-500">Galerías</p>
               <p className="text-2xl font-bold">{galleryCount}</p>
             </Link>
             <Link
-              href={`/admin/content/sponsors?season=${selectedSeasonId}`}
+              href={orgPath(organizationSlug, `/admin/content/sponsors?season=${selectedSeasonId}`)}
               className="rounded-lg border border-kelme-border p-4 hover:bg-kelme-gray-50"
             >
               <p className="text-sm text-zinc-500">Patrocinadores</p>

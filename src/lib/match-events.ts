@@ -5,19 +5,18 @@ import type { CreateMatchEventInput } from '@/lib/validations/match-event'
 import { getMatchMinute } from '@/lib/match-clock'
 import { syncLeaguePlayerStats } from '@/lib/match-reconcile'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 const eventInclude = {
   player: {
     include: {
-      user: { select: { name: true } },
+      ...PLAYER_PERSON_NAME_INCLUDE,
       team: { select: { id: true, name: true } },
     },
   },
   friendlyPlayer: { select: { firstName: true, lastName: true } },
   assistPlayer: {
-    include: {
-      user: { select: { name: true } },
-    },
+    include: PLAYER_PERSON_NAME_INCLUDE,
   },
   assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
 } as const
@@ -131,7 +130,7 @@ export async function registerMatchEvent(
           id: event.id,
           type: input.type,
           teamId: input.teamId ?? null,
-          playerName: event.player?.user?.name ?? null,
+          playerName: event.player ? playerDisplayName(event.player) : null,
         },
       })
     } else if (input.type === EventType.FULLTIME) {

@@ -64,31 +64,10 @@ export function isPublicRequest(method: string, pathname: string): boolean {
 export function decideMigrationRequest(input: {
   method: string
   pathname: string
-  search: string
   maintenanceMode: string | undefined
-  redirectUrl: string | undefined
-  requestOrigin: string
 }): MigrationDecision | null {
   const isApi = input.pathname.startsWith('/api/')
   const isNavigation = input.method === 'GET' && !isApi
-  const isMaintenancePage = input.pathname.startsWith('/mantenimiento')
-
-  if (input.redirectUrl && isNavigation && !isMaintenancePage) {
-    try {
-      const target = new URL(input.redirectUrl)
-      if (
-        (target.protocol === 'http:' || target.protocol === 'https:') &&
-        target.origin !== input.requestOrigin
-      ) {
-        target.pathname = input.pathname
-        target.search = input.search
-        target.hash = ''
-        return { kind: 'redirect', location: target.toString() }
-      }
-    } catch {
-      // Ignore invalid redirect configuration and continue with maintenance.
-    }
-  }
 
   if (input.maintenanceMode !== 'true') return null
   if (!SAFE_METHODS.has(input.method)) {

@@ -7,6 +7,7 @@ import { isRefereeEventEnabled } from '@/lib/match-referee-events'
 import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigger-process'
 import { EventType, MatchStatus, MatchType } from '@prisma/client'
 import { MembershipRole } from '@/lib/membership-role'
+import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 const PLAYER_EVENT_TYPES: EventType[] = [
   EventType.GOAL,
@@ -31,7 +32,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const events = await db.matchEvent.findMany({
     where: { matchId: id },
     include: {
-      player: { include: { user: { select: { name: true } } } },
+      player: { include: PLAYER_PERSON_NAME_INCLUDE },
       friendlyPlayer: { select: { firstName: true, lastName: true } },
     },
     orderBy: { minute: 'asc' },

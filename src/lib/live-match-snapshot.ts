@@ -1,4 +1,5 @@
 import { MatchType, type FootballFormat, type Prisma } from '@prisma/client'
+import { editorialPublicUrl } from '@/lib/editorial/urls'
 import { db } from '@/lib/db'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 import { formatChileLocation } from '@/lib/chile-locations'
@@ -18,6 +19,7 @@ import {
 } from '@/lib/match-mvp'
 import { sortTimelineEvents, timelineUsesCreatedAtOrder } from '@/lib/match-timeline-sort'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
+import { playerDisplayName } from '@/lib/person-name'
 import {
   resolveEventTeamColor,
   resolveMatchSideColor,
@@ -55,6 +57,10 @@ export type LiveMatchFormation = {
 
 export type LiveMatchSnapshot = {
   id: string
+  organization: {
+    name: string
+    logoUrl: string | null
+  }
   matchType: MatchType
   homeTeamId: string | null
   awayTeamId: string | null
@@ -86,6 +92,7 @@ export type LiveMatchSnapshot = {
 }
 
 const LIVE_MATCH_INCLUDE = {
+  organization: { select: { name: true, slug: true, logoStoragePath: true } },
   homeTeam: { include: { coach: { select: { name: true } } } },
   awayTeam: { include: { coach: { select: { name: true } } } },
   formations: true,
@@ -93,7 +100,7 @@ const LIVE_MATCH_INCLUDE = {
     include: {
       player: {
         include: {
-          user: { select: { name: true } },
+          person: { include: { user: { select: { name: true } } } },
           team: { select: { id: true } },
         },
       },
@@ -111,12 +118,12 @@ const LIVE_MATCH_INCLUDE = {
     include: {
       player: {
         include: {
-          user: { select: { name: true } },
+          person: { include: { user: { select: { name: true } } } },
           team: { select: { id: true, name: true } },
         },
       },
       friendlyPlayer: { select: { firstName: true, lastName: true } },
-      assistPlayer: { include: { user: { select: { name: true } } } },
+      assistPlayer: { include: { person: { include: { user: { select: { name: true } } } } } },
       assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
     },
     orderBy: { createdAt: 'asc' },
@@ -157,7 +164,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
       slotKey: callUp.slotKey,
       player: {
         teamId: callUp.player.teamId,
-        user: callUp.player.user,
+        person: callUp.player.person,
       },
     })),
     friendlyPlayers: match.friendlyPlayers.map((player) => ({
@@ -253,6 +260,10 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
 
   return {
     id: match.id,
+    organization: {
+      name: match.organization.name,
+      logoUrl: editorialPublicUrl(match.organization.logoStoragePath),
+    },
     matchType: match.matchType,
     homeTeamId: match.homeTeamId,
     awayTeamId: match.awayTeamId,
@@ -297,10 +308,14 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
         createdAt: event.createdAt.toISOString(),
         playerName: event.friendlyPlayer
           ? `${event.friendlyPlayer.firstName} ${event.friendlyPlayer.lastName}`
-          : event.player?.user.name ?? null,
+          : event.player
+            ? playerDisplayName(event.player)
+            : null,
         assistName: event.assistFriendlyPlayer
           ? `${event.assistFriendlyPlayer.firstName} ${event.assistFriendlyPlayer.lastName}`
-          : event.assistPlayer?.user.name ?? null,
+          : event.assistPlayer
+            ? playerDisplayName(event.assistPlayer)
+            : null,
         description: event.description,
         teamName,
         teamCrestSrc: resolveEventTeamCrest(teamName, teamVisual),
@@ -344,11 +359,14 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
 }
 
 export async function getLiveMatchSnapshot(
-  matchId: string
+  matchId: string,
+  organizationSlug?: string
 ): Promise<LiveMatchSnapshot | null> {
   const match = await db.match.findUnique({
     where: { id: matchId },
     include: LIVE_MATCH_INCLUDE,
   })
-  return match ? buildLiveMatchSnapshot(match) : null
+  if (!match) return null
+  if (organizationSlug && match.organization.slug !== organizationSlug) return null
+  return buildLiveMatchSnapshot(match)
 }

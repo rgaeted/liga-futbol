@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { claimFriendlyPlayerSchema } from '@/lib/validations/friendly-player'
 import { MembershipRole } from '@/lib/membership-role'
+import { canClaimPerson, assertPersonFichaAvailable, loadPersonFichaOrgIds } from '@/lib/person'
 
 export async function POST(req: Request) {
   const parsed = claimFriendlyPlayerSchema.safeParse(await req.json())
@@ -14,12 +15,15 @@ export async function POST(req: Request) {
 
   const friendlyPlayer = await db.friendlyPlayer.findUnique({
     where: { id: friendlyPlayerId },
+    include: { person: { select: { id: true, userId: true } } },
   })
   if (!friendlyPlayer) {
     return NextResponse.json({ error: 'Perfil no encontrado' }, { status: 404 })
   }
-  if (friendlyPlayer.userId) {
-    return NextResponse.json({ error: 'Este perfil ya fue reclamado' }, { status: 409 })
+
+  const gate = canClaimPerson(friendlyPlayer.person.userId, null, friendlyPlayer.person.id)
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status })
   }
 
   const existingUser = await db.user.findUnique({ where: { email } })
@@ -31,9 +35,16 @@ export async function POST(req: Request) {
   const name = `${friendlyPlayer.firstName} ${friendlyPlayer.lastName}`
 
   await db.$transaction(async (tx) => {
+    const person = await tx.person.findUniqueOrThrow({ where: { id: friendlyPlayer.personId } })
+    const claimGate = canClaimPerson(person.userId, null, person.id)
+    if (!claimGate.ok) {
+      throw Object.assign(new Error(claimGate.error), { status: claimGate.status })
+    }
+
     const user = await tx.user.create({
       data: { email, passwordHash, name },
     })
+    await tx.person.update({ where: { id: person.id }, data: { userId: user.id } })
     await tx.organizationMembership.create({
       data: {
         organizationId: friendlyPlayer.organizationId,
@@ -41,13 +52,21 @@ export async function POST(req: Request) {
         role: MembershipRole.PLAYER,
       },
     })
-    await tx.player.create({
-      data: { userId: user.id },
-    })
-    await tx.friendlyPlayer.update({
-      where: { id: friendlyPlayerId },
-      data: { userId: user.id },
-    })
+
+    const fichaIds = await loadPersonFichaOrgIds(tx, person.id)
+    if (!fichaIds.existingPlayerOrgIds.includes(friendlyPlayer.organizationId)) {
+      assertPersonFichaAvailable({
+        ...fichaIds,
+        organizationId: friendlyPlayer.organizationId,
+        kind: 'league',
+      })
+      await tx.player.create({
+        data: {
+          personId: person.id,
+          organizationId: friendlyPlayer.organizationId,
+        },
+      })
+    }
   })
 
   return NextResponse.json({ ok: true })

@@ -9,6 +9,7 @@ import type { ResolvedMobileLeague } from '@/lib/mobile/league-context'
 import { listRecentAndUpcomingMatches } from '@/lib/mobile/matches'
 import { aggregateSeasonPlayerStats, type RosterRow } from '@/lib/mobile/season-stats'
 import { serializeMobileTeamRef } from '@/lib/mobile/serializers'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 export async function listMobileTeams(league: ResolvedMobileLeague): Promise<MobileTeamListItem[]> {
   const seasonTeams = await db.seasonTeam.findMany({
@@ -43,13 +44,13 @@ export async function listMobileTeams(league: ResolvedMobileLeague): Promise<Mob
 async function buildRosterStats(league: ResolvedMobileLeague, seasonTeamId: string) {
   const rosterEntries = await db.seasonRosterEntry.findMany({
     where: { seasonTeamId, status: 'ACTIVE' },
-    include: { player: { include: { user: { select: { name: true } } } }, seasonTeam: true },
+    include: { player: { include: PLAYER_PERSON_NAME_INCLUDE }, seasonTeam: true },
   })
 
   const roster: RosterRow[] = rosterEntries.map((entry) => ({
     rosterEntryId: entry.id,
     playerId: entry.playerId,
-    playerName: entry.player.user.name,
+    playerName: playerDisplayName(entry.player),
     teamName: entry.seasonTeam.displayName,
     jerseyNumber: entry.jerseyNumber,
     position: entry.position,
@@ -82,7 +83,7 @@ async function buildRosterStats(league: ResolvedMobileLeague, seasonTeamId: stri
   return rosterEntries.map((entry) => ({
     rosterEntryId: entry.id,
     playerId: entry.playerId,
-    name: entry.player.user.name,
+    name: playerDisplayName(entry.player),
     jerseyNumber: entry.jerseyNumber,
     position: entry.position,
     stats: statsByRosterId.get(entry.id) ?? {
@@ -130,7 +131,7 @@ export async function getMobilePlayer(
       seasonTeam: { seasonId: league.season.id },
     },
     include: {
-      player: { include: { user: { select: { name: true } } } },
+      player: { include: PLAYER_PERSON_NAME_INCLUDE },
       seasonTeam: true,
     },
   })
@@ -140,7 +141,7 @@ export async function getMobilePlayer(
     {
       rosterEntryId: entry.id,
       playerId: entry.playerId,
-      playerName: entry.player.user.name,
+      playerName: playerDisplayName(entry.player),
       teamName: entry.seasonTeam.displayName,
       jerseyNumber: entry.jerseyNumber,
       position: entry.position,
@@ -177,7 +178,7 @@ export async function getMobilePlayer(
   return {
     rosterEntryId: entry.id,
     playerId: entry.playerId,
-    name: entry.player.user.name,
+    name: playerDisplayName(entry.player),
     teamName: entry.seasonTeam.displayName,
     seasonTeamId: entry.seasonTeamId,
     jerseyNumber: entry.jerseyNumber,

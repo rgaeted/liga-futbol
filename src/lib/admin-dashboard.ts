@@ -3,6 +3,7 @@ import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 import { matchDisplayName } from '@/lib/match-label'
 import { resolveTeamColor } from '@/lib/team-color'
 import { teamInitials, personInitials } from '@/lib/player-name'
+import { playerDisplayName } from '@/lib/person-name'
 import { MatchStatus, MatchType, EventType } from '@prisma/client'
 
 export type AdminDashboardMatchRow = {
@@ -291,7 +292,7 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
       take: 4,
       select: {
         goals: true,
-        user: { select: { name: true } },
+        person: { include: { user: { select: { name: true } } } },
         team: { select: { name: true } },
       },
     }),
@@ -525,12 +526,15 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
     upcoming: upcomingMatches.map(toMatchRow),
     results: recentResults.map(toMatchRow),
     standings: buildStandings(finishedMatches),
-    scorers: topScorers.map((p) => ({
-      abbr: personInitials(p.user.name),
-      name: p.user.name,
-      team: p.team?.name ?? 'Sin equipo',
-      goals: p.goals,
-    })),
+    scorers: topScorers.map((p) => {
+      const name = playerDisplayName(p)
+      return {
+        abbr: personInitials(name),
+        name,
+        team: p.team?.name ?? 'Sin equipo',
+        goals: p.goals,
+      }
+    }),
     tiles,
     todos,
   }

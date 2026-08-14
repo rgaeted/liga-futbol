@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Runs `prisma migrate deploy` with retries.
- * Neon/Render can fail with P1002 when a previous deploy left an advisory lock.
+ * Supabase/Postgres can fail with P1002 when a previous deploy left an advisory lock.
  */
 import { execSync } from 'node:child_process'
 

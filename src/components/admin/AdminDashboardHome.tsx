@@ -1,9 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import { AdminDashboardPanels } from '@/components/admin/AdminDashboardPanels'
 import { AdminSeasonSelect } from '@/components/admin/AdminSeasonSelect'
+import { useOrgPath } from '@/hooks/useOrgPath'
 import type { AdminDashboardData } from '@/lib/admin-dashboard'
 
 export function AdminDashboardHome({ data }: { data: AdminDashboardData }) {
+  const orgPath = useOrgPath()
   const activeSeason = data.seasons.find((s) => s.id === data.seasonId)
 
   return (
@@ -29,13 +33,13 @@ export function AdminDashboardHome({ data }: { data: AdminDashboardData }) {
         <div className="flex flex-wrap items-center gap-2.5">
           <AdminSeasonSelect seasons={data.seasons} value={data.seasonId} />
           <Link
-            href="/admin/matches"
+            href={orgPath('/admin/matches')}
             className="inline-flex h-[42px] items-center rounded-[10px] border border-zinc-200 bg-white px-4 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
           >
             Exportar
           </Link>
           <Link
-            href="/admin/matches"
+            href={orgPath('/admin/matches')}
             className="inline-flex h-[42px] items-center rounded-[10px] bg-[#b91c1c] px-[18px] font-ui text-sm font-bold text-white shadow-[0_1px_2px_rgba(185,28,44,0.35)] hover:bg-[#9f1728]"
           >
             + Programar partido

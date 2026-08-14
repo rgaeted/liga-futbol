@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo } from 'react'
-import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { useLiveMatchSnapshot } from '@/hooks/useLiveMatchSnapshot'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
@@ -15,6 +14,31 @@ import { MatchType } from '@prisma/client'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
 import { personInitials } from '@/lib/player-name'
+
+function LiveOrganizationBrand({
+  name,
+  logoUrl,
+}: {
+  name: string
+  logoUrl: string | null
+}) {
+  if (logoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={logoUrl}
+        alt={name}
+        className="h-10 max-w-[220px] object-contain"
+      />
+    )
+  }
+
+  return (
+    <p className="font-display text-lg font-bold uppercase tracking-widest text-white/90">
+      {name}
+    </p>
+  )
+}
 
 export function LiveScoreboard({
   initialMatch,
@@ -45,7 +69,10 @@ export function LiveScoreboard({
     <div className="min-h-screen bg-kelme-live-bg text-white">
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-6 flex justify-center">
-          <KelmeLogo size="sm" variant="dark" />
+          <LiveOrganizationBrand
+            name={match.organization.name}
+            logoUrl={match.organization.logoUrl}
+          />
         </div>
 
         <p className="mb-2 text-center font-ui text-sm uppercase tracking-widest text-org-primary">
@@ -185,7 +212,7 @@ export function LiveScoreboard({
         <MatchTimeline events={sortedEvents} />
 
         <p className="mt-10 text-center font-ui text-xs uppercase tracking-widest text-white/30">
-          Torneos Kelme
+          {match.organization.name}
         </p>
       </div>
     </div>

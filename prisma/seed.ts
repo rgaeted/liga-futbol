@@ -4,6 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 import bcrypt from 'bcryptjs'
 import { requireDirectDatabaseUrl } from '../src/lib/database-env'
+import { splitPersonName } from '../src/lib/person-name'
 
 const pool = new Pool({
   connectionString: requireDirectDatabaseUrl(),
@@ -90,11 +91,21 @@ async function main() {
     passwordHash,
   )
 
-  await prisma.player.upsert({
+  const { firstName, lastName } = splitPersonName(playerUser.name)
+  const person = await prisma.person.upsert({
     where: { userId: playerUser.id },
+    update: { firstName, lastName },
+    create: { userId: playerUser.id, firstName, lastName },
+  })
+
+  await prisma.player.upsert({
+    where: {
+      personId_organizationId: { personId: person.id, organizationId: kelmeOrg.id },
+    },
     update: {},
     create: {
-      userId: playerUser.id,
+      personId: person.id,
+      organizationId: kelmeOrg.id,
       teamId: team.id,
       jerseyNumber: 10,
       position: 'Delantero',

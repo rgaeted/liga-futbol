@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { EvaluationForm } from '@/components/coach/EvaluationForm'
+import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 export default async function CoachEvaluationsPage() {
   const session = await auth()
@@ -10,7 +11,7 @@ export default async function CoachEvaluationsPage() {
   const team = await db.team.findUnique({
     where: { coachId: session.user.id },
     include: {
-      players: { include: { user: { select: { name: true } } } },
+      players: { include: PLAYER_PERSON_NAME_INCLUDE },
     },
   })
 

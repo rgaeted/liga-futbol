@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { playerDisplayName, type PlayerNameSource } from '@/lib/person-name'
 
-type Player = { id: string; user: { name: string } }
+type Player = PlayerNameSource & { id: string }
 
 export function EvaluationForm({ players }: { players: Player[] }) {
   const router = useRouter()
@@ -32,7 +33,7 @@ export function EvaluationForm({ players }: { players: Player[] }) {
       <select name="playerId" required className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2">
         <option value="">Seleccionar jugador</option>
         {players.map((p) => (
-          <option key={p.id} value={p.id}>{p.user.name}</option>
+          <option key={p.id} value={p.id}>{playerDisplayName(p)}</option>
         ))}
       </select>
       <div>

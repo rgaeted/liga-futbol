@@ -26,7 +26,7 @@ export async function GET(
         include: {
           player: {
             include: {
-              user: { select: { name: true } },
+              person: { include: { user: { select: { name: true } } } },
               team: { select: { id: true } },
             },
           },
@@ -59,7 +59,7 @@ export async function GET(
       slotKey: c.slotKey,
       player: {
         teamId: c.player.teamId,
-        user: c.player.user,
+        person: c.player.person,
       },
     })),
     friendlyPlayers: match.friendlyPlayers.map((p) => ({

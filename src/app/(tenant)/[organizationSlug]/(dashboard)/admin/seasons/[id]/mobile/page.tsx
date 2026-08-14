@@ -2,14 +2,16 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { slugFromSeasonName } from '@/lib/validations/mobile-season'
+import { orgPath } from '@/lib/tenant-paths'
 import { SeasonMobilePageClient } from '@/components/admin/season-mobile/SeasonRosterEditor'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 export default async function SeasonMobileAdminPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ organizationSlug: string; id: string }>
 }) {
-  const { id } = await params
+  const { organizationSlug, id } = await params
   const season = await db.season.findUnique({ where: { id } })
   if (!season) notFound()
 
@@ -19,7 +21,7 @@ export default async function SeasonMobileAdminPage({
       orderBy: { name: 'asc' },
       include: {
         players: {
-          include: { user: { select: { name: true } } },
+          include: PLAYER_PERSON_NAME_INCLUDE,
           orderBy: { jerseyNumber: 'asc' },
         },
       },
@@ -38,7 +40,7 @@ export default async function SeasonMobileAdminPage({
 
   return (
     <div className="space-y-4">
-      <Link href="/admin/seasons" className="text-sm text-kelme-red hover:underline">
+      <Link href={orgPath(organizationSlug, '/admin/seasons')} className="text-sm text-kelme-red hover:underline">
         ← Volver a temporadas
       </Link>
       <SeasonMobilePageClient
@@ -71,7 +73,7 @@ export default async function SeasonMobileAdminPage({
           color: team.color,
           players: team.players.map((p) => ({
             id: p.id,
-            name: p.user.name,
+            name: playerDisplayName(p),
             jerseyNumber: p.jerseyNumber,
             position: p.position,
           })),

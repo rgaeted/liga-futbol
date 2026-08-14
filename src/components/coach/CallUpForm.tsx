@@ -6,12 +6,12 @@ import type { FootballFormat } from '@prisma/client'
 import { FormationEditor } from '@/components/lineup/FormationEditor'
 import { minCallUpSize } from '@/lib/football-format'
 import { normalizeSchemeForFormat } from '@/lib/formations'
+import { playerDisplayName, type PlayerNameSource } from '@/lib/person-name'
 
-type Player = {
+type Player = PlayerNameSource & {
   id: string
   jerseyNumber: number | null
   position: string | null
-  user: { name: string }
 }
 
 export function CallUpForm({
@@ -45,7 +45,7 @@ export function CallUpForm({
     .filter((p) => selected.includes(p.id))
     .map((p) => ({
       id: p.id,
-      label: `#${p.jerseyNumber ?? '—'} ${p.user.name}${p.position ? ` (${p.position})` : ''}`,
+      label: `#${p.jerseyNumber ?? '—'} ${playerDisplayName(p)}${p.position ? ` (${p.position})` : ''}`,
       primaryPosition: p.position,
     }))
 
@@ -105,7 +105,7 @@ export function CallUpForm({
                 onChange={() => togglePlayer(player.id)}
               />
               <span className="flex-1">
-                #{player.jerseyNumber ?? '—'} {player.user.name}
+                #{player.jerseyNumber ?? '—'} {playerDisplayName(player)}
               </span>
             </li>
           ))}

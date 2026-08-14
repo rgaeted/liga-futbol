@@ -6,6 +6,8 @@ import { footballFormatLabel } from '@/lib/football-format'
 import { FriendlyLineupEditor } from '@/components/admin/FriendlyLineupEditor'
 import { LeagueLineupEditor } from '@/components/admin/LeagueLineupEditor'
 import Link from 'next/link'
+import { orgPath } from '@/lib/tenant-paths'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 function slotsFromCallUps(
   callUps: Array<{ playerId: string; slotKey: string | null }>
@@ -20,9 +22,9 @@ function slotsFromCallUps(
 export default async function AdminMatchLineupPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ organizationSlug: string; id: string }>
 }) {
-  const { id } = await params
+  const { organizationSlug, id } = await params
   const match = await db.match.findUnique({
     where: { id },
     include: {
@@ -30,7 +32,7 @@ export default async function AdminMatchLineupPage({
       awayTeam: true,
       formations: true,
       callUps: {
-        include: { player: { include: { user: { select: { name: true } } } } },
+        include: { player: { include: PLAYER_PERSON_NAME_INCLUDE } },
       },
       friendlyPlayers: { include: { friendlyPlayer: true } },
     },
@@ -43,7 +45,7 @@ export default async function AdminMatchLineupPage({
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-3">
-        <Link href="/admin/matches" className="text-sm text-kelme-red hover:underline">
+        <Link href={orgPath(organizationSlug, '/admin/matches')} className="text-sm text-kelme-red hover:underline">
           ← Partidos
         </Link>
         <h1 className="font-display text-2xl font-bold">Formación — {title}</h1>
@@ -87,7 +89,7 @@ export default async function AdminMatchLineupPage({
                 .filter((c) => c.player.teamId === match.homeTeamId)
                 .map((c) => ({
                   id: c.playerId,
-                  label: `#${c.player.jerseyNumber ?? '—'} ${c.player.user.name}${c.player.position ? ` (${c.player.position})` : ''}`,
+                  label: `#${c.player.jerseyNumber ?? '—'} ${playerDisplayName(c.player)}${c.player.position ? ` (${c.player.position})` : ''}`,
                   primaryPosition: c.player.position,
                 }))}
             />
@@ -108,7 +110,7 @@ export default async function AdminMatchLineupPage({
                 .filter((c) => c.player.teamId === match.awayTeamId)
                 .map((c) => ({
                   id: c.playerId,
-                  label: `#${c.player.jerseyNumber ?? '—'} ${c.player.user.name}${c.player.position ? ` (${c.player.position})` : ''}`,
+                  label: `#${c.player.jerseyNumber ?? '—'} ${playerDisplayName(c.player)}${c.player.position ? ` (${c.player.position})` : ''}`,
                   primaryPosition: c.player.position,
                 }))}
             />

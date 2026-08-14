@@ -4,6 +4,16 @@ import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
 import { createPlayerSchema } from '@/lib/validations/player'
 import { MembershipRole } from '@/lib/membership-role'
+import { splitPersonName } from '@/lib/person-name'
+
+const playerInclude = {
+  person: { include: { user: { select: { name: true, email: true } } } },
+  team: { select: { name: true } },
+} as const
+
+function mapPlayer<T extends { person: { user: { name: string; email: string } | null } }>(player: T) {
+  return { ...player, user: player.person.user }
+}
 
 export async function GET() {
   const { organizationId } = await requireOrgRole([
@@ -11,14 +21,11 @@ export async function GET() {
     MembershipRole.COACH,
   ])
   const players = await db.player.findMany({
-    where: { team: { organizationId } },
-    include: {
-      user: { select: { name: true, email: true } },
-      team: { select: { name: true } },
-    },
-    orderBy: { user: { name: 'asc' } },
+    where: { organizationId },
+    include: playerInclude,
+    orderBy: { person: { firstName: 'asc' } },
   })
-  return NextResponse.json(players)
+  return NextResponse.json(players.map(mapPlayer))
 }
 
 export async function POST(req: Request) {
@@ -54,11 +61,15 @@ export async function POST(req: Request) {
         role: MembershipRole.PLAYER,
       },
     })
+    const { firstName, lastName } = splitPersonName(name)
+    const person = await tx.person.create({
+      data: { userId: user.id, firstName, lastName },
+    })
     return tx.player.create({
-      data: { userId: user.id, teamId, jerseyNumber, position },
-      include: { user: true, team: true },
+      data: { personId: person.id, organizationId, teamId, jerseyNumber, position },
+      include: playerInclude,
     })
   })
 
-  return NextResponse.json(player, { status: 201 })
+  return NextResponse.json(mapPlayer(player), { status: 201 })
 }

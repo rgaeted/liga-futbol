@@ -11,10 +11,13 @@ import {
 } from './FriendlyPlayerProfileFields'
 import { FriendlyPlayerPhotoUpload } from './FriendlyPlayerPhotoUpload'
 import { FriendlyCategoryCheckboxes } from './FriendlyCategoryCheckboxes'
+import { PersonCareerBlock } from './PersonCareerBlock'
+import { PersonMergeDialog } from './PersonMergeDialog'
 import type { DominantFoot } from '@prisma/client'
 
 export type FriendlyPlayerRow = {
   id: string
+  personId: string
   firstName: string
   lastName: string
   email: string | null
@@ -30,9 +33,11 @@ type CategoryOption = { id: string; name: string }
 export function FriendlyPlayersTable({
   players,
   categories,
+  mergeOptions,
 }: {
   players: FriendlyPlayerRow[]
   categories: CategoryOption[]
+  mergeOptions: Array<{ personId: string; label: string }>
 }) {
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -182,6 +187,12 @@ export function FriendlyPlayersTable({
                           />
                         </div>
                       )}
+                      <PersonCareerBlock personId={player.personId} />
+                      <PersonMergeDialog
+                        sourcePersonId={player.personId}
+                        sourceLabel={`${player.firstName} ${player.lastName}`.trim()}
+                        options={mergeOptions}
+                      />
                     </div>
                   </td>
                   <td className="p-3 align-top">{player.email ?? 'Sin cuenta'}</td>
