@@ -66,11 +66,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       ? (parsed.data as { players: NonNullable<ReturnType<typeof updateGuestChallengeRosterSchema.parse>['players']> })
       : null
     const hostPayload = guestPayload ? null : parsed.data
-    const { scheduledAt, players, regionCode, communeCode, ...rest } = hostPayload ?? {
+    const { scheduledAt, players, regionCode, communeCode, ...rest } = (hostPayload ?? {
       scheduledAt: undefined,
       players: guestPayload!.players,
       regionCode: undefined,
       communeCode: undefined,
+    }) as {
+      scheduledAt?: Date | string
+      players?: Array<{
+        friendlyPlayerId: string
+        side: 'A' | 'B'
+        isCaptain?: boolean
+        isCoach?: boolean
+      }>
+      regionCode?: string | null
+      communeCode?: string | null
+      status?: MatchStatus
     }
 
     if (existing.guestOrganizationId) {
