@@ -67,7 +67,9 @@ try {
           return false
         }
       },
-      mkdir: (p, options) => fs.mkdir(p, options),
+      mkdir: async (p, options) => {
+        await fs.mkdir(p, options)
+      },
       copyDir,
       writeFile: (p, content) => fs.writeFile(p, content, 'utf8'),
       readFile: (p) => fs.readFile(p, 'utf8'),
