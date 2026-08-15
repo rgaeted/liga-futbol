@@ -2,8 +2,9 @@ import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
-import { findTenantMembership, canAccessTenantArea, syncActiveOrganizationCookie } from '@/lib/tenant-access'
+import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
+import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 
 function buildRefereeNav(slug: string) {
   return [{ href: orgPath(slug, '/referee'), label: 'Mis Partidos' }]
@@ -26,8 +27,6 @@ export default async function RefereeLayout({
     redirect('/organizaciones')
   }
 
-  await syncActiveOrganizationCookie(membership.organizationId)
-
   async function handleSignOut() {
     'use server'
     await signOutAndClearOrg('/login')
@@ -35,6 +34,7 @@ export default async function RefereeLayout({
 
   return (
     <DashboardShell nav={buildRefereeNav(organizationSlug)} signOutAction={handleSignOut}>
+      <SyncOrgCookie organizationId={membership.organizationId} />
       {children}
     </DashboardShell>
   )

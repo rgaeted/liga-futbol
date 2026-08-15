@@ -2,8 +2,9 @@
 import { redirect } from 'next/navigation'
 import { MembershipRole, getDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
-import { findTenantMembership, canAccessTenantArea, syncActiveOrganizationCookie } from '@/lib/tenant-access'
+import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { AdminShell } from '@/components/admin/AdminShell'
+import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 import type { AdminNavItem } from '@/components/admin/AdminNav'
 
 export const dynamic = 'force-dynamic'
@@ -55,8 +56,6 @@ export default async function AdminLayout({
     redirect('/organizaciones')
   }
 
-  await syncActiveOrganizationCookie(membership.organizationId)
-
   async function handleSignOut() {
     'use server'
     await signOutAndClearOrg('/login')
@@ -68,6 +67,7 @@ export default async function AdminLayout({
       userName={session.user.name ?? 'Admin'}
       signOutAction={handleSignOut}
     >
+      <SyncOrgCookie organizationId={membership.organizationId} />
       {children}
     </AdminShell>
   )

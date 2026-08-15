@@ -2,8 +2,9 @@ import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { MembershipRole, getDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
-import { findTenantMembership, canAccessTenantArea, syncActiveOrganizationCookie } from '@/lib/tenant-access'
+import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
+import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,8 +37,6 @@ export default async function PlayerLayout({
     redirect('/organizaciones')
   }
 
-  await syncActiveOrganizationCookie(membership.organizationId)
-
   const nav =
     membership.role === MembershipRole.FRIENDLY_COACH
       ? friendlyCoachNav(organizationSlug)
@@ -50,6 +49,7 @@ export default async function PlayerLayout({
 
   return (
     <DashboardShell nav={nav} signOutAction={handleSignOut}>
+      <SyncOrgCookie organizationId={membership.organizationId} />
       {children}
     </DashboardShell>
   )
