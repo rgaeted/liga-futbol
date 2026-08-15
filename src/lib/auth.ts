@@ -6,7 +6,7 @@ import { db } from '@/lib/db'
 import authConfig from '@/lib/auth.config'
 import type { MembershipRole } from '@/lib/membership-role'
 import { assertSameOrganization } from '@/lib/org-scope'
-import { ORG_COOKIE } from '@/lib/org-cookie'
+import { ORG_COOKIE, clearOrgCookieOptions } from '@/lib/org-cookie'
 
 export { assertSameOrganization, pausedOrganizationPayload } from '@/lib/org-scope'
 
@@ -94,6 +94,12 @@ export async function requireOrgRole(allowed: MembershipRole[]) {
     throw new Error('Unauthorized')
   }
   return { session, organizationId: orgId, role }
+}
+
+export async function signOutAndClearOrg(redirectTo = '/login') {
+  const cookieStore = await cookies()
+  cookieStore.set(clearOrgCookieOptions())
+  await signOut({ redirectTo })
 }
 
 /** @deprecated Use requireOrgRole instead */

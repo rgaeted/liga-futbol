@@ -18,9 +18,11 @@ export async function GET() {
     },
   })
 
+  const activeMemberships = memberships.filter((m) => m.organization.status === 'ACTIVE')
+
   const path = resolvePostLoginPath({
     isPlatformAdmin: session.user.isPlatformAdmin,
-    memberships: memberships.map((m) => ({
+    memberships: activeMemberships.map((m) => ({
       slug: m.organization.slug,
       role: m.role,
       status: m.organization.status,
@@ -29,8 +31,8 @@ export async function GET() {
 
   const response = NextResponse.json({ path })
 
-  if (memberships.length === 1 && memberships[0].organization.status === 'ACTIVE') {
-    response.cookies.set(orgCookieOptions(memberships[0].organizationId))
+  if (activeMemberships.length === 1) {
+    response.cookies.set(orgCookieOptions(activeMemberships[0].organizationId))
   }
 
   return response

@@ -30,10 +30,11 @@ export function coachesFromRoster(players: FriendlyRosterEntry[]): {
 
 export async function friendlyCoachSideForUser(
   userId: string,
-  matchId: string
+  matchId: string,
+  organizationId: string,
 ): Promise<FriendlySide | null> {
   const profile = await db.friendlyPlayer.findFirst({
-    where: { person: { userId } },
+    where: { organizationId, person: { userId } },
     select: { id: true },
   })
   if (!profile) return null
@@ -73,15 +74,19 @@ export function resolveFriendlyCoaches(
     }))
 }
 
-export async function listFriendlyCoachMatchesForUser(userId: string) {
+export async function listFriendlyCoachMatchesForUser(userId: string, organizationId: string) {
   const profile = await db.friendlyPlayer.findFirst({
-    where: { person: { userId } },
+    where: { organizationId, person: { userId } },
     select: { id: true },
   })
   if (!profile) return []
 
   return db.friendlyMatchPlayer.findMany({
-    where: { friendlyPlayerId: profile.id, isCoach: true },
+    where: {
+      friendlyPlayerId: profile.id,
+      isCoach: true,
+      match: { matchType: 'FRIENDLY' },
+    },
     include: {
       match: {
         select: {

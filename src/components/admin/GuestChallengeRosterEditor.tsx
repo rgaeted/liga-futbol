@@ -147,18 +147,28 @@ export function GuestChallengeRosterEditor({
           className="mb-4 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
         />
         <ul className="mb-4 max-h-48 space-y-2 overflow-y-auto">
-          {filteredRoster.map((player) => (
-            <li key={player.id} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={convokedIdSet.has(player.id)}
-                onChange={(event) => handleToggle(player.id, event.target.checked)}
-              />
-              <span>
-                {player.firstName} {player.lastName}
-              </span>
+          {filteredRoster.length === 0 ? (
+            <li className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              No tienes jugadores amistosos en tu organización.{' '}
+              <Link href={orgPath('/admin/friendly-players')} className="font-semibold underline">
+                Crea jugadores
+              </Link>{' '}
+              antes de armar tu plantel.
             </li>
-          ))}
+          ) : (
+            filteredRoster.map((player) => (
+              <li key={player.id} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={convokedIdSet.has(player.id)}
+                  onChange={(event) => handleToggle(player.id, event.target.checked)}
+                />
+                <span>
+                  {player.firstName} {player.lastName}
+                </span>
+              </li>
+            ))
+          )}
         </ul>
 
         <FriendlyMatchTeamAssigner

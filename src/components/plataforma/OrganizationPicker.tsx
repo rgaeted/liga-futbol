@@ -1,5 +1,6 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
 import type { MembershipRole } from '@/lib/membership-role'
 
 type MembershipOption = {
@@ -10,7 +11,12 @@ type MembershipOption = {
 }
 
 export function OrganizationPicker({ memberships }: { memberships: MembershipOption[] }) {
+  const { update } = useSession()
+
   async function selectOrganization(organizationId: string) {
+    const target = memberships.find((m) => m.organizationId === organizationId)
+    if (!target) return
+
     const res = await fetch('/api/me/organization', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -18,6 +24,13 @@ export function OrganizationPicker({ memberships }: { memberships: MembershipOpt
     })
     if (!res.ok) return
     const { path } = (await res.json()) as { path: string }
+
+    await update({
+      membershipRole: target.role,
+      activeOrganizationId: target.organizationId,
+      activeOrganizationSlug: target.slug,
+    })
+
     window.location.assign(path)
   }
 

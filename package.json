@@ -22,6 +22,7 @@
     "lint:mobile": "npm run lint --workspace @liga/mobile",
     "mobile:assets": "node scripts/generate-mobile-edition-assets.mjs",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:ensure:kelme": "tsx scripts/ensure-kelme-organization.ts",
     "db:clear:demo": "tsx prisma/clear-demo.ts",
     "db:verify:migration": "tsx scripts/verify-database-migration.ts",
     "icons": "node scripts/generate-icons.mjs"

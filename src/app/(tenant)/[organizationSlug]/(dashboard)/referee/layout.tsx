@@ -1,4 +1,4 @@
-import { auth, signOut } from '@/lib/auth'
+import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
@@ -28,7 +28,7 @@ export default async function RefereeLayout({
 
   async function handleSignOut() {
     'use server'
-    await signOut({ redirectTo: '/login' })
+    await signOutAndClearOrg('/login')
   }
 
   return (

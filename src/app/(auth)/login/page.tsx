@@ -34,18 +34,15 @@ function LoginForm() {
       return
     }
 
-    const shouldUsePostLogin =
-      callbackUrl === '/' ||
-      callbackUrl.startsWith('/login') ||
-      callbackUrl.startsWith('/register')
-
-    if (shouldUsePostLogin) {
-      const res = await fetch('/api/auth/post-login')
-      if (res.ok) {
-        const { path } = (await res.json()) as { path: string }
-        window.location.assign(path)
-        return
-      }
+    const res = await fetch('/api/auth/post-login')
+    if (res.ok) {
+      const { path } = (await res.json()) as { path: string }
+      const shouldUsePostLogin =
+        callbackUrl === '/' ||
+        callbackUrl.startsWith('/login') ||
+        callbackUrl.startsWith('/register')
+      window.location.assign(shouldUsePostLogin ? path : callbackUrl)
+      return
     }
 
     window.location.assign(callbackUrl)

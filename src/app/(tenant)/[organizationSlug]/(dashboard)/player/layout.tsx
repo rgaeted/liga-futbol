@@ -1,9 +1,11 @@
-import { auth, signOut } from '@/lib/auth'
+import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { MembershipRole, getDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
 import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
+
+export const dynamic = 'force-dynamic'
 
 function buildPlayerNav(slug: string) {
   return [
@@ -41,7 +43,7 @@ export default async function PlayerLayout({
 
   async function handleSignOut() {
     'use server'
-    await signOut({ redirectTo: '/login' })
+    await signOutAndClearOrg('/login')
   }
 
   return (

@@ -219,7 +219,7 @@ export async function PUT(
       role === MembershipRole.PLAYER ||
       role === MembershipRole.FRIENDLY_COACH
     ) {
-      const coachSide = await friendlyCoachSideForUser(session.user.id, matchId)
+      const coachSide = await friendlyCoachSideForUser(session.user.id, matchId, organizationId)
       if (!coachSide || coachSide !== data.side) {
         return NextResponse.json(
           { error: 'Solo puedes editar la formación de tu equipo' },

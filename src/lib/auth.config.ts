@@ -8,7 +8,7 @@ export default {
     signIn: '/login',
   },
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
         token.isPlatformAdmin = user.isPlatformAdmin
@@ -16,6 +16,24 @@ export default {
         token.activeOrganizationId = user.activeOrganizationId
         token.activeOrganizationSlug = user.activeOrganizationSlug
       }
+
+      if (trigger === 'update' && session) {
+        const update = session as {
+          membershipRole?: MembershipRole | null
+          activeOrganizationId?: string | null
+          activeOrganizationSlug?: string | null
+        }
+        if (update.membershipRole !== undefined) {
+          token.membershipRole = update.membershipRole
+        }
+        if (update.activeOrganizationId !== undefined) {
+          token.activeOrganizationId = update.activeOrganizationId
+        }
+        if (update.activeOrganizationSlug !== undefined) {
+          token.activeOrganizationSlug = update.activeOrganizationSlug
+        }
+      }
+
       return token
     },
     session({ session, token }) {

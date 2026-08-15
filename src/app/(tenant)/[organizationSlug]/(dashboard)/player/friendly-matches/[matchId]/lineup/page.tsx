@@ -7,18 +7,30 @@ import { friendlyCoachSideForUser } from '@/lib/friendly-match-coach'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { footballFormatLabel } from '@/lib/football-format'
 import { FriendlyLineupEditor } from '@/components/admin/FriendlyLineupEditor'
+import { requireOrganizationId } from '@/lib/tenant-access'
+import { orgPath } from '@/lib/tenant-paths'
+
+export const dynamic = 'force-dynamic'
 
 export default async function PlayerFriendlyLineupPage({
   params,
 }: {
-  params: Promise<{ matchId: string }>
+  params: Promise<{ organizationSlug: string; matchId: string }>
 }) {
   const session = await auth()
-  if (!session) redirect('/login')
+  if (!session?.user?.id) redirect('/login')
 
-  const { matchId } = await params
-  const coachSide = await friendlyCoachSideForUser(session.user.id, matchId)
-  if (!coachSide) redirect('/player/friendly-matches')
+  const { organizationSlug, matchId } = await params
+
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    redirect('/login')
+  }
+
+  const coachSide = await friendlyCoachSideForUser(session.user.id, matchId, organizationId)
+  if (!coachSide) redirect(orgPath(organizationSlug, '/player/friendly-matches'))
 
   const match = await db.match.findUnique({
     where: { id: matchId },
@@ -44,7 +56,7 @@ export default async function PlayerFriendlyLineupPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          href="/player/friendly-matches"
+          href={orgPath(organizationSlug, '/player/friendly-matches')}
           className="text-sm text-kelme-red hover:underline"
         >
           ← Amistosos como DT
