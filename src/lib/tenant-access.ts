@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 import type { MembershipRole } from '@/lib/membership-role'
-import { ORG_COOKIE } from '@/lib/org-cookie'
+import { ORG_COOKIE, orgCookieOptions } from '@/lib/org-cookie'
 
 export async function findTenantMembership(userId: string, organizationSlug: string) {
   return db.organizationMembership.findFirst({
@@ -37,6 +37,14 @@ export async function activeOrganizationIdForUser(userId: string): Promise<strin
     },
   })
   return membership ? orgId : null
+}
+
+export async function syncActiveOrganizationCookie(organizationId: string) {
+  const cookieStore = await cookies()
+  const current = cookieStore.get(ORG_COOKIE)?.value
+  if (current !== organizationId) {
+    cookieStore.set(orgCookieOptions(organizationId))
+  }
 }
 
 export function canAccessTenantArea(role: MembershipRole, area: string): boolean {

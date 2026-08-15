@@ -1,15 +1,34 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getDashboardPath } from '@/lib/membership-role'
 import { orgCookieOptions } from '@/lib/org-cookie'
-import { resolvePostLoginPath } from '@/lib/post-login-redirect'
+import {
+  organizationSlugFromPath,
+  resolvePostLoginDestination,
+} from '@/lib/post-login-redirect'
 
-export async function GET() {
+function organizationIdForDestination(
+  path: string,
+  activeMemberships: Array<{ organizationId: string; organization: { slug: string } }>,
+): string | null {
+  const slug = organizationSlugFromPath(path)
+  if (slug) {
+    const match = activeMemberships.find((m) => m.organization.slug === slug)
+    if (match) return match.organizationId
+  }
+  return activeMemberships.length === 1 ? activeMemberships[0].organizationId : null
+}
+
+export async function GET(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
+
+  const url = new URL(req.url)
+  const callbackUrl = url.searchParams.get('callbackUrl')
+  const wantsRedirect =
+    url.searchParams.get('redirect') === '1' || callbackUrl !== null
 
   const memberships = await db.organizationMembership.findMany({
     where: { userId: session.user.id },
@@ -20,20 +39,29 @@ export async function GET() {
 
   const activeMemberships = memberships.filter((m) => m.organization.status === 'ACTIVE')
 
-  const path = resolvePostLoginPath({
+  const path = resolvePostLoginDestination({
     isPlatformAdmin: session.user.isPlatformAdmin,
     memberships: activeMemberships.map((m) => ({
       slug: m.organization.slug,
       role: m.role,
       status: m.organization.status,
     })),
+    callbackUrl,
   })
 
-  const response = NextResponse.json({ path })
+  const organizationId = organizationIdForDestination(path, activeMemberships)
 
-  if (activeMemberships.length === 1) {
-    response.cookies.set(orgCookieOptions(activeMemberships[0].organizationId))
+  if (wantsRedirect) {
+    const response = NextResponse.redirect(new URL(path, req.url))
+    if (organizationId) {
+      response.cookies.set(orgCookieOptions(organizationId))
+    }
+    return response
   }
 
+  const response = NextResponse.json({ path })
+  if (organizationId) {
+    response.cookies.set(orgCookieOptions(organizationId))
+  }
   return response
 }

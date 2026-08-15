@@ -55,7 +55,17 @@ export default async function AdminMatchesPage({
         friendlyCategory: { select: { id: true, name: true } },
         guestOrganization: { select: { id: true, name: true } },
         organization: { select: { id: true, name: true } },
-        friendlyPlayers: { include: { friendlyPlayer: true } },
+        friendlyPlayers: {
+          include: {
+            friendlyPlayer: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { scheduledAt: 'desc' },
     }),

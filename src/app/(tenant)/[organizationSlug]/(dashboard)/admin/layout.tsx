@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation'
 import { MembershipRole, getDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
-import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
+import { findTenantMembership, canAccessTenantArea, syncActiveOrganizationCookie } from '@/lib/tenant-access'
 import { AdminShell } from '@/components/admin/AdminShell'
 import type { AdminNavItem } from '@/components/admin/AdminNav'
 
@@ -54,6 +54,8 @@ export default async function AdminLayout({
     if (membership) redirect(getDashboardPath(organizationSlug, membership.role))
     redirect('/organizaciones')
   }
+
+  await syncActiveOrganizationCookie(membership.organizationId)
 
   async function handleSignOut() {
     'use server'

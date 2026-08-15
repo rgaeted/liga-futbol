@@ -62,12 +62,11 @@ export const proxy = auth((req) => {
     const membershipRole = req.auth.user.membershipRole
     const activeSlug = req.auth.user.activeOrganizationSlug
 
-    if (!membershipRole || activeSlug !== slug) {
-      const redirectPath = membershipRole ? '/organizaciones' : '/login'
-      return NextResponse.redirect(new URL(redirectPath, req.url))
+    if (activeSlug && activeSlug !== slug) {
+      return NextResponse.redirect(new URL('/organizaciones', req.url))
     }
 
-    if (!canAccess(membershipRole, area)) {
+    if (membershipRole && !canAccess(membershipRole, area)) {
       return NextResponse.redirect(new URL(getDashboardPath(slug, membershipRole), req.url))
     }
   }
