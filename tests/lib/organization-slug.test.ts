@@ -11,7 +11,16 @@ describe('parseOrganizationSlug', () => {
   })
 
   it('rejects reserved slugs', () => {
-    for (const slug of ['plataforma', 'login', 'admin', 'live', 'api']) {
+    for (const slug of [
+      'plataforma',
+      'login',
+      'admin',
+      'live',
+      'api',
+      'coach',
+      'player',
+      'referee',
+    ]) {
       expect(parseOrganizationSlug(slug)).toEqual({ ok: false, error: 'reserved' })
     }
   })

@@ -16,4 +16,17 @@ describe('tenantDashboardArea', () => {
   it('returns null for tenant live routes', () => {
     expect(tenantDashboardArea('/kelme/live/x')).toBeNull()
   })
+
+  it('returns null for API admin routes so they are not treated as tenant slug "api"', () => {
+    expect(tenantDashboardArea('/api/admin/dashboard')).toBeNull()
+    expect(tenantDashboardArea('/api/admin/referees')).toBeNull()
+    expect(tenantDashboardArea('/api/player/friendly-matches')).toBeNull()
+    expect(tenantDashboardArea('/api/coach/callups')).toBeNull()
+    expect(tenantDashboardArea('/api/referee/matches')).toBeNull()
+  })
+
+  it('returns null for reserved first segments', () => {
+    expect(tenantDashboardArea('/plataforma/admin')).toBeNull()
+    expect(tenantDashboardArea('/organizaciones/admin')).toBeNull()
+  })
 })

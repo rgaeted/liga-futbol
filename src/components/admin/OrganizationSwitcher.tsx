@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getDashboardPath } from '@/lib/membership-role'
 import type { MembershipRole } from '@/lib/membership-role'
+import { organizationSlugFromPath } from '@/lib/post-login-redirect'
 
 type MembershipOption = {
   organizationId: string
@@ -16,8 +17,7 @@ export function OrganizationSwitcher() {
   const [currentSlug, setCurrentSlug] = useState<string | null>(null)
 
   useEffect(() => {
-    const slugFromPath = window.location.pathname.split('/').filter(Boolean)[0] ?? null
-    setCurrentSlug(slugFromPath)
+    setCurrentSlug(organizationSlugFromPath(window.location.pathname))
 
     fetch('/api/me/memberships')
       .then((res) => (res.ok ? res.json() : []))

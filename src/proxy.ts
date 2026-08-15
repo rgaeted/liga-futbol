@@ -56,18 +56,20 @@ export const proxy = auth((req) => {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  const tenantArea = tenantDashboardArea(pathname)
-  if (tenantArea) {
-    const { slug, area } = tenantArea
-    const membershipRole = req.auth.user.membershipRole
-    const activeSlug = req.auth.user.activeOrganizationSlug
+  if (!pathname.startsWith('/api/')) {
+    const tenantArea = tenantDashboardArea(pathname)
+    if (tenantArea) {
+      const { slug, area } = tenantArea
+      const membershipRole = req.auth.user.membershipRole
+      const activeSlug = req.auth.user.activeOrganizationSlug
 
-    if (activeSlug && activeSlug !== slug) {
-      return NextResponse.redirect(new URL('/organizaciones', req.url))
-    }
+      if (activeSlug && activeSlug !== slug) {
+        return NextResponse.redirect(new URL('/organizaciones', req.url))
+      }
 
-    if (membershipRole && !canAccess(membershipRole, area)) {
-      return NextResponse.redirect(new URL(getDashboardPath(slug, membershipRole), req.url))
+      if (membershipRole && !canAccess(membershipRole, area)) {
+        return NextResponse.redirect(new URL(getDashboardPath(slug, membershipRole), req.url))
+      }
     }
   }
 

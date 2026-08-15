@@ -59,4 +59,11 @@ describe('resolvePostLoginPath', () => {
   it('extracts organization slug from tenant paths', () => {
     expect(organizationSlugFromPath('/kelme/admin/matches')).toBe('kelme')
   })
+
+  it('does not treat reserved first segments as organization slugs', () => {
+    expect(organizationSlugFromPath('/api/admin/dashboard')).toBeNull()
+    expect(organizationSlugFromPath('/plataforma')).toBeNull()
+    expect(organizationSlugFromPath('/organizaciones')).toBeNull()
+    expect(organizationSlugFromPath('/login')).toBeNull()
+  })
 })

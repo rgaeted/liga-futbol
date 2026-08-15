@@ -1,4 +1,5 @@
 import { getDashboardPath, type MembershipRole } from '@/lib/membership-role'
+import { RESERVED_ORGANIZATION_SLUGS } from '@/lib/organization-slug'
 
 export type PostLoginMembership = {
   slug: string
@@ -35,5 +36,6 @@ export function resolvePostLoginDestination(input: {
 
 export function organizationSlugFromPath(path: string): string | null {
   const [slug] = path.split('/').filter(Boolean)
-  return slug ?? null
+  if (!slug || RESERVED_ORGANIZATION_SLUGS.has(slug)) return null
+  return slug
 }

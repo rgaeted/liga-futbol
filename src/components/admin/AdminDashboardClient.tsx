@@ -30,6 +30,10 @@ export function AdminDashboardClient() {
         res.status === 401 ? 'Sesión expirada' : 'Error al cargar el panel',
       )
     }
+    const contentType = res.headers.get('content-type') ?? ''
+    if (!contentType.includes('application/json')) {
+      throw new Error('Error al cargar el panel')
+    }
     return res.json() as Promise<AdminDashboardData>
   }, [seasonId])
 
