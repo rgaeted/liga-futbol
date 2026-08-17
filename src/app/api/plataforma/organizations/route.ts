@@ -15,6 +15,12 @@ function mapOrganizationError(error: OrganizationError) {
   if (error.code === 'slug_taken' || error.code === 'admin_exists') {
     return NextResponse.json({ error: 'Conflicto al crear la empresa' }, { status: 409 })
   }
+  if (error.code === 'admin_password_required') {
+    return NextResponse.json(
+      { error: 'La contraseña es obligatoria para una cuenta admin nueva.' },
+      { status: 400 },
+    )
+  }
   return NextResponse.json({ error: 'Error al crear la empresa' }, { status: 500 })
 }
 

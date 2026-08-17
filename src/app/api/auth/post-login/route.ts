@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { orgCookieOptions } from '@/lib/org-cookie'
+import { orgCookieOptions, clearOrgCookieOptions } from '@/lib/org-cookie'
 import {
   organizationSlugFromPath,
   resolvePostLoginDestination,
@@ -50,18 +50,16 @@ export async function GET(req: Request) {
   })
 
   const organizationId = organizationIdForDestination(path, activeMemberships)
+  const cookieOptions =
+    organizationId != null ? orgCookieOptions(organizationId) : clearOrgCookieOptions()
 
   if (wantsRedirect) {
     const response = NextResponse.redirect(new URL(path, req.url))
-    if (organizationId) {
-      response.cookies.set(orgCookieOptions(organizationId))
-    }
+    response.cookies.set(cookieOptions)
     return response
   }
 
   const response = NextResponse.json({ path })
-  if (organizationId) {
-    response.cookies.set(orgCookieOptions(organizationId))
-  }
+  response.cookies.set(cookieOptions)
   return response
 }

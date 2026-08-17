@@ -5,6 +5,7 @@ import { orgPath } from '@/lib/tenant-paths'
 import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
+import { SyncTenantSession } from '@/components/tenant/SyncTenantSession'
 import type { DashboardNavGroup } from '@/components/dashboard/dashboard-ui'
 
 export const dynamic = 'force-dynamic'
@@ -92,11 +93,17 @@ export default async function AdminLayout({
   return (
     <AdminShell
       navGroups={buildAdminNavGroups(organizationSlug)}
+      organizationName={membership.organization.name}
       organizationSlug={organizationSlug}
       userName={session.user.name ?? 'Admin'}
       signOutAction={handleSignOut}
     >
       <SyncOrgCookie organizationId={membership.organizationId} />
+      <SyncTenantSession
+        organizationId={membership.organizationId}
+        organizationSlug={organizationSlug}
+        role={membership.role}
+      />
       {children}
     </AdminShell>
   )

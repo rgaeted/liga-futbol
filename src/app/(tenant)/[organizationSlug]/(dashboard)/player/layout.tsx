@@ -1,10 +1,11 @@
 import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { MembershipRole, getDashboardPath } from '@/lib/membership-role'
+import { MembershipRole, getDashboardPath, membershipRoleLabel } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
 import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
+import { SyncTenantSession } from '@/components/tenant/SyncTenantSession'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,7 @@ export default async function PlayerLayout({
 
   const isFriendlyCoach = membership.role === MembershipRole.FRIENDLY_COACH
   const nav = isFriendlyCoach ? friendlyCoachNav(organizationSlug) : buildPlayerNav(organizationSlug)
+  const roleLabel = membershipRoleLabel(membership.role)
 
   async function handleSignOut() {
     'use server'
@@ -48,13 +50,19 @@ export default async function PlayerLayout({
   return (
     <DashboardShell
       nav={nav}
-      navGroupLabel={isFriendlyCoach ? 'DT amistoso' : 'Jugador'}
+      navGroupLabel={roleLabel}
+      organizationName={membership.organization.name}
       userName={session.user.name ?? 'Jugador'}
-      roleLabel={isFriendlyCoach ? 'DT amistoso' : 'Jugador'}
+      roleLabel={roleLabel}
       helpHref={orgPath(organizationSlug, '/ayuda')}
       signOutAction={handleSignOut}
     >
       <SyncOrgCookie organizationId={membership.organizationId} />
+      <SyncTenantSession
+        organizationId={membership.organizationId}
+        organizationSlug={organizationSlug}
+        role={membership.role}
+      />
       {children}
     </DashboardShell>
   )

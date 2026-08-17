@@ -27,4 +27,28 @@ describe('createOrganizationSchema', () => {
     })
     expect(parsed.success).toBe(true)
   })
+
+  it('accepts organization without admin', () => {
+    const parsed = createOrganizationSchema.safeParse({
+      slug: 'liga-norte',
+      name: 'Liga Norte',
+      primaryColor: '#c91f26',
+      secondaryColor: '#ffffff',
+    })
+    expect(parsed.success).toBe(true)
+    if (parsed.success) {
+      expect(parsed.data.adminEmail).toBeUndefined()
+    }
+  })
+
+  it('requires admin name when email is provided', () => {
+    const parsed = createOrganizationSchema.safeParse({
+      slug: 'liga-norte',
+      name: 'Liga Norte',
+      primaryColor: '#c91f26',
+      secondaryColor: '#ffffff',
+      adminEmail: 'admin@liga.cl',
+    })
+    expect(parsed.success).toBe(false)
+  })
 })

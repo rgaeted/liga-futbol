@@ -9,6 +9,7 @@ export type OrganizationErrorCode =
   | 'invalid'
   | 'slug_taken'
   | 'admin_exists'
+  | 'admin_password_required'
 
 export class OrganizationError extends Error {
   code: OrganizationErrorCode
@@ -43,6 +44,10 @@ export async function createOrganization(input: CreateOrganizationInput) {
       },
     })
 
+    if (!input.adminEmail) {
+      return { organization, adminUserId: null }
+    }
+
     const existingUser = await tx.user.findUnique({
       where: { email: input.adminEmail },
       include: {
@@ -66,11 +71,15 @@ export async function createOrganization(input: CreateOrganizationInput) {
       return { organization, adminUserId: existingUser.id }
     }
 
+    if (!input.adminPassword || input.adminPassword.length < 6) {
+      throw new OrganizationError('admin_password_required')
+    }
+
     const passwordHash = await bcrypt.hash(input.adminPassword, 10)
     const adminUser = await tx.user.create({
       data: {
         email: input.adminEmail,
-        name: input.adminName,
+        name: input.adminName as string,
         passwordHash,
         memberships: {
           create: {

@@ -34,7 +34,8 @@ export default async function OrganizacionesPage() {
           <div>
             <h1 className="font-display text-2xl font-black text-[#17171a]">Elige una empresa</h1>
             <p className="mt-1 font-ui text-sm text-[#777]">
-              Tienes acceso a varias organizaciones. Selecciona con cuál quieres trabajar.
+              Tienes acceso a varias ligas. Elige una para entrar; puedes cambiar después desde el
+              selector del panel.
             </p>
           </div>
         </div>

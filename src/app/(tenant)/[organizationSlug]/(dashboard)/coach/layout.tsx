@@ -5,6 +5,7 @@ import { orgPath } from '@/lib/tenant-paths'
 import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
+import { SyncTenantSession } from '@/components/tenant/SyncTenantSession'
 
 function buildCoachNav(slug: string) {
   return [
@@ -39,12 +40,18 @@ export default async function CoachLayout({
     <DashboardShell
       nav={buildCoachNav(organizationSlug)}
       navGroupLabel="Directo técnico"
+      organizationName={membership.organization.name}
       userName={session.user.name ?? 'DT'}
       roleLabel="Director técnico"
       helpHref={orgPath(organizationSlug, '/ayuda')}
       signOutAction={handleSignOut}
     >
       <SyncOrgCookie organizationId={membership.organizationId} />
+      <SyncTenantSession
+        organizationId={membership.organizationId}
+        organizationSlug={organizationSlug}
+        role={membership.role}
+      />
       {children}
     </DashboardShell>
   )

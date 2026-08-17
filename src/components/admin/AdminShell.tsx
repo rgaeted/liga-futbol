@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { DashboardAppShell } from '@/components/dashboard/DashboardAppShell'
-import { OrganizationSwitcher } from '@/components/admin/OrganizationSwitcher'
+import { OrganizationSwitcher } from '@/components/tenant/OrganizationSwitcher'
 import type { DashboardNavGroup } from '@/components/dashboard/dashboard-ui'
 
 type Props = {
   navGroups: DashboardNavGroup[]
   userName: string
+  organizationName: string
   organizationSlug: string
   signOutAction: () => Promise<void>
   children: React.ReactNode
@@ -17,6 +18,7 @@ type Props = {
 export function AdminShell({
   navGroups,
   userName,
+  organizationName,
   organizationSlug,
   signOutAction,
   children,
@@ -32,9 +34,9 @@ export function AdminShell({
 
   return (
     <DashboardAppShell
-      brandMark="LL"
-      brandTitle="LIGALAB"
-      brandSubtitle="GESTIÓN DEPORTIVA"
+      brandMark={organizationName.slice(0, 1).toUpperCase()}
+      brandTitle={organizationName}
+      brandSubtitle="LigaLab · Administrador"
       userName={userName}
       roleLabel="Administrador"
       navGroups={navGroups}

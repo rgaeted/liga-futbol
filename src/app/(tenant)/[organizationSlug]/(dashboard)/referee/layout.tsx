@@ -5,6 +5,7 @@ import { orgPath } from '@/lib/tenant-paths'
 import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
+import { SyncTenantSession } from '@/components/tenant/SyncTenantSession'
 
 function buildRefereeNav(slug: string) {
   return [{ href: orgPath(slug, '/referee'), label: 'Mis partidos', icon: 'PA' }]
@@ -36,12 +37,18 @@ export default async function RefereeLayout({
     <DashboardShell
       nav={buildRefereeNav(organizationSlug)}
       navGroupLabel="Árbitro"
+      organizationName={membership.organization.name}
       userName={session.user.name ?? 'Árbitro'}
       roleLabel="Árbitro"
       helpHref={orgPath(organizationSlug, '/ayuda')}
       signOutAction={handleSignOut}
     >
       <SyncOrgCookie organizationId={membership.organizationId} />
+      <SyncTenantSession
+        organizationId={membership.organizationId}
+        organizationSlug={organizationSlug}
+        role={membership.role}
+      />
       {children}
     </DashboardShell>
   )

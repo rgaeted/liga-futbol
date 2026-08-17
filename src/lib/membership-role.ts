@@ -37,6 +37,18 @@ export function isPlayerAreaRole(role: MembershipRole): boolean {
   return role === MembershipRole.PLAYER || role === MembershipRole.FRIENDLY_COACH
 }
 
+const MEMBERSHIP_ROLE_LABELS: Record<MembershipRole, string> = {
+  [MembershipRole.ORG_ADMIN]: 'Administrador',
+  [MembershipRole.COACH]: 'Director técnico',
+  [MembershipRole.REFEREE]: 'Árbitro',
+  [MembershipRole.PLAYER]: 'Jugador',
+  [MembershipRole.FRIENDLY_COACH]: 'DT amistoso',
+}
+
+export function membershipRoleLabel(role: MembershipRole): string {
+  return MEMBERSHIP_ROLE_LABELS[role]
+}
+
 export function membershipRoleFromLegacyUserRole(
   role: 'PLAYER' | 'ADMIN' | 'COACH' | 'REFEREE' | 'FRIENDLY_COACH',
 ): MembershipRole {

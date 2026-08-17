@@ -10,7 +10,7 @@ export async function findTenantMembership(userId: string, organizationSlug: str
       organization: { slug: organizationSlug, status: 'ACTIVE' },
     },
     include: {
-      organization: { select: { id: true, slug: true } },
+      organization: { select: { id: true, slug: true, name: true } },
     },
   })
 }
