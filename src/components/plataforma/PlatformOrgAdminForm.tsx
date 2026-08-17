@@ -3,6 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { PlatformUserSearchResult } from '@/lib/platform-org-admins'
+import {
+  PlatformPanel,
+  PlatformPanelInner,
+  platformBtnGhostClass,
+  platformBtnPrimaryClass,
+  platformInputClass,
+} from '@/components/plataforma/platform-ui'
 
 type OrgOption = { id: string; slug: string; name: string }
 
@@ -115,146 +122,151 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6">
-      <h2 className="font-display text-lg font-semibold text-zinc-900">Dar acceso</h2>
-      <p className="font-ui text-sm text-zinc-600">
-        Busca un usuario inscrito o ingresa los datos de una cuenta nueva. Si el correo ya existe, se
-        reutiliza la cuenta sin cambiar nombre ni contraseña.
-      </p>
-
-      {selectedUser ? (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="font-ui text-sm font-medium text-zinc-900">{selectedUser.name}</p>
-              <p className="font-ui text-sm text-zinc-600">{selectedUser.email}</p>
-              {selectedUser.memberships.length > 0 ? (
-                <p className="mt-1 font-ui text-xs text-zinc-500">
-                  Ya participa en:{' '}
-                  {selectedUser.memberships
-                    .map((m) => `${m.organization.name} (${m.role})`)
-                    .join(', ')}
-                </p>
-              ) : (
-                <p className="mt-1 font-ui text-xs text-zinc-500">Sin membresías en empresas.</p>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={clearSelectedUser}
-              className="font-ui text-sm text-zinc-600 hover:text-zinc-900"
-            >
-              Cambiar usuario
-            </button>
+    <PlatformPanel>
+      <PlatformPanelInner>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <h2 className="text-[22px] font-black text-[#17171a]">Dar acceso</h2>
+            <p className="mt-1 text-sm text-[#777]">
+              Busca un usuario inscrito o ingresa los datos de una cuenta nueva.
+            </p>
           </div>
-        </div>
-      ) : (
-        <div ref={searchRef} className="relative">
-          <label htmlFor="user-search" className="font-ui text-sm font-medium text-zinc-700">
-            Buscar usuario inscrito
-          </label>
-          <input
-            id="user-search"
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => searchResults.length > 0 && setSearchOpen(true)}
-            placeholder="Nombre o correo (mín. 2 caracteres)"
-            autoComplete="off"
-            className="input-kelme mt-1"
-          />
-          {searchLoading ? (
-            <p className="mt-1 font-ui text-xs text-zinc-500">Buscando…</p>
+
+          {selectedUser ? (
+            <div className="rounded-[14px] border border-[#e5e5e9] bg-[#fafafa] px-4 py-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-extrabold text-[#17171a]">{selectedUser.name}</p>
+                  <p className="text-sm text-[#777]">{selectedUser.email}</p>
+                  {selectedUser.memberships.length > 0 ? (
+                    <p className="mt-1 text-xs text-[#999]">
+                      Ya participa en:{' '}
+                      {selectedUser.memberships
+                        .map((m) => `${m.organization.name} (${m.role})`)
+                        .join(', ')}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-[#999]">Sin membresías en empresas.</p>
+                  )}
+                </div>
+                <button type="button" onClick={clearSelectedUser} className={platformBtnGhostClass}>
+                  Cambiar usuario
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div ref={searchRef} className="relative">
+              <label htmlFor="user-search" className="text-sm font-bold text-[#505058]">
+                Buscar usuario inscrito
+              </label>
+              <input
+                id="user-search"
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchResults.length > 0 && setSearchOpen(true)}
+                placeholder="Nombre o correo (mín. 2 caracteres)"
+                autoComplete="off"
+                className={`${platformInputClass} mt-1`}
+              />
+              {searchLoading ? <p className="mt-1 text-xs text-[#999]">Buscando…</p> : null}
+              {searchOpen && searchResults.length > 0 ? (
+                <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-[14px] border border-[#e5e5e9] bg-white shadow-lg">
+                  {searchResults.map((user) => (
+                    <li key={user.id}>
+                      <button
+                        type="button"
+                        onClick={() => selectUser(user)}
+                        className="flex w-full flex-col items-start px-4 py-3 text-left hover:bg-[#f7f7f9]"
+                      >
+                        <span className="text-sm font-extrabold text-[#17171a]">{user.name}</span>
+                        <span className="text-sm text-[#777]">{user.email}</span>
+                        {user.memberships.length > 0 ? (
+                          <span className="mt-0.5 text-xs text-[#999]">
+                            {user.memberships.map((m) => m.organization.name).join(', ')}
+                          </span>
+                        ) : null}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {searchOpen && !searchLoading && searchQuery.trim().length >= 2 && searchResults.length === 0 ? (
+                <p className="mt-1 text-xs text-[#999]">No encontramos usuarios con ese criterio.</p>
+              ) : null}
+            </div>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+              required
+              readOnly={Boolean(selectedUser)}
+              defaultValue={selectedUser?.email ?? ''}
+              key={selectedUser?.id ?? 'new-email'}
+              className={`${platformInputClass} read-only:bg-[#f7f7f9] read-only:text-[#505058]`}
+            />
+            <input
+              name="name"
+              placeholder="Nombre"
+              required
+              minLength={2}
+              readOnly={Boolean(selectedUser)}
+              defaultValue={selectedUser?.name ?? ''}
+              key={selectedUser?.id ?? 'new-name'}
+              className={`${platformInputClass} read-only:bg-[#f7f7f9] read-only:text-[#505058]`}
+            />
+            {!selectedUser ? (
+              <input
+                name="password"
+                type="password"
+                placeholder="Contraseña (solo cuenta nueva)"
+                minLength={6}
+                className={`${platformInputClass} sm:col-span-2`}
+              />
+            ) : null}
+          </div>
+
+          {!selectedUser ? (
+            <p className="text-xs text-[#999]">
+              Si no encuentras al usuario, completa email, nombre y contraseña para crear una cuenta
+              nueva.
+            </p>
           ) : null}
-          {searchOpen && searchResults.length > 0 ? (
-            <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg">
-              {searchResults.map((user) => (
-                <li key={user.id}>
-                  <button
-                    type="button"
-                    onClick={() => selectUser(user)}
-                    className="flex w-full flex-col items-start px-4 py-3 text-left hover:bg-zinc-50"
-                  >
-                    <span className="font-ui text-sm font-medium text-zinc-900">{user.name}</span>
-                    <span className="font-ui text-sm text-zinc-600">{user.email}</span>
-                    {user.memberships.length > 0 ? (
-                      <span className="mt-0.5 font-ui text-xs text-zinc-500">
-                        {user.memberships.map((m) => m.organization.name).join(', ')}
+
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-bold text-[#505058]">Empresas</legend>
+            {organizations.length === 0 ? (
+              <p className="text-sm text-[#999]">No hay empresas activas.</p>
+            ) : (
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {organizations.map((org) => (
+                  <li key={org.id}>
+                    <label className="flex items-center gap-2 rounded-[14px] border border-[#e5e5e9] px-3 py-2.5 text-sm font-semibold text-[#34343a] hover:bg-[#fafafa]">
+                      <input
+                        type="checkbox"
+                        name="organizationIds"
+                        value={org.id}
+                        className="rounded accent-[#c91f26]"
+                      />
+                      <span>
+                        {org.name}{' '}
+                        <span className="text-[#999]">/{org.slug}</span>
                       </span>
-                    ) : null}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {searchOpen && !searchLoading && searchQuery.trim().length >= 2 && searchResults.length === 0 ? (
-            <p className="mt-1 font-ui text-xs text-zinc-500">No encontramos usuarios con ese criterio.</p>
-          ) : null}
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          required
-          readOnly={Boolean(selectedUser)}
-          defaultValue={selectedUser?.email ?? ''}
-          key={selectedUser?.id ?? 'new-email'}
-          className="input-kelme read-only:bg-zinc-50 read-only:text-zinc-700"
-        />
-        <input
-          name="name"
-          placeholder="Nombre"
-          required
-          minLength={2}
-          readOnly={Boolean(selectedUser)}
-          defaultValue={selectedUser?.name ?? ''}
-          key={selectedUser?.id ?? 'new-name'}
-          className="input-kelme read-only:bg-zinc-50 read-only:text-zinc-700"
-        />
-        {!selectedUser ? (
-          <input
-            name="password"
-            type="password"
-            placeholder="Contraseña (solo cuenta nueva)"
-            minLength={6}
-            className="input-kelme sm:col-span-2"
-          />
-        ) : null}
-      </div>
-
-      {!selectedUser ? (
-        <p className="font-ui text-xs text-zinc-500">
-          Si no encuentras al usuario, completa email, nombre y contraseña para crear una cuenta nueva.
-        </p>
-      ) : null}
-
-      <fieldset className="space-y-2">
-        <legend className="font-ui text-sm font-medium text-zinc-700">Empresas</legend>
-        {organizations.length === 0 ? (
-          <p className="font-ui text-sm text-zinc-500">No hay empresas activas.</p>
-        ) : (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {organizations.map((org) => (
-              <li key={org.id}>
-                <label className="flex items-center gap-2 font-ui text-sm text-zinc-800">
-                  <input type="checkbox" name="organizationIds" value={org.id} className="rounded" />
-                  <span>
-                    {org.name}{' '}
-                    <span className="text-zinc-500">/{org.slug}</span>
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        )}
-      </fieldset>
-      {error && <p className="font-ui text-sm text-red-600">{error}</p>}
-      <button type="submit" disabled={loading} className="rounded-md bg-zinc-900 px-4 py-2 text-white">
-        {loading ? 'Guardando…' : 'Dar acceso'}
-      </button>
-    </form>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </fieldset>
+          {error && <p className="text-sm font-semibold text-[#c91f26]">{error}</p>}
+          <button type="submit" disabled={loading} className={platformBtnPrimaryClass}>
+            {loading ? 'Guardando…' : 'Dar acceso'}
+          </button>
+        </form>
+      </PlatformPanelInner>
+    </PlatformPanel>
   )
 }

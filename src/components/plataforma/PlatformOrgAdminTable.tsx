@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { OrgAdminUser } from '@/lib/platform-org-admins'
+import { PlatformPanel, PlatformPanelInner } from '@/components/plataforma/platform-ui'
 
 export function PlatformOrgAdminTable({ users }: { users: OrgAdminUser[] }) {
   const router = useRouter()
@@ -25,51 +26,66 @@ export function PlatformOrgAdminTable({ users }: { users: OrgAdminUser[] }) {
     router.refresh()
   }
 
-  if (users.length === 0) {
-    return (
-      <p className="font-ui text-sm text-zinc-500">Aún no hay administradores de empresa.</p>
-    )
-  }
-
   return (
-    <div className="space-y-3">
-      {error && <p className="font-ui text-sm text-red-600">{error}</p>}
-      <section className="rounded-lg border border-zinc-200 bg-white">
-        <ul className="divide-y divide-zinc-100">
-          {users.map((user) => (
-            <li key={user.id} className="space-y-2 px-4 py-4">
-              <div>
-                <p className="font-ui font-medium text-zinc-900">{user.name}</p>
-                <p className="font-ui text-sm text-zinc-500">{user.email}</p>
-              </div>
-              <ul className="flex flex-wrap gap-2">
-                {user.organizations.map((org) => {
-                  const key = `${user.id}:${org.id}`
-                  return (
-                    <li
-                      key={org.id}
-                      className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 font-ui text-sm"
-                    >
-                      <span>
-                        {org.name}
-                        {org.status === 'PAUSED' ? ' (pausada)' : ''}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={pending === key}
-                        onClick={() => revoke(user.id, org.id)}
-                        className="text-zinc-500 hover:text-red-600"
+    <PlatformPanel>
+      <PlatformPanelInner>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-[22px] font-black text-[#17171a]">Administradores</h2>
+          <span className="text-xs text-[#aaa]">{users.length} cuentas</span>
+        </div>
+
+        {error && <p className="mb-3 text-sm font-semibold text-[#c91f26]">{error}</p>}
+
+        {users.length === 0 ? (
+          <p className="text-sm text-[#8e8e98]">Aún no hay administradores de empresa.</p>
+        ) : (
+          <ul className="divide-y divide-[#f0f0f2]">
+            {users.map((user) => (
+              <li key={user.id} className="space-y-2.5 py-4 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-[34px] w-[34px] place-items-center rounded-full bg-[#1a1a1a] text-[10px] font-black text-white">
+                    {user.name
+                      .trim()
+                      .split(/\s+/)
+                      .slice(0, 2)
+                      .map((part) => part.charAt(0))
+                      .join('')
+                      .toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-extrabold text-[#17171a]">{user.name}</p>
+                    <p className="text-xs text-[#999]">{user.email}</p>
+                  </div>
+                </div>
+                <ul className="flex flex-wrap gap-2 pl-[46px]">
+                  {user.organizations.map((org) => {
+                    const key = `${user.id}:${org.id}`
+                    return (
+                      <li
+                        key={org.id}
+                        className="flex items-center gap-2 rounded-full border border-[#e5e5e9] bg-[#fafafa] px-3 py-1 text-xs font-semibold text-[#505058]"
                       >
-                        Quitar
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
+                        <span>
+                          {org.name}
+                          {org.status === 'PAUSED' ? ' (pausada)' : ''}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={pending === key}
+                          onClick={() => revoke(user.id, org.id)}
+                          className="font-bold text-[#999] hover:text-[#c91f26] disabled:opacity-50"
+                        >
+                          Quitar
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        )}
+      </PlatformPanelInner>
+    </PlatformPanel>
   )
 }

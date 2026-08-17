@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { platformBtnGhostClass } from '@/components/plataforma/platform-ui'
 
 type Props = {
   organizationId: string
@@ -22,11 +23,7 @@ export function OrganizationStatusButton({ organizationId, status }: Props) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-    >
+    <button type="button" onClick={handleClick} className={platformBtnGhostClass}>
       {label}
     </button>
   )

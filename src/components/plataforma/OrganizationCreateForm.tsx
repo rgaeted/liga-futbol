@@ -2,6 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  PlatformPanel,
+  PlatformPanelInner,
+  platformBtnPrimaryClass,
+  platformInputClass,
+} from '@/components/plataforma/platform-ui'
 
 export function OrganizationCreateForm() {
   const router = useRouter()
@@ -42,27 +48,42 @@ export function OrganizationCreateForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6">
-      <h2 className="font-display text-lg font-semibold text-zinc-900">Crear empresa</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <input name="slug" placeholder="slug (ej. liga-sur)" required className="input-kelme" />
-        <input name="name" placeholder="Nombre de la empresa" required className="input-kelme" />
-        <input name="primaryColor" placeholder="#CD212A" required className="input-kelme" />
-        <input name="secondaryColor" placeholder="#FFFFFF" required className="input-kelme" />
-        <input name="adminEmail" type="email" placeholder="Email admin" required className="input-kelme" />
-        <input name="adminName" placeholder="Nombre admin" required className="input-kelme" />
-        <input
-          name="adminPassword"
-          type="password"
-          placeholder="Contraseña admin"
-          required
-          className="input-kelme sm:col-span-2"
-        />
-      </div>
-      {error && <p className="font-ui text-sm text-red-600">{error}</p>}
-      <button type="submit" disabled={loading} className="rounded-md bg-zinc-900 px-4 py-2 text-white">
-        {loading ? 'Creando…' : 'Crear empresa'}
-      </button>
-    </form>
+    <PlatformPanel>
+      <PlatformPanelInner>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <h2 className="text-[22px] font-black text-[#17171a]">Crear empresa</h2>
+            <p className="mt-1 text-sm text-[#777]">
+              Registra una nueva liga y asigna su primer administrador.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input name="slug" placeholder="slug (ej. liga-sur)" required className={platformInputClass} />
+            <input name="name" placeholder="Nombre de la empresa" required className={platformInputClass} />
+            <input name="primaryColor" placeholder="#CD212A" required className={platformInputClass} />
+            <input name="secondaryColor" placeholder="#FFFFFF" required className={platformInputClass} />
+            <input
+              name="adminEmail"
+              type="email"
+              placeholder="Email admin"
+              required
+              className={platformInputClass}
+            />
+            <input name="adminName" placeholder="Nombre admin" required className={platformInputClass} />
+            <input
+              name="adminPassword"
+              type="password"
+              placeholder="Contraseña admin"
+              required
+              className={`${platformInputClass} sm:col-span-2`}
+            />
+          </div>
+          {error && <p className="text-sm font-semibold text-[#c91f26]">{error}</p>}
+          <button type="submit" disabled={loading} className={platformBtnPrimaryClass}>
+            {loading ? 'Creando…' : 'Crear empresa'}
+          </button>
+        </form>
+      </PlatformPanelInner>
+    </PlatformPanel>
   )
 }
