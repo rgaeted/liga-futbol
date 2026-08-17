@@ -1,4 +1,5 @@
 import { db } from '@/lib/db'
+import { PlatformPageHeader, PlatformPanel, PlatformPanelInner } from '@/components/plataforma/platform-ui'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,46 +17,50 @@ export default async function PlataformaAppsPage() {
   })
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-zinc-900">Apps móviles</h1>
-        <p className="mt-1 font-ui text-sm text-zinc-600">
-          Inventario de ediciones móviles configuradas por temporada.
-        </p>
-      </div>
+    <>
+      <PlatformPageHeader
+        eyebrow="Plataforma"
+        title="Apps móviles"
+        subtitle="Inventario de ediciones móviles configuradas por temporada."
+        status={`● ${rows.length} ediciones`}
+      />
 
-      <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
-        <table className="min-w-full divide-y divide-zinc-100 text-sm">
-          <thead className="bg-zinc-50 text-left text-zinc-600">
-            <tr>
-              <th className="px-4 py-3 font-medium">Empresa</th>
-              <th className="px-4 py-3 font-medium">Temporada</th>
-              <th className="px-4 py-3 font-medium">Slug</th>
-              <th className="px-4 py-3 font-medium">Publicado</th>
-              <th className="px-4 py-3 font-medium">Scaffold</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100">
-            {rows.length === 0 ? (
+      <PlatformPanel>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="border-b border-[#e5e5e9] bg-[#fafafa] text-left text-[#999]">
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-zinc-500">
-                  Aún no hay ediciones móviles configuradas.
-                </td>
+                <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Empresa</th>
+                <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Temporada</th>
+                <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Slug</th>
+                <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Publicado</th>
+                <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Scaffold</th>
               </tr>
-            ) : (
-              rows.map((row) => (
-                <tr key={row.seasonId}>
-                  <td className="px-4 py-3">{row.season.organization.name}</td>
-                  <td className="px-4 py-3">{row.season.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{row.slug}</td>
-                  <td className="px-4 py-3">{row.isPublished ? 'Sí' : 'No'}</td>
-                  <td className="px-4 py-3 text-zinc-500">Scaffold pendiente</td>
+            </thead>
+            <tbody className="divide-y divide-[#f0f0f2]">
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-8 text-[#8e8e98]">
+                    Aún no hay ediciones móviles configuradas.
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </section>
-    </div>
+              ) : (
+                rows.map((row) => (
+                  <tr key={row.seasonId} className="hover:bg-[#fafafa]">
+                    <td className="px-5 py-3.5 font-semibold text-[#17171a]">
+                      {row.season.organization.name}
+                    </td>
+                    <td className="px-5 py-3.5 text-[#505058]">{row.season.name}</td>
+                    <td className="px-5 py-3.5 font-mono text-xs text-[#777]">{row.slug}</td>
+                    <td className="px-5 py-3.5 text-[#505058]">{row.isPublished ? 'Sí' : 'No'}</td>
+                    <td className="px-5 py-3.5 text-[#999]">Scaffold pendiente</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </PlatformPanel>
+    </>
   )
 }

@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { MembershipRole } from '@/lib/membership-role'
 import { listOrganizations } from '@/lib/organizations'
 import { PlatformRefereesTable } from '@/components/plataforma/PlatformRefereesTable'
+import { PlatformPageHeader } from '@/components/plataforma/platform-ui'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,13 +33,13 @@ export default async function PlataformaArbitrosPage() {
   ])
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-zinc-900">Árbitros</h1>
-        <p className="mt-1 font-ui text-sm text-zinc-600">
-          Directorio global y acceso directo a organizaciones sin invitación.
-        </p>
-      </div>
+    <>
+      <PlatformPageHeader
+        eyebrow="Plataforma"
+        title="Árbitros"
+        subtitle="Directorio global y acceso directo a organizaciones sin invitación."
+        status={`● ${users.length} árbitros`}
+      />
 
       <PlatformRefereesTable
         referees={users.map((user) => ({
@@ -56,6 +57,6 @@ export default async function PlataformaArbitrosPage() {
           status: org.status,
         }))}
       />
-    </div>
+    </>
   )
 }
