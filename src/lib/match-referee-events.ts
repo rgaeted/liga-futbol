@@ -38,17 +38,17 @@ export type RefereePanelEventConfig = {
 }
 
 export const REFEREE_PANEL_EVENT_CONFIG: RefereePanelEventConfig[] = [
-  { type: EventType.KICKOFF, label: '▶ Inicio', color: 'bg-kelme-red' },
-  { type: EventType.GOAL, label: '⚽ Gol', color: 'bg-green-600' },
-  { type: EventType.OWN_GOAL, label: '⚽ Autogol', color: 'bg-orange-700' },
+  { type: EventType.KICKOFF, label: '▶ Inicio', color: 'bg-kelme-red text-white' },
+  { type: EventType.GOAL, label: '⚽ Gol', color: 'bg-green-600 text-white' },
+  { type: EventType.OWN_GOAL, label: '⚽ Autogol', color: 'bg-orange-700 text-white' },
   { type: EventType.YELLOW_CARD, label: '🟨 Amarilla', color: 'bg-yellow-500 text-black' },
-  { type: EventType.RED_CARD, label: '🟥 Roja', color: 'bg-red-600' },
-  { type: EventType.SHOT_ON_TARGET, label: '🎯 Tiro al arco', color: 'bg-blue-600' },
-  { type: EventType.SHOT_OFF_TARGET, label: '↗ Tiro fuera', color: 'bg-kelme-gray-600' },
-  { type: EventType.SUBSTITUTION, label: '🔄 Cambio', color: 'bg-purple-600' },
-  { type: EventType.FOUL, label: '⚠ Falta', color: 'bg-orange-600' },
-  { type: EventType.HALFTIME, label: '⏸ Entretiempo', color: 'bg-kelme-gray-600' },
-  { type: EventType.FULLTIME, label: '⏹ Final', color: 'bg-kelme-gray-900' },
+  { type: EventType.RED_CARD, label: '🟥 Roja', color: 'bg-red-600 text-white' },
+  { type: EventType.SHOT_ON_TARGET, label: '🎯 Tiro al arco', color: 'bg-blue-600 text-white' },
+  { type: EventType.SHOT_OFF_TARGET, label: '↗ Tiro fuera', color: 'bg-kelme-gray-600 text-white' },
+  { type: EventType.SUBSTITUTION, label: '🔄 Cambio', color: 'bg-purple-600 text-white' },
+  { type: EventType.FOUL, label: '⚠ Falta', color: 'bg-orange-600 text-white' },
+  { type: EventType.HALFTIME, label: '⏸ Entretiempo', color: 'bg-kelme-gray-600 text-white' },
+  { type: EventType.FULLTIME, label: '⏹ Finalizar partido', color: 'bg-kelme-gray-900 text-white' },
 ]
 
 const PANEL_ORDER = new Map(

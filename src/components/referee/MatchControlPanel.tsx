@@ -5,7 +5,7 @@ import { EventType } from '@prisma/client'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
 import { EVENT_TYPE_LABELS, eventNeedsPlayer } from '@/lib/event-labels'
-import { refereePanelEvents } from '@/lib/match-referee-events'
+import { refereePanelEvents, REFEREE_CONTROL_EVENT_TYPES } from '@/lib/match-referee-events'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
@@ -52,7 +52,11 @@ export function MatchControlPanel({
   initialClock,
   enabledEventTypes,
 }: Props) {
-  const quickEvents = refereePanelEvents(enabledEventTypes)
+  const controlTypeSet = new Set<EventType>(REFEREE_CONTROL_EVENT_TYPES)
+  const allPanelEvents = refereePanelEvents(enabledEventTypes)
+  const controlEvents = allPanelEvents.filter((ev) => controlTypeSet.has(ev.type))
+  const gameEvents = allPanelEvents.filter((ev) => !controlTypeSet.has(ev.type))
+  const quickEvents = allPanelEvents
   const instantEvents = quickEvents
     .map((item) => item.type)
     .filter((type) =>
@@ -191,8 +195,32 @@ export function MatchControlPanel({
     return detailMode === 'player' || detailMode === 'goal'
   }
 
+  const matchEnded = status === 'FINISHED' || status === 'CANCELLED'
+  const kickoffEvent = controlEvents.find((ev) => ev.type === EventType.KICKOFF)
+  const halftimeEvent = controlEvents.find((ev) => ev.type === EventType.HALFTIME)
+  const fulltimeEvent = controlEvents.find((ev) => ev.type === EventType.FULLTIME)
+  const secondaryControlEvents = controlEvents.filter(
+    (ev) => ev.type !== EventType.KICKOFF && ev.type !== EventType.FULLTIME,
+  )
+
+  function renderEventButton(ev: (typeof allPanelEvents)[number], fullWidth = false) {
+    return (
+      <button
+        key={ev.type}
+        type="button"
+        disabled={loading}
+        onClick={() => handleEventClick(ev.type)}
+        className={`rounded-xl py-4 text-lg font-bold shadow-sm ${ev.color} disabled:opacity-50 ${
+          fullWidth ? 'col-span-2 w-full' : ''
+        }`}
+      >
+        {eventLabel(ev.type, ev.label)}
+      </button>
+    )
+  }
+
   return (
-    <div className="mx-auto max-w-lg space-y-6 text-kelme-gray-900">
+    <div className="mx-auto max-w-lg space-y-6 pb-8 text-kelme-gray-900">
       <div className="text-center">
         <p className="font-ui text-sm uppercase tracking-widest text-kelme-red">
           {status === 'LIVE' ? '● EN VIVO' : matchStatusLabel(status)}
@@ -345,19 +373,37 @@ export function MatchControlPanel({
             </div>
           )}
         </section>
+      ) : matchEnded ? (
+        <div className="rounded-xl border border-kelme-border bg-kelme-surface px-4 py-5 text-center">
+          <p className="font-ui text-sm font-semibold uppercase tracking-wider text-kelme-gray-600">
+            Partido finalizado
+          </p>
+          <p className="mt-1 text-sm text-kelme-gray-400">
+            Registra los MVPs del partido abajo si aún no lo hiciste.
+          </p>
+        </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {quickEvents.map((ev) => (
-            <button
-              key={ev.type}
-              type="button"
-              disabled={loading}
-              onClick={() => handleEventClick(ev.type)}
-              className={`rounded-xl py-4 text-lg font-bold ${ev.color} disabled:opacity-50`}
-            >
-              {eventLabel(ev.type, ev.label)}
-            </button>
-          ))}
+        <div className="space-y-4">
+          {(kickoffEvent || gameEvents.length > 0) && (
+            <div className="grid grid-cols-2 gap-3">
+              {kickoffEvent ? renderEventButton(kickoffEvent) : null}
+              {gameEvents.map((ev) => renderEventButton(ev))}
+            </div>
+          )}
+
+          {(secondaryControlEvents.length > 0 || fulltimeEvent) && (
+            <section className="space-y-3 border-t border-kelme-border pt-4">
+              <p className="font-ui text-xs font-bold uppercase tracking-wider text-kelme-gray-400">
+                Control del partido
+              </p>
+              {secondaryControlEvents.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {secondaryControlEvents.map((ev) => renderEventButton(ev))}
+                </div>
+              ) : null}
+              {fulltimeEvent ? renderEventButton(fulltimeEvent, true) : null}
+            </section>
+          )}
         </div>
       )}
 
