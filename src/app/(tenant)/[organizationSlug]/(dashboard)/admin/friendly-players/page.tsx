@@ -1,4 +1,6 @@
-﻿import { db } from '@/lib/db'
+﻿import { notFound } from 'next/navigation'
+import { db } from '@/lib/db'
+import { requireOrganizationId } from '@/lib/tenant-access'
 import { FriendlyPlayerForm } from '@/components/admin/FriendlyPlayerForm'
 import { FriendlyPlayersTable } from '@/components/admin/FriendlyPlayersTable'
 import { mapFriendlyPlayerCategoryIds } from '@/lib/friendly-player-categories'
@@ -15,7 +17,15 @@ export default async function AdminFriendlyPlayersPage({
   const { organizationSlug } = await params
   const { categoryId } = await searchParams
 
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    notFound()
+  }
+
   const categories = await db.friendlyCategory.findMany({
+    where: { organizationId },
     orderBy: { name: 'asc' },
   })
 
@@ -43,6 +53,7 @@ export default async function AdminFriendlyPlayersPage({
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId)
 
   const allOrgPlayers = await db.friendlyPlayer.findMany({
+    where: { organizationId },
     orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     select: { personId: true, firstName: true, lastName: true },
   })
