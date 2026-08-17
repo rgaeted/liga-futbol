@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@/app/api/plataforma/referees/route'
 import { POST as grantPost } from '@/app/api/plataforma/referees/[userId]/access/route'
+import { DELETE as revokeDelete } from '@/app/api/plataforma/referees/[userId]/memberships/[organizationId]/route'
 import { MembershipRole } from '@/lib/membership-role'
 
 vi.mock('@/lib/auth', () => ({
@@ -11,8 +12,9 @@ vi.mock('@/lib/db', () => ({
   db: {
     user: { findMany: vi.fn(), findUnique: vi.fn() },
     organization: { findUnique: vi.fn() },
-    organizationMembership: { findUnique: vi.fn(), create: vi.fn() },
+    organizationMembership: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
     refereeProfile: { upsert: vi.fn() },
+    match: { findFirst: vi.fn() },
     $transaction: vi.fn(),
   },
 }))
@@ -94,5 +96,43 @@ describe('POST /api/plataforma/referees/[userId]/access', () => {
     )
 
     expect(response.status).toBe(409)
+  })
+})
+
+describe('DELETE /api/plataforma/referees/[userId]/memberships/[organizationId]', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(requirePlatformAdmin).mockResolvedValue({ user: { id: 'admin' } } as never)
+  })
+
+  it('revokes referee membership', async () => {
+    vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
+      id: 'mem-1',
+      role: MembershipRole.REFEREE,
+    } as never)
+    vi.mocked(db.match.findFirst).mockResolvedValue(null)
+
+    const response = await revokeDelete(new Request('http://localhost'), {
+      params: Promise.resolve({ userId: 'ref-1', organizationId: 'org-1' }),
+    })
+
+    expect(response.status).toBe(204)
+    expect(db.organizationMembership.delete).toHaveBeenCalledWith({ where: { id: 'mem-1' } })
+  })
+
+  it('returns 409 when referee has assigned matches', async () => {
+    vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
+      id: 'mem-1',
+      role: MembershipRole.REFEREE,
+    } as never)
+    vi.mocked(db.match.findFirst).mockResolvedValue({ id: 'match-1' } as never)
+
+    const response = await revokeDelete(new Request('http://localhost'), {
+      params: Promise.resolve({ userId: 'ref-1', organizationId: 'org-1' }),
+    })
+
+    expect(response.status).toBe(409)
+    const body = await response.json()
+    expect(body.error).toContain('partidos')
   })
 })

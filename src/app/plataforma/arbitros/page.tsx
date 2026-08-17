@@ -23,7 +23,7 @@ export default async function PlataformaArbitrosPage() {
         memberships: {
           where: { role: MembershipRole.REFEREE },
           select: {
-            organization: { select: { id: true, slug: true, name: true } },
+            organization: { select: { id: true, slug: true, name: true, status: true } },
           },
         },
       },
@@ -37,7 +37,7 @@ export default async function PlataformaArbitrosPage() {
       <PlatformPageHeader
         eyebrow="Plataforma"
         title="Árbitros"
-        subtitle="Directorio global y acceso directo a organizaciones sin invitación."
+        subtitle="Directorio global. Puedes dar o quitar acceso de árbitro por liga."
         status={`● ${users.length} árbitros`}
       />
 
