@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
+import { requireMatchOrgRole } from '@/lib/auth'
 import { createMatchEventSchema } from '@/lib/validations/match-event'
 import { GAME_EVENT_TYPES, registerMatchEvent } from '@/lib/match-events'
 import { isRefereeEventEnabled } from '@/lib/match-referee-events'
@@ -41,14 +41,26 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { organizationId, role, session } = await requireOrgRole([
-    MembershipRole.REFEREE,
-    MembershipRole.ORG_ADMIN,
-  ])
   const { id: matchId } = await params
 
-  const match = await db.match.findUniqueOrThrow({ where: { id: matchId } })
-  assertSameOrganization(match.organizationId, organizationId)
+  let role: MembershipRole
+  let session: Awaited<ReturnType<typeof requireMatchOrgRole>>['session']
+  let match: Awaited<ReturnType<typeof requireMatchOrgRole>>['match']
+
+  try {
+    const authContext = await requireMatchOrgRole(matchId, [
+      MembershipRole.REFEREE,
+      MembershipRole.ORG_ADMIN,
+    ])
+    role = authContext.role
+    session = authContext.session
+    match = authContext.match
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+    throw error
+  }
 
   if (role === MembershipRole.REFEREE && match.refereeId !== session.user.id) {
     return NextResponse.json({ error: 'No eres el árbitro asignado' }, { status: 403 })

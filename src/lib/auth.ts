@@ -96,6 +96,33 @@ export async function requireOrgRole(allowed: MembershipRole[]) {
   return { session, organizationId: orgId, role }
 }
 
+/** Resuelve permisos contra la organización del partido (no la cookie activa). */
+export async function requireMatchOrgRole(matchId: string, allowed: MembershipRole[]) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error('Unauthorized')
+
+  const match = await db.match.findUniqueOrThrow({ where: { id: matchId } })
+  const membership = await db.organizationMembership.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId: match.organizationId,
+        userId: session.user.id,
+      },
+    },
+  })
+
+  if (!membership || !allowed.includes(membership.role)) {
+    throw new Error('Unauthorized')
+  }
+
+  return {
+    session,
+    organizationId: match.organizationId,
+    role: membership.role,
+    match,
+  }
+}
+
 export async function signOutAndClearOrg(redirectTo = '/login') {
   const cookieStore = await cookies()
   cookieStore.set(clearOrgCookieOptions())

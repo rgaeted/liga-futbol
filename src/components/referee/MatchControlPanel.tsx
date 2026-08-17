@@ -6,6 +6,7 @@ import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
 import { EVENT_TYPE_LABELS, eventNeedsPlayer } from '@/lib/event-labels'
 import { readApiError } from '@/lib/api-error'
+import { oppositeKickoffSide, type KickoffSide } from '@/lib/match-kickoff'
 import { refereePanelEvents, REFEREE_CONTROL_EVENT_TYPES } from '@/lib/match-referee-events'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
@@ -22,6 +23,7 @@ type Props = {
   initialHomeScore: number
   initialAwayScore: number
   initialStatus: string
+  initialFirstHalfKickoffTeam: KickoffSide | null
   initialTeamMvps: TeamMvpSideView[]
   initialClock: SerializableClockState
   enabledEventTypes: EventType[]
@@ -49,6 +51,7 @@ export function MatchControlPanel({
   initialHomeScore,
   initialAwayScore,
   initialStatus,
+  initialFirstHalfKickoffTeam,
   initialTeamMvps,
   initialClock,
   enabledEventTypes,
@@ -67,6 +70,7 @@ export function MatchControlPanel({
   const [awayScore, setAwayScore] = useState(initialAwayScore)
   const [status, setStatus] = useState(initialStatus)
   const [clock, setClock] = useState(initialClock)
+  const [firstHalfKickoffTeam, setFirstHalfKickoffTeam] = useState(initialFirstHalfKickoffTeam)
   const [pendingEvent, setPendingEvent] = useState<EventType | null>(null)
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState('')
@@ -76,6 +80,12 @@ export function MatchControlPanel({
 
   const activeTeam = selectedTeam === 'home' ? homeTeam : selectedTeam === 'away' ? awayTeam : null
   const detailMode = pendingEvent ? getDetailMode(pendingEvent) : null
+  const showKickoffButton = status === 'SCHEDULED' || status === 'HALFTIME'
+  const kickoffEvent = showKickoffButton
+    ? controlEvents.find((ev) => ev.type === EventType.KICKOFF)
+    : undefined
+  const isSecondHalfKickoff =
+    pendingEvent === EventType.KICKOFF && status === 'HALFTIME' && firstHalfKickoffTeam !== null
 
   function resetDetails() {
     setPendingEvent(null)
@@ -115,6 +125,7 @@ export function MatchControlPanel({
     const playerId = opts?.playerId ?? selectedPlayer
     const assistId = opts?.assistId ?? selectedAssist
     const team = teamSide === 'home' ? homeTeam : teamSide === 'away' ? awayTeam : null
+    const wasScheduledKickoff = type === EventType.KICKOFF && status === 'SCHEDULED'
 
     const body =
       matchType === 'FRIENDLY'
@@ -149,6 +160,9 @@ export function MatchControlPanel({
     if (data.match) {
       updateFromMatchResponse(data.match)
     }
+    if (wasScheduledKickoff && teamSide) {
+      setFirstHalfKickoffTeam(teamSide)
+    }
     resetDetails()
     setLoading(false)
   }
@@ -158,14 +172,16 @@ export function MatchControlPanel({
       void submitEvent(type)
       return
     }
-    if (type === EventType.KICKOFF && status === 'SCHEDULED') {
-      void submitEvent(type)
-      return
-    }
+
     setPendingEvent(type)
-    setSelectedTeam(null)
     setSelectedPlayer('')
     setSelectedAssist('')
+
+    if (type === EventType.KICKOFF && status === 'HALFTIME' && firstHalfKickoffTeam) {
+      setSelectedTeam(oppositeKickoffSide(firstHalfKickoffTeam))
+    } else {
+      setSelectedTeam(null)
+    }
   }
 
   async function handleTeamPick(team: 'home' | 'away') {
@@ -174,9 +190,14 @@ export function MatchControlPanel({
     setSelectedPlayer('')
     setSelectedAssist('')
 
-    if (detailMode === 'team') {
+    if (detailMode === 'team' && status === 'SCHEDULED') {
       await submitEvent(pendingEvent, { team })
     }
+  }
+
+  async function handleConfirmSecondHalfKickoff() {
+    if (!pendingEvent || pendingEvent !== EventType.KICKOFF || !selectedTeam) return
+    await submitEvent(pendingEvent, { team: selectedTeam })
   }
 
   async function handleConfirmDetails(withoutAssist = false) {
@@ -191,15 +212,15 @@ export function MatchControlPanel({
 
   function eventLabel(type: EventType, defaultLabel: string) {
     if (type === EventType.KICKOFF) {
-      if (status === 'HALFTIME') return '▶ 2.º tiempo'
-      return '▶ Inicio'
+      if (status === 'HALFTIME') return '▶ Iniciar 2.º tiempo'
+      return '▶ Iniciar partido'
     }
     return defaultLabel
   }
 
-  function kickoffPrompt() {
-    if (status === 'HALFTIME') return '¿Qué equipo saca el segundo tiempo?'
-    return '¿Qué equipo saca?'
+  function kickoffSectionTitle() {
+    if (status === 'HALFTIME') return 'Inicio 2.º tiempo'
+    return 'Inicio del partido'
   }
 
   function canConfirmDetails() {
@@ -208,8 +229,6 @@ export function MatchControlPanel({
   }
 
   const matchEnded = status === 'FINISHED' || status === 'CANCELLED'
-  const kickoffEvent = controlEvents.find((ev) => ev.type === EventType.KICKOFF)
-  const halftimeEvent = controlEvents.find((ev) => ev.type === EventType.HALFTIME)
   const fulltimeEvent = controlEvents.find((ev) => ev.type === EventType.FULLTIME)
   const secondaryControlEvents = controlEvents.filter(
     (ev) => ev.type !== EventType.KICKOFF && ev.type !== EventType.FULLTIME,
@@ -254,8 +273,8 @@ export function MatchControlPanel({
                 Registrar evento
               </p>
               <h2 className="font-display text-lg font-bold">
-                {pendingEvent === EventType.KICKOFF && status === 'HALFTIME'
-                  ? 'Inicio 2.º tiempo'
+                {pendingEvent === EventType.KICKOFF
+                  ? kickoffSectionTitle()
                   : EVENT_TYPE_LABELS[pendingEvent]}
               </h2>
             </div>
@@ -269,37 +288,84 @@ export function MatchControlPanel({
             </button>
           </div>
 
-          <div className="space-y-2">
-            <p className="font-ui text-sm font-medium text-kelme-gray-700">
-              {detailMode === 'team' ? kickoffPrompt() : 'Equipo'}
-            </p>
-            <div className="flex gap-2">
+          {isSecondHalfKickoff && selectedTeam ? (
+            <div className="space-y-3">
+              <p className="text-sm text-kelme-gray-600">
+                Sacará{' '}
+                <span className="font-semibold text-kelme-gray-900">
+                  {selectedTeam === 'home' ? homeTeam.name : awayTeam.name}
+                </span>
+              </p>
               <button
                 type="button"
                 disabled={loading}
-                onClick={() => void handleTeamPick('home')}
-                className={`flex-1 rounded-lg py-3 font-semibold transition-colors ${
-                  selectedTeam === 'home'
-                    ? 'bg-kelme-red text-white'
-                    : 'bg-kelme-gray-100 hover:bg-kelme-gray-200'
-                } disabled:opacity-50`}
+                onClick={() => void handleConfirmSecondHalfKickoff()}
+                className="w-full rounded-xl bg-kelme-red py-3 font-bold text-white hover:bg-kelme-red-dark disabled:opacity-50"
               >
-                {homeTeam.name}
-              </button>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => void handleTeamPick('away')}
-                className={`flex-1 rounded-lg py-3 font-semibold transition-colors ${
-                  selectedTeam === 'away'
-                    ? 'bg-kelme-red text-white'
-                    : 'bg-kelme-gray-100 hover:bg-kelme-gray-200'
-                } disabled:opacity-50`}
-              >
-                {awayTeam.name}
+                {loading ? 'Iniciando...' : 'Iniciar 2.º tiempo'}
               </button>
             </div>
-          </div>
+          ) : detailMode === 'team' ? (
+            <div className="space-y-2">
+              <p className="font-ui text-sm font-medium text-kelme-gray-700">¿Qué equipo saca?</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => void handleTeamPick('home')}
+                  className={`flex-1 rounded-lg py-3 font-semibold transition-colors ${
+                    selectedTeam === 'home'
+                      ? 'bg-kelme-red text-white'
+                      : 'bg-kelme-gray-100 hover:bg-kelme-gray-200'
+                  } disabled:opacity-50`}
+                >
+                  {homeTeam.name}
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => void handleTeamPick('away')}
+                  className={`flex-1 rounded-lg py-3 font-semibold transition-colors ${
+                    selectedTeam === 'away'
+                      ? 'bg-kelme-red text-white'
+                      : 'bg-kelme-gray-100 hover:bg-kelme-gray-200'
+                  } disabled:opacity-50`}
+                >
+                  {awayTeam.name}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="font-ui text-sm font-medium text-kelme-gray-700">Equipo</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => void handleTeamPick('home')}
+                  className={`flex-1 rounded-lg py-3 font-semibold transition-colors ${
+                    selectedTeam === 'home'
+                      ? 'bg-kelme-red text-white'
+                      : 'bg-kelme-gray-100 hover:bg-kelme-gray-200'
+                  } disabled:opacity-50`}
+                >
+                  {homeTeam.name}
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => void handleTeamPick('away')}
+                  className={`flex-1 rounded-lg py-3 font-semibold transition-colors ${
+                    selectedTeam === 'away'
+                      ? 'bg-kelme-red text-white'
+                      : 'bg-kelme-gray-100 hover:bg-kelme-gray-200'
+                  } disabled:opacity-50`}
+                >
+                  {awayTeam.name}
+                </button>
+              </div>
+            </div>
+          )}
 
           {(detailMode === 'player' || detailMode === 'goal') && selectedTeam && activeTeam && (
             <div className="space-y-2">

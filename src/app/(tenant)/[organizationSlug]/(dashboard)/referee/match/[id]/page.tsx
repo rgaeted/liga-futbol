@@ -1,8 +1,10 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
+import { EventType } from '@prisma/client'
 import { MatchControlPanel } from '@/components/referee/MatchControlPanel'
 import { matchSideNames } from '@/lib/match-label'
+import { kickoffTeamFromEvent } from '@/lib/match-kickoff'
 import { buildMatchTeamMvps, MATCH_MVP_INCLUDE } from '@/lib/match-mvp'
 import { resolveRefereeEventTypes } from '@/lib/match-referee-events'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
@@ -50,6 +52,14 @@ export default async function RefereeMatchPage({
   if (!match) notFound()
   if (match.refereeId !== session.user.id) redirect(orgPath(organizationSlug, '/referee'))
 
+  const firstKickoffEvent = await db.matchEvent.findFirst({
+    where: { matchId: match.id, type: EventType.KICKOFF },
+    orderBy: { createdAt: 'asc' },
+  })
+  const initialFirstHalfKickoffTeam = firstKickoffEvent
+    ? kickoffTeamFromEvent(firstKickoffEvent, match)
+    : null
+
   const { home, away } = matchSideNames(match)
   const teamMvps = buildMatchTeamMvps({
     matchId: match.id,
@@ -64,6 +74,7 @@ export default async function RefereeMatchPage({
     initialHomeScore: match.homeScore,
     initialAwayScore: match.awayScore,
     initialStatus: match.status,
+    initialFirstHalfKickoffTeam,
     initialTeamMvps: teamMvps,
     initialClock: {
       status: match.status,
