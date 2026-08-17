@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import type { PlatformUserSearchResult } from '@/lib/platform-org-admins'
 
 type OrgOption = { id: string; slug: string; name: string }
 
@@ -9,6 +10,71 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
   const router = useRouter()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<PlatformUserSearchResult[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<PlatformUserSearchResult | null>(null)
+  const searchRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (selectedUser) return
+
+    const term = searchQuery.trim()
+    if (term.length < 2) {
+      setSearchResults([])
+      setSearchOpen(false)
+      return
+    }
+
+    setSearchLoading(true)
+    const timer = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/plataforma/users/search?q=${encodeURIComponent(term)}`)
+        if (!res.ok) {
+          setSearchResults([])
+          setSearchOpen(false)
+          return
+        }
+        const body = (await res.json()) as PlatformUserSearchResult[]
+        setSearchResults(body)
+        setSearchOpen(true)
+      } catch {
+        setSearchResults([])
+        setSearchOpen(false)
+      } finally {
+        setSearchLoading(false)
+      }
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [searchQuery, selectedUser])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!searchRef.current?.contains(event.target as Node)) {
+        setSearchOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  function selectUser(user: PlatformUserSearchResult) {
+    setSelectedUser(user)
+    setSearchQuery('')
+    setSearchResults([])
+    setSearchOpen(false)
+    setError('')
+  }
+
+  function clearSelectedUser() {
+    setSelectedUser(null)
+    setSearchQuery('')
+    setSearchResults([])
+    setSearchOpen(false)
+    setError('')
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -44,6 +110,7 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
 
     router.refresh()
     form.reset()
+    clearSelectedUser()
     setLoading(false)
   }
 
@@ -51,20 +118,119 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
     <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6">
       <h2 className="font-display text-lg font-semibold text-zinc-900">Dar acceso</h2>
       <p className="font-ui text-sm text-zinc-600">
-        Si el correo ya existe, se reutiliza la cuenta (sin cambiar nombre ni contraseña) y se suma
-        como administrador de las empresas que marques.
+        Busca un usuario inscrito o ingresa los datos de una cuenta nueva. Si el correo ya existe, se
+        reutiliza la cuenta sin cambiar nombre ni contraseña.
       </p>
+
+      {selectedUser ? (
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="font-ui text-sm font-medium text-zinc-900">{selectedUser.name}</p>
+              <p className="font-ui text-sm text-zinc-600">{selectedUser.email}</p>
+              {selectedUser.memberships.length > 0 ? (
+                <p className="mt-1 font-ui text-xs text-zinc-500">
+                  Ya participa en:{' '}
+                  {selectedUser.memberships
+                    .map((m) => `${m.organization.name} (${m.role})`)
+                    .join(', ')}
+                </p>
+              ) : (
+                <p className="mt-1 font-ui text-xs text-zinc-500">Sin membresías en empresas.</p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={clearSelectedUser}
+              className="font-ui text-sm text-zinc-600 hover:text-zinc-900"
+            >
+              Cambiar usuario
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div ref={searchRef} className="relative">
+          <label htmlFor="user-search" className="font-ui text-sm font-medium text-zinc-700">
+            Buscar usuario inscrito
+          </label>
+          <input
+            id="user-search"
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => searchResults.length > 0 && setSearchOpen(true)}
+            placeholder="Nombre o correo (mín. 2 caracteres)"
+            autoComplete="off"
+            className="input-kelme mt-1"
+          />
+          {searchLoading ? (
+            <p className="mt-1 font-ui text-xs text-zinc-500">Buscando…</p>
+          ) : null}
+          {searchOpen && searchResults.length > 0 ? (
+            <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg">
+              {searchResults.map((user) => (
+                <li key={user.id}>
+                  <button
+                    type="button"
+                    onClick={() => selectUser(user)}
+                    className="flex w-full flex-col items-start px-4 py-3 text-left hover:bg-zinc-50"
+                  >
+                    <span className="font-ui text-sm font-medium text-zinc-900">{user.name}</span>
+                    <span className="font-ui text-sm text-zinc-600">{user.email}</span>
+                    {user.memberships.length > 0 ? (
+                      <span className="mt-0.5 font-ui text-xs text-zinc-500">
+                        {user.memberships.map((m) => m.organization.name).join(', ')}
+                      </span>
+                    ) : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {searchOpen && !searchLoading && searchQuery.trim().length >= 2 && searchResults.length === 0 ? (
+            <p className="mt-1 font-ui text-xs text-zinc-500">No encontramos usuarios con ese criterio.</p>
+          ) : null}
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <input name="email" type="email" placeholder="Email" required className="input-kelme" />
-        <input name="name" placeholder="Nombre" required minLength={2} className="input-kelme" />
         <input
-          name="password"
-          type="password"
-          placeholder="Contraseña (solo cuenta nueva)"
-          minLength={6}
-          className="input-kelme sm:col-span-2"
+          name="email"
+          type="email"
+          placeholder="Email"
+          required
+          readOnly={Boolean(selectedUser)}
+          defaultValue={selectedUser?.email ?? ''}
+          key={selectedUser?.id ?? 'new-email'}
+          className="input-kelme read-only:bg-zinc-50 read-only:text-zinc-700"
         />
+        <input
+          name="name"
+          placeholder="Nombre"
+          required
+          minLength={2}
+          readOnly={Boolean(selectedUser)}
+          defaultValue={selectedUser?.name ?? ''}
+          key={selectedUser?.id ?? 'new-name'}
+          className="input-kelme read-only:bg-zinc-50 read-only:text-zinc-700"
+        />
+        {!selectedUser ? (
+          <input
+            name="password"
+            type="password"
+            placeholder="Contraseña (solo cuenta nueva)"
+            minLength={6}
+            className="input-kelme sm:col-span-2"
+          />
+        ) : null}
       </div>
+
+      {!selectedUser ? (
+        <p className="font-ui text-xs text-zinc-500">
+          Si no encuentras al usuario, completa email, nombre y contraseña para crear una cuenta nueva.
+        </p>
+      ) : null}
+
       <fieldset className="space-y-2">
         <legend className="font-ui text-sm font-medium text-zinc-700">Empresas</legend>
         {organizations.length === 0 ? (

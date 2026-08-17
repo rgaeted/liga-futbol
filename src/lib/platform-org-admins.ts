@@ -30,6 +30,16 @@ export type OrgAdminUser = {
   organizations: OrgAdminOrganization[]
 }
 
+export type PlatformUserSearchResult = {
+  id: string
+  email: string
+  name: string
+  memberships: Array<{
+    role: MembershipRole
+    organization: { id: string; slug: string; name: string }
+  }>
+}
+
 const orgAdminSelect = {
   id: true,
   email: true,
@@ -143,6 +153,36 @@ export async function grantOrgAdminAccess(input: {
     created: !existing,
     user: await loadOrgAdminUser(input.email),
   }
+}
+
+export async function searchPlatformUsers(query: string): Promise<PlatformUserSearchResult[]> {
+  const term = query.trim()
+  if (term.length < 2) return []
+
+  const users = await db.user.findMany({
+    where: {
+      OR: [
+        { name: { contains: term, mode: 'insensitive' } },
+        { email: { contains: term, mode: 'insensitive' } },
+      ],
+    },
+    orderBy: { name: 'asc' },
+    take: 10,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      memberships: {
+        select: {
+          role: true,
+          organization: { select: { id: true, slug: true, name: true } },
+        },
+        orderBy: { organization: { name: 'asc' } },
+      },
+    },
+  })
+
+  return users
 }
 
 export async function listOrgAdmins(): Promise<OrgAdminUser[]> {

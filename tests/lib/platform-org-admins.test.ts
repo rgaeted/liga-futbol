@@ -20,6 +20,7 @@ import {
   grantOrgAdminAccess,
   listOrgAdmins,
   revokeOrgAdminMembership,
+  searchPlatformUsers,
 } from '@/lib/platform-org-admins'
 
 const kelme = {
@@ -303,5 +304,48 @@ describe('revokeOrgAdminMembership', () => {
       code: 'not_org_admin',
     })
     expect(db.organizationMembership.delete).not.toHaveBeenCalled()
+  })
+})
+
+describe('searchPlatformUsers', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns empty for short queries', async () => {
+    expect(await searchPlatformUsers('a')).toEqual([])
+    expect(db.user.findMany).not.toHaveBeenCalled()
+  })
+
+  it('searches by name or email', async () => {
+    vi.mocked(db.user.findMany).mockResolvedValue([
+      {
+        id: 'user-1',
+        email: 'ana@liga.com',
+        name: 'Ana Pérez',
+        memberships: [
+          {
+            role: MembershipRole.PLAYER,
+            organization: { id: 'org-kelme', slug: 'kelme', name: 'Torneos Kelme' },
+          },
+        ],
+      },
+    ] as never)
+
+    const results = await searchPlatformUsers('ana')
+
+    expect(results).toHaveLength(1)
+    expect(results[0].email).toBe('ana@liga.com')
+    expect(db.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          OR: [
+            { name: { contains: 'ana', mode: 'insensitive' } },
+            { email: { contains: 'ana', mode: 'insensitive' } },
+          ],
+        },
+        take: 10,
+      }),
+    )
   })
 })
