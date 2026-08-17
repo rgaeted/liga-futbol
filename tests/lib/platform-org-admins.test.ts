@@ -8,7 +8,8 @@ vi.mock('bcryptjs', () => ({
 vi.mock('@/lib/db', () => ({
   db: {
     organization: { findMany: vi.fn() },
-    user: { findUnique: vi.fn() },
+    user: { findUnique: vi.fn(), findMany: vi.fn() },
+    organizationMembership: { findUnique: vi.fn(), delete: vi.fn() },
     $transaction: vi.fn(),
   },
 }))
@@ -17,6 +18,8 @@ import { db } from '@/lib/db'
 import {
   PlatformOrgAdminError,
   grantOrgAdminAccess,
+  listOrgAdmins,
+  revokeOrgAdminMembership,
 } from '@/lib/platform-org-admins'
 
 const kelme = {
@@ -235,5 +238,70 @@ describe('grantOrgAdminAccess', () => {
     ).rejects.toMatchObject({ code: 'password_required' })
 
     expect(db.$transaction).not.toHaveBeenCalled()
+  })
+})
+
+describe('listOrgAdmins', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns only users with at least one ORG_ADMIN membership', async () => {
+    vi.mocked(db.user.findMany).mockResolvedValue([
+      adminUserRow({
+        memberships: [{ organization: kelme }, { organization: demo }],
+      }),
+    ] as never)
+
+    const users = await listOrgAdmins()
+    expect(users).toHaveLength(1)
+    expect(users[0].organizations).toHaveLength(2)
+    expect(db.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { memberships: { some: { role: MembershipRole.ORG_ADMIN } } },
+        orderBy: { name: 'asc' },
+      }),
+    )
+  })
+})
+
+describe('revokeOrgAdminMembership', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('deletes an ORG_ADMIN membership', async () => {
+    vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
+      id: 'mem-1',
+      role: MembershipRole.ORG_ADMIN,
+    } as never)
+    vi.mocked(db.organizationMembership.delete).mockResolvedValue({} as never)
+
+    await revokeOrgAdminMembership('user-1', 'org-kelme')
+
+    expect(db.organizationMembership.delete).toHaveBeenCalledWith({
+      where: { id: 'mem-1' },
+    })
+  })
+
+  it('returns not_found when membership is missing', async () => {
+    vi.mocked(db.organizationMembership.findUnique).mockResolvedValue(null)
+
+    await expect(revokeOrgAdminMembership('user-1', 'org-kelme')).rejects.toMatchObject({
+      code: 'not_found',
+    })
+    expect(db.organizationMembership.delete).not.toHaveBeenCalled()
+  })
+
+  it('returns not_org_admin when the role is not ORG_ADMIN', async () => {
+    vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
+      id: 'mem-1',
+      role: MembershipRole.PLAYER,
+    } as never)
+
+    await expect(revokeOrgAdminMembership('user-1', 'org-kelme')).rejects.toMatchObject({
+      code: 'not_org_admin',
+    })
+    expect(db.organizationMembership.delete).not.toHaveBeenCalled()
   })
 })

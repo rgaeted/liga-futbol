@@ -144,3 +144,30 @@ export async function grantOrgAdminAccess(input: {
     user: await loadOrgAdminUser(input.email),
   }
 }
+
+export async function listOrgAdmins(): Promise<OrgAdminUser[]> {
+  const users = await db.user.findMany({
+    where: { memberships: { some: { role: MembershipRole.ORG_ADMIN } } },
+    orderBy: { name: 'asc' },
+    select: orgAdminSelect,
+  })
+  return users.map(toOrgAdminUser)
+}
+
+export async function revokeOrgAdminMembership(
+  userId: string,
+  organizationId: string,
+): Promise<void> {
+  const membership = await db.organizationMembership.findUnique({
+    where: {
+      organizationId_userId: { organizationId, userId },
+    },
+  })
+  if (!membership) {
+    throw new PlatformOrgAdminError('not_found')
+  }
+  if (membership.role !== MembershipRole.ORG_ADMIN) {
+    throw new PlatformOrgAdminError('not_org_admin')
+  }
+  await db.organizationMembership.delete({ where: { id: membership.id } })
+}
