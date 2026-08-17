@@ -252,8 +252,12 @@ function buildStandings(
     }))
 }
 
-export async function getAdminDashboardData(seasonId?: string | null): Promise<AdminDashboardData> {
+export async function getAdminDashboardData(
+  organizationId: string,
+  seasonId?: string | null,
+): Promise<AdminDashboardData> {
   const seasons = await db.season.findMany({
+    where: { organizationId },
     select: { id: true, name: true, isActive: true, startDate: true },
     orderBy: { startDate: 'desc' },
   })
@@ -265,8 +269,14 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
     null
 
   const leagueSeasonWhere = selectedSeason
-    ? { seasonId: selectedSeason.id, matchType: MatchType.LEAGUE }
+    ? {
+        organizationId,
+        seasonId: selectedSeason.id,
+        matchType: MatchType.LEAGUE,
+      }
     : null
+
+  const orgWhere = { organizationId }
 
   const [
     teamCount,
@@ -280,14 +290,14 @@ export async function getAdminDashboardData(seasonId?: string | null): Promise<A
     scheduledCount,
     totalSeasonMatches,
   ] = await Promise.all([
-    db.team.count(),
-    db.player.count(),
-    db.friendlyPlayer.count(),
-    db.friendlyCategory.count({ where: { isActive: true } }),
-    db.user.count(),
-    db.friendlyPlayer.count({ where: { photoMimeType: null } }),
+    db.team.count({ where: orgWhere }),
+    db.player.count({ where: orgWhere }),
+    db.friendlyPlayer.count({ where: orgWhere }),
+    db.friendlyCategory.count({ where: { ...orgWhere, isActive: true } }),
+    db.organizationMembership.count({ where: orgWhere }),
+    db.friendlyPlayer.count({ where: { ...orgWhere, photoMimeType: null } }),
     db.player.findMany({
-      where: { goals: { gt: 0 } },
+      where: { ...orgWhere, goals: { gt: 0 } },
       orderBy: [{ goals: 'desc' }, { updatedAt: 'desc' }],
       take: 4,
       select: {
