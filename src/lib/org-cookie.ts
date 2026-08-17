@@ -1,4 +1,4 @@
-export const ORG_COOKIE = 'admintorneo.org'
+export const ORG_COOKIE = 'ligalab.org'
 
 export function orgCookieOptions(organizationId: string) {
   return {
