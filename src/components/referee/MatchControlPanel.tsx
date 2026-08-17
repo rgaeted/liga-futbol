@@ -5,6 +5,7 @@ import { EventType } from '@prisma/client'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { MatchTeamMvpEditor } from '@/components/match/MatchTeamMvpEditor'
 import { EVENT_TYPE_LABELS, eventNeedsPlayer } from '@/lib/event-labels'
+import { readApiError } from '@/lib/api-error'
 import { refereePanelEvents, REFEREE_CONTROL_EVENT_TYPES } from '@/lib/match-referee-events'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
@@ -71,6 +72,7 @@ export function MatchControlPanel({
   const [selectedPlayer, setSelectedPlayer] = useState('')
   const [selectedAssist, setSelectedAssist] = useState('')
   const [loading, setLoading] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   const activeTeam = selectedTeam === 'home' ? homeTeam : selectedTeam === 'away' ? awayTeam : null
   const detailMode = pendingEvent ? getDetailMode(pendingEvent) : null
@@ -132,11 +134,17 @@ export function MatchControlPanel({
           }
 
     setLoading(true)
+    setActionError('')
     const res = await fetch(`/api/matches/${matchId}/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
+    if (!res.ok) {
+      setActionError(await readApiError(res, 'No se pudo registrar el evento'))
+      setLoading(false)
+      return
+    }
     const data = await res.json()
     if (data.match) {
       updateFromMatchResponse(data.match)
@@ -147,6 +155,10 @@ export function MatchControlPanel({
 
   function handleEventClick(type: EventType) {
     if (instantEvents.includes(type)) {
+      void submitEvent(type)
+      return
+    }
+    if (type === EventType.KICKOFF && status === 'SCHEDULED') {
       void submitEvent(type)
       return
     }
@@ -406,6 +418,12 @@ export function MatchControlPanel({
           )}
         </div>
       )}
+
+      {actionError ? (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          {actionError}
+        </p>
+      ) : null}
 
       <MatchTeamMvpEditor
         matchId={matchId}

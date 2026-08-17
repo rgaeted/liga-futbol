@@ -5,6 +5,8 @@ import { MatchControlPanel } from '@/components/referee/MatchControlPanel'
 import { matchSideNames } from '@/lib/match-label'
 import { buildMatchTeamMvps, MATCH_MVP_INCLUDE } from '@/lib/match-mvp'
 import { resolveRefereeEventTypes } from '@/lib/match-referee-events'
+import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
+import { orgPath } from '@/lib/tenant-paths'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 async function getTeamPlayers(matchId: string, teamId: string) {
@@ -30,12 +32,12 @@ async function getTeamPlayers(matchId: string, teamId: string) {
 export default async function RefereeMatchPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ organizationSlug: string; id: string }>
 }) {
   const session = await auth()
   if (!session) redirect('/login')
 
-  const { id } = await params
+  const { organizationSlug, id } = await params
   const match = await db.match.findUnique({
     where: { id },
     include: {
@@ -46,7 +48,7 @@ export default async function RefereeMatchPage({
   })
 
   if (!match) notFound()
-  if (match.refereeId !== session.user.id) redirect('/referee')
+  if (match.refereeId !== session.user.id) redirect(orgPath(organizationSlug, '/referee'))
 
   const { home, away } = matchSideNames(match)
   const teamMvps = buildMatchTeamMvps({
@@ -80,7 +82,9 @@ export default async function RefereeMatchPage({
     const sideB = participations.filter((p) => p.side === 'B')
 
     return (
-      <MatchControlPanel
+      <>
+        <SyncOrgCookie organizationId={match.organizationId} />
+        <MatchControlPanel
         {...panelProps}
         matchType="FRIENDLY"
         homeTeam={{
@@ -99,7 +103,8 @@ export default async function RefereeMatchPage({
             label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`,
           })),
         }}
-      />
+        />
+      </>
     )
   }
 
@@ -113,25 +118,28 @@ export default async function RefereeMatchPage({
   ])
 
   return (
-    <MatchControlPanel
-      {...panelProps}
-      matchType="LEAGUE"
-      homeTeam={{
-        id: match.homeTeam.id,
-        name: match.homeTeam.name,
-        players: homePlayers.map((p) => ({
-          id: p.id,
-          label: playerDisplayName(p),
-        })),
-      }}
-      awayTeam={{
-        id: match.awayTeam.id,
-        name: match.awayTeam.name,
-        players: awayPlayers.map((p) => ({
-          id: p.id,
-          label: playerDisplayName(p),
-        })),
-      }}
-    />
+    <>
+      <SyncOrgCookie organizationId={match.organizationId} />
+      <MatchControlPanel
+        {...panelProps}
+        matchType="LEAGUE"
+        homeTeam={{
+          id: match.homeTeam.id,
+          name: match.homeTeam.name,
+          players: homePlayers.map((p) => ({
+            id: p.id,
+            label: playerDisplayName(p),
+          })),
+        }}
+        awayTeam={{
+          id: match.awayTeam.id,
+          name: match.awayTeam.name,
+          players: awayPlayers.map((p) => ({
+            id: p.id,
+            label: playerDisplayName(p),
+          })),
+        }}
+      />
+    </>
   )
 }
