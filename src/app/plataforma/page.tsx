@@ -12,7 +12,7 @@ export default async function PlataformaPage() {
       <div>
         <h1 className="font-display text-2xl font-bold text-zinc-900">Empresas</h1>
         <p className="mt-1 font-ui text-sm text-zinc-600">
-          Gestiona las organizaciones que administran ligas en AdminTorneo.
+          Gestiona las organizaciones que administran ligas en LigaLab.
         </p>
       </div>
 

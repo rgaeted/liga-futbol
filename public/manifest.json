@@ -1,6 +1,6 @@
 {
-  "name": "AdminTorneo",
-  "short_name": "AdminTorneo",
+  "name": "LigaLab",
+  "short_name": "LigaLab",
   "description": "Plataforma SaaS para administrar ligas de fútbol con marcador en vivo",
   "start_url": "/",
   "display": "standalone",

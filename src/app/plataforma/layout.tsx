@@ -14,7 +14,7 @@ export default async function PlataformaLayout({ children }: { children: React.R
     <div className="min-h-screen bg-zinc-50">
       <header className="border-b border-zinc-200 bg-zinc-900 text-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <span className="font-display text-lg font-bold">AdminTorneo</span>
+          <span className="font-display text-lg font-bold">LigaLab</span>
           <nav className="flex items-center gap-4 font-ui text-sm">
             <Link href="/plataforma" className="text-zinc-300 hover:text-white">
               Empresas

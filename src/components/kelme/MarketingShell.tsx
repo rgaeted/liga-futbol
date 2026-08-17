@@ -6,7 +6,7 @@ type Props = {
   active?: 'home' | 'ayuda'
 }
 
-export function MarketingShell({ children, productName = 'AdminTorneo', active }: Props) {
+export function MarketingShell({ children, productName = 'LigaLab', active }: Props) {
   return (
     <div className="flex min-h-screen flex-col bg-kelme-bg">
       <header className="border-b border-kelme-border bg-kelme-surface">

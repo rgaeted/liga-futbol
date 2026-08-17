@@ -5,14 +5,14 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'AdminTorneo',
-    template: '%s · AdminTorneo',
+    default: 'LigaLab',
+    template: '%s · LigaLab',
   },
   description: 'Plataforma SaaS para administrar ligas de fútbol con marcador en vivo',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    title: 'AdminTorneo',
+    title: 'LigaLab',
   },
 }
 

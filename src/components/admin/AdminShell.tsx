@@ -30,11 +30,11 @@ export function AdminShell({ nav, userName, signOutAction, children }: Props) {
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-7 gap-y-3 px-4 py-2.5 sm:px-7 sm:py-2.5">
           <div className="flex shrink-0 items-center gap-3">
             <div className="grid h-[38px] w-[38px] place-items-center rounded-[10px] bg-org-primary font-[family-name:var(--font-montserrat)] text-xl font-bold tracking-wide text-white">
-              AT
+              LL
             </div>
             <div className="flex flex-col leading-tight">
               <span className="font-display text-[21px] font-bold uppercase tracking-[0.06em]">
-                AdminTorneo
+                LigaLab
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
                 Gestión deportiva

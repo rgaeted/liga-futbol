@@ -45,7 +45,7 @@ function LoginForm() {
     <form onSubmit={handleSubmit} className="card-kelme space-y-4 p-8 shadow-sm">
       <div className="text-center">
         <h1 className="font-display text-xl font-bold text-kelme-gray-900">Ingresar</h1>
-        <p className="mt-1 font-ui text-sm text-kelme-gray-400">Accede a AdminTorneo</p>
+        <p className="mt-1 font-ui text-sm text-kelme-gray-400">Accede a LigaLab</p>
       </div>
       <input name="email" type="email" placeholder="Email" required className="input-kelme" />
       <input name="password" type="password" placeholder="Contraseña" required className="input-kelme" />
@@ -68,7 +68,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-kelme-bg px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <span className="font-display text-2xl font-bold text-kelme-gray-900">AdminTorneo</span>
+          <span className="font-display text-2xl font-bold text-kelme-gray-900">LigaLab</span>
         </div>
         <Suspense
           fallback={
