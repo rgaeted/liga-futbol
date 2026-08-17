@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 import { submitJson } from '@/components/admin/submit'
 
 import { formatFriendlyPlayerLabel } from '@/lib/friendly-player-options'
@@ -48,15 +47,25 @@ export function RegisterForm({ available }: Props) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-kelme-bg px-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#f5f5f7] px-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 flex justify-center">
-          <KelmeLogo size="lg" />
-        </div>
-        <form onSubmit={handleSubmit} className="card-kelme space-y-4 p-8 shadow-sm">
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#c91f26] text-xl font-black text-white">
+            LL
+          </div>
           <div className="text-center">
-            <h1 className="font-display text-xl font-bold text-kelme-gray-900">Crear cuenta</h1>
-            <p className="mt-1 font-ui text-sm text-kelme-gray-400">
+            <span className="font-display text-2xl font-black tracking-[0.08em] text-[#17171a]">
+              LIGALAB
+            </span>
+            <p className="mt-0.5 text-[10px] font-extrabold tracking-[0.13em] text-[#aaa]">
+              GESTIÓN DEPORTIVA
+            </p>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit} className="card-kelme space-y-4 p-8">
+          <div className="text-center">
+            <h1 className="font-display text-xl font-black text-[#17171a]">Crear cuenta</h1>
+            <p className="mt-1 font-ui text-sm text-[#8d8d96]">
               Reclama tu perfil de jugador amistoso
             </p>
           </div>
@@ -70,7 +79,7 @@ export function RegisterForm({ available }: Props) {
             className="input-kelme"
           />
           <div className="space-y-1">
-            <label htmlFor="friendlyPlayerId" className="font-ui text-sm text-kelme-gray-600">
+            <label htmlFor="friendlyPlayerId" className="font-ui text-sm font-bold text-[#505058]">
               Elige tu perfil
             </label>
             <select
@@ -92,7 +101,7 @@ export function RegisterForm({ available }: Props) {
               ))}
             </select>
           </div>
-          {error && <p className="font-ui text-sm text-kelme-red">{error}</p>}
+          {error && <p className="font-ui text-sm font-semibold text-[#c91f26]">{error}</p>}
           <button
             type="submit"
             disabled={loading || available.length === 0}
@@ -100,9 +109,9 @@ export function RegisterForm({ available }: Props) {
           >
             {loading ? 'Creando cuenta…' : 'Crear cuenta'}
           </button>
-          <p className="text-center font-ui text-sm text-kelme-gray-400">
+          <p className="text-center font-ui text-sm text-[#8d8d96]">
             ¿Ya tienes cuenta?{' '}
-            <Link href="/login" className="font-medium text-kelme-red hover:underline">
+            <Link href="/login" className="font-bold text-[#c91f26] hover:underline">
               Ingresa
             </Link>
           </p>

@@ -25,22 +25,29 @@ export default async function OrganizacionesPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#f5f5f7] px-4 py-12">
       <div className="w-full max-w-lg space-y-6">
-        <div className="text-center">
-          <h1 className="font-display text-2xl font-bold text-zinc-900">Elige una empresa</h1>
-          <p className="mt-1 font-ui text-sm text-zinc-600">
-            Tienes acceso a varias organizaciones. Selecciona con cuál quieres trabajar.
-          </p>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#c91f26] text-xl font-black text-white">
+            LL
+          </div>
+          <div>
+            <h1 className="font-display text-2xl font-black text-[#17171a]">Elige una empresa</h1>
+            <p className="mt-1 font-ui text-sm text-[#777]">
+              Tienes acceso a varias organizaciones. Selecciona con cuál quieres trabajar.
+            </p>
+          </div>
         </div>
-        <OrganizationPicker
-          memberships={active.map((m) => ({
-            organizationId: m.organizationId,
-            name: m.organization.name,
-            slug: m.organization.slug,
-            role: m.role,
-          }))}
-        />
+        <div className="card-kelme p-6">
+          <OrganizationPicker
+            memberships={active.map((m) => ({
+              organizationId: m.organizationId,
+              name: m.organization.name,
+              slug: m.organization.slug,
+              role: m.role,
+            }))}
+          />
+        </div>
       </div>
     </main>
   )

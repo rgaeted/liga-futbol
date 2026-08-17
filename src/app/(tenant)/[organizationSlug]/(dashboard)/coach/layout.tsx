@@ -8,8 +8,8 @@ import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 
 function buildCoachNav(slug: string) {
   return [
-    { href: orgPath(slug, '/coach'), label: 'Partidos' },
-    { href: orgPath(slug, '/coach/evaluations'), label: 'Evaluaciones' },
+    { href: orgPath(slug, '/coach'), label: 'Partidos', icon: 'PA' },
+    { href: orgPath(slug, '/coach/evaluations'), label: 'Evaluaciones', icon: 'EV' },
   ]
 }
 
@@ -36,7 +36,14 @@ export default async function CoachLayout({
   }
 
   return (
-    <DashboardShell nav={buildCoachNav(organizationSlug)} signOutAction={handleSignOut}>
+    <DashboardShell
+      nav={buildCoachNav(organizationSlug)}
+      navGroupLabel="Directo técnico"
+      userName={session.user.name ?? 'DT'}
+      roleLabel="Director técnico"
+      helpHref={orgPath(organizationSlug, '/ayuda')}
+      signOutAction={handleSignOut}
+    >
       <SyncOrgCookie organizationId={membership.organizationId} />
       {children}
     </DashboardShell>

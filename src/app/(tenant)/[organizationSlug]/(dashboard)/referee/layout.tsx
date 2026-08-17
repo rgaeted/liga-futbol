@@ -7,7 +7,7 @@ import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 
 function buildRefereeNav(slug: string) {
-  return [{ href: orgPath(slug, '/referee'), label: 'Mis Partidos' }]
+  return [{ href: orgPath(slug, '/referee'), label: 'Mis partidos', icon: 'PA' }]
 }
 
 export default async function RefereeLayout({
@@ -33,7 +33,14 @@ export default async function RefereeLayout({
   }
 
   return (
-    <DashboardShell nav={buildRefereeNav(organizationSlug)} signOutAction={handleSignOut}>
+    <DashboardShell
+      nav={buildRefereeNav(organizationSlug)}
+      navGroupLabel="Árbitro"
+      userName={session.user.name ?? 'Árbitro'}
+      roleLabel="Árbitro"
+      helpHref={orgPath(organizationSlug, '/ayuda')}
+      signOutAction={handleSignOut}
+    >
       <SyncOrgCookie organizationId={membership.organizationId} />
       {children}
     </DashboardShell>

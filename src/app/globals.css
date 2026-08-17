@@ -1,38 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --kelme-red: #CD212A;
-  --kelme-red-dark: #A7144C;
+  --kelme-red: #c91f26;
+  --kelme-red-dark: #b01b22;
   --kelme-red-bright: #FF1E00;
-  --kelme-green: #008C45;
-  --kelme-black: #000000;
+  --kelme-green: #0f9d68;
+  --kelme-black: #17171a;
   --kelme-white: #FFFFFF;
   --org-primary: var(--kelme-red);
   --org-secondary: #ffffff;
-  --gray-900: #3D3D3D;
-  --gray-600: #54595F;
-  --gray-400: #7A7A7A;
-  --gray-100: #F5F5F5;
-  --border: #E5E5E5;
-  --background: #F5F5F5;
-  --foreground: #3D3D3D;
+  --gray-900: #17171a;
+  --gray-600: #505058;
+  --gray-400: #8d8d96;
+  --gray-100: #f5f5f7;
+  --border: #e5e5e9;
+  --background: #f5f5f7;
+  --foreground: #17171a;
   --surface: #FFFFFF;
 }
 
 @theme inline {
-  --color-kelme-red: #CD212A;
-  --color-kelme-red-dark: #A7144C;
+  --color-kelme-red: #c91f26;
+  --color-kelme-red-dark: #b01b22;
   --color-kelme-red-bright: #FF1E00;
-  --color-kelme-green: #008C45;
-  --color-kelme-black: #000000;
+  --color-kelme-green: #0f9d68;
+  --color-kelme-black: #17171a;
   --color-kelme-white: #FFFFFF;
-  --color-kelme-gray-900: #3D3D3D;
-  --color-kelme-gray-600: #54595F;
-  --color-kelme-gray-400: #7A7A7A;
-  --color-kelme-gray-100: #F5F5F5;
-  --color-kelme-border: #E5E5E5;
+  --color-kelme-gray-900: #17171a;
+  --color-kelme-gray-600: #505058;
+  --color-kelme-gray-400: #8d8d96;
+  --color-kelme-gray-100: #f5f5f7;
+  --color-kelme-border: #e5e5e9;
   --color-kelme-surface: #FFFFFF;
-  --color-kelme-bg: #F5F5F5;
+  --color-kelme-bg: #f5f5f7;
   --color-kelme-live-bg: #0D0D0D;
   --color-kelme-live-surface: #1A1A1A;
   --font-display: var(--font-montserrat);
@@ -55,19 +55,19 @@ body {
 }
 
 .btn-kelme {
-  @apply rounded-lg bg-kelme-red px-4 py-2 font-ui font-semibold text-white transition-colors hover:bg-kelme-red-dark disabled:opacity-50;
+  @apply rounded-xl bg-[#c91f26] px-4 py-3 font-ui text-sm font-extrabold text-white shadow-[0_6px_14px_#c91f2630] transition hover:bg-[#b01b22] disabled:opacity-50;
 }
 
 .btn-kelme-outline {
-  @apply rounded-lg border border-kelme-red px-4 py-2 font-ui font-semibold text-kelme-red transition-colors hover:bg-kelme-red/5 disabled:opacity-50;
+  @apply rounded-xl border border-[#dddde2] bg-white px-4 py-3 font-ui text-sm font-bold text-[#34343a] transition hover:bg-[#f7f7f9] disabled:opacity-50;
 }
 
 .input-kelme {
-  @apply w-full rounded-lg border border-kelme-border bg-kelme-white px-4 py-2 text-kelme-gray-900 outline-none focus:border-kelme-red focus:ring-2 focus:ring-kelme-red/20;
+  @apply w-full rounded-xl border border-[#dddde2] bg-white px-3.5 py-3 text-sm font-semibold text-[#34343a] outline-none placeholder:font-normal placeholder:text-[#8d8d96] focus:border-[#c91f26] focus:ring-2 focus:ring-[#c91f2620];
 }
 
 .card-kelme {
-  @apply rounded-xl border border-kelme-border bg-kelme-surface;
+  @apply rounded-[18px] border border-[#e5e5e9] bg-white;
 }
 
 .table-kelme thead {

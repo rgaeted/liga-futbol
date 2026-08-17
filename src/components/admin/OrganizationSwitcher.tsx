@@ -43,9 +43,9 @@ export function OrganizationSwitcher() {
 
   return (
     <label className="hidden items-center gap-2 sm:flex">
-      <span className="font-ui text-xs text-zinc-400">Empresa</span>
+      <span className="font-ui text-xs font-bold text-[#8d8d96]">Empresa</span>
       <select
-        className="h-[38px] max-w-[180px] rounded-[9px] border border-zinc-200 bg-white px-2 font-ui text-[13px] text-zinc-700"
+        className="h-[38px] max-w-[180px] rounded-xl border border-[#dddde2] bg-white px-2.5 font-ui text-[13px] font-semibold text-[#34343a]"
         value={memberships.find((m) => m.slug === currentSlug)?.organizationId ?? ''}
         onChange={(e) => handleChange(e.target.value)}
       >

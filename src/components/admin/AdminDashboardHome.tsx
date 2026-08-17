@@ -34,13 +34,13 @@ export function AdminDashboardHome({ data }: { data: AdminDashboardData }) {
           <AdminSeasonSelect seasons={data.seasons} value={data.seasonId} />
           <Link
             href={orgPath('/admin/matches')}
-            className="inline-flex h-[42px] items-center rounded-[10px] border border-zinc-200 bg-white px-4 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
+            className="inline-flex h-[42px] items-center rounded-xl border border-[#dddde2] bg-white px-4 font-ui text-sm font-bold text-[#34343a] hover:bg-[#f7f7f9]"
           >
             Exportar
           </Link>
           <Link
             href={orgPath('/admin/matches')}
-            className="inline-flex h-[42px] items-center rounded-[10px] bg-[#b91c1c] px-[18px] font-ui text-sm font-bold text-white shadow-[0_1px_2px_rgba(185,28,44,0.35)] hover:bg-[#9f1728]"
+            className="inline-flex h-[42px] items-center rounded-xl bg-[#c91f26] px-[18px] font-ui text-sm font-extrabold text-white shadow-[0_6px_14px_#c91f2630] hover:bg-[#b01b22]"
           >
             + Programar partido
           </Link>
@@ -49,21 +49,23 @@ export function AdminDashboardHome({ data }: { data: AdminDashboardData }) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.kpis.map((k) => (
-          <div key={k.label} className="rounded-[14px] border border-zinc-200 bg-white px-5 py-[18px]">
+          <div key={k.label} className="rounded-[18px] border border-[#e5e5e9] bg-white px-5 py-[18px]">
             <div className="mb-2.5 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{k.label}</span>
-              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-bold text-zinc-600">
+              <span className="text-[11px] font-black uppercase tracking-wide text-[#999]">
+                {k.label}
+              </span>
+              <span className="rounded-full bg-[#f4f4f6] px-2 py-0.5 text-[11px] font-bold text-[#777]">
                 {k.delta}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="font-display text-[38px] font-bold leading-none">{k.value}</span>
-              <span className="text-[13px] text-zinc-500">{k.unit}</span>
+              <span className="text-[40px] font-black leading-none">{k.value}</span>
+              <span className="text-[13px] font-semibold text-[#777]">{k.unit}</span>
             </div>
-            <div className="mt-3.5 h-[5px] overflow-hidden rounded-full bg-zinc-100">
-              <div className="h-full rounded-full bg-[#b91c1c]" style={{ width: k.pct }} />
+            <div className="mt-3.5 h-[5px] overflow-hidden rounded-full bg-[#f0f0f2]">
+              <div className="h-full rounded-full bg-[#c91f26]" style={{ width: k.pct }} />
             </div>
-            <div className="mt-2 text-xs text-zinc-400">{k.foot}</div>
+            <div className="mt-2 text-[11px] text-[#aaa]">{k.foot}</div>
           </div>
         ))}
       </div>

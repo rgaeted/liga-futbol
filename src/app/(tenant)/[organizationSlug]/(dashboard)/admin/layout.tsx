@@ -5,36 +5,64 @@ import { orgPath } from '@/lib/tenant-paths'
 import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
-import type { AdminNavItem } from '@/components/admin/AdminNav'
+import type { DashboardNavGroup } from '@/components/dashboard/dashboard-ui'
 
 export const dynamic = 'force-dynamic'
 
-export function buildAdminNav(slug: string): AdminNavItem[] {
+export function buildAdminNavGroups(slug: string): DashboardNavGroup[] {
   const base = (path: string) => orgPath(slug, path)
   return [
-    { href: base('/admin'), label: 'Inicio' },
-    { href: base('/admin/teams'), label: 'Equipos' },
-    { href: base('/admin/players'), label: 'Jugadores' },
-    { href: base('/admin/matches'), label: 'Partidos' },
-    { href: base('/admin/challenges'), label: 'Desafíos', activePrefixes: [base('/admin/challenges')] },
-    { href: base('/admin/seasons'), label: 'Temporadas' },
     {
-      href: base('/admin/content'),
-      label: 'Contenido',
-      activePrefixes: [
-        base('/admin/content'),
-        base('/admin/content/articles'),
-        base('/admin/content/galleries'),
-        base('/admin/content/sponsors'),
+      label: 'General',
+      items: [{ href: base('/admin'), label: 'Resumen', icon: 'IN' }],
+    },
+    {
+      label: 'Competición',
+      items: [
+        { href: base('/admin/teams'), label: 'Equipos', icon: 'EQ' },
+        { href: base('/admin/players'), label: 'Jugadores', icon: 'JU' },
+        { href: base('/admin/matches'), label: 'Partidos', icon: 'PA' },
+        {
+          href: base('/admin/friendly-players'),
+          label: 'Amistosos',
+          icon: 'AM',
+          activePrefixes: [base('/admin/friendly-players'), base('/admin/friendly-categories')],
+        },
+        {
+          href: base('/admin/referees'),
+          label: 'Árbitros',
+          icon: 'AR',
+          activePrefixes: [base('/admin/referees')],
+        },
       ],
     },
     {
-      href: base('/admin/friendly-players'),
-      label: 'Amistosos',
-      activePrefixes: [base('/admin/friendly-players'), base('/admin/friendly-categories')],
+      label: 'Liga',
+      items: [
+        { href: base('/admin/seasons'), label: 'Temporadas', icon: 'TE' },
+        {
+          href: base('/admin/challenges'),
+          label: 'Desafíos',
+          icon: 'DE',
+          activePrefixes: [base('/admin/challenges')],
+        },
+        {
+          href: base('/admin/content'),
+          label: 'Contenido',
+          icon: 'CO',
+          activePrefixes: [
+            base('/admin/content'),
+            base('/admin/content/articles'),
+            base('/admin/content/galleries'),
+            base('/admin/content/sponsors'),
+          ],
+        },
+      ],
     },
-    { href: base('/admin/users'), label: 'Usuarios' },
-    { href: base('/admin/referees'), label: 'Árbitros', activePrefixes: [base('/admin/referees')] },
+    {
+      label: 'Administración',
+      items: [{ href: base('/admin/users'), label: 'Usuarios', icon: 'US' }],
+    },
   ]
 }
 
@@ -63,7 +91,8 @@ export default async function AdminLayout({
 
   return (
     <AdminShell
-      nav={buildAdminNav(organizationSlug)}
+      navGroups={buildAdminNavGroups(organizationSlug)}
+      organizationSlug={organizationSlug}
       userName={session.user.name ?? 'Admin'}
       signOutAction={handleSignOut}
     >
