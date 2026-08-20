@@ -33,7 +33,11 @@ export async function GET(
         },
       },
       friendlyPlayers: {
-        include: { friendlyPlayer: true },
+        include: {
+          player: {
+            include: { person: { include: { user: { select: { name: true } } } } },
+          },
+        },
       },
       homeTeam: { select: { id: true, name: true } },
       awayTeam: { select: { id: true, name: true } },
@@ -63,10 +67,10 @@ export async function GET(
       },
     })),
     friendlyPlayers: match.friendlyPlayers.map((p) => ({
-      friendlyPlayerId: p.friendlyPlayerId,
+      playerId: p.playerId,
       side: p.side,
       slotKey: p.slotKey,
-      friendlyPlayer: p.friendlyPlayer,
+      player: p.player,
     })),
   })
 
@@ -133,7 +137,7 @@ export async function PUT(
   const uniqueness = assertUniqueSlotAssignments(
     data.slots.map((s) => ({
       slotKey: s.slotKey,
-      playerId: 'playerId' in s ? s.playerId : s.friendlyPlayerId,
+      playerId: s.playerId,
     }))
   )
   if (!uniqueness.ok) {
@@ -233,20 +237,15 @@ export async function PUT(
       )
     }
 
-    const slotFpIds = data.slots
-      .filter(
-        (s): s is { slotKey: string; friendlyPlayerId: string } =>
-          'friendlyPlayerId' in s
-      )
-      .map((s) => s.friendlyPlayerId)
-    const benchFp = data.benchFriendlyPlayerIds ?? []
-    const allFp = [...new Set([...slotFpIds, ...benchFp])]
+    const slotPlayerIds = data.slots.map((s) => s.playerId)
+    const benchIds = data.benchPlayerIds ?? []
+    const allIds = [...new Set([...slotPlayerIds, ...benchIds])]
 
-    if (allFp.length > 0) {
+    if (allIds.length > 0) {
       const parts = await db.friendlyMatchPlayer.findMany({
-        where: { matchId, side: data.side, friendlyPlayerId: { in: allFp } },
+        where: { matchId, side: data.side, playerId: { in: allIds } },
       })
-      if (parts.length !== allFp.length) {
+      if (parts.length !== allIds.length) {
         return NextResponse.json(
           { error: 'Todos los jugadores deben estar en el plantel de ese lado' },
           { status: 400 }
@@ -266,20 +265,13 @@ export async function PUT(
         data: { isStarter: false, slotKey: null },
       })
 
-      const slotByFp = new Map(
-        data.slots
-          .filter(
-            (s): s is { slotKey: string; friendlyPlayerId: string } =>
-              'friendlyPlayerId' in s
-          )
-          .map((s) => [s.friendlyPlayerId, s.slotKey])
-      )
+      const slotByPlayer = new Map(data.slots.map((s) => [s.playerId, s.slotKey]))
 
-      for (const friendlyPlayerId of allFp) {
-        const slotKey = slotByFp.get(friendlyPlayerId) ?? null
+      for (const playerId of allIds) {
+        const slotKey = slotByPlayer.get(playerId) ?? null
         await tx.friendlyMatchPlayer.update({
           where: {
-            matchId_friendlyPlayerId: { matchId, friendlyPlayerId },
+            matchId_playerId: { matchId, playerId },
           },
           data: {
             slotKey,

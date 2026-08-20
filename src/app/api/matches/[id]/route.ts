@@ -43,7 +43,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         communeCode: true,
         scheduledAt: true,
         friendlyPlayers: {
-          select: { side: true, isCaptain: true, isCoach: true, friendlyPlayerId: true },
+          select: { side: true, isCaptain: true, isCoach: true, playerId: true },
         },
       },
     })
@@ -74,7 +74,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }) as {
       scheduledAt?: Date | string
       players?: Array<{
-        friendlyPlayerId: string
+        playerId: string
         side: 'A' | 'B'
         isCaptain?: boolean
         isCoach?: boolean
@@ -114,7 +114,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         const sideAPlayers = existing.friendlyPlayers
           .filter((row) => row.side === 'A')
           .map((row) => ({
-            friendlyPlayerId: row.friendlyPlayerId,
+            playerId: row.playerId,
             side: 'A' as const,
             isCaptain: row.isCaptain,
             isCoach: row.isCoach,
@@ -149,8 +149,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         }
       }
 
-      const playerIds = mergedPlayers!.map((player) => player.friendlyPlayerId)
-      const rosterPlayers = await db.friendlyPlayer.findMany({
+      const playerIds = mergedPlayers!.map((player) => player.playerId)
+      const rosterPlayers = await db.player.findMany({
         where: { id: { in: playerIds } },
         select: {
           id: true,
@@ -163,7 +163,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       }
 
       for (const player of mergedPlayers!) {
-        const rosterPlayer = rosterPlayers.find((row) => row.id === player.friendlyPlayerId)
+        const rosterPlayer = rosterPlayers.find((row) => row.id === player.playerId)
         if (!rosterPlayer) continue
         const expectedOrgId =
           player.side === 'A' ? existing.organizationId : existing.guestOrganizationId
@@ -179,7 +179,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       const guestEntries = mergedPlayers!.filter((player) => player.side === 'B')
 
       if (hostEntries.length > 0) {
-        const hostIds = hostEntries.map((player) => player.friendlyPlayerId)
+        const hostIds = hostEntries.map((player) => player.playerId)
         const hostRosterPlayers = rosterPlayers.filter((player) => hostIds.includes(player.id))
         const membership = assertPlayersBelongToCategory(
           existing.friendlyCategoryId,

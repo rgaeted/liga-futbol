@@ -24,16 +24,10 @@ async function canEditMvp(
   return false
 }
 
-function sidePayload(matchType: MatchType, input: { playerId?: string | null; friendlyPlayerId?: string | null }) {
-  return matchType === MatchType.FRIENDLY
-    ? {
-        playerId: null,
-        friendlyPlayerId: input.friendlyPlayerId ?? null,
-      }
-    : {
-        playerId: input.playerId ?? null,
-        friendlyPlayerId: null,
-      }
+function sidePayload(input: { playerId?: string | null }) {
+  return {
+    playerId: input.playerId ?? null,
+  }
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -92,8 +86,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: rosterError }, { status: 400 })
   }
 
-  const playerFields = sidePayload(match.matchType, parsed.data)
-  const hasPlayer = Boolean(playerFields.playerId || playerFields.friendlyPlayerId)
+  const playerFields = sidePayload(parsed.data)
+  const hasPlayer = Boolean(playerFields.playerId)
 
   if (!hasPlayer) {
     await db.matchTeamMvp.deleteMany({

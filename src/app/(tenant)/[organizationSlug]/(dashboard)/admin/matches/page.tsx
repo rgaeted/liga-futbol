@@ -57,11 +57,9 @@ export default async function AdminMatchesPage({
         organization: { select: { id: true, name: true } },
         friendlyPlayers: {
           include: {
-            friendlyPlayer: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
+            player: {
+              include: {
+                person: { select: { firstName: true, lastName: true, photoMimeType: true } },
               },
             },
           },
@@ -74,15 +72,19 @@ export default async function AdminMatchesPage({
       include: { user: { select: { id: true, name: true } } },
       orderBy: { user: { name: 'asc' } },
     }),
-    db.friendlyPlayer.findMany({
+    db.player.findMany({
       where: { organizationId },
-      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+      orderBy: { person: { lastName: 'asc' } },
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
         primaryPosition: true,
-        photoMimeType: true,
+        person: {
+          select: {
+            firstName: true,
+            lastName: true,
+            photoMimeType: true,
+          },
+        },
         categories: { select: { friendlyCategoryId: true } },
       },
     }),
@@ -92,11 +94,11 @@ export default async function AdminMatchesPage({
 
   const rosterPlayers = friendlyPlayers.map((p) => ({
     id: p.id,
-    firstName: p.firstName,
-    lastName: p.lastName,
+    firstName: p.person.firstName,
+    lastName: p.person.lastName,
     categoryIds: p.categories.map((c) => c.friendlyCategoryId),
     primaryPosition: p.primaryPosition,
-    hasPhoto: Boolean(p.photoMimeType),
+    hasPhoto: Boolean(p.person.photoMimeType),
   }))
 
   return (
@@ -130,11 +132,11 @@ export default async function AdminMatchesPage({
           const friendlyPlayerRows =
             match.matchType === MatchType.FRIENDLY
               ? match.friendlyPlayers.map((part) => {
-                  const fp = part.friendlyPlayer
+                  const player = part.player
                   return {
                     participationId: part.id,
                     side: part.side,
-                    label: `${fp.firstName} ${fp.lastName}`.trim(),
+                    label: `${player.person.firstName} ${player.person.lastName}`.trim(),
                     paid: part.paid,
                     isGalleta: part.isGalleta,
                     isCaptain: part.isCaptain,
@@ -176,7 +178,7 @@ export default async function AdminMatchesPage({
                 sideBColor: match.sideBColor,
                 friendlyCategoryId: match.friendlyCategoryId,
                 playerSides: match.friendlyPlayers.map((p) => ({
-                  friendlyPlayerId: p.friendlyPlayerId,
+                  playerId: p.playerId,
                   side: p.side,
                   isCaptain: p.isCaptain,
                   isCoach: p.isCoach,

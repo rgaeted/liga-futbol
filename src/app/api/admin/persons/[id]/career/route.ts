@@ -7,7 +7,7 @@ import { MembershipRole } from '@/lib/membership-role'
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
   const { id: personId } = await params
@@ -16,63 +16,48 @@ export async function GET(
     where: { id: personId },
     include: {
       players: { select: { id: true, organizationId: true } },
-      friendlyPlayers: { select: { id: true, organizationId: true } },
     },
   })
   if (!person) {
     return NextResponse.json({ error: 'Persona no encontrada' }, { status: 404 })
   }
 
-  const hasFichaInOrg =
-    person.players.some((p) => p.organizationId === organizationId) ||
-    person.friendlyPlayers.some((p) => p.organizationId === organizationId)
-  if (!hasFichaInOrg) {
+  const playerIds = person.players
+    .filter((p) => p.organizationId === organizationId)
+    .map((p) => p.id)
+  if (playerIds.length === 0) {
     return NextResponse.json({ error: 'No puedes ver esta persona' }, { status: 403 })
   }
 
-  const leagueFichaIds = person.players
-    .filter((p) => p.organizationId === organizationId)
-    .map((p) => p.id)
-  const friendlyFichaIds = person.friendlyPlayers
-    .filter((p) => p.organizationId === organizationId)
-    .map((p) => p.id)
-
   const [callUps, friendlyParticipations, events, leagueMvps, friendlyMvps] = await Promise.all([
     db.callUp.findMany({
-      where: { playerId: { in: leagueFichaIds } },
+      where: { playerId: { in: playerIds } },
       select: { matchId: true, match: { select: { matchType: true } } },
     }),
     db.friendlyMatchPlayer.findMany({
-      where: { friendlyPlayerId: { in: friendlyFichaIds } },
+      where: { playerId: { in: playerIds } },
       select: { matchId: true, match: { select: { matchType: true } } },
     }),
     db.matchEvent.findMany({
       where: {
         OR: [
-          { playerId: { in: leagueFichaIds } },
-          { friendlyPlayerId: { in: friendlyFichaIds } },
-          { assistPlayerId: { in: leagueFichaIds } },
-          { assistFriendlyPlayerId: { in: friendlyFichaIds } },
+          { playerId: { in: playerIds } },
+          { assistPlayerId: { in: playerIds } },
         ],
       },
       select: {
         matchId: true,
         type: true,
         playerId: true,
-        friendlyPlayerId: true,
         assistPlayerId: true,
-        assistFriendlyPlayerId: true,
         match: { select: { matchType: true } },
       },
     }),
     db.matchTeamMvp.count({
-      where: { playerId: { in: leagueFichaIds }, match: { matchType: MatchType.LEAGUE } },
+      where: { playerId: { in: playerIds }, match: { matchType: MatchType.LEAGUE } },
     }),
     db.matchTeamMvp.count({
-      where: {
-        friendlyPlayerId: { in: friendlyFichaIds },
-        match: { matchType: MatchType.FRIENDLY },
-      },
+      where: { playerId: { in: playerIds }, match: { matchType: MatchType.FRIENDLY } },
     }),
   ])
 
@@ -82,8 +67,7 @@ export async function GET(
       .filter(
         (e) =>
           e.match.matchType === MatchType.LEAGUE &&
-          (leagueFichaIds.includes(e.playerId ?? '') ||
-            leagueFichaIds.includes(e.assistPlayerId ?? '')),
+          (playerIds.includes(e.playerId ?? '') || playerIds.includes(e.assistPlayerId ?? '')),
       )
       .map((e) => e.matchId),
   ]
@@ -93,8 +77,7 @@ export async function GET(
       .filter(
         (e) =>
           e.match.matchType === MatchType.FRIENDLY &&
-          (friendlyFichaIds.includes(e.friendlyPlayerId ?? '') ||
-            friendlyFichaIds.includes(e.assistFriendlyPlayerId ?? '')),
+          (playerIds.includes(e.playerId ?? '') || playerIds.includes(e.assistPlayerId ?? '')),
       )
       .map((e) => e.matchId),
   ]
@@ -107,20 +90,12 @@ export async function GET(
       isAssist: boolean
     }> = []
 
-    const isLeagueGoal =
-      leagueFichaIds.includes(event.playerId ?? '') &&
-      event.match.matchType === MatchType.LEAGUE
-    const isFriendlyGoal =
-      friendlyFichaIds.includes(event.friendlyPlayerId ?? '') &&
-      event.match.matchType === MatchType.FRIENDLY
-    const isLeagueAssist =
-      leagueFichaIds.includes(event.assistPlayerId ?? '') &&
-      event.match.matchType === MatchType.LEAGUE
-    const isFriendlyAssist =
-      friendlyFichaIds.includes(event.assistFriendlyPlayerId ?? '') &&
-      event.match.matchType === MatchType.FRIENDLY
+    const isGoal =
+      playerIds.includes(event.playerId ?? '') &&
+      (event.match.matchType === MatchType.LEAGUE || event.match.matchType === MatchType.FRIENDLY)
+    const isAssist = playerIds.includes(event.assistPlayerId ?? '')
 
-    if (isLeagueGoal || isFriendlyGoal) {
+    if (isGoal) {
       rows.push({
         matchId: event.matchId,
         matchType: event.match.matchType,
@@ -128,7 +103,7 @@ export async function GET(
         isAssist: false,
       })
     }
-    if (isLeagueAssist || isFriendlyAssist) {
+    if (isAssist) {
       rows.push({
         matchId: event.matchId,
         matchType: event.match.matchType,

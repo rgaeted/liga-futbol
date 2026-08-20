@@ -281,7 +281,6 @@ export async function getAdminDashboardData(
   const [
     teamCount,
     playerCount,
-    friendlyPlayerCount,
     friendlyCategoryCount,
     userCount,
     friendlyWithoutPhoto,
@@ -292,10 +291,14 @@ export async function getAdminDashboardData(
   ] = await Promise.all([
     db.team.count({ where: orgWhere }),
     db.player.count({ where: orgWhere }),
-    db.friendlyPlayer.count({ where: orgWhere }),
     db.friendlyCategory.count({ where: { ...orgWhere, isActive: true } }),
     db.organizationMembership.count({ where: orgWhere }),
-    db.friendlyPlayer.count({ where: { ...orgWhere, photoMimeType: null } }),
+    db.player.count({
+      where: {
+        ...orgWhere,
+        person: { photoMimeType: null },
+      },
+    }),
     db.player.findMany({
       where: { ...orgWhere, goals: { gt: 0 } },
       orderBy: [{ goals: 'desc' }, { updatedAt: 'desc' }],
@@ -436,9 +439,9 @@ export async function getAdminDashboardData(
       label: 'Jugadores',
       value: String(playerCount),
       unit: 'inscritos',
-      delta: `+${friendlyPlayerCount} amist.`,
+      delta: `${friendlyCategoryCount} cat.`,
       pct: playerCount > 0 ? '100%' : '0%',
-      foot: `${friendlyPlayerCount} en pool amistoso`,
+      foot: `${friendlyWithoutPhoto} sin foto`,
     },
     {
       label: 'Partidos',
@@ -486,8 +489,8 @@ export async function getAdminDashboardData(
     {
       tag: 'AM',
       title: 'Amistosos',
-      meta: `${friendlyCategoryCount} categorías · ${friendlyPlayerCount} jugadores`,
-      href: '/admin/friendly-players',
+      meta: `${friendlyCategoryCount} categorías · ${playerCount} jugadores`,
+      href: '/admin/players',
     },
     {
       tag: 'US',

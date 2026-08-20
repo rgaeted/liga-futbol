@@ -2,14 +2,13 @@
 import { RegisterForm } from './RegisterForm'
 
 export default async function RegisterPage() {
-  const available = await db.friendlyPlayer.findMany({
+  const available = await db.player.findMany({
     where: { person: { userId: null } },
-    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    orderBy: [{ person: { lastName: 'asc' } }, { person: { firstName: 'asc' } }],
     select: {
       id: true,
-      firstName: true,
-      lastName: true,
       primaryPosition: true,
+      person: { select: { firstName: true, lastName: true } },
       categories: {
         include: { friendlyCategory: { select: { name: true } } },
       },
@@ -20,8 +19,8 @@ export default async function RegisterPage() {
     <RegisterForm
       available={available.map((p) => ({
         id: p.id,
-        firstName: p.firstName,
-        lastName: p.lastName,
+        firstName: p.person.firstName,
+        lastName: p.person.lastName,
         primaryPosition: p.primaryPosition,
         categoryName: p.categories.map((c) => c.friendlyCategory.name).join(', '),
       }))}

@@ -9,6 +9,7 @@ import { footballFormatLabel } from '@/lib/football-format'
 import { FriendlyLineupEditor } from '@/components/admin/FriendlyLineupEditor'
 import { requireOrganizationId } from '@/lib/tenant-access'
 import { orgPath } from '@/lib/tenant-paths'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,7 +37,11 @@ export default async function PlayerFriendlyLineupPage({
     where: { id: matchId },
     include: {
       formations: true,
-      friendlyPlayers: { include: { friendlyPlayer: true } },
+      friendlyPlayers: {
+        include: {
+          player: { include: PLAYER_PERSON_NAME_INCLUDE },
+        },
+      },
     },
   })
 
@@ -78,13 +83,13 @@ export default async function PlayerFriendlyLineupPage({
         formations={match.formations}
         editableSide={coachSide}
         participations={match.friendlyPlayers.map((p) => ({
-          id: p.friendlyPlayerId,
+          id: p.playerId,
           side: p.side,
-          label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
+          label: playerDisplayName(p.player),
           slotKey: p.slotKey,
-          hasPhoto: Boolean(p.friendlyPlayer.photoMimeType),
-          primaryPosition: p.friendlyPlayer.primaryPosition,
-          secondaryPosition: p.friendlyPlayer.secondaryPosition,
+          hasPhoto: Boolean(p.player.person.photoMimeType),
+          primaryPosition: p.player.primaryPosition,
+          secondaryPosition: p.player.secondaryPosition,
         }))}
       />
     </div>

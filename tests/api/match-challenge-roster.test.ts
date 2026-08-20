@@ -43,7 +43,7 @@ const baseChallengeMatch = {
   scheduledAt: new Date('2026-08-20T20:00:00.000Z'),
   friendlyPlayers: [
     {
-      friendlyPlayerId: 'fp-host',
+      playerId: 'fp-host',
       side: 'A' as const,
       isCaptain: true,
       isCoach: true,
@@ -68,8 +68,8 @@ describe('challenge roster guards', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           players: [
-            { friendlyPlayerId: 'fp-host', side: 'A', isCaptain: true, isCoach: true },
-            { friendlyPlayerId: 'fp-guest', side: 'B', isCaptain: true, isCoach: true },
+            { playerId: 'fp-host', side: 'A', isCaptain: true, isCoach: true },
+            { playerId: 'fp-guest', side: 'B', isCaptain: true, isCoach: true },
           ],
         }),
       }),
@@ -90,7 +90,7 @@ describe('challenge roster guards', () => {
       challengeStatus: ChallengeStatus.PENDING,
       friendlyPlayers: [
         {
-          friendlyPlayerId: 'fp-host',
+          playerId: 'fp-host',
           side: 'A',
           isCaptain: true,
           isCoach: true,
@@ -163,7 +163,7 @@ describe('challenge roster guards', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           players: [
-            { friendlyPlayerId: 'fp-guest', side: 'B', isCaptain: true, isCoach: true },
+            { playerId: 'fp-guest', side: 'B', isCaptain: true, isCoach: true },
           ],
         }),
       }),

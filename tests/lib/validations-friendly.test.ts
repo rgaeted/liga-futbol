@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
+import { claimPlayerSchema } from '@/lib/validations/player'
 import {
   createFriendlyPlayerSchema,
-  claimFriendlyPlayerSchema,
   updateFriendlyPlayerSchema,
 } from '@/lib/validations/friendly-player'
 import {
@@ -114,11 +114,11 @@ describe('friendly player validations', () => {
     expect(result.success).toBe(false)
   })
 
-  it('claim requires email password and friendlyPlayerId', () => {
-    const result = claimFriendlyPlayerSchema.safeParse({
+  it('claim requires email password and playerId', () => {
+    const result = claimPlayerSchema.safeParse({
       email: 'nuevo@demo.cl',
       password: 'password123',
-      friendlyPlayerId: 'fp-1',
+      playerId: 'p-1',
     })
     expect(result.success).toBe(true)
   })
@@ -149,8 +149,8 @@ describe('friendly match validations', () => {
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
-        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
+        { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
       ],
     })
     expect(result.success).toBe(false)
@@ -164,8 +164,8 @@ describe('friendly match validations', () => {
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
-        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
+        { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
       ],
     })
     expect(result.success).toBe(true)
@@ -179,8 +179,8 @@ describe('friendly match validations', () => {
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
-        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
+        { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
       ],
     })
     expect(result.success).toBe(true)
@@ -193,7 +193,7 @@ describe('friendly match validations', () => {
       sideAName: 'Blancos',
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
-      players: [{ friendlyPlayerId: 'fp-1', side: 'A' }],
+      players: [{ playerId: 'fp-1', side: 'A' }],
     })
     expect(result.success).toBe(false)
   })
@@ -225,7 +225,7 @@ describe('friendly challenge validations', () => {
       sideBName: 'Negros',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
       ],
     })
     expect(result.success).toBe(false)
@@ -239,7 +239,7 @@ describe('friendly challenge validations', () => {
       sideAName: 'Kelme',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
       ],
     })
     expect(result.success).toBe(true)
@@ -253,8 +253,8 @@ describe('friendly challenge validations', () => {
       sideAName: 'Kelme',
       scheduledAt: new Date().toISOString(),
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
-        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
+        { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
       ],
     })
     expect(result.success).toBe(false)

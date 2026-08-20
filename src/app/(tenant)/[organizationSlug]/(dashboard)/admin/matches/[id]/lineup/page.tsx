@@ -34,7 +34,15 @@ export default async function AdminMatchLineupPage({
       callUps: {
         include: { player: { include: PLAYER_PERSON_NAME_INCLUDE } },
       },
-      friendlyPlayers: { include: { friendlyPlayer: true } },
+      friendlyPlayers: {
+        include: {
+          player: {
+            include: {
+              person: { include: { user: { select: { name: true } } } },
+            },
+          },
+        },
+      },
     },
   })
   if (!match) notFound()
@@ -62,13 +70,13 @@ export default async function AdminMatchLineupPage({
           awayLabel={sides.away}
           formations={match.formations}
           participations={match.friendlyPlayers.map((p) => ({
-            id: p.friendlyPlayerId,
+            id: p.playerId,
             side: p.side,
-            label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
+            label: playerDisplayName(p.player),
             slotKey: p.slotKey,
-            hasPhoto: Boolean(p.friendlyPlayer.photoMimeType),
-            primaryPosition: p.friendlyPlayer.primaryPosition,
-            secondaryPosition: p.friendlyPlayer.secondaryPosition,
+            hasPhoto: Boolean(p.player.person.photoMimeType),
+            primaryPosition: p.player.primaryPosition,
+            secondaryPosition: p.player.secondaryPosition,
           }))}
         />
       ) : (

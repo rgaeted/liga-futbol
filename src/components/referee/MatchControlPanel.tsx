@@ -127,22 +127,20 @@ export function MatchControlPanel({
     const team = teamSide === 'home' ? homeTeam : teamSide === 'away' ? awayTeam : null
     const wasScheduledKickoff = type === EventType.KICKOFF && status === 'SCHEDULED'
 
-    const body =
-      matchType === 'FRIENDLY'
-        ? {
-            type,
-            friendlyPlayerId: playerId || undefined,
-            side: teamSide === 'home' ? ('A' as const) : teamSide === 'away' ? ('B' as const) : undefined,
-            ...(type === EventType.GOAL && assistId
-              ? { assistFriendlyPlayerId: assistId }
-              : {}),
-          }
-        : {
-            type,
-            playerId: playerId || undefined,
-            teamId: team?.id,
-            ...(type === EventType.GOAL && assistId ? { assistPlayerId: assistId } : {}),
-          }
+    const body = {
+      type,
+      playerId: playerId || undefined,
+      teamId: matchType === 'LEAGUE' ? team?.id : undefined,
+      side:
+        matchType === 'FRIENDLY'
+          ? teamSide === 'home'
+            ? ('A' as const)
+            : teamSide === 'away'
+              ? ('B' as const)
+              : undefined
+          : undefined,
+      ...(type === EventType.GOAL && assistId ? { assistPlayerId: assistId } : {}),
+    }
 
     setLoading(true)
     setActionError('')

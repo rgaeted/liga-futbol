@@ -33,7 +33,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     where: { matchId: id },
     include: {
       player: { include: PLAYER_PERSON_NAME_INCLUDE },
-      friendlyPlayer: { select: { firstName: true, lastName: true } },
+      assistPlayer: { include: PLAYER_PERSON_NAME_INCLUDE },
     },
     orderBy: { minute: 'asc' },
   })
@@ -93,33 +93,33 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   if (match.matchType === MatchType.FRIENDLY) {
-    if (eventNeedsPlayer(data.type) && (!data.friendlyPlayerId || !data.side)) {
+    if (eventNeedsPlayer(data.type) && (!data.playerId || !data.side)) {
       return NextResponse.json(
         {
-          error: 'Los eventos con jugador en partidos amistosos requieren friendlyPlayerId y side',
+          error: 'Los eventos con jugador en partidos amistosos requieren playerId y side',
         },
         { status: 400 }
       )
     }
-    if (data.assistPlayerId) {
+    if (data.teamId) {
       return NextResponse.json(
-        { error: 'assistPlayerId no aplica en partidos amistosos' },
+        { error: 'teamId no aplica en partidos amistosos' },
         { status: 400 }
       )
     }
-    if (data.assistFriendlyPlayerId && data.type !== EventType.GOAL) {
+    if (data.assistPlayerId && data.type !== EventType.GOAL) {
       return NextResponse.json(
         { error: 'La asistencia solo aplica en goles' },
         { status: 400 }
       )
     }
 
-    if (data.friendlyPlayerId) {
+    if (data.playerId) {
       const participation = await db.friendlyMatchPlayer.findUnique({
         where: {
-          matchId_friendlyPlayerId: {
+          matchId_playerId: {
             matchId,
-            friendlyPlayerId: data.friendlyPlayerId,
+            playerId: data.playerId,
           },
         },
       })
@@ -137,12 +137,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
     }
 
-    if (data.assistFriendlyPlayerId) {
+    if (data.assistPlayerId) {
       const assistPart = await db.friendlyMatchPlayer.findUnique({
         where: {
-          matchId_friendlyPlayerId: {
+          matchId_playerId: {
             matchId,
-            friendlyPlayerId: data.assistFriendlyPlayerId,
+            playerId: data.assistPlayerId,
           },
         },
       })
@@ -153,15 +153,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         )
       }
     }
-  } else if (data.friendlyPlayerId) {
-    return NextResponse.json(
-      { error: 'friendlyPlayerId no aplica en partidos de liga' },
-      { status: 400 }
-    )
   } else {
-    if (data.assistFriendlyPlayerId) {
+    if (data.side) {
       return NextResponse.json(
-        { error: 'assistFriendlyPlayerId no aplica en partidos de liga' },
+        { error: 'side no aplica en partidos de liga' },
         { status: 400 }
       )
     }

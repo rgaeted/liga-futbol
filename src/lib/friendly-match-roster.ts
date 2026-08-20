@@ -22,11 +22,11 @@ export async function syncFriendlyMatchRoster(
   players: FriendlyRosterEntry[]
 ) {
   const existing = await tx.friendlyMatchPlayer.findMany({ where: { matchId } })
-  const existingByPlayer = new Map(existing.map((p) => [p.friendlyPlayerId, p]))
+  const existingByPlayer = new Map(existing.map((p) => [p.playerId, p]))
   const incomingIds = new Set(players.map((p) => p.playerId))
 
   for (const row of existing) {
-    if (!incomingIds.has(row.friendlyPlayerId)) {
+    if (!incomingIds.has(row.playerId)) {
       await tx.friendlyMatchPlayer.delete({ where: { id: row.id } })
     }
   }
@@ -40,7 +40,7 @@ export async function syncFriendlyMatchRoster(
       await tx.friendlyMatchPlayer.create({
         data: {
           matchId,
-          friendlyPlayerId: entry.playerId,
+          playerId: entry.playerId,
           side: entry.side,
           isCaptain,
           isCoach,
@@ -61,7 +61,7 @@ export async function syncFriendlyMatchRoster(
         },
       })
       await tx.matchEvent.updateMany({
-        where: { matchId, friendlyPlayerId: entry.playerId },
+        where: { matchId, playerId: entry.playerId },
         data: { side: entry.side },
       })
       continue
@@ -84,7 +84,7 @@ export async function syncFriendlyMatchRoster(
     await tx.friendlyMatchPlayer.updateMany({
       where: {
         matchId,
-        friendlyPlayerId: entry.playerId,
+        playerId: entry.playerId,
         side: entry.side,
       },
       data: { isCaptain: true },
@@ -100,22 +100,22 @@ export async function syncFriendlyMatchRoster(
     await tx.friendlyMatchPlayer.updateMany({
       where: {
         matchId,
-        friendlyPlayerId: entry.playerId,
+        playerId: entry.playerId,
         side: entry.side,
       },
       data: { isCoach: true },
     })
 
-    const fp = await tx.friendlyPlayer.findUnique({
+    const player = await tx.player.findUnique({
       where: { id: entry.playerId },
       select: { organizationId: true, person: { select: { userId: true } } },
     })
-    const coachUserId = fp?.person.userId
+    const coachUserId = player?.person.userId
     if (coachUserId) {
       await tx.organizationMembership.updateMany({
         where: {
           userId: coachUserId,
-          organizationId: fp.organizationId,
+          organizationId: player.organizationId,
           role: MembershipRole.PLAYER,
         },
         data: { role: MembershipRole.FRIENDLY_COACH },

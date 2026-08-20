@@ -47,24 +47,16 @@ export async function POST(req: Request) {
           id: sourcePerson.id,
           userId: sourcePerson.userId,
           playerOrgIds: sourceIds.existingPlayerOrgIds,
-          friendlyOrgIds: sourceIds.existingFriendlyOrgIds,
         },
         dest: {
           id: destPerson.id,
           userId: destPerson.userId,
           playerOrgIds: destIds.existingPlayerOrgIds,
-          friendlyOrgIds: destIds.existingFriendlyOrgIds,
         },
       })
 
       if (plan.movePlayerOrgIds.length > 0) {
         await tx.player.updateMany({
-          where: { personId: sourcePersonId, organizationId },
-          data: { personId: destPersonId },
-        })
-      }
-      if (plan.moveFriendlyOrgIds.length > 0) {
-        await tx.friendlyPlayer.updateMany({
           where: { personId: sourcePersonId, organizationId },
           data: { personId: destPersonId },
         })

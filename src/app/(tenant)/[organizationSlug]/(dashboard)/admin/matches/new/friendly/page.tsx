@@ -23,15 +23,19 @@ export default async function NewFriendlyMatchPage({
       include: { user: { select: { id: true, name: true } } },
     }),
     db.friendlyCategory.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),
-    db.friendlyPlayer.findMany({
+    db.player.findMany({
       where: { organizationId },
-      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+      orderBy: { person: { lastName: 'asc' } },
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
         primaryPosition: true,
-        photoMimeType: true,
+        person: {
+          select: {
+            firstName: true,
+            lastName: true,
+            photoMimeType: true,
+          },
+        },
         categories: { select: { friendlyCategoryId: true } },
       },
     }),
@@ -39,11 +43,11 @@ export default async function NewFriendlyMatchPage({
 
   const rosterPlayers = friendlyPlayers.map((player) => ({
     id: player.id,
-    firstName: player.firstName,
-    lastName: player.lastName,
+    firstName: player.person.firstName,
+    lastName: player.person.lastName,
     categoryIds: player.categories.map((category) => category.friendlyCategoryId),
     primaryPosition: player.primaryPosition,
-    hasPhoto: Boolean(player.photoMimeType),
+    hasPhoto: Boolean(player.person.photoMimeType),
   }))
 
   return (

@@ -2,14 +2,9 @@ import { z } from 'zod'
 
 const id = z.string().min(1)
 
-const leagueSlot = z.object({
+const slot = z.object({
   slotKey: z.string().min(1),
   playerId: id,
-})
-
-const friendlySlot = z.object({
-  slotKey: z.string().min(1),
-  friendlyPlayerId: id,
 })
 
 export const upsertMatchFormationSchema = z
@@ -17,9 +12,8 @@ export const upsertMatchFormationSchema = z
     scheme: z.string().min(1),
     teamId: id.optional(),
     side: z.enum(['A', 'B']).optional(),
-    slots: z.array(z.union([leagueSlot, friendlySlot])).default([]),
+    slots: z.array(slot).default([]),
     benchPlayerIds: z.array(id).optional(),
-    benchFriendlyPlayerIds: z.array(id).optional(),
   })
   .superRefine((data, ctx) => {
     const hasTeam = Boolean(data.teamId)

@@ -9,7 +9,7 @@ const tenantAyuda = /^\/[^/]+\/ayuda(?:\/|$)/
 
 export function isPublicRequest(method: string, pathname: string): boolean {
   const isPhotoGet =
-    method === 'GET' && /^\/api\/friendly-players\/[^/]+\/photo$/.test(pathname)
+    method === 'GET' && /^\/api\/players\/[^/]+\/photo$/.test(pathname)
   const isTeamCrestGet =
     method === 'GET' && /^\/api\/teams\/[^/]+\/crest$/.test(pathname)
   const isMatchCrestGet =
@@ -31,8 +31,6 @@ export function isPublicRequest(method: string, pathname: string): boolean {
   const isMobileInstallationDelete =
     method === 'DELETE' &&
     /^\/api\/mobile\/v1\/leagues\/[^/]+\/installations\/[^/]+$/.test(pathname)
-  const isClaimPost =
-    method === 'POST' && pathname === '/api/friendly-players/claim'
   const isTenantPublicGet =
     (method === 'GET' || method === 'HEAD') &&
     (tenantLive.test(pathname) || tenantAyuda.test(pathname))
@@ -56,8 +54,7 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isMobileLeagueGet ||
     isMobileInstallationPost ||
     isMobileInstallationSubscriptionsPut ||
-    isMobileInstallationDelete ||
-    isClaimPost
+    isMobileInstallationDelete
   )
 }
 

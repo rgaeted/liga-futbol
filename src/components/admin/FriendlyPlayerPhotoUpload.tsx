@@ -27,7 +27,7 @@ export function FriendlyPlayerPhotoUpload({
     setError('')
     const form = new FormData()
     form.append('photo', file)
-    const res = await fetch(`/api/friendly-players/${playerId}/photo`, {
+    const res = await fetch(`/api/players/${playerId}/photo`, {
       method: 'POST',
       body: form,
     })
@@ -43,7 +43,7 @@ export function FriendlyPlayerPhotoUpload({
   async function removePhoto() {
     setLoading(true)
     setError('')
-    const res = await fetch(`/api/friendly-players/${playerId}/photo`, { method: 'DELETE' })
+    const res = await fetch(`/api/players/${playerId}/photo`, { method: 'DELETE' })
     setLoading(false)
     if (!res.ok) {
       setError('No se pudo eliminar la foto')

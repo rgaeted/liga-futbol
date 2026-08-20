@@ -39,18 +39,18 @@ export type FriendlyCaptainView = {
 
 export function resolveFriendlyCaptains(
   participations: Array<{
-    friendlyPlayerId: string
+    playerId: string
     side: 'A' | 'B'
     isCaptain: boolean
-    friendlyPlayer: { firstName: string; lastName: string }
+    player: { person: { firstName: string; lastName: string; user: { name: string } | null } }
   }>
 ): FriendlyCaptainView[] {
   return participations
     .filter((p) => p.isCaptain)
     .map((p) => ({
       side: p.side,
-      playerId: p.friendlyPlayerId,
-      label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
+      playerId: p.playerId,
+      label: `${p.player.person.firstName} ${p.player.person.lastName}`.trim(),
     }))
 }
 

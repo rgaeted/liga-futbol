@@ -59,10 +59,7 @@ function TeamMvpSidePicker({
     setError('')
     setSuccess('')
 
-    const body =
-      matchType === 'FRIENDLY'
-        ? { side, friendlyPlayerId: playerId }
-        : { side, playerId }
+    const body = { side, playerId }
 
     const res = await fetch(`/api/matches/${matchId}/mvp`, {
       method: 'PUT',

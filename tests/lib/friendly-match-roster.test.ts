@@ -73,8 +73,8 @@ describe('friendly roster helpers', () => {
   it('roundtrips sets and entries with captains and coaches', () => {
     const { sideAIds, sideBIds, sideACaptainId, sideBCaptainId, sideACoachId, sideBCoachId } =
       setsFromPlayerSides([
-        { friendlyPlayerId: 'a', side: 'A', isCaptain: true, isCoach: true },
-        { friendlyPlayerId: 'b', side: 'B', isCaptain: true, isCoach: true },
+        { playerId: 'a', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'b', side: 'B', isCaptain: true, isCoach: true },
       ])
     const entries = rosterEntriesFromSets(
       sideAIds,
@@ -85,8 +85,8 @@ describe('friendly roster helpers', () => {
       sideBCoachId
     )
     expect(entries).toEqual([
-      { friendlyPlayerId: 'a', side: 'A', isCaptain: true, isCoach: true },
-      { friendlyPlayerId: 'b', side: 'B', isCaptain: true, isCoach: true },
+      { playerId: 'a', side: 'A', isCaptain: true, isCoach: true },
+      { playerId: 'b', side: 'B', isCaptain: true, isCoach: true },
     ])
   })
 })
@@ -95,8 +95,8 @@ describe('updateMatchSchema players', () => {
   it('accepts friendly roster update with captains and coaches', () => {
     const result = updateMatchSchema.safeParse({
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
-        { friendlyPlayerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
+        { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'fp-2', side: 'B', isCaptain: true, isCoach: true },
       ],
     })
     expect(result.success).toBe(true)
@@ -105,8 +105,8 @@ describe('updateMatchSchema players', () => {
   it('rejects friendly roster update without captains', () => {
     const result = updateMatchSchema.safeParse({
       players: [
-        { friendlyPlayerId: 'fp-1', side: 'A' },
-        { friendlyPlayerId: 'fp-2', side: 'B' },
+        { playerId: 'fp-1', side: 'A' },
+        { playerId: 'fp-2', side: 'B' },
       ],
     })
     expect(result.success).toBe(false)

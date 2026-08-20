@@ -42,29 +42,38 @@ export async function createUserForFriendlyPlayer(
   return { userId: user.id, personId: person.id }
 }
 
-export async function syncFriendlyPlayerCategories(
+export async function syncPlayerCategories(
   tx: Tx,
-  friendlyPlayerId: string,
+  playerId: string,
   friendlyCategoryIds: string[]
 ): Promise<void> {
-  await tx.friendlyPlayerCategory.deleteMany({ where: { friendlyPlayerId } })
+  await tx.playerCategory.deleteMany({ where: { playerId } })
   if (friendlyCategoryIds.length === 0) return
-  await tx.friendlyPlayerCategory.createMany({
+  await tx.playerCategory.createMany({
     data: friendlyCategoryIds.map((friendlyCategoryId) => ({
-      friendlyPlayerId,
+      playerId,
       friendlyCategoryId,
     })),
   })
 }
 
-export function mapFriendlyPlayerCategoryIds(
+export function mapPlayerCategoryIds(
   memberships: Array<{ friendlyCategoryId: string }>
 ): string[] {
   return memberships.map((m) => m.friendlyCategoryId)
 }
 
-export function mapFriendlyPlayerResponse<
+export function mapPlayerResponse<
   T extends { person: { user: { id: string; email: string } | null } },
 >(player: T) {
   return { ...player, user: player.person.user }
 }
+
+/** @deprecated use syncPlayerCategories */
+export const syncFriendlyPlayerCategories = syncPlayerCategories
+
+/** @deprecated use mapPlayerCategoryIds */
+export const mapFriendlyPlayerCategoryIds = mapPlayerCategoryIds
+
+/** @deprecated use mapPlayerResponse */
+export const mapFriendlyPlayerResponse = mapPlayerResponse

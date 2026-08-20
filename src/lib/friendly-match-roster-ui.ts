@@ -129,24 +129,24 @@ export function rosterEntriesFromSets(
   const sideBOnly = [...sideBIds].filter((id) => !sideAIds.has(id))
   const sideAOnly = [...sideAIds]
   return [
-    ...sideAOnly.map((friendlyPlayerId) => ({
-      friendlyPlayerId,
+    ...sideAOnly.map((playerId) => ({
+      playerId,
       side: 'A' as const,
-      isCaptain: friendlyPlayerId === sideACaptainId,
-      isCoach: friendlyPlayerId === sideACoachId,
+      isCaptain: playerId === sideACaptainId,
+      isCoach: playerId === sideACoachId,
     })),
-    ...sideBOnly.map((friendlyPlayerId) => ({
-      friendlyPlayerId,
+    ...sideBOnly.map((playerId) => ({
+      playerId,
       side: 'B' as const,
-      isCaptain: friendlyPlayerId === sideBCaptainId,
-      isCoach: friendlyPlayerId === sideBCoachId,
+      isCaptain: playerId === sideBCaptainId,
+      isCoach: playerId === sideBCoachId,
     })),
   ]
 }
 
 export function setsFromPlayerSides(
   players: Array<{
-    friendlyPlayerId: string
+    playerId: string
     side: 'A' | 'B'
     isCaptain?: boolean
     isCoach?: boolean
@@ -160,20 +160,20 @@ export function setsFromPlayerSides(
   let sideBCoachId: string | null = null
   for (const p of players) {
     if (p.side === 'A') {
-      sideAIds.add(p.friendlyPlayerId)
-      if (p.isCaptain) sideACaptainId = p.friendlyPlayerId
-      if (p.isCoach) sideACoachId = p.friendlyPlayerId
+      sideAIds.add(p.playerId)
+      if (p.isCaptain) sideACaptainId = p.playerId
+      if (p.isCoach) sideACoachId = p.playerId
     } else {
-      sideBIds.add(p.friendlyPlayerId)
-      if (p.isCaptain) sideBCaptainId = p.friendlyPlayerId
-      if (p.isCoach) sideBCoachId = p.friendlyPlayerId
+      sideBIds.add(p.playerId)
+      if (p.isCaptain) sideBCaptainId = p.playerId
+      if (p.isCoach) sideBCoachId = p.playerId
     }
   }
   return { sideAIds, sideBIds, sideACaptainId, sideBCaptainId, sideACoachId, sideBCoachId }
 }
 
 export function convokedIdsFromPlayerSides(
-  players: Array<{ friendlyPlayerId: string }>
+  players: Array<{ playerId: string }>
 ) {
-  return new Set(players.map((p) => p.friendlyPlayerId))
+  return new Set(players.map((p) => p.playerId))
 }

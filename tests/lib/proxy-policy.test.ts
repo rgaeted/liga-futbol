@@ -16,7 +16,7 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/privacidad/app')).toBe(true)
     expect(isPublicRequest('GET', '/live/match-1')).toBe(true)
     expect(isPublicRequest('GET', '/api/auth/session')).toBe(true)
-    expect(isPublicRequest('GET', '/api/friendly-players/player-1/photo')).toBe(true)
+    expect(isPublicRequest('GET', '/api/players/player-1/photo')).toBe(true)
     expect(isPublicRequest('GET', '/api/teams/team-1/crest')).toBe(true)
     expect(isPublicRequest('GET', '/api/matches/match-1/crest/A')).toBe(true)
     expect(isPublicRequest('GET', '/api/matches/match-1/mvp/home/photo')).toBe(true)
@@ -27,7 +27,7 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/articles')).toBe(true)
     expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/galleries')).toBe(true)
     expect(isPublicRequest('GET', '/api/mobile/v1/leagues/demo-liga/sponsors')).toBe(true)
-    expect(isPublicRequest('POST', '/api/friendly-players/claim')).toBe(true)
+    expect(isPublicRequest('POST', '/api/players/claim')).toBe(true)
   })
 
   it('treats tenant live and help routes as public', () => {

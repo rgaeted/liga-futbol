@@ -69,12 +69,16 @@ export async function GET(req: Request) {
   }
 }
 
-const friendlyPlayerSummarySelect = {
+const playerSummarySelect = {
   id: true,
-  firstName: true,
-  lastName: true,
   primaryPosition: true,
-  photoMimeType: true,
+  person: {
+    select: {
+      firstName: true,
+      lastName: true,
+      photoMimeType: true,
+    },
+  },
 } as const
 
 async function createFriendlyMatch(
@@ -105,8 +109,8 @@ async function createFriendlyMatch(
     return NextResponse.json({ error: 'Categoría no válida para esta organización' }, { status: 400 })
   }
 
-  const playerIds = data.players.map((player) => player.friendlyPlayerId)
-  const rosterPlayers = await db.friendlyPlayer.findMany({
+  const playerIds = data.players.map((player) => player.playerId)
+  const rosterPlayers = await db.player.findMany({
     where: { id: { in: playerIds } },
     select: {
       id: true,
@@ -165,7 +169,7 @@ async function createFriendlyMatch(
     await tx.friendlyMatchPlayer.createMany({
       data: data.players.map((player) => ({
         matchId: created.id,
-        friendlyPlayerId: player.friendlyPlayerId,
+        playerId: player.playerId,
         side: player.side,
         isCaptain: player.isCaptain ?? false,
         isCoach: player.isCoach ?? false,
@@ -176,7 +180,7 @@ async function createFriendlyMatch(
       include: {
         friendlyCategory: { select: { id: true, name: true } },
         friendlyPlayers: {
-          include: { friendlyPlayer: { select: friendlyPlayerSummarySelect } },
+          include: { player: { select: playerSummarySelect } },
         },
         referee: { select: { id: true, name: true } },
         guestOrganization: { select: { id: true, slug: true, name: true } },
@@ -244,8 +248,8 @@ async function createFriendlyChallenge(
     return NextResponse.json({ error: 'Categoría no válida para esta organización' }, { status: 400 })
   }
 
-  const playerIds = data.players.map((player) => player.friendlyPlayerId)
-  const rosterPlayers = await db.friendlyPlayer.findMany({
+  const playerIds = data.players.map((player) => player.playerId)
+  const rosterPlayers = await db.player.findMany({
     where: { id: { in: playerIds } },
     select: {
       id: true,
@@ -308,7 +312,7 @@ async function createFriendlyChallenge(
     await tx.friendlyMatchPlayer.createMany({
       data: data.players.map((player) => ({
         matchId: created.id,
-        friendlyPlayerId: player.friendlyPlayerId,
+        playerId: player.playerId,
         side: player.side,
         isCaptain: player.isCaptain ?? false,
         isCoach: player.isCoach ?? false,
@@ -319,7 +323,7 @@ async function createFriendlyChallenge(
       include: {
         friendlyCategory: { select: { id: true, name: true } },
         friendlyPlayers: {
-          include: { friendlyPlayer: { select: friendlyPlayerSummarySelect } },
+          include: { player: { select: playerSummarySelect } },
         },
         referee: { select: { id: true, name: true } },
         guestOrganization: { select: { id: true, slug: true, name: true } },

@@ -80,7 +80,7 @@ export function FriendlyMatchConvocationPicker({
     setCreateError('')
 
     try {
-      const res = await fetch('/api/friendly-players', {
+      const res = await fetch('/api/players', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

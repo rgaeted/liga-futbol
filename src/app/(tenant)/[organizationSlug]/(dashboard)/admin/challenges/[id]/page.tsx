@@ -23,7 +23,7 @@ export default async function GuestChallengeRosterPage({
       friendlyPlayers: {
         where: { side: 'B' },
         select: {
-          friendlyPlayerId: true,
+          playerId: true,
           isCaptain: true,
           isCoach: true,
         },
@@ -39,15 +39,19 @@ export default async function GuestChallengeRosterPage({
     notFound()
   }
 
-  const friendlyPlayers = await db.friendlyPlayer.findMany({
+  const orgPlayers = await db.player.findMany({
     where: { organizationId },
-    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    orderBy: { person: { lastName: 'asc' } },
     select: {
       id: true,
-      firstName: true,
-      lastName: true,
       primaryPosition: true,
-      photoMimeType: true,
+      person: {
+        select: {
+          firstName: true,
+          lastName: true,
+          photoMimeType: true,
+        },
+      },
       categories: { select: { friendlyCategoryId: true } },
     },
   })
@@ -60,17 +64,17 @@ export default async function GuestChallengeRosterPage({
     <GuestChallengeRosterEditor
       matchId={match.id}
       sideBName={match.sideBName ?? 'Visitante'}
-      friendlyPlayers={friendlyPlayers.map((player) => ({
+      friendlyPlayers={orgPlayers.map((player) => ({
         id: player.id,
-        firstName: player.firstName,
-        lastName: player.lastName,
+        firstName: player.person.firstName,
+        lastName: player.person.lastName,
         categoryIds: player.categories.map((category) => category.friendlyCategoryId),
         primaryPosition: player.primaryPosition,
-        hasPhoto: Boolean(player.photoMimeType),
+        hasPhoto: Boolean(player.person.photoMimeType),
       }))}
-      initialSideBIds={sideBRows.map((row) => row.friendlyPlayerId)}
-      initialSideBCaptainId={sideBCaptain?.friendlyPlayerId ?? null}
-      initialSideBCoachId={sideBCoach?.friendlyPlayerId ?? null}
+      initialSideBIds={sideBRows.map((row) => row.playerId)}
+      initialSideBCaptainId={sideBCaptain?.playerId ?? null}
+      initialSideBCoachId={sideBCoach?.playerId ?? null}
     />
   )
 }

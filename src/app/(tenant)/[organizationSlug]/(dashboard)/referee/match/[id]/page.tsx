@@ -87,7 +87,9 @@ export default async function RefereeMatchPage({
   if (match.matchType === 'FRIENDLY') {
     const participations = await db.friendlyMatchPlayer.findMany({
       where: { matchId: match.id },
-      include: { friendlyPlayer: true },
+      include: {
+        player: { include: PLAYER_PERSON_NAME_INCLUDE },
+      },
     })
     const sideA = participations.filter((p) => p.side === 'A')
     const sideB = participations.filter((p) => p.side === 'B')
@@ -102,16 +104,16 @@ export default async function RefereeMatchPage({
           id: 'A',
           name: home,
           players: sideA.map((p) => ({
-            id: p.friendlyPlayerId,
-            label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`,
+            id: p.playerId,
+            label: playerDisplayName(p.player),
           })),
         }}
         awayTeam={{
           id: 'B',
           name: away,
           players: sideB.map((p) => ({
-            id: p.friendlyPlayerId,
-            label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`,
+            id: p.playerId,
+            label: playerDisplayName(p.player),
           })),
         }}
         />

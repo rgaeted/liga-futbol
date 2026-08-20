@@ -52,13 +52,15 @@ export default async function AdminMatchTimelinePage({
       events: {
         include: {
           player: { include: PLAYER_PERSON_NAME_INCLUDE },
-          friendlyPlayer: { select: { firstName: true, lastName: true } },
-          assistPlayer: { include: { person: { include: { user: { select: { name: true } } } } } },
-          assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
+          assistPlayer: { include: PLAYER_PERSON_NAME_INCLUDE },
         },
         orderBy: { minute: 'asc' },
       },
-      friendlyPlayers: { include: { friendlyPlayer: true } },
+      friendlyPlayers: {
+        include: {
+          player: { include: PLAYER_PERSON_NAME_INCLUDE },
+        },
+      },
       teamMvps: { include: MATCH_MVP_INCLUDE },
     },
   })
@@ -72,8 +74,8 @@ export default async function AdminMatchTimelinePage({
 
   if (match.matchType === MatchType.FRIENDLY) {
     players = match.friendlyPlayers.map((p) => ({
-      id: p.friendlyPlayerId,
-      label: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`,
+      id: p.playerId,
+      label: playerDisplayName(p.player),
       side: p.side,
     }))
   } else if (match.homeTeamId && match.awayTeamId) {
@@ -107,17 +109,11 @@ export default async function AdminMatchTimelinePage({
     minute: e.minute,
     playerId: e.playerId,
     teamId: e.teamId,
-    friendlyPlayerId: e.friendlyPlayerId,
     assistPlayerId: e.assistPlayerId,
-    assistFriendlyPlayerId: e.assistFriendlyPlayerId,
     side: e.side,
     description: e.description,
-    playerName: e.friendlyPlayer
-      ? `${e.friendlyPlayer.firstName} ${e.friendlyPlayer.lastName}`
-      : (e.player ? playerDisplayName(e.player) : null),
-    assistName: e.assistFriendlyPlayer
-      ? `${e.assistFriendlyPlayer.firstName} ${e.assistFriendlyPlayer.lastName}`
-      : (e.assistPlayer ? playerDisplayName(e.assistPlayer) : null),
+    playerName: e.player ? playerDisplayName(e.player) : null,
+    assistName: e.assistPlayer ? playerDisplayName(e.assistPlayer) : null,
   }))
 
   return (

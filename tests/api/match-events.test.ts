@@ -43,7 +43,7 @@ describe('match event validation', () => {
     const result = createMatchEventSchema.safeParse({
       type: EventType.GOAL,
       minute: 12,
-      friendlyPlayerId: 'fp-1',
+      playerId: 'fp-1',
       side: 'A',
       assistFriendlyPlayerId: 'fp-2',
     })

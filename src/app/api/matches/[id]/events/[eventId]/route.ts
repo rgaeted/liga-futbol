@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { updateMatchEventSchema } from '@/lib/validations/match-event'
 import { reconcileMatchState } from '@/lib/match-reconcile'
-import { EventType, MatchType } from '@prisma/client'
+import { EventType } from '@prisma/client'
 import { MembershipRole } from '@/lib/membership-role'
 import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
@@ -46,32 +46,11 @@ export async function PATCH(
   const matchRecord = await db.match.findUniqueOrThrow({ where: { id: matchId } })
   const effectiveType = data.type ?? existing.type
 
-  if (matchRecord.matchType === MatchType.FRIENDLY) {
-    if (data.assistPlayerId) {
-      return NextResponse.json(
-        { error: 'assistPlayerId no aplica en partidos amistosos' },
-        { status: 400 }
-      )
-    }
-    if (data.assistFriendlyPlayerId && effectiveType !== EventType.GOAL) {
-      return NextResponse.json(
-        { error: 'La asistencia solo aplica en goles' },
-        { status: 400 }
-      )
-    }
-  } else {
-    if (data.assistFriendlyPlayerId) {
-      return NextResponse.json(
-        { error: 'assistFriendlyPlayerId no aplica en partidos de liga' },
-        { status: 400 }
-      )
-    }
-    if (data.assistPlayerId && effectiveType !== EventType.GOAL) {
-      return NextResponse.json(
-        { error: 'La asistencia solo aplica en goles' },
-        { status: 400 }
-      )
-    }
+  if (data.assistPlayerId && effectiveType !== EventType.GOAL) {
+    return NextResponse.json(
+      { error: 'La asistencia solo aplica en goles' },
+      { status: 400 }
+    )
   }
 
   const clearAssists = data.type !== undefined && data.type !== EventType.GOAL
@@ -83,23 +62,17 @@ export async function PATCH(
       ...(data.minute !== undefined ? { minute: data.minute } : {}),
       ...(data.playerId !== undefined ? { playerId: data.playerId } : {}),
       ...(data.teamId !== undefined ? { teamId: data.teamId } : {}),
-      ...(data.friendlyPlayerId !== undefined ? { friendlyPlayerId: data.friendlyPlayerId } : {}),
       ...(clearAssists
-        ? { assistPlayerId: null, assistFriendlyPlayerId: null }
+        ? { assistPlayerId: null }
         : {
             ...(data.assistPlayerId !== undefined ? { assistPlayerId: data.assistPlayerId } : {}),
-            ...(data.assistFriendlyPlayerId !== undefined
-              ? { assistFriendlyPlayerId: data.assistFriendlyPlayerId }
-              : {}),
           }),
       ...(data.side !== undefined ? { side: data.side } : {}),
       ...(data.description !== undefined ? { description: data.description } : {}),
     },
     include: {
       player: { include: PLAYER_PERSON_NAME_INCLUDE },
-      friendlyPlayer: { select: { firstName: true, lastName: true } },
-      assistPlayer: { include: { person: { include: { user: { select: { name: true } } } } } },
-      assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
+      assistPlayer: { include: PLAYER_PERSON_NAME_INCLUDE },
     },
   })
 

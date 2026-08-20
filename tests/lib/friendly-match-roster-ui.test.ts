@@ -87,8 +87,8 @@ describe('rosterEntriesFromSets', () => {
       'p2'
     )
     expect(entries).toEqual([
-      { friendlyPlayerId: 'p1', side: 'A', isCaptain: true, isCoach: true },
-      { friendlyPlayerId: 'p2', side: 'B', isCaptain: true, isCoach: true },
+      { playerId: 'p1', side: 'A', isCaptain: true, isCoach: true },
+      { playerId: 'p2', side: 'B', isCaptain: true, isCoach: true },
     ])
   })
 })

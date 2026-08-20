@@ -67,7 +67,7 @@ const match = {
       createdAt: new Date('2026-08-03T20:12:00.000Z'),
       teamId: 'home',
       side: null,
-      friendlyPlayerId: null,
+      playerId: null,
       player: {
         teamId: 'home',
         person: { firstName: 'Jugador', lastName: 'Local', user: { name: 'Jugador Local' } },
@@ -155,7 +155,7 @@ describe('live match snapshot', () => {
       sideBName: 'Negros',
       friendlyPlayers: [
         {
-          friendlyPlayerId: 'fp-1',
+          playerId: 'fp-1',
           side: 'A',
           slotKey: null,
           paid: true,
@@ -169,7 +169,7 @@ describe('live match snapshot', () => {
           },
         },
         {
-          friendlyPlayerId: 'fp-2',
+          playerId: 'fp-2',
           side: 'B',
           slotKey: null,
           paid: false,

@@ -63,7 +63,7 @@ describe('POST /api/matches challenge', () => {
             friendlyPlayers: [
               {
                 side: 'A',
-                friendlyPlayerId: 'fp-1',
+                playerId: 'fp-1',
                 friendlyPlayer: { id: 'fp-1', firstName: 'Juan', lastName: 'Pérez' },
               },
             ],
@@ -84,7 +84,7 @@ describe('POST /api/matches challenge', () => {
           sideAName: 'Kelme',
           scheduledAt: new Date().toISOString(),
           players: [
-            { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+            { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
           ],
         }),
       })
@@ -113,7 +113,7 @@ describe('POST /api/matches challenge', () => {
           sideAName: 'Kelme',
           scheduledAt: new Date().toISOString(),
           players: [
-            { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+            { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
           ],
         }),
       })
@@ -141,7 +141,7 @@ describe('POST /api/matches challenge', () => {
           sideAName: 'Kelme',
           scheduledAt: new Date().toISOString(),
           players: [
-            { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+            { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
           ],
         }),
       })
@@ -169,7 +169,7 @@ describe('POST /api/matches challenge', () => {
           sideAName: 'Kelme',
           scheduledAt: new Date().toISOString(),
           players: [
-            { friendlyPlayerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+            { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
           ],
         }),
       })

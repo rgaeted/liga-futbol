@@ -9,32 +9,18 @@ import {
 import { setMatchMvpSchema } from '@/lib/validations/mvp'
 
 describe('resolveTeamMvpLabel', () => {
-  it('returns league player name', () => {
+  it('returns player name from person', () => {
     expect(
       resolveTeamMvpLabel({
         side: 'HOME',
         playerId: 'p-1',
-        friendlyPlayerId: null,
         photoMimeType: null,
         photoData: null,
         player: {
           person: { firstName: 'Juan', lastName: 'Pérez', user: { name: 'Juan Pérez' } },
         },
-      })
+      }),
     ).toBe('Juan Pérez')
-  })
-
-  it('returns friendly player name', () => {
-    expect(
-      resolveTeamMvpLabel({
-        side: 'AWAY',
-        playerId: null,
-        friendlyPlayerId: 'fp-1',
-        photoMimeType: null,
-        photoData: null,
-        friendlyPlayer: { firstName: 'Ana', lastName: 'López' },
-      })
-    ).toBe('Ana López')
   })
 })
 
@@ -48,7 +34,6 @@ describe('buildMatchTeamMvps', () => {
         {
           side: 'HOME',
           playerId: 'p-1',
-          friendlyPlayerId: null,
           photoMimeType: null,
           photoData: null,
           player: {
@@ -69,26 +54,24 @@ describe('resolveTeamMvpPhotoUrl', () => {
     expect(
       resolveTeamMvpPhotoUrl('m-1', {
         side: 'HOME',
-        playerId: null,
-        friendlyPlayerId: 'fp-1',
+        playerId: 'p-1',
         photoMimeType: 'image/jpeg',
         photoData: Buffer.from('x'),
-        friendlyPlayer: { firstName: 'Ana', lastName: 'López', photoMimeType: 'image/png' },
-      })
+        player: { person: { photoMimeType: 'image/png' } },
+      }),
     ).toBe('/api/matches/m-1/mvp/home/photo')
   })
 
-  it('falls back to friendly player profile photo', () => {
+  it('falls back to player person profile photo', () => {
     expect(
       resolveTeamMvpPhotoUrl('m-1', {
         side: 'HOME',
-        playerId: null,
-        friendlyPlayerId: 'fp-1',
+        playerId: 'p-1',
         photoMimeType: null,
         photoData: null,
-        friendlyPlayer: { firstName: 'Ana', lastName: 'López', photoMimeType: 'image/png' },
-      })
-    ).toBe('/api/friendly-players/fp-1/photo')
+        player: { person: { photoMimeType: 'image/png' } },
+      }),
+    ).toBe('/api/players/p-1/photo')
   })
 })
 
@@ -99,7 +82,6 @@ describe('teamMvpPlayerIds', () => {
         buildTeamMvpView('m-1', 'HOME', 'Local', {
           side: 'HOME',
           playerId: 'p-1',
-          friendlyPlayerId: null,
           photoMimeType: null,
           photoData: null,
           player: {
@@ -107,7 +89,7 @@ describe('teamMvpPlayerIds', () => {
           },
         }),
         buildTeamMvpView('m-1', 'AWAY', 'Visita', null),
-      ])
+      ]),
     ).toEqual(['p-1'])
   })
 })
@@ -121,14 +103,5 @@ describe('setMatchMvpSchema', () => {
   it('accepts clearing mvp', () => {
     const result = setMatchMvpSchema.safeParse({ side: 'AWAY', playerId: null })
     expect(result.success).toBe(true)
-  })
-
-  it('rejects both ids', () => {
-    const result = setMatchMvpSchema.safeParse({
-      side: 'HOME',
-      playerId: 'p-1',
-      friendlyPlayerId: 'fp-1',
-    })
-    expect(result.success).toBe(false)
   })
 })

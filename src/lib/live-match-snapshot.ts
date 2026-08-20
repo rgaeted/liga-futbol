@@ -113,8 +113,10 @@ const LIVE_MATCH_INCLUDE = {
   },
   friendlyPlayers: {
     include: {
-      friendlyPlayer: {
-        select: { firstName: true, lastName: true, photoMimeType: true },
+      player: {
+        include: {
+          person: { include: { user: { select: { name: true } } } },
+        },
       },
     },
   },
@@ -127,9 +129,7 @@ const LIVE_MATCH_INCLUDE = {
           team: { select: { id: true, name: true } },
         },
       },
-      friendlyPlayer: { select: { firstName: true, lastName: true } },
       assistPlayer: { include: { person: { include: { user: { select: { name: true } } } } } },
-      assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
     },
     orderBy: { createdAt: 'asc' },
   },
@@ -146,14 +146,14 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
     preferCreatedAt: preferCreatedAtOrder,
   })
   const friendlySideByPlayer = new Map(
-    match.friendlyPlayers.map((player) => [player.friendlyPlayerId, player.side])
+    match.friendlyPlayers.map((player) => [player.playerId, player.side])
   )
   const friendlyPaidByPlayerId = Object.fromEntries(
-    match.friendlyPlayers.map((player) => [player.friendlyPlayerId, player.paid])
+    match.friendlyPlayers.map((player) => [player.playerId, player.paid])
   )
   const friendlyGalletaPlayerIds = match.friendlyPlayers
     .filter((player) => player.isGalleta)
-    .map((player) => player.friendlyPlayerId)
+    .map((player) => player.playerId)
   const formationSides = buildMatchFormationSides({
     matchType: match.matchType,
     footballFormat: match.footballFormat,
@@ -173,10 +173,10 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
       },
     })),
     friendlyPlayers: match.friendlyPlayers.map((player) => ({
-      friendlyPlayerId: player.friendlyPlayerId,
+      playerId: player.playerId,
       side: player.side,
       slotKey: player.slotKey,
-      friendlyPlayer: player.friendlyPlayer,
+      player: player.player,
     })),
   })
   const homeCrestSrc =
@@ -307,9 +307,9 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
           side: event.side,
           playerTeamId: event.player?.team?.id ?? event.player?.teamId ?? null,
           playerTeamName: event.player?.team?.name ?? null,
-          friendlyPlayerId: event.friendlyPlayerId,
-          friendlySide: event.friendlyPlayerId
-            ? friendlySideByPlayer.get(event.friendlyPlayerId) ?? null
+          friendlyPlayerId: event.playerId,
+          friendlySide: event.playerId
+            ? friendlySideByPlayer.get(event.playerId) ?? null
             : null,
         },
         teamContext
@@ -319,16 +319,8 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
         type: event.type,
         minute: event.minute,
         createdAt: event.createdAt.toISOString(),
-        playerName: event.friendlyPlayer
-          ? `${event.friendlyPlayer.firstName} ${event.friendlyPlayer.lastName}`
-          : event.player
-            ? playerDisplayName(event.player)
-            : null,
-        assistName: event.assistFriendlyPlayer
-          ? `${event.assistFriendlyPlayer.firstName} ${event.assistFriendlyPlayer.lastName}`
-          : event.assistPlayer
-            ? playerDisplayName(event.assistPlayer)
-            : null,
+        playerName: event.player ? playerDisplayName(event.player) : null,
+        assistName: event.assistPlayer ? playerDisplayName(event.assistPlayer) : null,
         description: event.description,
         teamName,
         teamCrestSrc: resolveEventTeamCrest(teamName, teamVisual),

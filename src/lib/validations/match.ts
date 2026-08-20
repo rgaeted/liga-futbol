@@ -36,14 +36,14 @@ const refereeEventTypesSchema = z
     }
   })
 
-const friendlyPlayerEntry = z.object({
-  friendlyPlayerId: id,
+const rosterPlayerEntry = z.object({
+  playerId: id,
   side: z.enum(['A', 'B']),
   isCaptain: z.boolean().optional(),
   isCoach: z.boolean().optional(),
 })
 
-function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEntry>[] }, ctx: z.RefinementCtx) {
+function refineFriendlyPlayers(data: { players: z.infer<typeof rosterPlayerEntry>[] }, ctx: z.RefinementCtx) {
   const sides = new Set(data.players.map((p) => p.side))
   if (!sides.has('A') || !sides.has('B')) {
     ctx.addIssue({
@@ -52,7 +52,7 @@ function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEnt
       path: ['players'],
     })
   }
-  const ids = data.players.map((p) => p.friendlyPlayerId)
+  const ids = data.players.map((p) => p.playerId)
   if (new Set(ids).size !== ids.length) {
     ctx.addIssue({
       code: 'custom',
@@ -87,7 +87,7 @@ function refineFriendlyPlayers(data: { players: z.infer<typeof friendlyPlayerEnt
 }
 
 function refineChallengeFriendlyPlayers(
-  data: { players: z.infer<typeof friendlyPlayerEntry>[] },
+  data: { players: z.infer<typeof rosterPlayerEntry>[] },
   ctx: z.RefinementCtx
 ) {
   if (data.players.some((player) => player.side !== 'A')) {
@@ -106,7 +106,7 @@ function refineChallengeFriendlyPlayers(
     })
   }
 
-  const ids = data.players.map((player) => player.friendlyPlayerId)
+  const ids = data.players.map((player) => player.playerId)
   if (new Set(ids).size !== ids.length) {
     ctx.addIssue({
       code: 'custom',
@@ -159,7 +159,7 @@ export const createFriendlyMatchSchema = z
     refereeEventTypes: refereeEventTypesSchema,
     scheduledAt: z.string().datetime(),
     venue: z.string().optional(),
-    players: z.array(friendlyPlayerEntry).min(2),
+    players: z.array(rosterPlayerEntry).min(2),
   })
   .merge(locationFieldsSchema)
   .superRefine(refineFriendlyPlayers)
@@ -177,14 +177,14 @@ export const createFriendlyChallengeSchema = z
     refereeEventTypes: refereeEventTypesSchema,
     scheduledAt: z.string().datetime(),
     venue: z.string().optional(),
-    players: z.array(friendlyPlayerEntry).min(1),
+    players: z.array(rosterPlayerEntry).min(1),
   })
   .merge(locationFieldsSchema)
   .superRefine(refineChallengeFriendlyPlayers)
   .superRefine(refineChileLocation)
 
 function refineGuestChallengeRosterPlayers(
-  data: { players: z.infer<typeof friendlyPlayerEntry>[] },
+  data: { players: z.infer<typeof rosterPlayerEntry>[] },
   ctx: z.RefinementCtx
 ) {
   if (data.players.some((player) => player.side !== 'B')) {
@@ -220,7 +220,7 @@ function refineGuestChallengeRosterPlayers(
 }
 
 export const updateGuestChallengeRosterSchema = z.object({
-  players: z.array(friendlyPlayerEntry).min(1),
+  players: z.array(rosterPlayerEntry).min(1),
 }).superRefine(refineGuestChallengeRosterPlayers)
 
 export const createMatchSchema = z.preprocess((raw) => {
@@ -242,7 +242,7 @@ export const updateMatchSchema = z
     footballFormat: footballFormatSchema.optional(),
     sideAColor: teamColorSchema.nullable().optional(),
     sideBColor: teamColorSchema.nullable().optional(),
-    players: z.array(friendlyPlayerEntry).min(2).optional(),
+    players: z.array(rosterPlayerEntry).min(2).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.players) refineFriendlyPlayers({ players: data.players }, ctx)

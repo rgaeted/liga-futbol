@@ -17,15 +17,10 @@ type VerifyResult = {
   ok: boolean
   nullPlayerIdParticipations: number
   duplicateParticipationGroups: number
-  eventsMissingPlayerId: number
-  assistEventsMissingPlayerId: number
-  mvpsMissingPlayerId: number
-  friendlyPlayersWithoutPlayer: number
 }
 
 async function collapseDuplicateParticipations(dryRun: boolean): Promise<number> {
   const participations = await db.friendlyMatchPlayer.findMany({
-    where: { playerId: { not: null } },
     select: {
       id: true,
       matchId: true,
@@ -60,65 +55,16 @@ async function verify(): Promise<VerifyResult> {
   })
 
   const participations = await db.friendlyMatchPlayer.findMany({
-    where: { playerId: { not: null } },
     select: { id: true, matchId: true, playerId: true },
   })
   const duplicateParticipationGroupCount = duplicateParticipationGroups(participations).size
 
-  const eventsMissingPlayerId = await db.matchEvent.count({
-    where: {
-      friendlyPlayerId: { not: null },
-      playerId: null,
-    },
-  })
-
-  const assistEventsMissingPlayerId = await db.matchEvent.count({
-    where: {
-      assistFriendlyPlayerId: { not: null },
-      assistPlayerId: null,
-    },
-  })
-
-  const mvpsMissingPlayerId = await db.matchTeamMvp.count({
-    where: {
-      friendlyPlayerId: { not: null },
-      playerId: null,
-    },
-  })
-
-  const friendlyPlayers = await db.friendlyPlayer.findMany({
-    select: { personId: true, organizationId: true },
-  })
-  let friendlyPlayersWithoutPlayer = 0
-  for (const fp of friendlyPlayers) {
-    const player = await db.player.findUnique({
-      where: {
-        personId_organizationId: {
-          personId: fp.personId,
-          organizationId: fp.organizationId,
-        },
-      },
-      select: { id: true },
-    })
-    if (!player) friendlyPlayersWithoutPlayer++
-  }
-
-  const ok =
-    nullPlayerIdParticipations === 0 &&
-    duplicateParticipationGroupCount === 0 &&
-    eventsMissingPlayerId === 0 &&
-    assistEventsMissingPlayerId === 0 &&
-    mvpsMissingPlayerId === 0 &&
-    friendlyPlayersWithoutPlayer === 0
+  const ok = nullPlayerIdParticipations === 0 && duplicateParticipationGroupCount === 0
 
   return {
     ok,
     nullPlayerIdParticipations,
     duplicateParticipationGroups: duplicateParticipationGroupCount,
-    eventsMissingPlayerId,
-    assistEventsMissingPlayerId,
-    mvpsMissingPlayerId,
-    friendlyPlayersWithoutPlayer,
   }
 }
 
@@ -126,10 +72,6 @@ function printResult(label: string, result: VerifyResult) {
   console.log(`${label}:`)
   console.log(`  nullPlayerIdParticipations=${result.nullPlayerIdParticipations}`)
   console.log(`  duplicateParticipationGroups=${result.duplicateParticipationGroups}`)
-  console.log(`  eventsMissingPlayerId=${result.eventsMissingPlayerId}`)
-  console.log(`  assistEventsMissingPlayerId=${result.assistEventsMissingPlayerId}`)
-  console.log(`  mvpsMissingPlayerId=${result.mvpsMissingPlayerId}`)
-  console.log(`  friendlyPlayersWithoutPlayer=${result.friendlyPlayersWithoutPlayer}`)
   console.log(`  status=${result.ok ? 'OK' : 'FAIL'}`)
 }
 

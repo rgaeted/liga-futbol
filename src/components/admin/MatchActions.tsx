@@ -38,7 +38,7 @@ export type MatchRow = {
   sideAColor: string | null
   sideBColor: string | null
   friendlyCategoryId: string | null
-  playerSides: Array<{ friendlyPlayerId: string; side: 'A' | 'B'; isCaptain?: boolean; isCoach?: boolean }>
+  playerSides: Array<{ playerId: string; side: 'A' | 'B'; isCaptain?: boolean; isCoach?: boolean }>
   hasCrestA: boolean
   hasCrestB: boolean
   refereeId: string | null

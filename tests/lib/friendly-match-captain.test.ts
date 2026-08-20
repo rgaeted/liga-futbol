@@ -56,22 +56,22 @@ describe('resolveFriendlyCaptains', () => {
   it('returns captain labels for live display', () => {
     const captains = resolveFriendlyCaptains([
       {
-        friendlyPlayerId: 'a',
+        playerId: 'a',
         side: 'A',
         isCaptain: true,
-        friendlyPlayer: { firstName: 'Juan', lastName: 'Pérez' },
+        player: { person: { firstName: 'Juan', lastName: 'Pérez', user: null } },
       },
       {
-        friendlyPlayerId: 'b',
+        playerId: 'b',
         side: 'B',
         isCaptain: false,
-        friendlyPlayer: { firstName: 'Ana', lastName: 'Silva' },
+        player: { person: { firstName: 'Ana', lastName: 'Silva', user: null } },
       },
       {
-        friendlyPlayerId: 'c',
+        playerId: 'c',
         side: 'B',
         isCaptain: true,
-        friendlyPlayer: { firstName: 'Pedro', lastName: 'Gómez' },
+        player: { person: { firstName: 'Pedro', lastName: 'Gómez', user: null } },
       },
     ])
 

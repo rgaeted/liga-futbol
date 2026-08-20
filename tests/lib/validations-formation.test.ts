@@ -16,8 +16,8 @@ describe('upsertMatchFormationSchema', () => {
     const result = upsertMatchFormationSchema.safeParse({
       side: 'A',
       scheme: '4-4-2',
-      slots: [{ slotKey: 'GK', friendlyPlayerId: 'fp1' }],
-      benchFriendlyPlayerIds: ['fp2'],
+      slots: [{ slotKey: 'GK', playerId: 'fp1' }],
+      benchplayerIds: ['fp2'],
     })
     expect(result.success).toBe(true)
   })

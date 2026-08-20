@@ -20,10 +20,12 @@ type LeagueCallUp = {
 }
 
 type FriendlyParticipation = {
-  friendlyPlayerId: string
+  playerId: string
   side: 'A' | 'B'
   slotKey: string | null
-  friendlyPlayer: { firstName: string; lastName: string; photoMimeType: string | null }
+  player: PlayerNameSource & {
+    person: { photoMimeType: string | null }
+  }
 }
 
 type MatchFormationInput = {
@@ -94,17 +96,17 @@ function friendlySide(
         .filter((p) => p.slotKey)
         .map((p) => ({
           slotKey: p.slotKey!,
-          playerId: p.friendlyPlayerId,
-          playerName: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
-          playerPhotoUrl: p.friendlyPlayer.photoMimeType
-            ? friendlyPlayerPhotoUrl(p.friendlyPlayerId)
+          playerId: p.playerId,
+          playerName: playerDisplayName(p.player),
+          playerPhotoUrl: p.player.person.photoMimeType
+            ? friendlyPlayerPhotoUrl(p.playerId)
             : null,
         })),
       bench: sideParts
         .filter((p) => !p.slotKey)
         .map((p) => ({
-          playerId: p.friendlyPlayerId,
-          playerName: `${p.friendlyPlayer.firstName} ${p.friendlyPlayer.lastName}`.trim(),
+          playerId: p.playerId,
+          playerName: playerDisplayName(p.player),
         })),
     }),
   }

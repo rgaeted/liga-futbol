@@ -8,7 +8,7 @@ export function validateFriendlyPlayerPhoto(
 }
 
 export function friendlyPlayerPhotoUrl(id: string): string {
-  return `/api/friendly-players/${id}/photo`
+  return `/api/players/${id}/photo`
 }
 
 export function friendlyPlayerHasPhoto(player: {
@@ -16,4 +16,11 @@ export function friendlyPlayerHasPhoto(player: {
   photoData: Uint8Array | Buffer | null
 }): boolean {
   return Boolean(player.photoMimeType && player.photoData && player.photoData.byteLength > 0)
+}
+
+export function personHasPhoto(person: {
+  photoMimeType: string | null
+  photoData: Uint8Array | Buffer | null
+}): boolean {
+  return Boolean(person.photoMimeType && person.photoData && person.photoData.byteLength > 0)
 }

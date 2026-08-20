@@ -4,10 +4,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { submitJson } from '@/components/admin/submit'
-
 import { formatFriendlyPlayerLabel } from '@/lib/friendly-player-options'
 
-export type AvailableFriendlyPlayer = {
+export type AvailablePlayer = {
   id: string
   firstName: string
   lastName: string
@@ -16,7 +15,7 @@ export type AvailableFriendlyPlayer = {
 }
 
 type Props = {
-  available: AvailableFriendlyPlayer[]
+  available: AvailablePlayer[]
 }
 
 export function RegisterForm({ available }: Props) {
@@ -30,10 +29,10 @@ export function RegisterForm({ available }: Props) {
     setError('')
 
     const form = new FormData(e.currentTarget)
-    const result = await submitJson('/api/friendly-players/claim', 'POST', {
+    const result = await submitJson('/api/players/claim', 'POST', {
       email: String(form.get('email') ?? '').trim(),
       password: String(form.get('password') ?? ''),
-      friendlyPlayerId: String(form.get('friendlyPlayerId') ?? ''),
+      playerId: String(form.get('playerId') ?? ''),
     })
 
     setLoading(false)
@@ -65,9 +64,7 @@ export function RegisterForm({ available }: Props) {
         <form onSubmit={handleSubmit} className="card-kelme space-y-4 p-8">
           <div className="text-center">
             <h1 className="font-display text-xl font-black text-[#17171a]">Crear cuenta</h1>
-            <p className="mt-1 font-ui text-sm text-[#8d8d96]">
-              Reclama tu perfil de jugador amistoso
-            </p>
+            <p className="mt-1 font-ui text-sm text-[#8d8d96]">Reclama tu perfil de jugador</p>
           </div>
           <input name="email" type="email" placeholder="Email" required className="input-kelme" />
           <input
@@ -79,12 +76,12 @@ export function RegisterForm({ available }: Props) {
             className="input-kelme"
           />
           <div className="space-y-1">
-            <label htmlFor="friendlyPlayerId" className="font-ui text-sm font-bold text-[#505058]">
+            <label htmlFor="playerId" className="font-ui text-sm font-bold text-[#505058]">
               Elige tu perfil
             </label>
             <select
-              id="friendlyPlayerId"
-              name="friendlyPlayerId"
+              id="playerId"
+              name="playerId"
               required
               disabled={available.length === 0}
               className="input-kelme w-full"

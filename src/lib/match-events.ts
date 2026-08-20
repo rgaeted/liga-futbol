@@ -14,11 +14,9 @@ const eventInclude = {
       team: { select: { id: true, name: true } },
     },
   },
-  friendlyPlayer: { select: { firstName: true, lastName: true } },
   assistPlayer: {
     include: PLAYER_PERSON_NAME_INCLUDE,
   },
-  assistFriendlyPlayer: { select: { firstName: true, lastName: true } },
 } as const
 
 const GAME_EVENT_TYPES: EventType[] = [

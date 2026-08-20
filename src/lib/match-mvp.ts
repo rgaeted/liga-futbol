@@ -1,5 +1,5 @@
 import type { MatchMvpSide, MatchType } from '@prisma/client'
-import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
+import { friendlyPlayerPhotoUrl, personHasPhoto } from '@/lib/friendly-player-photo'
 import { matchMvpPhotoUrl, matchTeamMvpHasPhoto } from '@/lib/match-mvp-photo'
 import { playerDisplayName, type PlayerNameSource } from '@/lib/person-name'
 
@@ -14,25 +14,18 @@ export type TeamMvpSideView = {
 type TeamMvpRow = {
   side: MatchMvpSide
   playerId: string | null
-  friendlyPlayerId: string | null
   photoMimeType: string | null
   photoData: Uint8Array | Buffer | null
-  player?: PlayerNameSource | null
-  friendlyPlayer?: {
-    firstName: string
-    lastName: string
-    photoMimeType?: string | null
-  } | null
+  player?: (PlayerNameSource & {
+    person?: { photoMimeType?: string | null } | null
+  }) | null
 }
 
 export function resolveTeamMvpPlayerId(row: TeamMvpRow): string | null {
-  return row.friendlyPlayerId ?? row.playerId
+  return row.playerId
 }
 
 export function resolveTeamMvpLabel(row: TeamMvpRow): string | null {
-  if (row.friendlyPlayer) {
-    return `${row.friendlyPlayer.firstName} ${row.friendlyPlayer.lastName}`.trim()
-  }
   return row.player ? playerDisplayName(row.player) : null
 }
 
@@ -43,8 +36,8 @@ export function resolveTeamMvpPhotoUrl(
   if (matchTeamMvpHasPhoto(row)) {
     return matchMvpPhotoUrl(matchId, row.side)
   }
-  if (row.friendlyPlayerId && row.friendlyPlayer?.photoMimeType) {
-    return friendlyPlayerPhotoUrl(row.friendlyPlayerId)
+  if (row.playerId && row.player?.person?.photoMimeType) {
+    return friendlyPlayerPhotoUrl(row.playerId)
   }
   return null
 }
@@ -98,13 +91,13 @@ export async function assertMvpInMatchRoster(
     awayTeamId: string | null
   },
   side: MatchMvpSide,
-  input: { playerId?: string | null; friendlyPlayerId?: string | null }
+  input: { playerId?: string | null }
 ): Promise<string | null> {
   if (match.matchType === 'FRIENDLY') {
-    const friendlyPlayerId = input.friendlyPlayerId
-    if (!friendlyPlayerId) return null
+    const playerId = input.playerId
+    if (!playerId) return null
     const row = await db.friendlyMatchPlayer.findFirst({
-      where: { matchId: match.id, friendlyPlayerId },
+      where: { matchId: match.id, playerId },
       select: { id: true, side: true },
     })
     if (!row) return 'El MVP debe ser un jugador del partido'
@@ -137,8 +130,9 @@ export async function assertMvpInMatchRoster(
 }
 
 export const MATCH_MVP_INCLUDE = {
-  player: { include: { person: { include: { user: { select: { name: true } } } } } },
-  friendlyPlayer: {
-    select: { firstName: true, lastName: true, photoMimeType: true },
+  player: {
+    include: {
+      person: { include: { user: { select: { name: true } } } },
+    },
   },
 } as const

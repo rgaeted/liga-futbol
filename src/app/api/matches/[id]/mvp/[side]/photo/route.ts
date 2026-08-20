@@ -104,10 +104,10 @@ export async function POST(req: Request, { params }: RouteParams) {
 
   const existing = await db.matchTeamMvp.findUnique({
     where: { matchId_side: { matchId: id, side } },
-    select: { id: true, playerId: true, friendlyPlayerId: true },
+    select: { id: true, playerId: true },
   })
 
-  if (!existing || (!existing.playerId && !existing.friendlyPlayerId)) {
+  if (!existing?.playerId) {
     return NextResponse.json(
       { error: 'Primero elige y guarda un jugador MVP para este equipo' },
       { status: 400 }
