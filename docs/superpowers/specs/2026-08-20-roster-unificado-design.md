@@ -1,11 +1,11 @@
 # Roster unificado por empresa — Design Spec
 
-> Estado: **Diseño aprobado** (pendiente review del archivo)
-> Plan: _(se escribe tras aprobación de este spec)_
+> Plan: [`docs/superpowers/plans/2026-08-20-roster-unificado.md`](../plans/2026-08-20-roster-unificado.md)
 > Fecha: 2026-08-20
 > Producto: **LigaLab**
 > Depende de: organizaciones; jugador único (`Person`); amistosos entre orgs
 > Relacionado: sustituye el dual `Player` / `FriendlyPlayer` de la spec de jugador único para participación en partidos
+> Estado: **Diseño aprobado**
 
 ---
 
