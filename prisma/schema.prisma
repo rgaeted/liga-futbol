@@ -264,6 +264,9 @@ model Player {
   team           Team?        @relation(fields: [teamId], references: [id])
   jerseyNumber   Int?
   position       String?
+  dominantFoot        DominantFoot?
+  primaryPosition     String?
+  secondaryPosition   String?
   goals          Int          @default(0)
   assists        Int          @default(0)
   yellowCards    Int          @default(0)
@@ -274,6 +277,8 @@ model Player {
   goalAssists    MatchEvent[] @relation("GoalAssists")
   teamMvps       MatchTeamMvp[]
   seasonRosterEntries SeasonRosterEntry[]
+  categories          PlayerCategory[]
+  friendlyParticipations FriendlyMatchPlayer[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -309,6 +314,7 @@ model FriendlyCategory {
   description String?
   isActive    Boolean  @default(true)
   playerMemberships FriendlyPlayerCategory[]
+  playerLinks PlayerCategory[]
   matches     Match[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -458,6 +464,16 @@ model FriendlyPlayer {
   @@unique([personId, organizationId])
 }
 
+model PlayerCategory {
+  playerId           String
+  player             Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  friendlyCategoryId String
+  friendlyCategory   FriendlyCategory @relation(fields: [friendlyCategoryId], references: [id], onDelete: Cascade)
+  createdAt          DateTime         @default(now())
+
+  @@id([playerId, friendlyCategoryId])
+}
+
 model FriendlyPlayerCategory {
   friendlyPlayerId   String
   friendlyPlayer     FriendlyPlayer   @relation(fields: [friendlyPlayerId], references: [id], onDelete: Cascade)
@@ -474,6 +490,8 @@ model FriendlyMatchPlayer {
   match            Match          @relation(fields: [matchId], references: [id], onDelete: Cascade)
   friendlyPlayerId String
   friendlyPlayer   FriendlyPlayer @relation(fields: [friendlyPlayerId], references: [id])
+  playerId         String?
+  player           Player?        @relation(fields: [playerId], references: [id])
   side             FriendlySide
   paid             Boolean        @default(false)
   isGalleta        Boolean        @default(false)
