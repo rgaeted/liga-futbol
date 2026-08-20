@@ -10,23 +10,23 @@ describe('validateFriendlyCaptains', () => {
   it('requires exactly one captain per side', () => {
     expect(
       validateFriendlyCaptains([
-        { friendlyPlayerId: 'a', side: 'A' },
-        { friendlyPlayerId: 'b', side: 'B' },
+        { playerId: 'a', side: 'A' },
+        { playerId: 'b', side: 'B' },
       ])
     ).toBe('Debes elegir un capitán para el equipo local (lado A)')
 
     expect(
       validateFriendlyCaptains([
-        { friendlyPlayerId: 'a', side: 'A', isCaptain: true },
-        { friendlyPlayerId: 'b', side: 'B' },
+        { playerId: 'a', side: 'A', isCaptain: true },
+        { playerId: 'b', side: 'B' },
       ])
     ).toBe('Debes elegir un capitán para el equipo visitante (lado B)')
 
     expect(
       validateFriendlyCaptains([
-        { friendlyPlayerId: 'a', side: 'A', isCaptain: true },
-        { friendlyPlayerId: 'a2', side: 'A', isCaptain: true },
-        { friendlyPlayerId: 'b', side: 'B', isCaptain: true },
+        { playerId: 'a', side: 'A', isCaptain: true },
+        { playerId: 'a2', side: 'A', isCaptain: true },
+        { playerId: 'b', side: 'B', isCaptain: true },
       ])
     ).toBe('Debes elegir un capitán para el equipo local (lado A)')
   })
@@ -34,8 +34,8 @@ describe('validateFriendlyCaptains', () => {
   it('accepts one captain per side', () => {
     expect(
       validateFriendlyCaptains([
-        { friendlyPlayerId: 'a', side: 'A', isCaptain: true },
-        { friendlyPlayerId: 'b', side: 'B', isCaptain: true },
+        { playerId: 'a', side: 'A', isCaptain: true },
+        { playerId: 'b', side: 'B', isCaptain: true },
       ])
     ).toBeNull()
   })
@@ -45,8 +45,8 @@ describe('captainsFromRoster', () => {
   it('extracts captain ids by side', () => {
     expect(
       captainsFromRoster([
-        { friendlyPlayerId: 'a', side: 'A', isCaptain: true },
-        { friendlyPlayerId: 'b', side: 'B', isCaptain: true },
+        { playerId: 'a', side: 'A', isCaptain: true },
+        { playerId: 'b', side: 'B', isCaptain: true },
       ])
     ).toEqual({ sideACaptainId: 'a', sideBCaptainId: 'b' })
   })

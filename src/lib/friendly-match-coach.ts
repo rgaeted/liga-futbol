@@ -22,8 +22,8 @@ export function coachesFromRoster(players: FriendlyRosterEntry[]): {
   let sideBCoachId: string | null = null
   for (const p of players) {
     if (!p.isCoach) continue
-    if (p.side === 'A') sideACoachId = p.friendlyPlayerId
-    else sideBCoachId = p.friendlyPlayerId
+    if (p.side === 'A') sideACoachId = p.playerId
+    else sideBCoachId = p.playerId
   }
   return { sideACoachId, sideBCoachId }
 }

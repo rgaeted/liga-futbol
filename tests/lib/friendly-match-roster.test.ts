@@ -10,15 +10,15 @@ import {
 describe('validateFriendlyRoster', () => {
   it('requires at least one player per side', () => {
     expect(
-      validateFriendlyRoster([{ friendlyPlayerId: 'a', side: 'A' }])
+      validateFriendlyRoster([{ playerId: 'a', side: 'A' }])
     ).toBe('Debe haber al menos un jugador por lado')
   })
 
   it('requires one captain per side', () => {
     expect(
       validateFriendlyRoster([
-        { friendlyPlayerId: 'a', side: 'A' },
-        { friendlyPlayerId: 'b', side: 'B' },
+        { playerId: 'a', side: 'A' },
+        { playerId: 'b', side: 'B' },
       ])
     ).toBe('Debes elegir un capitán para el equipo local (lado A)')
   })
@@ -26,8 +26,8 @@ describe('validateFriendlyRoster', () => {
   it('accepts roster with captains and coaches', () => {
     expect(
       validateFriendlyRoster([
-        { friendlyPlayerId: 'a', side: 'A', isCaptain: true, isCoach: true },
-        { friendlyPlayerId: 'b', side: 'B', isCaptain: true, isCoach: true },
+        { playerId: 'a', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'b', side: 'B', isCaptain: true, isCoach: true },
       ])
     ).toBeNull()
   })
@@ -35,8 +35,8 @@ describe('validateFriendlyRoster', () => {
   it('rejects duplicate players', () => {
     expect(
       validateFriendlyRoster([
-        { friendlyPlayerId: 'a', side: 'A' },
-        { friendlyPlayerId: 'a', side: 'B' },
+        { playerId: 'a', side: 'A' },
+        { playerId: 'a', side: 'B' },
       ])
     ).toBe('Un jugador no puede estar dos veces en el mismo partido')
   })

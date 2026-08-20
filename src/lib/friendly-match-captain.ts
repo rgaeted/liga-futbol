@@ -1,5 +1,5 @@
 export type FriendlyRosterEntry = {
-  friendlyPlayerId: string
+  playerId: string
   side: 'A' | 'B'
   isCaptain?: boolean
   isCoach?: boolean
@@ -25,8 +25,8 @@ export function captainsFromRoster(players: FriendlyRosterEntry[]): {
   let sideBCaptainId: string | null = null
   for (const p of players) {
     if (!p.isCaptain) continue
-    if (p.side === 'A') sideACaptainId = p.friendlyPlayerId
-    else sideBCaptainId = p.friendlyPlayerId
+    if (p.side === 'A') sideACaptainId = p.playerId
+    else sideBCaptainId = p.playerId
   }
   return { sideACaptainId, sideBCaptainId }
 }

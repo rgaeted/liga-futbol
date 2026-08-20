@@ -9,7 +9,7 @@ export function validateFriendlyRoster(players: FriendlyRosterEntry[]): string |
   if (!sides.has('A') || !sides.has('B')) {
     return 'Debe haber al menos un jugador por lado'
   }
-  const ids = players.map((p) => p.friendlyPlayerId)
+  const ids = players.map((p) => p.playerId)
   if (new Set(ids).size !== ids.length) {
     return 'Un jugador no puede estar dos veces en el mismo partido'
   }
@@ -23,7 +23,7 @@ export async function syncFriendlyMatchRoster(
 ) {
   const existing = await tx.friendlyMatchPlayer.findMany({ where: { matchId } })
   const existingByPlayer = new Map(existing.map((p) => [p.friendlyPlayerId, p]))
-  const incomingIds = new Set(players.map((p) => p.friendlyPlayerId))
+  const incomingIds = new Set(players.map((p) => p.playerId))
 
   for (const row of existing) {
     if (!incomingIds.has(row.friendlyPlayerId)) {
@@ -32,7 +32,7 @@ export async function syncFriendlyMatchRoster(
   }
 
   for (const entry of players) {
-    const prev = existingByPlayer.get(entry.friendlyPlayerId)
+    const prev = existingByPlayer.get(entry.playerId)
     const isCaptain = entry.isCaptain ?? false
     const isCoach = entry.isCoach ?? false
 
@@ -40,7 +40,7 @@ export async function syncFriendlyMatchRoster(
       await tx.friendlyMatchPlayer.create({
         data: {
           matchId,
-          friendlyPlayerId: entry.friendlyPlayerId,
+          friendlyPlayerId: entry.playerId,
           side: entry.side,
           isCaptain,
           isCoach,
@@ -61,7 +61,7 @@ export async function syncFriendlyMatchRoster(
         },
       })
       await tx.matchEvent.updateMany({
-        where: { matchId, friendlyPlayerId: entry.friendlyPlayerId },
+        where: { matchId, friendlyPlayerId: entry.playerId },
         data: { side: entry.side },
       })
       continue
@@ -84,7 +84,7 @@ export async function syncFriendlyMatchRoster(
     await tx.friendlyMatchPlayer.updateMany({
       where: {
         matchId,
-        friendlyPlayerId: entry.friendlyPlayerId,
+        friendlyPlayerId: entry.playerId,
         side: entry.side,
       },
       data: { isCaptain: true },
@@ -100,14 +100,14 @@ export async function syncFriendlyMatchRoster(
     await tx.friendlyMatchPlayer.updateMany({
       where: {
         matchId,
-        friendlyPlayerId: entry.friendlyPlayerId,
+        friendlyPlayerId: entry.playerId,
         side: entry.side,
       },
       data: { isCoach: true },
     })
 
     const fp = await tx.friendlyPlayer.findUnique({
-      where: { id: entry.friendlyPlayerId },
+      where: { id: entry.playerId },
       select: { organizationId: true, person: { select: { userId: true } } },
     })
     const coachUserId = fp?.person.userId
