@@ -70,11 +70,8 @@ function SideEditor({
       body: JSON.stringify({
         side,
         scheme: payload.scheme,
-        slots: payload.slots.map((s) => ({
-          slotKey: s.slotKey,
-          friendlyPlayerId: s.playerId,
-        })),
-        benchFriendlyPlayerIds: payload.benchPlayerIds,
+        slots: payload.slots,
+        benchPlayerIds: payload.benchPlayerIds,
       }),
     })
     if (!res.ok) {

@@ -162,10 +162,13 @@ describe('live match snapshot', () => {
           isGalleta: true,
           isCaptain: false,
           isCoach: false,
-          friendlyPlayer: {
-            firstName: 'Juan',
-            lastName: 'Pérez',
-            photoMimeType: 'image/jpeg',
+          player: {
+            person: {
+              firstName: 'Juan',
+              lastName: 'Pérez',
+              user: null,
+              photoMimeType: 'image/jpeg',
+            },
           },
         },
         {
@@ -176,10 +179,13 @@ describe('live match snapshot', () => {
           isGalleta: false,
           isCaptain: false,
           isCoach: false,
-          friendlyPlayer: {
-            firstName: 'Pedro',
-            lastName: 'Gómez',
-            photoMimeType: null,
+          player: {
+            person: {
+              firstName: 'Pedro',
+              lastName: 'Gómez',
+              user: null,
+              photoMimeType: null,
+            },
           },
         },
       ],

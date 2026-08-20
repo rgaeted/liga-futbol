@@ -45,7 +45,7 @@ describe('match event validation', () => {
       minute: 12,
       playerId: 'fp-1',
       side: 'A',
-      assistFriendlyPlayerId: 'fp-2',
+      assistPlayerId: 'fp-2',
     })
     expect(result.success).toBe(true)
   })

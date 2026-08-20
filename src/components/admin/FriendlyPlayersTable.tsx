@@ -88,7 +88,7 @@ export function FriendlyPlayersTable({
       payload.password = password
     }
 
-    const result = await submitJson(`/api/friendly-players/${player.id}`, 'PUT', payload)
+    const result = await submitJson(`/api/players/${player.id}`, 'PUT', payload)
     setSaving(false)
     if (!result.ok) {
       setError(result.message)
@@ -238,7 +238,7 @@ export function FriendlyPlayersTable({
                         Editar
                       </button>
                       <DeleteButton
-                        url={`/api/friendly-players/${player.id}`}
+                        url={`/api/players/${player.id}`}
                         confirmMessage={`¿Eliminar a ${player.firstName} ${player.lastName} del pool amistoso?`}
                       />
                     </span>

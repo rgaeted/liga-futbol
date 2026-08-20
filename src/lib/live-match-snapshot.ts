@@ -307,8 +307,8 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
           side: event.side,
           playerTeamId: event.player?.team?.id ?? event.player?.teamId ?? null,
           playerTeamName: event.player?.team?.name ?? null,
-          friendlyPlayerId: event.playerId,
-          friendlySide: event.playerId
+          playerId: event.playerId,
+          playerSide: event.playerId
             ? friendlySideByPlayer.get(event.playerId) ?? null
             : null,
         },

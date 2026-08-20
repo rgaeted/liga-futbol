@@ -9,7 +9,7 @@ vi.mock('@/lib/auth', () => ({
 vi.mock('@/lib/db', () => ({
   db: {
     friendlyCategory: { findUnique: vi.fn() },
-    friendlyPlayer: { findMany: vi.fn() },
+    player: { findMany: vi.fn() },
     organization: { findUnique: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -43,7 +43,7 @@ describe('POST /api/matches challenge', () => {
       organizationId: hostOrgId,
       isActive: true,
     } as never)
-    vi.mocked(db.friendlyPlayer.findMany).mockResolvedValue([
+    vi.mocked(db.player.findMany).mockResolvedValue([
       {
         id: 'fp-1',
         organizationId: hostOrgId,

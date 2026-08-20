@@ -27,7 +27,13 @@ describe('POST /api/players/claim', () => {
       id: 'p-1',
       organizationId: 'org-1',
       personId: 'person-1',
-      person: { id: 'person-1', userId: null, firstName: 'Juan', lastName: 'Pérez' },
+      person: {
+        id: 'person-1',
+        userId: null,
+        firstName: 'Juan',
+        lastName: 'Pérez',
+        user: null,
+      },
     } as never)
     vi.mocked(db.user.findUnique).mockResolvedValue(null)
     personFindUniqueOrThrow.mockResolvedValue({ id: 'person-1', userId: null })

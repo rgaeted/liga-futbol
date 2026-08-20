@@ -12,7 +12,7 @@ import { FriendlyCategoryCheckboxes } from './FriendlyCategoryCheckboxes'
 async function uploadPhoto(playerId: string, file: File): Promise<string | null> {
   const form = new FormData()
   form.append('photo', file)
-  const res = await fetch(`/api/friendly-players/${playerId}/photo`, {
+  const res = await fetch(`/api/players/${playerId}/photo`, {
     method: 'POST',
     body: form,
   })
@@ -69,7 +69,7 @@ export function FriendlyPlayerForm({
       payload.password = password
     }
 
-    const res = await fetch('/api/friendly-players', {
+    const res = await fetch('/api/players', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

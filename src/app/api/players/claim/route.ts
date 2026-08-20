@@ -16,7 +16,17 @@ export async function POST(req: Request) {
 
   const player = await db.player.findUnique({
     where: { id: playerId },
-    include: { person: { select: { id: true, userId: true, firstName: true, lastName: true } } },
+    include: {
+      person: {
+        select: {
+          id: true,
+          userId: true,
+          firstName: true,
+          lastName: true,
+          user: { select: { name: true } },
+        },
+      },
+    },
   })
   if (!player) {
     return NextResponse.json({ error: 'Perfil no encontrado' }, { status: 404 })
@@ -33,7 +43,7 @@ export async function POST(req: Request) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
-  const name = playerDisplayName(player.person)
+  const name = playerDisplayName(player)
 
   await db.$transaction(async (tx) => {
     const person = await tx.person.findUniqueOrThrow({ where: { id: player.personId } })

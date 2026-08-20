@@ -69,13 +69,15 @@ export function resolveEventTeamLabel(
     playerTeamName?: string | null
     friendlyPlayerId?: string | null
     friendlySide?: 'A' | 'B' | null
+    playerId?: string | null
+    playerSide?: 'A' | 'B' | null
   },
   match: MatchTeamInput
 ): string | null {
   const fromIds = eventTeamLabel(
     {
       teamId: event.teamId,
-      side: event.side ?? event.friendlySide ?? null,
+      side: event.side ?? event.playerSide ?? event.friendlySide ?? null,
       playerTeamId: event.playerTeamId,
     },
     match

@@ -31,6 +31,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
   const isMobileInstallationDelete =
     method === 'DELETE' &&
     /^\/api\/mobile\/v1\/leagues\/[^/]+\/installations\/[^/]+$/.test(pathname)
+  const isPlayersClaimPost =
+    method === 'POST' && pathname === '/api/players/claim'
   const isTenantPublicGet =
     (method === 'GET' || method === 'HEAD') &&
     (tenantLive.test(pathname) || tenantAyuda.test(pathname))
@@ -54,7 +56,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isMobileLeagueGet ||
     isMobileInstallationPost ||
     isMobileInstallationSubscriptionsPut ||
-    isMobileInstallationDelete
+    isMobileInstallationDelete ||
+    isPlayersClaimPost
   )
 }
 

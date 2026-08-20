@@ -13,7 +13,7 @@ vi.mock('@/lib/mobile/notifications/enqueue', () => ({
 vi.mock('@/lib/db', () => ({
   db: {
     match: { findUnique: vi.fn(), update: vi.fn() },
-    friendlyPlayer: { findMany: vi.fn() },
+    player: { findMany: vi.fn() },
     $transaction: vi.fn(),
   },
 }))
@@ -119,7 +119,7 @@ describe('challenge roster guards', () => {
       session: {} as never,
     })
     vi.mocked(db.match.findUnique).mockResolvedValue(baseChallengeMatch as never)
-    vi.mocked(db.friendlyPlayer.findMany).mockResolvedValue([
+    vi.mocked(db.player.findMany).mockResolvedValue([
       {
         id: 'fp-host',
         organizationId: hostOrgId,
@@ -140,8 +140,8 @@ describe('challenge roster guards', () => {
           update: vi.fn(),
           updateMany: vi.fn(),
         },
-        friendlyPlayer: {
-          findUnique: vi.fn().mockResolvedValue({
+        player: {
+          findUnique: async () => ({
             organizationId: guestOrgId,
             person: { userId: null },
           }),
