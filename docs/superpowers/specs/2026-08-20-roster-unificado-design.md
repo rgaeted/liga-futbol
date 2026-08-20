@@ -177,8 +177,9 @@ Orden sugerido en una migración (o migración + script verificado):
 
 ### Árbitro / eventos
 
-- Amistoso: body con `playerId` (+ `side` si el invariante de scoring lo requiere hoy vía participación).
+- Amistoso: body con `playerId`; el `side` del evento se deriva de la participación (`FriendlyMatchPlayer.side`) o se envía y se valida contra ella (mismo invariante que hoy).
 - Validar que el jugador tenga `FriendlyMatchPlayer` en ese match (o esté en call-up si liga).
+- Contadores `Player.goals` etc. siguen siendo cache de **liga**; goles amistosos no los incrementan (carrera los agrega por `matchType`).
 
 ### Reclamación / registro
 
