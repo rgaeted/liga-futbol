@@ -46,6 +46,7 @@ type Props = {
   match: MatchRow
   referees: RefereeOption[]
   rosterPlayers: FriendlyRosterPlayer[]
+  teams?: Array<{ id: string; name: string }>
 }
 
 function SideColumn({
@@ -138,6 +139,7 @@ export function AdminMatchCard({
   match,
   referees,
   rosterPlayers,
+  teams = [],
 }: Props) {
   const orgPath = useOrgPath()
   const [editing, setEditing] = useState(false)
@@ -301,6 +303,7 @@ export function AdminMatchCard({
           match={match}
           referees={referees}
           friendlyPlayers={rosterPlayers}
+          teams={teams}
           editing={editing}
           onEditingChange={setEditing}
           hideIdleToolbar

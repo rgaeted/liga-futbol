@@ -17,7 +17,7 @@ export default async function NewFriendlyMatchPage({
     notFound()
   }
 
-  const [refereeMemberships, friendlyCategories, friendlyPlayers] = await Promise.all([
+  const [refereeMemberships, friendlyCategories, friendlyPlayers, teams] = await Promise.all([
     db.organizationMembership.findMany({
       where: { organizationId, role: MembershipRole.REFEREE },
       include: { user: { select: { id: true, name: true } } },
@@ -28,6 +28,7 @@ export default async function NewFriendlyMatchPage({
       orderBy: { person: { lastName: 'asc' } },
       select: {
         id: true,
+        teamId: true,
         primaryPosition: true,
         person: {
           select: {
@@ -39,6 +40,7 @@ export default async function NewFriendlyMatchPage({
         categories: { select: { friendlyCategoryId: true } },
       },
     }),
+    db.team.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),
   ])
 
   const rosterPlayers = friendlyPlayers.map((player) => ({
@@ -48,6 +50,7 @@ export default async function NewFriendlyMatchPage({
     categoryIds: player.categories.map((category) => category.friendlyCategoryId),
     primaryPosition: player.primaryPosition,
     hasPhoto: Boolean(player.person.photoMimeType),
+    teamId: player.teamId,
   }))
 
   return (
@@ -59,6 +62,7 @@ export default async function NewFriendlyMatchPage({
         isActive: category.isActive,
       }))}
       friendlyPlayers={rosterPlayers}
+      teams={teams.map((team) => ({ id: team.id, name: team.name }))}
     />
   )
 }

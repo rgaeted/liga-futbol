@@ -17,6 +17,7 @@ import {
   type FriendlyRosterPlayer,
 } from '@/components/admin/FriendlyMatchConvocationPicker'
 import { FriendlyMatchTeamAssigner } from '@/components/admin/FriendlyMatchTeamAssigner'
+import { FriendlyTeamBulkAdd } from '@/components/admin/FriendlyTeamBulkAdd'
 import { submitJson } from '@/components/admin/submit'
 import { useOrgPath } from '@/hooks/useOrgPath'
 import {
@@ -30,6 +31,7 @@ import {
   rosterEntriesFromSets,
   setPlayerSide,
   toggleConvocation,
+  addTeamToSide,
 } from '@/lib/friendly-match-roster-ui'
 import {
   refereeEventTypesForPreset,
@@ -76,6 +78,7 @@ type Props = {
   referees: Referee[]
   categories: FriendlyCategoryOption[]
   friendlyPlayers: FriendlyRosterPlayer[]
+  teams: Array<{ id: string; name: string }>
 }
 
 function createInitialDraft(categories: FriendlyCategoryOption[]): FriendlyDraft {
@@ -151,7 +154,7 @@ function validateRoster(draft: FriendlyDraft): string | null {
   return null
 }
 
-export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayers }: Props) {
+export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayers, teams }: Props) {
   const orgPath = useOrgPath()
   const router = useRouter()
   const activeCategories = categories.filter((category) => category.isActive)
@@ -313,6 +316,30 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
       sideBCoachId: data.sideBCoachId,
     })
     patch({
+      sideAIds: [...next.sideAIds],
+      sideBIds: [...next.sideBIds],
+      sideACaptainId: next.sideACaptainId,
+      sideBCaptainId: next.sideBCaptainId,
+      sideACoachId: next.sideACoachId,
+      sideBCoachId: next.sideBCoachId,
+    })
+  }
+
+  function handleAddTeamToSide(side: 'A' | 'B', playerIds: string[]) {
+    setError('')
+    const next = addTeamToSide({
+      teamPlayerIds: playerIds,
+      side,
+      convokedIds,
+      sideAIds,
+      sideBIds,
+      sideACaptainId: data.sideACaptainId,
+      sideBCaptainId: data.sideBCaptainId,
+      sideACoachId: data.sideACoachId,
+      sideBCoachId: data.sideBCoachId,
+    })
+    patch({
+      convokedIds: [...next.convokedIds],
       sideAIds: [...next.sideAIds],
       sideBIds: [...next.sideBIds],
       sideACaptainId: next.sideACaptainId,
@@ -720,6 +747,12 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
       >
         {data.rosterPhase === 'convocation' ? (
           <div className="space-y-4">
+            <FriendlyTeamBulkAdd
+              teams={teams}
+              roster={roster}
+              onAddToSide={handleAddTeamToSide}
+              sideOnly={data.friendlyMode === 'challenge' ? 'A' : undefined}
+            />
             <FriendlyMatchConvocationPicker
               roster={roster}
               convokedIds={convokedIds}

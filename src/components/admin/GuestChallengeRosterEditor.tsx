@@ -8,16 +8,18 @@ import type { FriendlyRosterPlayer } from '@/components/admin/FriendlyMatchConvo
 import { submitJson } from '@/components/admin/submit'
 import { useOrgPath } from '@/hooks/useOrgPath'
 import {
-  mapToSideSets,
   rosterEntriesFromSets,
   setPlayerSide,
   toggleConvocation,
+  addTeamToSide,
 } from '@/lib/friendly-match-roster-ui'
+import { FriendlyTeamBulkAdd } from '@/components/admin/FriendlyTeamBulkAdd'
 
 type Props = {
   matchId: string
   sideBName: string
   friendlyPlayers: FriendlyRosterPlayer[]
+  teams: Array<{ id: string; name: string }>
   initialSideBIds: string[]
   initialSideBCaptainId: string | null
   initialSideBCoachId: string | null
@@ -27,6 +29,7 @@ export function GuestChallengeRosterEditor({
   matchId,
   sideBName,
   friendlyPlayers,
+  teams,
   initialSideBIds,
   initialSideBCaptainId,
   initialSideBCoachId,
@@ -87,6 +90,24 @@ export function GuestChallengeRosterEditor({
     setSideBCoachId(next.sideBCoachId)
   }
 
+  function handleAddTeamToSide(_side: 'A' | 'B', playerIds: string[]) {
+    const next = addTeamToSide({
+      teamPlayerIds: playerIds,
+      side: 'B',
+      convokedIds: convokedIdSet,
+      sideAIds: sideAIdSet,
+      sideBIds: sideBIdSet,
+      sideACaptainId: null,
+      sideBCaptainId,
+      sideACoachId: null,
+      sideBCoachId,
+    })
+    setConvokedIds([...next.convokedIds])
+    setSideBIds([...next.sideBIds])
+    setSideBCaptainId(next.sideBCaptainId)
+    setSideBCoachId(next.sideBCoachId)
+  }
+
   async function handleSave() {
     setError('')
     if (sideBIdSet.size < 1 || !sideBCaptainId || !sideBCoachId) {
@@ -140,6 +161,12 @@ export function GuestChallengeRosterEditor({
       ) : null}
 
       <div className="rounded-xl border border-kelme-border bg-white p-5">
+        <FriendlyTeamBulkAdd
+          teams={teams}
+          roster={friendlyPlayers}
+          onAddToSide={handleAddTeamToSide}
+          sideOnly="B"
+        />
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -149,8 +176,8 @@ export function GuestChallengeRosterEditor({
         <ul className="mb-4 max-h-48 space-y-2 overflow-y-auto">
           {filteredRoster.length === 0 ? (
             <li className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              No tienes jugadores amistosos en tu organización.{' '}
-              <Link href={orgPath('/admin/friendly-players')} className="font-semibold underline">
+              No tienes jugadores en tu organización.{' '}
+              <Link href={orgPath('/admin/players')} className="font-semibold underline">
                 Crea jugadores
               </Link>{' '}
               antes de armar tu plantel.

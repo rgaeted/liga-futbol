@@ -25,9 +25,11 @@ async function uploadPhoto(playerId: string, file: File): Promise<string | null>
 
 export function FriendlyPlayerForm({
   categories,
+  teams = [],
   defaultCategoryIds,
 }: {
   categories: Array<{ id: string; name: string }>
+  teams?: Array<{ id: string; name: string }>
   defaultCategoryIds: string[]
 }) {
   const router = useRouter()
@@ -55,7 +57,8 @@ export function FriendlyPlayerForm({
     const payload: Record<string, unknown> = {
       firstName: String(form.get('firstName') ?? '').trim(),
       lastName: String(form.get('lastName') ?? '').trim(),
-      friendlyCategoryIds: categoryIds,
+      categoryIds,
+      teamId: String(form.get('teamId') ?? '').trim() || undefined,
       ...readFriendlyPlayerProfileFromForm(form),
     }
 
@@ -120,6 +123,19 @@ export function FriendlyPlayerForm({
         className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
       />
       <FriendlyPlayerProfileFields />
+      {teams.length > 0 && (
+        <select
+          name="teamId"
+          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        >
+          <option value="">Sin equipo</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.name}
+            </option>
+          ))}
+        </select>
+      )}
       <label className="flex flex-col gap-1 md:col-span-3">
         <span className="text-sm text-kelme-gray-600">Foto (opcional)</span>
         <input
@@ -147,7 +163,7 @@ export function FriendlyPlayerForm({
         disabled={loading}
         className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50 md:col-span-3"
       >
-        {loading ? 'Creando…' : 'Crear jugador amistoso'}
+        {loading ? 'Creando…' : 'Crear jugador'}
       </button>
       {error && <p className="text-sm text-kelme-red md:col-span-3">{error}</p>}
     </form>

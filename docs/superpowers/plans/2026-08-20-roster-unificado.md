@@ -865,9 +865,24 @@ git commit -m "chore: align seeds with unified org roster"
 
 ### Task 16: Deploy checklist (manual)
 
-- [ ] Run migrate + `migrate-unified-roster.ts` + `verify-unified-roster.ts` on preview DB
-- [ ] Smoke: admin jugadores, crear amistoso, agregar equipo a lado A, árbitro gol, desafío guest
-- [ ] Prod: same scripts during deploy window; then `vercel deploy --prod` when user asks
+Ejecutar en preview/staging antes de prod:
+
+```bash
+npx prisma migrate deploy
+npx tsx scripts/migrate-unified-roster.ts
+npx tsx scripts/verify-unified-roster.ts --collapse
+```
+
+Smoke manual:
+- [ ] Admin → Jugadores: crear/editar con categorías y equipo
+- [ ] Crear amistoso → agregar equipo completo al lado A
+- [ ] Árbitro: registrar gol con asistencia
+- [ ] Desafío guest: convocar plantel lado B con bulk por equipo
+
+Prod (solo cuando el usuario lo pida):
+- [ ] Mismos scripts en ventana de deploy
+- [ ] `vercel deploy --prod`
+- [ ] Actualizar `docs/handoff/SESSION-CONTEXT.md`
 
 ---
 

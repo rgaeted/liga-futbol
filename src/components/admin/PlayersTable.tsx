@@ -1,7 +1,7 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
 
@@ -13,11 +13,21 @@ export type PlayerRow = {
   teamName: string | null
   jerseyNumber: number | null
   position: string | null
+  categoryNames: string[]
 }
 
 type TeamOption = { id: string; name: string }
+type CategoryOption = { id: string; name: string }
 
-export function PlayersTable({ players, teams }: { players: PlayerRow[]; teams: TeamOption[] }) {
+export function PlayersTable({
+  players,
+  teams,
+  categories,
+}: {
+  players: PlayerRow[]
+  teams: TeamOption[]
+  categories: CategoryOption[]
+}) {
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [teamId, setTeamId] = useState('')
@@ -25,6 +35,26 @@ export function PlayersTable({ players, teams }: { players: PlayerRow[]; teams: 
   const [position, setPosition] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [filterTeamId, setFilterTeamId] = useState('')
+  const [filterCategoryId, setFilterCategoryId] = useState('')
+  const [search, setSearch] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return players.filter((player) => {
+      if (filterTeamId && player.teamId !== filterTeamId) return false
+      if (filterCategoryId) {
+        const categoryName = categories.find((c) => c.id === filterCategoryId)?.name
+        if (!categoryName || !player.categoryNames.includes(categoryName)) return false
+      }
+      if (!q) return true
+      return (
+        player.name.toLowerCase().includes(q) ||
+        player.email.toLowerCase().includes(q) ||
+        (player.teamName?.toLowerCase().includes(q) ?? false)
+      )
+    })
+  }, [categories, filterCategoryId, filterTeamId, players, search])
 
   function startEdit(player: PlayerRow) {
     setEditingId(player.id)
@@ -52,101 +82,155 @@ export function PlayersTable({ players, teams }: { players: PlayerRow[]; teams: 
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-kelme-border">
-      <table className="w-full text-left text-sm">
-        <thead className="bg-kelme-surface">
-          <tr>
-            <th className="p-3">Nombre</th>
-            <th className="p-3">Email</th>
-            <th className="p-3">Equipo</th>
-            <th className="p-3">Dorsal</th>
-            <th className="p-3">Posición</th>
-            <th className="p-3">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {players.map((player) => (
-            <tr key={player.id} className="border-t border-kelme-border">
-              <td className="p-3">{player.name}</td>
-              <td className="p-3">{player.email}</td>
-              {editingId === player.id ? (
-                <>
-                  <td className="p-3">
-                    <select
-                      value={teamId}
-                      onChange={(e) => setTeamId(e.target.value)}
-                      className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
-                    >
-                      <option value="">Sin equipo</option>
-                      {teams.map((t) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="p-3">
-                    <input
-                      type="number"
-                      min={1}
-                      max={99}
-                      value={jerseyNumber}
-                      onChange={(e) => setJerseyNumber(e.target.value)}
-                      className="w-16 rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
-                    />
-                  </td>
-                  <td className="p-3">
-                    <input
-                      value={position}
-                      onChange={(e) => setPosition(e.target.value)}
-                      className="w-32 rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
-                    />
-                  </td>
-                  <td className="p-3">
-                    <span className="inline-flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => save(player.id)}
-                        disabled={saving}
-                        className="rounded-lg bg-kelme-red px-2 py-1 text-xs font-semibold text-white disabled:opacity-50"
-                      >
-                        Guardar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(null)}
-                        className="rounded-lg border border-kelme-border px-2 py-1 text-xs"
-                      >
-                        Cancelar
-                      </button>
-                      {error && <span className="text-xs text-kelme-red">{error}</span>}
-                    </span>
-                  </td>
-                </>
-              ) : (
-                <>
-                  <td className="p-3">{player.teamName ?? '—'}</td>
-                  <td className="p-3">{player.jerseyNumber ?? '—'}</td>
-                  <td className="p-3">{player.position ?? '—'}</td>
-                  <td className="p-3">
-                    <span className="inline-flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => startEdit(player)}
-                        className="rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red"
-                      >
-                        Editar
-                      </button>
-                      <DeleteButton
-                        url={`/api/players/${player.id}`}
-                        confirmMessage={`¿Eliminar al jugador ${player.name}? Se borra también su usuario.`}
-                      />
-                    </span>
-                  </td>
-                </>
-              )}
-            </tr>
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre, email o equipo"
+          className="min-w-[12rem] flex-1 rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
+        />
+        <select
+          value={filterTeamId}
+          onChange={(e) => setFilterTeamId(e.target.value)}
+          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
+        >
+          <option value="">Todos los equipos</option>
+          {teams.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
           ))}
-        </tbody>
-      </table>
+        </select>
+        <select
+          value={filterCategoryId}
+          onChange={(e) => setFilterCategoryId(e.target.value)}
+          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
+        >
+          <option value="">Todas las categorías</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-kelme-border">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-kelme-surface">
+            <tr>
+              <th className="p-3">Nombre</th>
+              <th className="p-3">Email</th>
+              <th className="p-3">Categorías</th>
+              <th className="p-3">Equipo</th>
+              <th className="p-3">Dorsal</th>
+              <th className="p-3">Posición</th>
+              <th className="p-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((player) => (
+              <tr key={player.id} className="border-t border-kelme-border">
+                <td className="p-3">{player.name}</td>
+                <td className="p-3">{player.email || '—'}</td>
+                <td className="p-3">
+                  {player.categoryNames.length > 0 ? (
+                    <span className="flex flex-wrap gap-1">
+                      {player.categoryNames.map((name) => (
+                        <span
+                          key={name}
+                          className="rounded-full bg-kelme-gray-100 px-2 py-0.5 text-xs"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+                {editingId === player.id ? (
+                  <>
+                    <td className="p-3">
+                      <select
+                        value={teamId}
+                        onChange={(e) => setTeamId(e.target.value)}
+                        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                      >
+                        <option value="">Sin equipo</option>
+                        {teams.map((t) => (
+                          <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="p-3">
+                      <input
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={jerseyNumber}
+                        onChange={(e) => setJerseyNumber(e.target.value)}
+                        className="w-16 rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                      />
+                    </td>
+                    <td className="p-3">
+                      <input
+                        value={position}
+                        onChange={(e) => setPosition(e.target.value)}
+                        className="w-32 rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                      />
+                    </td>
+                    <td className="p-3">
+                      <span className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => save(player.id)}
+                          disabled={saving}
+                          className="rounded-lg bg-kelme-red px-2 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(null)}
+                          className="rounded-lg border border-kelme-border px-2 py-1 text-xs"
+                        >
+                          Cancelar
+                        </button>
+                        {error && <span className="text-xs text-kelme-red">{error}</span>}
+                      </span>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="p-3">{player.teamName ?? '—'}</td>
+                    <td className="p-3">{player.jerseyNumber ?? '—'}</td>
+                    <td className="p-3">{player.position ?? '—'}</td>
+                    <td className="p-3">
+                      <span className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startEdit(player)}
+                          className="rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red"
+                        >
+                          Editar
+                        </button>
+                        <DeleteButton
+                          url={`/api/players/${player.id}`}
+                          confirmMessage={`¿Eliminar al jugador ${player.name}? Se borra también su usuario si no tiene otras fichas.`}
+                        />
+                      </span>
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={7} className="p-6 text-center text-kelme-gray-500">
+                  No hay jugadores que coincidan con los filtros.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

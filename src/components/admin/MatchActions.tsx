@@ -18,12 +18,14 @@ import {
   setsFromPlayerSides,
   setPlayerSide,
   toggleConvocation,
+  addTeamToSide,
 } from '@/lib/friendly-match-roster-ui'
 import {
   FriendlyMatchConvocationPicker,
   type FriendlyRosterPlayer,
 } from './FriendlyMatchConvocationPicker'
 import { FriendlyMatchTeamAssigner } from './FriendlyMatchTeamAssigner'
+import { FriendlyTeamBulkAdd } from './FriendlyTeamBulkAdd'
 import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
 import { ChileLocationPicker } from './ChileLocationPicker'
 import { MatchWeatherPanel } from './MatchWeatherPanel'
@@ -66,6 +68,7 @@ export function MatchActions({
   match,
   referees,
   friendlyPlayers = [],
+  teams = [],
   editing: controlledEditing,
   onEditingChange,
   hideIdleToolbar = false,
@@ -73,6 +76,7 @@ export function MatchActions({
   match: MatchRow
   referees: RefereeOption[]
   friendlyPlayers?: FriendlyRosterPlayer[]
+  teams?: Array<{ id: string; name: string }>
   editing?: boolean
   onEditingChange?: (editing: boolean) => void
   hideIdleToolbar?: boolean
@@ -181,6 +185,27 @@ export function MatchActions({
       sideACoachId,
       sideBCoachId,
     })
+    setSideAIds(next.sideAIds)
+    setSideBIds(next.sideBIds)
+    setSideACaptainId(next.sideACaptainId)
+    setSideBCaptainId(next.sideBCaptainId)
+    setSideACoachId(next.sideACoachId)
+    setSideBCoachId(next.sideBCoachId)
+  }
+
+  function handleAddTeamToSide(side: 'A' | 'B', playerIds: string[]) {
+    const next = addTeamToSide({
+      teamPlayerIds: playerIds,
+      side,
+      convokedIds,
+      sideAIds,
+      sideBIds,
+      sideACaptainId,
+      sideBCaptainId,
+      sideACoachId,
+      sideBCoachId,
+    })
+    setConvokedIds(next.convokedIds)
     setSideAIds(next.sideAIds)
     setSideBIds(next.sideBIds)
     setSideACaptainId(next.sideACaptainId)
@@ -363,6 +388,11 @@ export function MatchActions({
       {match.matchType === 'FRIENDLY' && (
         <>
           <div className="md:col-span-3 space-y-4">
+            <FriendlyTeamBulkAdd
+              teams={teams}
+              roster={roster}
+              onAddToSide={handleAddTeamToSide}
+            />
             <FriendlyMatchConvocationPicker
               roster={roster}
               convokedIds={convokedIds}

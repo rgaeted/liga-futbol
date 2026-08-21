@@ -11,6 +11,7 @@ export type FriendlyRosterPlayer = {
   categoryIds: string[]
   primaryPosition?: string | null
   hasPhoto?: boolean
+  teamId?: string | null
 }
 
 function playerLabel(p: FriendlyRosterPlayer) {
@@ -86,7 +87,7 @@ export function FriendlyMatchConvocationPicker({
         body: JSON.stringify({
           firstName: first,
           lastName: last,
-          friendlyCategoryIds: [categoryId],
+          categoryIds: [categoryId],
         }),
       })
 
@@ -97,19 +98,19 @@ export function FriendlyMatchConvocationPicker({
 
       const created = (await res.json()) as {
         id: string
-        firstName: string
-        lastName: string
         primaryPosition?: string | null
-        photoMimeType?: string | null
+        teamId?: string | null
+        person: { firstName: string; lastName: string; photoMimeType?: string | null }
         categories?: Array<{ friendlyCategoryId: string }>
       }
 
       onPlayerCreated({
         id: created.id,
-        firstName: created.firstName,
-        lastName: created.lastName,
+        firstName: created.person.firstName,
+        lastName: created.person.lastName,
         primaryPosition: created.primaryPosition ?? null,
-        hasPhoto: Boolean(created.photoMimeType),
+        hasPhoto: Boolean(created.person.photoMimeType),
+        teamId: created.teamId ?? null,
         categoryIds:
           created.categories?.map((c) => c.friendlyCategoryId) ?? [categoryId],
       })

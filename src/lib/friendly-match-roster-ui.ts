@@ -177,3 +177,64 @@ export function convokedIdsFromPlayerSides(
 ) {
   return new Set(players.map((p) => p.playerId))
 }
+
+export function playersOfTeam<T extends { id: string; teamId?: string | null }>(
+  players: T[],
+  teamId: string,
+): T[] {
+  return players.filter((p) => p.teamId === teamId)
+}
+
+export function mergeTeamOntoSide(
+  current: Array<{ playerId: string; side: 'A' | 'B' }>,
+  teamPlayerIds: string[],
+  side: 'A' | 'B',
+): Array<{ playerId: string; side: 'A' | 'B' }> {
+  const without = current.filter((p) => !teamPlayerIds.includes(p.playerId))
+  const additions = teamPlayerIds
+    .filter((id) => !without.some((p) => p.playerId === id))
+    .map((playerId) => ({ playerId, side }))
+  return [...without, ...additions]
+}
+
+export function addTeamToSide(input: {
+  teamPlayerIds: string[]
+  side: 'A' | 'B'
+  convokedIds: Set<string>
+  sideAIds: Set<string>
+  sideBIds: Set<string>
+  sideACaptainId: string | null
+  sideBCaptainId: string | null
+  sideACoachId: string | null
+  sideBCoachId: string | null
+}) {
+  const convokedIds = new Set(input.convokedIds)
+  const sideAIds = new Set(input.sideAIds)
+  const sideBIds = new Set(input.sideBIds)
+  let { sideACaptainId, sideBCaptainId, sideACoachId, sideBCoachId } = input
+
+  for (const playerId of input.teamPlayerIds) {
+    convokedIds.add(playerId)
+    if (input.side === 'A') {
+      sideAIds.add(playerId)
+      sideBIds.delete(playerId)
+      if (sideBCaptainId === playerId) sideBCaptainId = null
+      if (sideBCoachId === playerId) sideBCoachId = null
+    } else {
+      sideBIds.add(playerId)
+      sideAIds.delete(playerId)
+      if (sideACaptainId === playerId) sideACaptainId = null
+      if (sideACoachId === playerId) sideACoachId = null
+    }
+  }
+
+  return {
+    convokedIds,
+    sideAIds,
+    sideBIds,
+    sideACaptainId,
+    sideBCaptainId,
+    sideACoachId,
+    sideBCoachId,
+  }
+}

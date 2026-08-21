@@ -17,19 +17,39 @@ export default async function GuestChallengeRosterPage({
     notFound()
   }
 
-  const match = await db.match.findUnique({
-    where: { id },
-    include: {
-      friendlyPlayers: {
-        where: { side: 'B' },
-        select: {
-          playerId: true,
-          isCaptain: true,
-          isCoach: true,
+  const [match, orgPlayers, teams] = await Promise.all([
+    db.match.findUnique({
+      where: { id },
+      include: {
+        friendlyPlayers: {
+          where: { side: 'B' },
+          select: {
+            playerId: true,
+            isCaptain: true,
+            isCoach: true,
+          },
         },
       },
-    },
-  })
+    }),
+    db.player.findMany({
+      where: { organizationId },
+      orderBy: { person: { lastName: 'asc' } },
+      select: {
+        id: true,
+        teamId: true,
+        primaryPosition: true,
+        person: {
+          select: {
+            firstName: true,
+            lastName: true,
+            photoMimeType: true,
+          },
+        },
+        categories: { select: { friendlyCategoryId: true } },
+      },
+    }),
+    db.team.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),
+  ])
 
   if (
     !match ||
@@ -39,23 +59,6 @@ export default async function GuestChallengeRosterPage({
     notFound()
   }
 
-  const orgPlayers = await db.player.findMany({
-    where: { organizationId },
-    orderBy: { person: { lastName: 'asc' } },
-    select: {
-      id: true,
-      primaryPosition: true,
-      person: {
-        select: {
-          firstName: true,
-          lastName: true,
-          photoMimeType: true,
-        },
-      },
-      categories: { select: { friendlyCategoryId: true } },
-    },
-  })
-
   const sideBRows = match.friendlyPlayers
   const sideBCaptain = sideBRows.find((row) => row.isCaptain)
   const sideBCoach = sideBRows.find((row) => row.isCoach)
@@ -64,6 +67,7 @@ export default async function GuestChallengeRosterPage({
     <GuestChallengeRosterEditor
       matchId={match.id}
       sideBName={match.sideBName ?? 'Visitante'}
+      teams={teams.map((team) => ({ id: team.id, name: team.name }))}
       friendlyPlayers={orgPlayers.map((player) => ({
         id: player.id,
         firstName: player.person.firstName,
@@ -71,6 +75,7 @@ export default async function GuestChallengeRosterPage({
         categoryIds: player.categories.map((category) => category.friendlyCategoryId),
         primaryPosition: player.primaryPosition,
         hasPhoto: Boolean(player.person.photoMimeType),
+        teamId: player.teamId,
       }))}
       initialSideBIds={sideBRows.map((row) => row.playerId)}
       initialSideBCaptainId={sideBCaptain?.playerId ?? null}

@@ -5,6 +5,9 @@ import {
   rosterEntriesFromSets,
   setPlayerSide,
   toggleConvocation,
+  playersOfTeam,
+  mergeTeamOntoSide,
+  addTeamToSide,
 } from '@/lib/friendly-match-roster-ui'
 
 const players = [
@@ -90,5 +93,54 @@ describe('rosterEntriesFromSets', () => {
       { playerId: 'p1', side: 'A', isCaptain: true, isCoach: true },
       { playerId: 'p2', side: 'B', isCaptain: true, isCoach: true },
     ])
+  })
+})
+
+describe('playersOfTeam', () => {
+  it('filters roster by teamId', () => {
+    const roster = [
+      { id: 'p1', teamId: 't1' },
+      { id: 'p2', teamId: 't2' },
+      { id: 'p3', teamId: 't1' },
+    ]
+    expect(playersOfTeam(roster, 't1').map((p) => p.id)).toEqual(['p1', 'p3'])
+  })
+})
+
+describe('mergeTeamOntoSide', () => {
+  it('moves team players onto target side', () => {
+    const current = [
+      { playerId: 'p1', side: 'A' as const },
+      { playerId: 'p2', side: 'B' as const },
+      { playerId: 'p3', side: 'B' as const },
+    ]
+    const merged = mergeTeamOntoSide(current, ['p3', 'p4'], 'A')
+    expect(merged).toEqual([
+      { playerId: 'p1', side: 'A' },
+      { playerId: 'p2', side: 'B' },
+      { playerId: 'p3', side: 'A' },
+      { playerId: 'p4', side: 'A' },
+    ])
+  })
+})
+
+describe('addTeamToSide', () => {
+  it('convokes team and assigns side B', () => {
+    const result = addTeamToSide({
+      teamPlayerIds: ['p2', 'p3'],
+      side: 'B',
+      convokedIds: new Set(['p1']),
+      sideAIds: new Set(['p1', 'p2']),
+      sideBIds: new Set<string>(),
+      sideACaptainId: 'p1',
+      sideBCaptainId: null,
+      sideACoachId: null,
+      sideBCoachId: null,
+    })
+    expect(result.convokedIds.has('p2')).toBe(true)
+    expect(result.convokedIds.has('p3')).toBe(true)
+    expect(result.sideBIds.has('p2')).toBe(true)
+    expect(result.sideAIds.has('p2')).toBe(false)
+    expect(result.sideACaptainId).toBe('p1')
   })
 })

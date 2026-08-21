@@ -23,7 +23,7 @@ export default async function AdminMatchesPage({
     notFound()
   }
 
-  const [matches, refereeMemberships, friendlyPlayers] = await Promise.all([
+  const [matches, refereeMemberships, friendlyPlayers, teams] = await Promise.all([
     db.match.findMany({
       where: {
         AND: [
@@ -77,6 +77,7 @@ export default async function AdminMatchesPage({
       orderBy: { person: { lastName: 'asc' } },
       select: {
         id: true,
+        teamId: true,
         primaryPosition: true,
         person: {
           select: {
@@ -88,6 +89,7 @@ export default async function AdminMatchesPage({
         categories: { select: { friendlyCategoryId: true } },
       },
     }),
+    db.team.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),
   ])
 
   const referees = refereeMemberships.map((m) => m.user)
@@ -99,7 +101,10 @@ export default async function AdminMatchesPage({
     categoryIds: p.categories.map((c) => c.friendlyCategoryId),
     primaryPosition: p.primaryPosition,
     hasPhoto: Boolean(p.person.photoMimeType),
+    teamId: p.teamId,
   }))
+
+  const teamOptions = teams.map((t) => ({ id: t.id, name: t.name }))
 
   return (
     <div className="space-y-6">
@@ -205,6 +210,7 @@ export default async function AdminMatchesPage({
               }}
               referees={referees}
               rosterPlayers={rosterPlayers}
+              teams={teamOptions}
             />
           )
         })}
