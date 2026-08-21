@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { AdminDashboardHome } from '@/components/admin/AdminDashboardHome'
 import { AdminDashboardSkeleton } from '@/components/admin/AdminDashboardSkeleton'
-import { useOrgPath } from '@/hooks/useOrgPath'
+import { useOrganizationSlug } from '@/hooks/useOrgPath'
 import type { AdminDashboardData } from '@/lib/admin-dashboard'
 import { orgPath } from '@/lib/tenant-paths'
 
@@ -16,7 +16,7 @@ function dashboardUrl(organizationSlug: string, seasonId: string | null): string
 }
 
 export function AdminDashboardClient() {
-  const organizationSlug = useOrgPath()
+  const organizationSlug = useOrganizationSlug()
   const searchParams = useSearchParams()
   const seasonId = searchParams.get('season')
   const [data, setData] = useState<AdminDashboardData | null>(null)
