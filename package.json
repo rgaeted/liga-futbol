@@ -23,6 +23,7 @@
     "mobile:assets": "node scripts/generate-mobile-edition-assets.mjs",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:seed:liga-le-park": "tsx scripts/seed-liga-le-park.ts",
+    "db:migrate:lunes-to-loslunes": "tsx scripts/migrate-lunes-category-to-loslunes.ts",
     "db:ensure:kelme": "tsx scripts/ensure-kelme-organization.ts",
     "db:clear:demo": "tsx prisma/clear-demo.ts",
     "db:verify:migration": "tsx scripts/verify-database-migration.ts",

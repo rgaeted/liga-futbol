@@ -1,22 +1,26 @@
 import { NextResponse } from 'next/server'
 import { unstable_cache } from 'next/cache'
 import { requireOrgRole } from '@/lib/auth'
-import { MembershipRole } from '@/lib/membership-role'
-import { assertSeasonInOrganization } from '@/lib/admin-season-route'
+import { requireOrgRoleForSlug } from '@/lib/tenant-access'
+import { MembershipRole } from '@/lib/membership-role'import { assertSeasonInOrganization } from '@/lib/admin-season-route'
 import { getAdminDashboardData } from '@/lib/admin-dashboard'
 
 const getCachedDashboard = unstable_cache(
   async (organizationId: string, seasonId: string | null) =>
     getAdminDashboardData(organizationId, seasonId),
   ['admin-dashboard'],
-  { revalidate: 30 },
+  { revalidate: 30, tags: ['admin-dashboard'] },
 )
 
 export async function GET(req: Request) {
   try {
-    const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
-    const seasonId = new URL(req.url).searchParams.get('season')
+    const url = new URL(req.url)
+    const organizationSlug = url.searchParams.get('org')
+    const seasonId = url.searchParams.get('season')
 
+    const { organizationId } = organizationSlug
+      ? await requireOrgRoleForSlug(organizationSlug, [MembershipRole.ORG_ADMIN])
+      : await requireOrgRole([MembershipRole.ORG_ADMIN])
     if (seasonId) {
       await assertSeasonInOrganization(seasonId, organizationId)
     }

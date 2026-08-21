@@ -47,6 +47,28 @@ export async function syncActiveOrganizationCookie(organizationId: string) {
   }
 }
 
+export async function requireOrgRoleForSlug(
+  organizationSlug: string,
+  allowed: MembershipRole[]
+) {
+  const { auth } = await import('@/lib/auth')
+  const session = await auth()
+  if (!session?.user?.id) throw new Error('Unauthorized')
+
+  const membership = await findTenantMembership(session.user.id, organizationSlug)
+  if (!membership || !allowed.includes(membership.role)) {
+    throw new Error('Unauthorized')
+  }
+
+  await syncActiveOrganizationCookie(membership.organizationId)
+
+  return {
+    session,
+    organizationId: membership.organizationId,
+    role: membership.role,
+  }
+}
+
 export function canAccessTenantArea(role: MembershipRole, area: string): boolean {
   const map: Record<string, MembershipRole[]> = {
     admin: ['ORG_ADMIN'],

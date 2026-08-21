@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Mueve la categoría "Partido de los Lunes" (y sus partidos/jugadores) a la org loslunes.
+ * Mueve la categoría "Partido de los Lunes" (partidos + jugadores) a la org loslunes.
  * Jugadores que también están en otras categorías de Kelme se duplican en loslunes.
  *
  * Uso:
@@ -13,24 +13,24 @@ import { db } from '@/lib/db'
 const TARGET_SLUG = 'loslunes'
 const CATEGORY_NAME = 'Partido de los Lunes'
 
-type FriendlyPlayerRow = {
-  id: string
-  organizationId: string
-  personId: string
-  firstName: string
-  lastName: string
-  dominantFoot: string | null
-  primaryPosition: string | null
-  secondaryPosition: string | null
-  photoMimeType: string | null
-  photoData: Buffer | null
-}
-
 async function ensureLoslunesPlayer(
-  source: FriendlyPlayerRow,
+  sourcePlayerId: string,
   loslunesOrgId: string,
 ): Promise<string> {
-  const existing = await db.friendlyPlayer.findUnique({
+  const source = await db.player.findUniqueOrThrow({
+    where: { id: sourcePlayerId },
+    select: {
+      personId: true,
+      teamId: true,
+      jerseyNumber: true,
+      position: true,
+      dominantFoot: true,
+      primaryPosition: true,
+      secondaryPosition: true,
+    },
+  })
+
+  const existing = await db.player.findUnique({
     where: {
       personId_organizationId: {
         personId: source.personId,
@@ -41,41 +41,44 @@ async function ensureLoslunesPlayer(
   })
   if (existing) return existing.id
 
-  const created = await db.friendlyPlayer.create({
+  const created = await db.player.create({
     data: {
       organizationId: loslunesOrgId,
       personId: source.personId,
-      firstName: source.firstName,
-      lastName: source.lastName,
-      dominantFoot: source.dominantFoot as never,
+      teamId: null,
+      jerseyNumber: source.jerseyNumber,
+      position: source.position,
+      dominantFoot: source.dominantFoot ?? undefined,
       primaryPosition: source.primaryPosition,
       secondaryPosition: source.secondaryPosition,
-      photoMimeType: source.photoMimeType,
-      photoData: source.photoData,
     },
     select: { id: true },
   })
   return created.id
 }
 
-async function reassignPlayerReferences(oldPlayerId: string, newPlayerId: string, matchIds: string[]) {
+async function reassignPlayerReferences(
+  oldPlayerId: string,
+  newPlayerId: string,
+  matchIds: string[],
+) {
   if (oldPlayerId === newPlayerId || matchIds.length === 0) return
 
   await db.friendlyMatchPlayer.updateMany({
-    where: { matchId: { in: matchIds }, friendlyPlayerId: oldPlayerId },
-    data: { friendlyPlayerId: newPlayerId },
+    where: { matchId: { in: matchIds }, playerId: oldPlayerId },
+    data: { playerId: newPlayerId },
   })
   await db.matchEvent.updateMany({
-    where: { matchId: { in: matchIds }, friendlyPlayerId: oldPlayerId },
-    data: { friendlyPlayerId: newPlayerId },
+    where: { matchId: { in: matchIds }, playerId: oldPlayerId },
+    data: { playerId: newPlayerId },
   })
   await db.matchEvent.updateMany({
-    where: { matchId: { in: matchIds }, assistFriendlyPlayerId: oldPlayerId },
-    data: { assistFriendlyPlayerId: newPlayerId },
+    where: { matchId: { in: matchIds }, assistPlayerId: oldPlayerId },
+    data: { assistPlayerId: newPlayerId },
   })
   await db.matchTeamMvp.updateMany({
-    where: { matchId: { in: matchIds }, friendlyPlayerId: oldPlayerId },
-    data: { friendlyPlayerId: newPlayerId },
+    where: { matchId: { in: matchIds }, playerId: oldPlayerId },
+    data: { playerId: newPlayerId },
   })
 }
 
@@ -89,10 +92,13 @@ async function main() {
     where: { name: { equals: CATEGORY_NAME, mode: 'insensitive' } },
     include: {
       matches: { select: { id: true } },
-      playerMemberships: {
+      playerLinks: {
         include: {
-          friendlyPlayer: {
-            include: { categories: { select: { friendlyCategoryId: true } } },
+          player: {
+            include: {
+              person: { select: { firstName: true, lastName: true } },
+              categories: { select: { friendlyCategoryId: true } },
+            },
           },
         },
       },
@@ -102,56 +108,58 @@ async function main() {
   if (!category) throw new Error(`Categoría "${CATEGORY_NAME}" no encontrada`)
 
   const matchIds = category.matches.map((m) => m.id)
-  const sourceOrgId = category.organizationId
 
   console.log(`Categoría: ${category.name} (${category.id})`)
-  console.log(`Org actual: ${sourceOrgId} → ${targetOrg.slug} (${targetOrg.id})`)
+  console.log(`Org actual: ${category.organizationId} → ${targetOrg.slug} (${targetOrg.id})`)
   console.log(`Partidos: ${matchIds.length}`)
-  console.log(`Membresías jugador: ${category.playerMemberships.length}`)
+  console.log(`Jugadores en categoría: ${category.playerLinks.length}`)
   if (dryRun) console.log('\n[DRY RUN] Sin cambios en DB\n')
 
-  const playerIdMap = new Map<string, string>()
+  if (category.organizationId === targetOrg.id) {
+    console.log('La categoría ya pertenece a loslunes. Verificando jugadores…')
+  }
 
-  for (const membership of category.playerMemberships) {
-    const player = membership.friendlyPlayer
-    const otherCategories = player.categories.filter((c) => c.friendlyCategoryId !== category.id)
+  for (const link of category.playerLinks) {
+    const player = link.player
+    const displayName = `${player.person.firstName} ${player.person.lastName}`.trim()
+    const otherCategories = player.categories.filter(
+      (c) => c.friendlyCategoryId !== category.id,
+    )
 
     if (otherCategories.length === 0) {
-      playerIdMap.set(player.id, player.id)
       if (!dryRun && player.organizationId !== targetOrg.id) {
-        await db.friendlyPlayer.update({
+        await db.player.update({
           where: { id: player.id },
-          data: { organizationId: targetOrg.id },
+          data: { organizationId: targetOrg.id, teamId: null },
         })
       }
-      console.log(`  jugador ${player.firstName} ${player.lastName}: mover ficha → ${TARGET_SLUG}`)
+      console.log(`  ${displayName}: mover ficha → ${TARGET_SLUG}`)
       continue
     }
 
     const loslunesPlayerId = dryRun
       ? `(nuevo-${player.personId})`
-      : await ensureLoslunesPlayer(player, targetOrg.id)
-    playerIdMap.set(player.id, typeof loslunesPlayerId === 'string' ? loslunesPlayerId : player.id)
+      : await ensureLoslunesPlayer(player.id, targetOrg.id)
 
     if (!dryRun) {
-      await db.friendlyPlayerCategory.delete({
+      await db.playerCategory.delete({
         where: {
-          friendlyPlayerId_friendlyCategoryId: {
-            friendlyPlayerId: player.id,
+          playerId_friendlyCategoryId: {
+            playerId: player.id,
             friendlyCategoryId: category.id,
           },
         },
       })
-      await db.friendlyPlayerCategory.create({
+      await db.playerCategory.create({
         data: {
-          friendlyPlayerId: loslunesPlayerId as string,
+          playerId: loslunesPlayerId as string,
           friendlyCategoryId: category.id,
         },
       })
       await reassignPlayerReferences(player.id, loslunesPlayerId as string, matchIds)
     }
     console.log(
-      `  jugador ${player.firstName} ${player.lastName}: duplicar en ${TARGET_SLUG} (${otherCategories.length} cat. en Kelme)`,
+      `  ${displayName}: duplicar en ${TARGET_SLUG} (${otherCategories.length} cat. en otra org)`,
     )
   }
 
@@ -160,10 +168,12 @@ async function main() {
       where: { friendlyCategoryId: category.id },
       data: { organizationId: targetOrg.id },
     })
-    await db.friendlyCategory.update({
-      where: { id: category.id },
-      data: { organizationId: targetOrg.id },
-    })
+    if (category.organizationId !== targetOrg.id) {
+      await db.friendlyCategory.update({
+        where: { id: category.id },
+        data: { organizationId: targetOrg.id },
+      })
+    }
   }
 
   console.log(dryRun ? '\nDry run terminado.' : '\nMigración completada.')

@@ -7,24 +7,23 @@ import { AdminDashboardHome } from '@/components/admin/AdminDashboardHome'
 import { AdminDashboardSkeleton } from '@/components/admin/AdminDashboardSkeleton'
 import { useOrgPath } from '@/hooks/useOrgPath'
 import type { AdminDashboardData } from '@/lib/admin-dashboard'
+import { orgPath } from '@/lib/tenant-paths'
 
-function dashboardUrl(seasonId: string | null): string {
-  const params = new URLSearchParams()
+function dashboardUrl(organizationSlug: string, seasonId: string | null): string {
+  const params = new URLSearchParams({ org: organizationSlug })
   if (seasonId) params.set('season', seasonId)
-  const query = params.toString()
-  return query ? `/api/admin/dashboard?${query}` : '/api/admin/dashboard'
+  return `/api/admin/dashboard?${params.toString()}`
 }
 
 export function AdminDashboardClient() {
-  const orgPath = useOrgPath()
-  const searchParams = useSearchParams()
+  const organizationSlug = useOrgPath()  const searchParams = useSearchParams()
   const seasonId = searchParams.get('season')
   const [data, setData] = useState<AdminDashboardData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchDashboard = useCallback(async (): Promise<AdminDashboardData> => {
-    const res = await fetch(dashboardUrl(seasonId), { cache: 'no-store' })
+    const res = await fetch(dashboardUrl(organizationSlug, seasonId), { cache: 'no-store' })
     if (!res.ok) {
       throw new Error(
         res.status === 401 ? 'Sesión expirada' : 'Error al cargar el panel',
@@ -35,7 +34,7 @@ export function AdminDashboardClient() {
       throw new Error('Error al cargar el panel')
     }
     return res.json() as Promise<AdminDashboardData>
-  }, [seasonId])
+  }, [organizationSlug, seasonId])
 
   const [loadedSeason, setLoadedSeason] = useState<string | null>(null)
   const seasonKey = seasonId ?? ''
@@ -109,10 +108,9 @@ export function AdminDashboardClient() {
             Reintentar
           </button>
           <Link
-            href={orgPath('/admin/matches')}
+            href={orgPath(organizationSlug, '/admin/matches')}
             className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
-          >
-            Ir a partidos
+          >            Ir a partidos
           </Link>
         </div>
       </div>

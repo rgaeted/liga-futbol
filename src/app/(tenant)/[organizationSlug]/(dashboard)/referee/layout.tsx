@@ -2,7 +2,7 @@ import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
-import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
+import { findTenantMembership, canAccessTenantArea, syncActiveOrganizationCookie } from '@/lib/tenant-access'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 import { SyncTenantSession } from '@/components/tenant/SyncTenantSession'
@@ -27,6 +27,8 @@ export default async function RefereeLayout({
     if (membership) redirect(getDashboardPath(organizationSlug, membership.role))
     redirect('/organizaciones')
   }
+
+  await syncActiveOrganizationCookie(membership.organizationId)
 
   async function handleSignOut() {
     'use server'
