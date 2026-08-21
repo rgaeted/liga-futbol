@@ -52,13 +52,9 @@ export function AdminDashboardClient() {
   }, [organizationSlug, seasonId])
 
   useEffect(() => {
+    let cancelled = false
     setLoading(true)
     setError(null)
-    setData(null)
-  }, [seasonId])
-
-  useEffect(() => {
-    let cancelled = false
 
     void fetchDashboard()
       .then((payload) => {
@@ -119,12 +115,21 @@ export function AdminDashboardClient() {
           >
             Reintentar
           </button>
-          <Link
-            href={orgPath(organizationSlug, '/admin/matches')}
-            className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
-          >
-            Ir a partidos
-          </Link>
+          {error === 'Sesión expirada' ? (
+            <Link
+              href={`/login?callbackUrl=${encodeURIComponent(orgPath('/admin'))}`}
+              className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
+            >
+              Volver a ingresar
+            </Link>
+          ) : (
+            <Link
+              href={orgPath('/admin/matches')}
+              className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
+            >
+              Ir a partidos
+            </Link>
+          )}
         </div>
       </div>
     )
