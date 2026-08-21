@@ -21,9 +21,9 @@ export function buildAdminNavGroups(slug: string): DashboardNavGroup[] {
       label: 'Competición',
       items: [
         { href: base('/admin/teams'), label: 'Equipos', icon: 'EQ' },
-        { href: base('/admin/players'), label: 'Jugadores', icon: 'JU',
-          activePrefixes: [base('/admin/players'), base('/admin/friendly-categories')] },
-        { href: base('/admin/matches'), label: 'Partidos', icon: 'PA' },
+        { href: base('/admin/players'), label: 'Jugadores', icon: 'JU' },
+        { href: base('/admin/matches'), label: 'Partidos', icon: 'PA',
+          activePrefixes: [base('/admin/matches'), base('/admin/friendly-categories')] },
         {
           href: base('/admin/referees'),
           label: 'Árbitros',

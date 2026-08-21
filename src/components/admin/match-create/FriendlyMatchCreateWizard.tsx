@@ -204,17 +204,12 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
   const sideBIds = useMemo(() => new Set(data.sideBIds), [data.sideBIds])
 
   const roster = useMemo(() => {
-    const base = friendlyPlayers.filter((player) =>
-      player.categoryIds.includes(data.categoryId)
-    )
-    const byId = new Map(base.map((player) => [player.id, player]))
+    const byId = new Map(friendlyPlayers.map((player) => [player.id, player]))
     for (const extra of extraPlayers) {
-      if (extra.categoryIds.includes(data.categoryId)) {
-        byId.set(extra.id, extra)
-      }
+      byId.set(extra.id, extra)
     }
     return [...byId.values()]
-  }, [data.categoryId, extraPlayers, friendlyPlayers])
+  }, [extraPlayers, friendlyPlayers])
 
   const convoked = roster.filter((player) => convokedIds.has(player.id))
   const category = activeCategories.find((item) => item.id === data.categoryId)

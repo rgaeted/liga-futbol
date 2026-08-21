@@ -7,7 +7,6 @@ import {
   createMatchSchema,
   createFriendlyChallengeSchema,
 } from '@/lib/validations/match'
-import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { deriveTeamColor } from '@/lib/team-color'
 import { MembershipRole } from '@/lib/membership-role'
 import { DEFAULT_REFEREE_EVENT_TYPES, normalizeRefereeEventTypes } from '@/lib/match-referee-events'
@@ -115,7 +114,6 @@ async function createFriendlyMatch(
     select: {
       id: true,
       organizationId: true,
-      categories: { select: { friendlyCategoryId: true } },
     },
   })
   if (rosterPlayers.length !== playerIds.length) {
@@ -125,23 +123,6 @@ async function createFriendlyMatch(
   if (rosterPlayers.some((player) => player.organizationId !== organizationId)) {
     return NextResponse.json(
       { error: 'Los jugadores deben pertenecer a tu organización' },
-      { status: 400 }
-    )
-  }
-
-  const membership = assertPlayersBelongToCategory(
-    data.friendlyCategoryId,
-    rosterPlayers.map((player) => ({
-      id: player.id,
-      categoryIds: player.categories.map((categoryRow) => categoryRow.friendlyCategoryId),
-    }))
-  )
-  if (!membership.ok) {
-    return NextResponse.json(
-      {
-        error: 'Todos los jugadores deben pertenecer a la categoría del partido',
-        foreignPlayerIds: membership.foreignPlayerIds,
-      },
       { status: 400 }
     )
   }
@@ -254,7 +235,6 @@ async function createFriendlyChallenge(
     select: {
       id: true,
       organizationId: true,
-      categories: { select: { friendlyCategoryId: true } },
     },
   })
   if (rosterPlayers.length !== playerIds.length) {
@@ -264,23 +244,6 @@ async function createFriendlyChallenge(
   if (rosterPlayers.some((player) => player.organizationId !== organizationId)) {
     return NextResponse.json(
       { error: 'Los jugadores del anfitrión deben pertenecer a tu organización' },
-      { status: 400 }
-    )
-  }
-
-  const membership = assertPlayersBelongToCategory(
-    data.friendlyCategoryId,
-    rosterPlayers.map((player) => ({
-      id: player.id,
-      categoryIds: player.categories.map((categoryRow) => categoryRow.friendlyCategoryId),
-    }))
-  )
-  if (!membership.ok) {
-    return NextResponse.json(
-      {
-        error: 'Todos los jugadores deben pertenecer a la categoría del partido',
-        foreignPlayerIds: membership.foreignPlayerIds,
-      },
       { status: 400 }
     )
   }

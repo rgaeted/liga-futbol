@@ -13,20 +13,16 @@ export type PlayerRow = {
   teamName: string | null
   jerseyNumber: number | null
   position: string | null
-  categoryNames: string[]
 }
 
 type TeamOption = { id: string; name: string }
-type CategoryOption = { id: string; name: string }
 
 export function PlayersTable({
   players,
   teams,
-  categories,
 }: {
   players: PlayerRow[]
   teams: TeamOption[]
-  categories: CategoryOption[]
 }) {
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -36,17 +32,12 @@ export function PlayersTable({
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [filterTeamId, setFilterTeamId] = useState('')
-  const [filterCategoryId, setFilterCategoryId] = useState('')
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return players.filter((player) => {
       if (filterTeamId && player.teamId !== filterTeamId) return false
-      if (filterCategoryId) {
-        const categoryName = categories.find((c) => c.id === filterCategoryId)?.name
-        if (!categoryName || !player.categoryNames.includes(categoryName)) return false
-      }
       if (!q) return true
       return (
         player.name.toLowerCase().includes(q) ||
@@ -54,7 +45,7 @@ export function PlayersTable({
         (player.teamName?.toLowerCase().includes(q) ?? false)
       )
     })
-  }, [categories, filterCategoryId, filterTeamId, players, search])
+  }, [filterTeamId, players, search])
 
   function startEdit(player: PlayerRow) {
     setEditingId(player.id)
@@ -100,16 +91,6 @@ export function PlayersTable({
             <option key={t.id} value={t.id}>{t.name}</option>
           ))}
         </select>
-        <select
-          value={filterCategoryId}
-          onChange={(e) => setFilterCategoryId(e.target.value)}
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
-        >
-          <option value="">Todas las categorías</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
       </div>
       <div className="overflow-x-auto rounded-lg border border-kelme-border">
         <table className="w-full text-left text-sm">
@@ -117,7 +98,6 @@ export function PlayersTable({
             <tr>
               <th className="p-3">Nombre</th>
               <th className="p-3">Email</th>
-              <th className="p-3">Categorías</th>
               <th className="p-3">Equipo</th>
               <th className="p-3">Dorsal</th>
               <th className="p-3">Posición</th>
@@ -129,22 +109,6 @@ export function PlayersTable({
               <tr key={player.id} className="border-t border-kelme-border">
                 <td className="p-3">{player.name}</td>
                 <td className="p-3">{player.email || '—'}</td>
-                <td className="p-3">
-                  {player.categoryNames.length > 0 ? (
-                    <span className="flex flex-wrap gap-1">
-                      {player.categoryNames.map((name) => (
-                        <span
-                          key={name}
-                          className="rounded-full bg-kelme-gray-100 px-2 py-0.5 text-xs"
-                        >
-                          {name}
-                        </span>
-                      ))}
-                    </span>
-                  ) : (
-                    '—'
-                  )}
-                </td>
                 {editingId === player.id ? (
                   <>
                     <td className="p-3">
@@ -223,7 +187,7 @@ export function PlayersTable({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-kelme-gray-500">
+                <td colSpan={6} className="p-6 text-center text-kelme-gray-500">
                   No hay jugadores que coincidan con los filtros.
                 </td>
               </tr>

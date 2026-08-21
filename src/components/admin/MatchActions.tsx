@@ -114,15 +114,12 @@ export function MatchActions({
   const [saving, setSaving] = useState(false)
 
   const roster = useMemo(() => {
-    const base = match.friendlyCategoryId
-      ? friendlyPlayers.filter((p) => p.categoryIds.includes(match.friendlyCategoryId!))
-      : []
-    const byId = new Map(base.map((p) => [p.id, p]))
+    const byId = new Map(friendlyPlayers.map((p) => [p.id, p]))
     for (const extra of extraPlayers) {
       byId.set(extra.id, extra)
     }
     return [...byId.values()]
-  }, [extraPlayers, friendlyPlayers, match.friendlyCategoryId])
+  }, [extraPlayers, friendlyPlayers])
 
   const convoked = roster.filter((p) => convokedIds.has(p.id))
 

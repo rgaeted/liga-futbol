@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
 import { updateMatchSchema, updateGuestChallengeRosterSchema } from '@/lib/validations/match'
-import { assertPlayersBelongToCategory } from '@/lib/friendly-category-guards'
 import { syncFriendlyMatchRoster } from '@/lib/friendly-match-roster'
 import { buildMatchLocationFields, clearMatchWeatherFields } from '@/lib/match-location'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
@@ -155,7 +154,6 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         select: {
           id: true,
           organizationId: true,
-          categories: { select: { friendlyCategoryId: true } },
         },
       })
       if (rosterPlayers.length !== playerIds.length) {
@@ -170,49 +168,6 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         if (expectedOrgId && rosterPlayer.organizationId !== expectedOrgId) {
           return NextResponse.json(
             { error: 'Un jugador no pertenece a la organización de su lado' },
-            { status: 400 }
-          )
-        }
-      }
-
-      const hostEntries = mergedPlayers!.filter((player) => player.side === 'A')
-      const guestEntries = mergedPlayers!.filter((player) => player.side === 'B')
-
-      if (hostEntries.length > 0) {
-        const hostIds = hostEntries.map((player) => player.playerId)
-        const hostRosterPlayers = rosterPlayers.filter((player) => hostIds.includes(player.id))
-        const membership = assertPlayersBelongToCategory(
-          existing.friendlyCategoryId,
-          hostRosterPlayers.map((player) => ({
-            id: player.id,
-            categoryIds: player.categories.map((categoryRow) => categoryRow.friendlyCategoryId),
-          }))
-        )
-        if (!membership.ok) {
-          return NextResponse.json(
-            {
-              error: 'Todos los jugadores del anfitrión deben pertenecer a la categoría del partido',
-              foreignPlayerIds: membership.foreignPlayerIds,
-            },
-            { status: 400 }
-          )
-        }
-      }
-
-      if (guestEntries.length > 0 && !existing.guestOrganizationId) {
-        const membership = assertPlayersBelongToCategory(
-          existing.friendlyCategoryId,
-          rosterPlayers.map((player) => ({
-            id: player.id,
-            categoryIds: player.categories.map((categoryRow) => categoryRow.friendlyCategoryId),
-          }))
-        )
-        if (!membership.ok) {
-          return NextResponse.json(
-            {
-              error: 'Todos los jugadores deben pertenecer a la categoría del partido',
-              foreignPlayerIds: membership.foreignPlayerIds,
-            },
             { status: 400 }
           )
         }
