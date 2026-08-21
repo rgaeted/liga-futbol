@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import {
   countRegisteredTeams,
+  validateEnrollmentPlayerCategories,
   validateSeasonEnrollment,
 } from '@/lib/season-enrollment-validation'
 import { seasonEnrollmentSchema } from '@/lib/validations/mobile-season'
@@ -15,52 +16,70 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params
     const { organizationId } = await requireAdminSeason(id)
 
-    const teams = await db.team.findMany({
-      where: { organizationId },
-      orderBy: { name: 'asc' },
-      include: {
-        players: {
-          include: PLAYER_PERSON_NAME_INCLUDE,
-          orderBy: { jerseyNumber: 'asc' },
+    const [teams, seasonCategories, seasonTeams] = await Promise.all([
+      db.team.findMany({
+        where: { organizationId },
+        orderBy: { name: 'asc' },
+        include: {
+          players: {
+            include: {
+              ...PLAYER_PERSON_NAME_INCLUDE,
+              categories: { select: { friendlyCategoryId: true } },
+            },
+            orderBy: { jerseyNumber: 'asc' },
+          },
         },
-      },
-    })
-
-    const seasonTeams = await db.seasonTeam.findMany({
-      where: { seasonId: id },
-      include: {
-        rosterEntries: {
-          where: { status: SeasonRosterStatus.ACTIVE },
-          select: { playerId: true },
+      }),
+      db.seasonCategory.findMany({
+        where: { seasonId: id },
+        orderBy: { sortOrder: 'asc' },
+        include: { category: { select: { id: true, name: true } } },
+      }),
+      db.seasonTeam.findMany({
+        where: { seasonId: id },
+        include: {
+          rosterEntries: {
+            where: { status: SeasonRosterStatus.ACTIVE },
+            select: { playerId: true },
+          },
         },
-      },
-    })
+      }),
+    ])
 
-    const enrolledByTeamId = new Map(
-      seasonTeams.map((st) => [st.teamId, st.rosterEntries.map((e) => e.playerId)]),
-    )
+    const enrolledByCategoryTeam = new Map<string, string[]>()
+    for (const st of seasonTeams) {
+      if (!st.seasonCategoryId) continue
+      enrolledByCategoryTeam.set(
+        `${st.seasonCategoryId}:${st.teamId}`,
+        st.rosterEntries.map((e) => e.playerId),
+      )
+    }
 
-    return NextResponse.json({
-      teams: teams.map((team) => ({
-        teamId: team.id,
-        name: team.name,
-        color: team.color,
-        players: team.players.map((p) => ({
-          id: p.id,
-          name: playerDisplayName(p),
-          jerseyNumber: p.jerseyNumber,
-          position: p.position,
-        })),
-        selectedPlayerIds: enrolledByTeamId.get(team.id) ?? [],
+    const teamPayload = teams.map((team) => ({
+      teamId: team.id,
+      name: team.name,
+      color: team.color,
+      players: team.players.map((p) => ({
+        id: p.id,
+        name: playerDisplayName(p),
+        jerseyNumber: p.jerseyNumber,
+        position: p.position,
+        categoryIds: p.categories.map((link) => link.friendlyCategoryId),
       })),
-      enrollment: seasonTeams.map((st) => ({
-        teamId: st.teamId,
-        displayName: st.displayName,
-        color: st.color,
-        sortOrder: st.sortOrder,
-        playerIds: st.rosterEntries.map((e) => e.playerId),
+    }))
+
+    const categories = seasonCategories.map((sc) => ({
+      categoryId: sc.category.id,
+      seasonCategoryId: sc.id,
+      name: sc.category.name,
+      teams: teamPayload.map((team) => ({
+        ...team,
+        selectedPlayerIds:
+          enrolledByCategoryTeam.get(`${sc.id}:${team.teamId}`) ?? [],
       })),
-    })
+    }))
+
+    return NextResponse.json({ categories })
   } catch (error) {
     const mappedSeason = mapAdminSeasonRouteError(error)
     if (mappedSeason) {
@@ -74,11 +93,33 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: id } = await params
+    const { id } = await params
     const { organizationId } = await requireAdminSeason(id)
     const parsed = seasonEnrollmentSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos de inscripción inválidos' }, { status: 400 })
+    }
+
+    const seasonCategory = await db.seasonCategory.findFirst({
+      where: { seasonId: id, categoryId: parsed.data.categoryId },
+    })
+    if (!seasonCategory) {
+      return NextResponse.json(
+        { error: 'La categoría no pertenece a esta temporada.' },
+        { status: 400 },
+      )
+    }
+
+    const eligibleLinks = await db.playerCategory.findMany({
+      where: { friendlyCategoryId: parsed.data.categoryId },
+      select: { playerId: true },
+    })
+    const eligiblePlayerIds = new Set(eligibleLinks.map((link) => link.playerId))
+    for (const team of parsed.data.teams) {
+      const categoryError = validateEnrollmentPlayerCategories(team.playerIds, eligiblePlayerIds)
+      if (categoryError) {
+        return NextResponse.json({ error: categoryError }, { status: 400 })
+      }
     }
 
     const validationError = validateSeasonEnrollment(parsed.data)
@@ -90,7 +131,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       const submittedTeamIds = new Set(parsed.data.teams.map((t) => t.teamId))
 
       await tx.seasonTeam.updateMany({
-        where: { seasonId: id, teamId: { notIn: [...submittedTeamIds] } },
+        where: {
+          seasonCategoryId: seasonCategory.id,
+          teamId: { notIn: [...submittedTeamIds] },
+        },
         data: { status: SeasonTeamStatus.WITHDRAWN },
       })
 
@@ -99,9 +143,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         if (!dbTeam || dbTeam.organizationId !== organizationId) continue
 
         const seasonTeam = await tx.seasonTeam.upsert({
-          where: { seasonId_teamId: { seasonId: id, teamId: team.teamId } },
+          where: {
+            seasonCategoryId_teamId: {
+              seasonCategoryId: seasonCategory.id,
+              teamId: team.teamId,
+            },
+          },
           create: {
             seasonId: id,
+            seasonCategoryId: seasonCategory.id,
             teamId: team.teamId,
             displayName: team.displayName,
             color: team.color ?? dbTeam.color,

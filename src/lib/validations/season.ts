@@ -8,6 +8,7 @@ export const createSeasonSchema = z.object({
   startDate: z.string().datetime(),
   endDate: z.string().datetime(),
   footballFormat: footballFormatSchema.default('FUTBOL_11'),
+  categoryIds: z.array(z.string().min(1)).min(1, 'Elige al menos una categoría.'),
 })
 
 export const updateSeasonSchema = z.object({

@@ -8,6 +8,7 @@ describe('match validations', () => {
   it('accepts demo-style (non-cuid) ids', () => {
     const result = createMatchSchema.safeParse({
       seasonId: 'demo-season-2026',
+      seasonCategoryId: 'demo-sc-35',
       homeTeamId: 'demo-team-norte',
       awayTeamId: 'demo-team-sur',
       scheduledAt: new Date().toISOString(),
@@ -66,6 +67,7 @@ describe('season validations', () => {
       name: 'Torneos Kelme 2027',
       startDate: '2027-03-01T00:00:00.000Z',
       endDate: '2027-11-30T00:00:00.000Z',
+      categoryIds: ['cat-35'],
     })
     expect(result.success).toBe(true)
   })

@@ -24,11 +24,24 @@ import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
 const DRAFT_KEY = 'match-create-draft:league'
 
-type Option = { id: string; name: string; footballFormat?: FootballFormat }
+type SeasonCategoryOption = {
+  seasonCategoryId: string
+  categoryId: string
+  name: string
+  teams: Array<{ id: string; name: string }>
+}
+
+type SeasonOption = {
+  id: string
+  name: string
+  footballFormat?: FootballFormat
+  categories: SeasonCategoryOption[]
+}
 
 type LeagueDraft = {
   openStep: number
   seasonId: string
+  seasonCategoryId: string
   homeTeamId: string
   awayTeamId: string
   refereeId: string
@@ -42,8 +55,7 @@ type LeagueDraft = {
 }
 
 type Props = {
-  seasons: Option[]
-  teams: Option[]
+  seasons: SeasonOption[]
   referees: Array<{ id: string; name: string }>
 }
 
@@ -51,6 +63,7 @@ function createInitialDraft(): LeagueDraft {
   return {
     openStep: 1,
     seasonId: '',
+    seasonCategoryId: '',
     homeTeamId: '',
     awayTeamId: '',
     refereeId: '',
@@ -83,7 +96,7 @@ function formatScheduleLabel(date: string, time: string): string {
   }
 }
 
-export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
+export function LeagueMatchCreateWizard({ seasons, referees }: Props) {
   const router = useRouter()
   const orgPath = useOrgPath()
   const { data, setData, savedAtLabel, hydrated, clearDraft } = useMatchCreateDraft(
@@ -99,8 +112,19 @@ export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
     () => seasons.find((season) => season.id === data.seasonId),
     [data.seasonId, seasons]
   )
-  const homeTeam = teams.find((team) => team.id === data.homeTeamId)
-  const awayTeam = teams.find((team) => team.id === data.awayTeamId)
+
+  const selectedCategory = useMemo(
+    () =>
+      selectedSeason?.categories.find(
+        (category) => category.seasonCategoryId === data.seasonCategoryId
+      ),
+    [data.seasonCategoryId, selectedSeason]
+  )
+
+  const enrolledTeams = selectedCategory?.teams ?? []
+
+  const homeTeam = enrolledTeams.find((team) => team.id === data.homeTeamId)
+  const awayTeam = enrolledTeams.find((team) => team.id === data.awayTeamId)
   const referee = referees.find((item) => item.id === data.refereeId)
 
   function patch(partial: Partial<LeagueDraft>) {
@@ -111,11 +135,35 @@ export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
     patch({ openStep: step })
   }
 
+  function handleSeasonChange(seasonId: string) {
+    patch({
+      seasonId,
+      seasonCategoryId: '',
+      homeTeamId: '',
+      awayTeamId: '',
+    })
+  }
+
+  function handleCategoryChange(seasonCategoryId: string) {
+    patch({
+      seasonCategoryId,
+      homeTeamId: '',
+      awayTeamId: '',
+    })
+  }
+
   async function handleSubmit() {
     setError('')
 
-    if (!data.seasonId || !data.homeTeamId || !data.awayTeamId || !data.date || !data.time) {
-      setError('Completa temporada, equipos, fecha y hora.')
+    if (
+      !data.seasonId ||
+      !data.seasonCategoryId ||
+      !data.homeTeamId ||
+      !data.awayTeamId ||
+      !data.date ||
+      !data.time
+    ) {
+      setError('Completa temporada, categoría, equipos, fecha y hora.')
       setOpenStep(1)
       return
     }
@@ -138,6 +186,7 @@ export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
     const result = await submitJson('/api/matches', 'POST', {
       matchType: 'LEAGUE',
       seasonId: data.seasonId,
+      seasonCategoryId: data.seasonCategoryId,
       homeTeamId: data.homeTeamId,
       awayTeamId: data.awayTeamId,
       refereeId: data.refereeId || undefined,
@@ -163,10 +212,13 @@ export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
     return <p className="text-sm text-kelme-gray-500">Cargando formulario…</p>
   }
 
-  const canCreate = seasons.length > 0 && teams.length >= 2
+  const canCreate = seasons.some((season) =>
+    season.categories.some((category) => category.teams.length >= 2)
+  )
 
   const summaryRows = [
     { label: 'Temporada', value: selectedSeason?.name ?? '' },
+    { label: 'Categoría', value: selectedCategory?.name ?? '' },
     {
       label: 'Formato',
       value: selectedSeason?.footballFormat
@@ -206,21 +258,22 @@ export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
     >
       {!canCreate ? (
         <div className="rounded-xl border border-kelme-border bg-kelme-surface p-4 text-sm text-kelme-gray-600">
-          Necesitas al menos una temporada y dos equipos para crear un partido de liga.
+          Necesitas al menos una temporada con una categoría que tenga dos equipos inscritos para
+          crear un partido de liga.
         </div>
       ) : null}
 
       <WizardStep
         step={1}
         title="Datos del partido"
-        subtitle="Temporada, equipos, árbitro y horario"
+        subtitle="Temporada, categoría, equipos, árbitro y horario"
         isOpen={data.openStep === 1}
         onToggle={() => setOpenStep(1)}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <select
             value={data.seasonId}
-            onChange={(e) => patch({ seasonId: e.target.value })}
+            onChange={(e) => handleSeasonChange(e.target.value)}
             className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
             required
           >
@@ -233,13 +286,29 @@ export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
             ))}
           </select>
           <select
+            value={data.seasonCategoryId}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+            required
+            disabled={!selectedSeason}
+          >
+            <option value="">Categoría</option>
+            {(selectedSeason?.categories ?? []).map((category) => (
+              <option key={category.seasonCategoryId} value={category.seasonCategoryId}>
+                {category.name}
+                {category.teams.length > 0 ? ` · ${category.teams.length} equipos` : ''}
+              </option>
+            ))}
+          </select>
+          <select
             value={data.homeTeamId}
             onChange={(e) => patch({ homeTeamId: e.target.value })}
             className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
             required
+            disabled={!data.seasonCategoryId}
           >
             <option value="">Local</option>
-            {teams.map((team) => (
+            {enrolledTeams.map((team) => (
               <option key={team.id} value={team.id}>
                 {team.name}
               </option>
@@ -250,9 +319,10 @@ export function LeagueMatchCreateWizard({ seasons, teams, referees }: Props) {
             onChange={(e) => patch({ awayTeamId: e.target.value })}
             className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
             required
+            disabled={!data.seasonCategoryId}
           >
             <option value="">Visitante</option>
-            {teams.map((team) => (
+            {enrolledTeams.map((team) => (
               <option key={team.id} value={team.id}>
                 {team.name}
               </option>

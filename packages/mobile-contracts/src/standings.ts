@@ -14,3 +14,14 @@ export type MobileStandingRow = {
   dg: number
   pts: number
 }
+
+export type MobileStandingCategory = {
+  categoryId: string
+  name: string
+  rows: MobileStandingRow[]
+}
+
+export type MobileStandingsResponse = {
+  categories: MobileStandingCategory[]
+  rows: MobileStandingRow[]
+}

@@ -1,8 +1,9 @@
-import type { MobileStandingRow } from '@liga/mobile-contracts'
+import type { MobileStandingsResponse } from '@liga/mobile-contracts'
 import { APP_LOCALE } from '@/lib/locale'
 import { resolveTeamColor } from '@/lib/team-color'
 
 type FinishedMatch = {
+  seasonCategoryId: string | null
   homeTeamId: string | null
   awayTeamId: string | null
   homeScore: number
@@ -14,6 +15,7 @@ type FinishedMatch = {
 type SeasonTeamRef = {
   seasonTeamId: string
   teamId: string
+  seasonCategoryId: string | null
   displayName: string
   color: string | null
   crestMimeType: string | null
@@ -36,7 +38,7 @@ type Accumulator = {
 export function buildMobileStandings(
   matches: FinishedMatch[],
   seasonTeamByTeamId: Map<string, SeasonTeamRef>,
-): MobileStandingRow[] {
+): MobileStandingsResponse['categories'][number]['rows'] {
   const table = new Map<string, Accumulator>()
 
   function ensureTeam(teamId: string, fallbackName: string, fallbackColor: string | null) {
@@ -112,4 +114,28 @@ export function buildMobileStandings(
       dg: row.dg,
       pts: row.pts,
     }))
+}
+
+export function buildMobileStandingsResponse(input: {
+  categories: Array<{ categoryId: string; name: string; seasonCategoryId: string }>
+  matches: FinishedMatch[]
+  seasonTeams: SeasonTeamRef[]
+}): MobileStandingsResponse {
+  const categories = input.categories.map((category) => {
+    const matches = input.matches.filter((m) => m.seasonCategoryId === category.seasonCategoryId)
+    const map = new Map(
+      input.seasonTeams
+        .filter((st) => st.seasonCategoryId === category.seasonCategoryId)
+        .map((st) => [st.teamId, st]),
+    )
+    return {
+      categoryId: category.categoryId,
+      name: category.name,
+      rows: buildMobileStandings(matches, map),
+    }
+  })
+  return {
+    categories,
+    rows: categories.length === 1 ? categories[0]!.rows : [],
+  }
 }

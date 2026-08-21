@@ -5,6 +5,7 @@ type PlayerOption = {
   name: string
   jerseyNumber: number | null
   position: string | null
+  categoryIds?: string[]
 }
 
 type TeamEnrollment = {

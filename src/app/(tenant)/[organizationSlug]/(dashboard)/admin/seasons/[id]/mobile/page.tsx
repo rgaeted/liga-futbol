@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { SeasonRosterStatus } from '@prisma/client'
 import { db } from '@/lib/db'
 import { slugFromSeasonName } from '@/lib/validations/mobile-season'
 import { orgPath } from '@/lib/tenant-paths'
@@ -23,29 +24,68 @@ export default async function SeasonMobileAdminPage({
   const season = await db.season.findUnique({ where: { id } })
   if (!season || season.organizationId !== organizationId) notFound()
 
-  const [config, teamsRaw, seasonTeams] = await Promise.all([
+  const [config, teamsRaw, seasonCategories, seasonTeams] = await Promise.all([
     db.seasonMobileConfig.findUnique({ where: { seasonId: id } }),
     db.team.findMany({
       where: { organizationId },
       orderBy: { name: 'asc' },
       include: {
         players: {
-          include: PLAYER_PERSON_NAME_INCLUDE,
+          include: {
+            ...PLAYER_PERSON_NAME_INCLUDE,
+            categories: { select: { friendlyCategoryId: true } },
+          },
           orderBy: { jerseyNumber: 'asc' },
         },
       },
     }),
+    db.seasonCategory.findMany({
+      where: { seasonId: id },
+      orderBy: { sortOrder: 'asc' },
+      include: { category: { select: { id: true, name: true } } },
+    }),
     db.seasonTeam.findMany({
       where: { seasonId: id },
       include: {
-        rosterEntries: { where: { status: 'ACTIVE' }, select: { playerId: true } },
+        rosterEntries: {
+          where: { status: SeasonRosterStatus.ACTIVE },
+          select: { playerId: true },
+        },
       },
     }),
   ])
 
-  const enrolledByTeamId = new Map(
-    seasonTeams.map((st) => [st.teamId, st.rosterEntries.map((e) => e.playerId)]),
-  )
+  const enrolledByCategoryTeam = new Map<string, string[]>()
+  for (const st of seasonTeams) {
+    if (!st.seasonCategoryId) continue
+    enrolledByCategoryTeam.set(
+      `${st.seasonCategoryId}:${st.teamId}`,
+      st.rosterEntries.map((e) => e.playerId)
+    )
+  }
+
+  const teamPayload = teamsRaw.map((team) => ({
+    teamId: team.id,
+    name: team.name,
+    color: team.color,
+    players: team.players.map((p) => ({
+      id: p.id,
+      name: playerDisplayName(p),
+      jerseyNumber: p.jerseyNumber,
+      position: p.position,
+      categoryIds: p.categories.map((link) => link.friendlyCategoryId),
+    })),
+  }))
+
+  const categories = seasonCategories.map((sc) => ({
+    categoryId: sc.category.id,
+    seasonCategoryId: sc.id,
+    name: sc.category.name,
+    teams: teamPayload.map((team) => ({
+      ...team,
+      selectedPlayerIds: enrolledByCategoryTeam.get(`${sc.id}:${team.teamId}`) ?? [],
+    })),
+  }))
 
   return (
     <div className="space-y-4">
@@ -78,18 +118,7 @@ export default async function SeasonMobileAdminPage({
                 isPublished: false,
               }
         }
-        teams={teamsRaw.map((team) => ({
-          teamId: team.id,
-          name: team.name,
-          color: team.color,
-          players: team.players.map((p) => ({
-            id: p.id,
-            name: playerDisplayName(p),
-            jerseyNumber: p.jerseyNumber,
-            position: p.position,
-          })),
-          selectedPlayerIds: enrolledByTeamId.get(team.id) ?? [],
-        }))}
+        categories={categories}
       />
     </div>
   )

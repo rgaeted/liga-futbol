@@ -6,9 +6,21 @@ export function validateSeasonEnrollment(input: SeasonEnrollmentInput): string |
     for (const playerId of team.playerIds) {
       const existingTeam = playerTeams.get(playerId)
       if (existingTeam && existingTeam !== team.teamId) {
-        return 'Un jugador no puede estar inscrito en dos equipos de la misma temporada'
+        return 'Un jugador no puede estar inscrito en dos clubes de la misma categoría'
       }
       playerTeams.set(playerId, team.teamId)
+    }
+  }
+  return null
+}
+
+export function validateEnrollmentPlayerCategories(
+  playerIds: string[],
+  eligiblePlayerIds: Set<string>,
+): string | null {
+  for (const playerId of playerIds) {
+    if (!eligiblePlayerIds.has(playerId)) {
+      return 'Ese jugador no está en la categoría seleccionada.'
     }
   }
   return null

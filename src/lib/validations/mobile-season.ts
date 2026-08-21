@@ -34,6 +34,7 @@ export const seasonEnrollmentTeamSchema = z.object({
 })
 
 export const seasonEnrollmentSchema = z.object({
+  categoryId: z.string().min(1),
   teams: z.array(seasonEnrollmentTeamSchema).min(1),
 })
 

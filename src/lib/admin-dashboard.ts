@@ -1,3 +1,7 @@
+import {
+  buildStandingsByCategory,
+  type CategoryStandingBlock,
+} from '@/lib/admin-dashboard-standings'
 import { db } from '@/lib/db'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 import { matchDisplayName } from '@/lib/match-label'
@@ -23,16 +27,7 @@ export type AdminDashboardMatchRow = {
   venue: string
 }
 
-export type AdminDashboardStandingRow = {
-  rank: number
-  teamId: string
-  team: string
-  color: string
-  pj: number
-  dg: string
-  pts: number
-  rankColor: string
-}
+export type { CategoryStandingBlock } from '@/lib/admin-dashboard-standings'
 
 export type AdminDashboardScorerRow = {
   abbr: string
@@ -71,7 +66,7 @@ export type AdminDashboardData = {
   kpis: AdminDashboardKpi[]
   upcoming: AdminDashboardMatchRow[]
   results: AdminDashboardMatchRow[]
-  standings: AdminDashboardStandingRow[]
+  standings: CategoryStandingBlock[]
   scorers: AdminDashboardScorerRow[]
   tiles: AdminDashboardTile[]
   todos: AdminDashboardTodo[]
@@ -179,79 +174,6 @@ function toMatchRow(match: MatchListRow): AdminDashboardMatchRow {
   }
 }
 
-type StandingAccumulator = {
-  teamId: string
-  team: string
-  color: string
-  played: number
-  gf: number
-  ga: number
-  points: number
-}
-
-function buildStandings(
-  matches: Array<{
-    homeTeamId: string | null
-    awayTeamId: string | null
-    homeScore: number
-    awayScore: number
-    homeTeam: { id: string; name: string; color: string | null } | null
-    awayTeam: { id: string; name: string; color: string | null } | null
-  }>
-): AdminDashboardStandingRow[] {
-  const table = new Map<string, StandingAccumulator>()
-
-  function ensureTeam(team: { id: string; name: string; color: string | null }) {
-    if (!table.has(team.id)) {
-      table.set(team.id, {
-        teamId: team.id,
-        team: team.name,
-        color: resolveTeamColor(team.color, team.name),
-        played: 0,
-        gf: 0,
-        ga: 0,
-        points: 0,
-      })
-    }
-    return table.get(team.id)!
-  }
-
-  for (const match of matches) {
-    if (!match.homeTeam || !match.awayTeam) continue
-    const home = ensureTeam(match.homeTeam)
-    const away = ensureTeam(match.awayTeam)
-    home.played += 1
-    away.played += 1
-    home.gf += match.homeScore
-    home.ga += match.awayScore
-    away.gf += match.awayScore
-    away.ga += match.homeScore
-
-    if (match.homeScore > match.awayScore) {
-      home.points += 3
-    } else if (match.homeScore < match.awayScore) {
-      away.points += 3
-    } else {
-      home.points += 1
-      away.points += 1
-    }
-  }
-
-  return [...table.values()]
-    .sort((a, b) => b.points - a.points || b.gf - b.ga - (a.gf - a.ga) || a.team.localeCompare(b.team, APP_LOCALE))
-    .slice(0, 6)
-    .map((row, index) => ({
-      rank: index + 1,
-      teamId: row.teamId,
-      team: row.team,
-      color: row.color,
-      pj: row.played,
-      dg: row.gf - row.ga > 0 ? `+${row.gf - row.ga}` : String(row.gf - row.ga),
-      pts: row.points,
-      rankColor: index < 3 ? '#b91c1c' : '#71717a',
-    }))
-}
-
 export async function getAdminDashboardData(
   organizationId: string,
   seasonId?: string | null,
@@ -332,6 +254,7 @@ export async function getAdminDashboardData(
     nextScheduled,
     pendingNoReferee,
     pendingNoVenue,
+    seasonCategories,
   ] = await Promise.all([
     leagueSeasonWhere
       ? db.match.aggregate({
@@ -351,6 +274,7 @@ export async function getAdminDashboardData(
       ? db.match.findMany({
           where: { ...leagueSeasonWhere, status: MatchStatus.FINISHED },
           select: {
+            seasonCategoryId: true,
             homeTeamId: true,
             awayTeamId: true,
             homeScore: true,
@@ -401,6 +325,13 @@ export async function getAdminDashboardData(
           },
         })
       : Promise.resolve(0),
+    selectedSeason
+      ? db.seasonCategory.findMany({
+          where: { seasonId: selectedSeason.id },
+          orderBy: { sortOrder: 'asc' },
+          include: { category: { select: { id: true, name: true } } },
+        })
+      : Promise.resolve([]),
   ])
 
   const totalGoals =
@@ -538,7 +469,14 @@ export async function getAdminDashboardData(
     kpis,
     upcoming: upcomingMatches.map(toMatchRow),
     results: recentResults.map(toMatchRow),
-    standings: buildStandings(finishedMatches),
+    standings: buildStandingsByCategory(
+      finishedMatches,
+      seasonCategories.map((sc) => ({
+        id: sc.id,
+        categoryId: sc.category.id,
+        name: sc.category.name,
+      })),
+    ),
     scorers: topScorers.map((p) => {
       const name = playerDisplayName(p)
       return {

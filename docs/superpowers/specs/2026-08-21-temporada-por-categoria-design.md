@@ -1,6 +1,6 @@
 # Temporada por categoría — Design Spec
 
-> Plan: pendiente (`docs/superpowers/plans/2026-08-21-temporada-por-categoria.md` tras aprobación)
+> Plan: [`docs/superpowers/plans/2026-08-21-temporada-por-categoria.md`](../plans/2026-08-21-temporada-por-categoria.md)
 > Fecha: 2026-08-21
 > Producto: **LigaLab**
 > Depende de: roster unificado; wizard de temporada; `FriendlyCategory` / `PlayerCategory`

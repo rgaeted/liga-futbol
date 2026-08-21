@@ -6,7 +6,7 @@ import { useOrgPath } from '@/hooks/useOrgPath'
 import type {
   AdminDashboardMatchRow,
   AdminDashboardScorerRow,
-  AdminDashboardStandingRow,
+  CategoryStandingBlock,
   AdminDashboardTile,
   AdminDashboardTodo,
 } from '@/lib/admin-dashboard'
@@ -84,7 +84,7 @@ function MatchRows({
 type Props = {
   upcoming: AdminDashboardMatchRow[]
   results: AdminDashboardMatchRow[]
-  standings: AdminDashboardStandingRow[]
+  standings: CategoryStandingBlock[]
   scorers: AdminDashboardScorerRow[]
   tiles: AdminDashboardTile[]
   todos: AdminDashboardTodo[]
@@ -164,35 +164,50 @@ export function AdminDashboardPanels({
               Completa
             </Link>
           </div>
-          {standings.length === 0 ? (
+          {standings.every((block) => block.rows.length === 0) ? (
             <p className="px-5 pb-5 text-sm text-zinc-500">Aún no hay resultados para calcular la tabla.</p>
           ) : (
-            <>
-              <div className="grid grid-cols-[26px_minmax(0,1fr)_34px_34px_34px] gap-2 px-5 pb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                <span>#</span>
-                <span>Equipo</span>
-                <span className="text-center">PJ</span>
-                <span className="text-center">DG</span>
-                <span className="text-center">Pts</span>
-              </div>
-              {standings.map((s) => (
-                <div
-                  key={s.teamId}
-                  className="grid grid-cols-[26px_minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-zinc-100 px-5 py-2.5 hover:bg-[#fafafa]"
-                >
-                  <span className="text-[13px] font-bold" style={{ color: s.rankColor }}>
-                    {s.rank}
-                  </span>
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span className="h-[22px] w-[22px] shrink-0 rounded-full" style={{ background: s.color }} />
-                    <span className="truncate text-[13px] font-semibold">{s.team}</span>
-                  </span>
-                  <span className="text-center text-[13px] text-zinc-500">{s.pj}</span>
-                  <span className="text-center text-[13px] text-zinc-500">{s.dg}</span>
-                  <span className="text-center font-display text-lg font-bold">{s.pts}</span>
+            <div className="pb-2">
+              {standings.map((block) => (
+                <div key={block.categoryId} className="border-t border-zinc-100 first:border-t-0">
+                  {standings.length > 1 && (
+                    <h3 className="px-5 pt-4 text-sm font-bold uppercase tracking-wide text-zinc-500">
+                      {block.name}
+                    </h3>
+                  )}
+                  {block.rows.length === 0 ? (
+                    <p className="px-5 py-3 text-sm text-zinc-400">Sin resultados en esta categoría.</p>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-[26px_minmax(0,1fr)_34px_34px_34px] gap-2 px-5 pb-2 pt-3 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                        <span>#</span>
+                        <span>Equipo</span>
+                        <span className="text-center">PJ</span>
+                        <span className="text-center">DG</span>
+                        <span className="text-center">Pts</span>
+                      </div>
+                      {block.rows.map((s) => (
+                        <div
+                          key={`${block.categoryId}-${s.teamId}`}
+                          className="grid grid-cols-[26px_minmax(0,1fr)_34px_34px_34px] items-center gap-2 border-t border-zinc-100 px-5 py-2.5 hover:bg-[#fafafa]"
+                        >
+                          <span className="text-[13px] font-bold" style={{ color: s.rankColor }}>
+                            {s.rank}
+                          </span>
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span className="h-[22px] w-[22px] shrink-0 rounded-full" style={{ background: s.color }} />
+                            <span className="truncate text-[13px] font-semibold">{s.team}</span>
+                          </span>
+                          <span className="text-center text-[13px] text-zinc-500">{s.pj}</span>
+                          <span className="text-center text-[13px] text-zinc-500">{s.dg}</span>
+                          <span className="text-center font-display text-lg font-bold">{s.pts}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               ))}
-            </>
+            </div>
           )}
         </section>
 

@@ -17,20 +17,30 @@ export default async function NewSeasonPage({
     notFound()
   }
 
-  const teams = await db.team.findMany({
-    where: { organizationId },
-    orderBy: { name: 'asc' },
-    include: {
-      players: {
-        include: PLAYER_PERSON_NAME_INCLUDE,
-        orderBy: { jerseyNumber: 'asc' },
+  const [teams, categories] = await Promise.all([
+    db.team.findMany({
+      where: { organizationId },
+      orderBy: { name: 'asc' },
+      include: {
+        players: {
+          include: {
+            ...PLAYER_PERSON_NAME_INCLUDE,
+            categories: { select: { friendlyCategoryId: true } },
+          },
+          orderBy: { jerseyNumber: 'asc' },
+        },
       },
-    },
-  })
+    }),
+    db.friendlyCategory.findMany({
+      where: { organizationId, isActive: true },
+      orderBy: { name: 'asc' },
+    }),
+  ])
 
   return (
     <SeasonCreateWizard
       organizationSlug={organizationSlug}
+      categories={categories.map((category) => ({ id: category.id, name: category.name }))}
       teams={teams.map((team) => ({
         teamId: team.id,
         name: team.name,
@@ -40,6 +50,7 @@ export default async function NewSeasonPage({
           name: playerDisplayName(player),
           jerseyNumber: player.jerseyNumber,
           position: player.position,
+          categoryIds: player.categories.map((link) => link.friendlyCategoryId),
         })),
         selectedPlayerIds: [],
       }))}

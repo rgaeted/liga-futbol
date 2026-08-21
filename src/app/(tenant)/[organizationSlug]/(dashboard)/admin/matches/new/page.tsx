@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { SeasonTeamStatus } from '@prisma/client'
 import { db } from '@/lib/db'
 import { MembershipRole } from '@/lib/membership-role'
 import { requireOrganizationId } from '@/lib/tenant-access'
@@ -17,9 +18,24 @@ export default async function NewLeagueMatchPage({
     notFound()
   }
 
-  const [seasons, teams, refereeMemberships] = await Promise.all([
-    db.season.findMany({ where: { organizationId }, orderBy: { startDate: 'desc' } }),
-    db.team.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),
+  const [seasons, refereeMemberships] = await Promise.all([
+    db.season.findMany({
+      where: { organizationId },
+      orderBy: { startDate: 'desc' },
+      include: {
+        seasonCategories: {
+          orderBy: { sortOrder: 'asc' },
+          include: {
+            category: { select: { id: true, name: true } },
+            seasonTeams: {
+              where: { status: SeasonTeamStatus.REGISTERED },
+              include: { team: { select: { id: true, name: true } } },
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        },
+      },
+    }),
     db.organizationMembership.findMany({
       where: { organizationId, role: MembershipRole.REFEREE },
       include: { user: { select: { id: true, name: true } } },
@@ -32,8 +48,16 @@ export default async function NewLeagueMatchPage({
         id: season.id,
         name: season.name,
         footballFormat: season.footballFormat,
+        categories: season.seasonCategories.map((sc) => ({
+          seasonCategoryId: sc.id,
+          categoryId: sc.category.id,
+          name: sc.category.name,
+          teams: sc.seasonTeams.map((st) => ({
+            id: st.team.id,
+            name: st.team.name,
+          })),
+        })),
       }))}
-      teams={teams}
       referees={refereeMemberships.map((m) => m.user)}
     />
   )

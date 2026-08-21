@@ -12,6 +12,7 @@ import { MembershipRole } from '@/lib/membership-role'
 import { DEFAULT_REFEREE_EVENT_TYPES, normalizeRefereeEventTypes } from '@/lib/match-referee-events'
 import { buildMatchLocationFields } from '@/lib/match-location'
 import { assertChallengeCreate } from '@/lib/match-challenge'
+import { validateLeagueMatchTeams } from '@/lib/league-match-category'
 
 export async function GET(req: Request) {
   try {
@@ -336,9 +337,35 @@ export async function POST(req: Request) {
     }
 
     if (data.matchType === 'LEAGUE') {
-      if (data.homeTeamId === data.awayTeamId) {
-        return NextResponse.json({ error: 'Home and away team must differ' }, { status: 400 })
+      const seasonCategory = await db.seasonCategory.findFirst({
+        where: {
+          id: data.seasonCategoryId,
+          seasonId: data.seasonId,
+        },
+      })
+      if (!seasonCategory) {
+        return NextResponse.json(
+          { error: 'La categoría no pertenece a esta temporada.' },
+          { status: 400 },
+        )
       }
+
+      const enrolled = await db.seasonTeam.findMany({
+        where: {
+          seasonCategoryId: seasonCategory.id,
+          status: 'REGISTERED',
+        },
+        select: { teamId: true },
+      })
+      const teamError = validateLeagueMatchTeams({
+        homeTeamId: data.homeTeamId,
+        awayTeamId: data.awayTeamId,
+        enrolledTeamIds: enrolled.map((row) => row.teamId),
+      })
+      if (teamError) {
+        return NextResponse.json({ error: teamError }, { status: 400 })
+      }
+
       const season = await db.season.findUnique({ where: { id: data.seasonId } })
       if (!season) {
         return NextResponse.json({ error: 'Temporada no encontrada' }, { status: 400 })
@@ -351,6 +378,7 @@ export async function POST(req: Request) {
           organizationId,
           matchType: 'LEAGUE',
           seasonId: data.seasonId,
+          seasonCategoryId: seasonCategory.id,
           footballFormat: season.footballFormat,
           homeTeamId: data.homeTeamId,
           awayTeamId: data.awayTeamId,
@@ -362,7 +390,7 @@ export async function POST(req: Request) {
           scheduledAt: new Date(data.scheduledAt),
           ...locationFields,
         },
-        include: { homeTeam: true, awayTeam: true },
+        include: { homeTeam: true, awayTeam: true, seasonCategory: { include: { category: true } } },
       })
       return NextResponse.json(match, { status: 201 })
     }

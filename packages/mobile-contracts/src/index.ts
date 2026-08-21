@@ -1,7 +1,7 @@
 export type { MatchStatusCode, MobileTeamRef, MobilePaginated } from './common.js'
 export type { MobileLeagueConfig, MobileHomeResponse } from './league.js'
 export type { MobileMatchSummary, MobileMatchDetail } from './match.js'
-export type { MobileStandingRow } from './standings.js'
+export type { MobileStandingRow, MobileStandingCategory, MobileStandingsResponse } from './standings.js'
 export type {
   MobilePlayerStatsDto,
   MobileStatRow,

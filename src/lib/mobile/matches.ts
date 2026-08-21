@@ -25,6 +25,7 @@ const matchSelect = {
   weatherWindKmh: true,
   homeTeamId: true,
   awayTeamId: true,
+  seasonCategoryId: true,
 } as const
 
 async function loadSeasonTeams(league: ResolvedMobileLeague) {
@@ -33,10 +34,19 @@ async function loadSeasonTeams(league: ResolvedMobileLeague) {
   })
 }
 
-function seasonTeamMapByTeamId(
-  seasonTeams: Awaited<ReturnType<typeof loadSeasonTeams>>,
+function seasonTeamMap(seasonTeams: Awaited<ReturnType<typeof loadSeasonTeams>>) {
+  return new Map(
+    seasonTeams.map((st) => [`${st.seasonCategoryId ?? ''}:${st.teamId}`, st]),
+  )
+}
+
+function resolveSeasonTeam(
+  map: ReturnType<typeof seasonTeamMap>,
+  seasonCategoryId: string | null,
+  teamId: string | null,
 ) {
-  return new Map(seasonTeams.map((st) => [st.teamId, st]))
+  if (!teamId) return undefined
+  return map.get(`${seasonCategoryId ?? ''}:${teamId}`)
 }
 
 function statusFilter(status: MobileMatchesQuery['status']) {
@@ -74,15 +84,15 @@ export async function listMobileMatches(
   })
 
   const seasonTeams = await loadSeasonTeams(league)
-  const byTeamId = seasonTeamMapByTeamId(seasonTeams)
+  const byCategoryTeam = seasonTeamMap(seasonTeams)
   const page = matches.slice(0, query.limit)
   const hasMore = matches.length > query.limit
   const last = page.at(-1)
 
   const items = page.flatMap((match) => {
     if (!match.homeTeamId || !match.awayTeamId) return []
-    const home = byTeamId.get(match.homeTeamId)
-    const away = byTeamId.get(match.awayTeamId)
+    const home = resolveSeasonTeam(byCategoryTeam, match.seasonCategoryId, match.homeTeamId)
+    const away = resolveSeasonTeam(byCategoryTeam, match.seasonCategoryId, match.awayTeamId)
     if (!home || !away) return []
     return [serializeMobileMatchSummary(league.config.slug, match, home, away)]
   })
@@ -108,9 +118,9 @@ export async function getMobileMatch(
   if (!match?.homeTeamId || !match.awayTeamId) return null
 
   const seasonTeams = await loadSeasonTeams(league)
-  const byTeamId = seasonTeamMapByTeamId(seasonTeams)
-  const home = byTeamId.get(match.homeTeamId)
-  const away = byTeamId.get(match.awayTeamId)
+  const byCategoryTeam = seasonTeamMap(seasonTeams)
+  const home = resolveSeasonTeam(byCategoryTeam, match.seasonCategoryId, match.homeTeamId)
+  const away = resolveSeasonTeam(byCategoryTeam, match.seasonCategoryId, match.awayTeamId)
   if (!home || !away) return null
 
   return serializeMobileMatchDetail(league.config.slug, match, home, away)
@@ -124,6 +134,7 @@ export async function listFinishedLeagueMatches(league: ResolvedMobileLeague) {
       status: MatchStatus.FINISHED,
     },
     select: {
+      seasonCategoryId: true,
       homeTeamId: true,
       awayTeamId: true,
       homeScore: true,
@@ -136,7 +147,7 @@ export async function listFinishedLeagueMatches(league: ResolvedMobileLeague) {
 
 export async function listRecentAndUpcomingMatches(league: ResolvedMobileLeague) {
   const seasonTeams = await loadSeasonTeams(league)
-  const byTeamId = seasonTeamMapByTeamId(seasonTeams)
+  const byCategoryTeam = seasonTeamMap(seasonTeams)
 
   const [upcoming, recent] = await Promise.all([
     db.match.findMany({
@@ -164,8 +175,8 @@ export async function listRecentAndUpcomingMatches(league: ResolvedMobileLeague)
   function mapRows(rows: typeof upcoming) {
     return rows.flatMap((match) => {
       if (!match.homeTeamId || !match.awayTeamId) return []
-      const home = byTeamId.get(match.homeTeamId)
-      const away = byTeamId.get(match.awayTeamId)
+      const home = resolveSeasonTeam(byCategoryTeam, match.seasonCategoryId, match.homeTeamId)
+      const away = resolveSeasonTeam(byCategoryTeam, match.seasonCategoryId, match.awayTeamId)
       if (!home || !away) return []
       return [serializeMobileMatchSummary(league.config.slug, match, home, away)]
     })

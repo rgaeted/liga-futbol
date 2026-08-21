@@ -138,6 +138,7 @@ export const createLeagueMatchSchema = z
   .object({
     matchType: z.literal('LEAGUE').default('LEAGUE'),
     seasonId: id,
+    seasonCategoryId: id,
     homeTeamId: id,
     awayTeamId: id,
     refereeId: id.optional(),

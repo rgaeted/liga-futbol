@@ -23,6 +23,7 @@ describe('backfillSeasonEnrollment', () => {
             id: 'season-1',
             name: 'Demo',
             mobileConfig: null,
+            seasonCategories: [{ id: 'sc-1', categoryId: 'cat-1', category: { id: 'cat-1' } }],
             matches: [
               {
                 homeTeamId: 't1',
@@ -44,8 +45,10 @@ describe('backfillSeasonEnrollment', () => {
       },
       seasonTeam: {
         upsert: vi.fn().mockImplementation(({ where }) => {
-          upsertCalls.push(`team:${where.seasonId_teamId.seasonId}:${where.seasonId_teamId.teamId}`)
-          return Promise.resolve({ id: `st-${where.seasonId_teamId.teamId}` })
+          upsertCalls.push(
+            `team:${where.seasonCategoryId_teamId.seasonCategoryId}:${where.seasonCategoryId_teamId.teamId}`,
+          )
+          return Promise.resolve({ id: `st-${where.seasonCategoryId_teamId.teamId}` })
         }),
       },
       player: {

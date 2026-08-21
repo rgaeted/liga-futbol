@@ -262,6 +262,45 @@ async function main() {
     },
   })
 
+  const demoCategory = await prisma.friendlyCategory.upsert({
+    where: { id: `${DEMO_ID_PREFIX}cat-35` },
+    update: { name: '+35', isActive: true, organizationId },
+    create: {
+      id: `${DEMO_ID_PREFIX}cat-35`,
+      name: '+35',
+      isActive: true,
+      organizationId,
+    },
+  })
+
+  const seasonCategory = await prisma.seasonCategory.upsert({
+    where: {
+      seasonId_categoryId: { seasonId: season.id, categoryId: demoCategory.id },
+    },
+    update: { sortOrder: 0 },
+    create: {
+      seasonId: season.id,
+      categoryId: demoCategory.id,
+      sortOrder: 0,
+    },
+  })
+
+  for (const player of [...playersNorte, ...playersSur]) {
+    await prisma.playerCategory.upsert({
+      where: {
+        playerId_friendlyCategoryId: {
+          playerId: player.id,
+          friendlyCategoryId: demoCategory.id,
+        },
+      },
+      update: {},
+      create: {
+        playerId: player.id,
+        friendlyCategoryId: demoCategory.id,
+      },
+    })
+  }
+
   const now = new Date()
   const inThreeDays = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
@@ -274,11 +313,13 @@ async function main() {
       homeScore: 2,
       awayScore: 1,
       refereeId: referee1.id,
+      seasonCategoryId: seasonCategory.id,
     },
     create: {
       id: `${DEMO_ID_PREFIX}match-finished`,
       organizationId,
       seasonId: season.id,
+      seasonCategoryId: seasonCategory.id,
       homeTeamId: teamNorte.id,
       awayTeamId: teamSur.id,
       refereeId: referee1.id,
@@ -301,11 +342,13 @@ async function main() {
       homeScore: 1,
       awayScore: 0,
       refereeId: referee1.id,
+      seasonCategoryId: seasonCategory.id,
     },
     create: {
       id: `${DEMO_ID_PREFIX}match-live`,
       organizationId,
       seasonId: season.id,
+      seasonCategoryId: seasonCategory.id,
       homeTeamId: teamNorte.id,
       awayTeamId: teamSur.id,
       refereeId: referee1.id,
@@ -354,11 +397,13 @@ async function main() {
       awayScore: 0,
       refereeId: referee1.id,
       scheduledAt: inThreeDays,
+      seasonCategoryId: seasonCategory.id,
     },
     create: {
       id: `${DEMO_ID_PREFIX}match-scheduled`,
       organizationId,
       seasonId: season.id,
+      seasonCategoryId: seasonCategory.id,
       homeTeamId: teamSur.id,
       awayTeamId: teamNorte.id,
       refereeId: referee1.id,
@@ -407,11 +452,12 @@ async function main() {
   })
 
   console.log('✅ Datos demo cargados correctamente\n')
-  await seedMobileEdition(season.id, teamNorte, teamSur, playersNorte, playersSur)
+  await seedMobileEdition(seasonCategory.id, season.id, teamNorte, teamSur, playersNorte, playersSur)
   printCredentials()
 }
 
 async function seedMobileEdition(
+  seasonCategoryId: string,
   seasonId: string,
   teamNorte: { id: string; name: string; color: string | null; crestMimeType: string | null; crestData: Uint8Array | null },
   teamSur: { id: string; name: string; color: string | null; crestMimeType: string | null; crestData: Uint8Array | null },
@@ -445,7 +491,9 @@ async function seedMobileEdition(
     { team: teamSur, players: playersSur },
   ].entries()) {
     const seasonTeam = await prisma.seasonTeam.upsert({
-      where: { seasonId_teamId: { seasonId, teamId: team.team.id } },
+      where: {
+        seasonCategoryId_teamId: { seasonCategoryId, teamId: team.team.id },
+      },
       update: {
         displayName: team.team.name,
         color: team.team.color,
@@ -456,6 +504,7 @@ async function seedMobileEdition(
       },
       create: {
         seasonId,
+        seasonCategoryId,
         teamId: team.team.id,
         displayName: team.team.name,
         color: team.team.color,

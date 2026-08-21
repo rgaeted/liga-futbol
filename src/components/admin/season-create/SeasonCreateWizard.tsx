@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { FootballFormat } from '@prisma/client'
@@ -26,7 +27,12 @@ import {
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 import { slugFromSeasonName } from '@/lib/validations/mobile-season'
 
-const DRAFT_KEY = 'season-create-draft:v2'
+const DRAFT_KEY = 'season-create-draft:v3'
+
+type CategoryOption = {
+  id: string
+  name: string
+}
 
 type SeasonDraft = {
   openStep: number
@@ -34,14 +40,16 @@ type SeasonDraft = {
   footballFormat: FootballFormat
   startDate: string
   endDate: string
-  selectedTeamIds: string[]
-  rosterByTeam: Record<string, string[]>
+  selectedCategoryIds: string[]
+  selectedTeamIdsByCategory: Record<string, string[]>
+  rosterByCategory: Record<string, Record<string, string[]>>
   slugManuallyEdited: boolean
   mobile: ReturnType<typeof createInitialMobileDraft>
 }
 
 type Props = {
   organizationSlug: string
+  categories: CategoryOption[]
   teams: TeamEnrollment[]
 }
 
@@ -52,8 +60,9 @@ function createInitialDraft(): SeasonDraft {
     footballFormat: 'FUTBOL_11',
     startDate: '',
     endDate: '',
-    selectedTeamIds: [],
-    rosterByTeam: {},
+    selectedCategoryIds: [],
+    selectedTeamIdsByCategory: {},
+    rosterByCategory: {},
     slugManuallyEdited: false,
     mobile: createInitialMobileDraft(),
   }
@@ -73,7 +82,26 @@ function formatDateLabel(isoDate: string): string {
   }
 }
 
-export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
+function eligiblePlayerIds(team: TeamEnrollment, categoryId: string): string[] {
+  return team.players
+    .filter((player) => player.categoryIds?.includes(categoryId))
+    .map((player) => player.id)
+}
+
+function countEnrolledPlayers(
+  selectedTeamIds: string[],
+  rosterByTeam: Record<string, string[]>,
+): number {
+  const unique = new Set<string>()
+  for (const teamId of selectedTeamIds) {
+    for (const playerId of rosterByTeam[teamId] ?? []) {
+      unique.add(playerId)
+    }
+  }
+  return unique.size
+}
+
+export function SeasonCreateWizard({ organizationSlug, categories, teams }: Props) {
   const router = useRouter()
   const orgPath = useOrgPath()
   const slugManuallyEditedRef = useRef(false)
@@ -84,20 +112,31 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const selectedTeams = useMemo(
-    () => teams.filter((team) => data.selectedTeamIds.includes(team.teamId)),
-    [data.selectedTeamIds, teams],
+  const selectedCategories = useMemo(
+    () =>
+      data.selectedCategoryIds
+        .map((id) => categories.find((category) => category.id === id))
+        .filter((category): category is CategoryOption => category != null),
+    [categories, data.selectedCategoryIds],
   )
 
-  const enrolledPlayerCount = useMemo(() => {
-    const unique = new Set<string>()
-    for (const teamId of data.selectedTeamIds) {
-      for (const playerId of data.rosterByTeam[teamId] ?? []) {
-        unique.add(playerId)
-      }
-    }
-    return unique.size
-  }, [data.rosterByTeam, data.selectedTeamIds])
+  const enrollmentByCategory = useMemo(
+    () =>
+      selectedCategories.map((category) => {
+        const selectedTeamIds = data.selectedTeamIdsByCategory[category.id] ?? []
+        const rosterByTeam = data.rosterByCategory[category.id] ?? {}
+        return {
+          name: category.name,
+          teamCount: selectedTeamIds.length,
+          playerCount: countEnrolledPlayers(selectedTeamIds, rosterByTeam),
+        }
+      }),
+    [data.rosterByCategory, data.selectedTeamIdsByCategory, selectedCategories],
+  )
+
+  const hasAnyEnrollment = enrollmentByCategory.some(
+    (block) => block.teamCount > 0 || block.playerCount > 0,
+  )
 
   function patch(partial: Partial<Omit<SeasonDraft, 'mobile'>>) {
     setData((current) => ({ ...current, ...partial }))
@@ -129,61 +168,128 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
     patch({ openStep: step })
   }
 
-  function toggleTeam(teamId: string) {
+  function toggleCategory(categoryId: string) {
     setData((current) => {
-      const isSelected = current.selectedTeamIds.includes(teamId)
+      const isSelected = current.selectedCategoryIds.includes(categoryId)
       if (isSelected) {
-        const { [teamId]: _, ...restRoster } = current.rosterByTeam
+        const { [categoryId]: _teams, ...restTeams } = current.selectedTeamIdsByCategory
+        const { [categoryId]: _roster, ...restRoster } = current.rosterByCategory
         return {
           ...current,
-          selectedTeamIds: current.selectedTeamIds.filter((id) => id !== teamId),
-          rosterByTeam: restRoster,
+          selectedCategoryIds: current.selectedCategoryIds.filter((id) => id !== categoryId),
+          selectedTeamIdsByCategory: restTeams,
+          rosterByCategory: restRoster,
         }
       }
+      return {
+        ...current,
+        selectedCategoryIds: [...current.selectedCategoryIds, categoryId],
+      }
+    })
+  }
+
+  function toggleTeam(categoryId: string, teamId: string) {
+    setData((current) => {
+      const selectedTeamIds = current.selectedTeamIdsByCategory[categoryId] ?? []
+      const rosterByTeam = current.rosterByCategory[categoryId] ?? {}
+      const isSelected = selectedTeamIds.includes(teamId)
+
+      if (isSelected) {
+        const { [teamId]: _, ...restRoster } = rosterByTeam
+        return {
+          ...current,
+          selectedTeamIdsByCategory: {
+            ...current.selectedTeamIdsByCategory,
+            [categoryId]: selectedTeamIds.filter((id) => id !== teamId),
+          },
+          rosterByCategory: {
+            ...current.rosterByCategory,
+            [categoryId]: restRoster,
+          },
+        }
+      }
+
       const team = teams.find((item) => item.teamId === teamId)
       return {
         ...current,
-        selectedTeamIds: [...current.selectedTeamIds, teamId],
-        rosterByTeam: {
-          ...current.rosterByTeam,
-          [teamId]: team?.players.map((player) => player.id) ?? [],
+        selectedTeamIdsByCategory: {
+          ...current.selectedTeamIdsByCategory,
+          [categoryId]: [...selectedTeamIds, teamId],
+        },
+        rosterByCategory: {
+          ...current.rosterByCategory,
+          [categoryId]: {
+            ...rosterByTeam,
+            [teamId]: team ? eligiblePlayerIds(team, categoryId) : [],
+          },
         },
       }
     })
   }
 
-  function togglePlayer(teamId: string, playerId: string) {
+  function togglePlayer(categoryId: string, teamId: string, playerId: string) {
     setData((current) => {
-      const existing = new Set(current.rosterByTeam[teamId] ?? [])
+      const rosterByTeam = current.rosterByCategory[categoryId] ?? {}
+      const existing = new Set(rosterByTeam[teamId] ?? [])
       if (existing.has(playerId)) existing.delete(playerId)
       else existing.add(playerId)
       return {
         ...current,
-        rosterByTeam: { ...current.rosterByTeam, [teamId]: [...existing] },
+        rosterByCategory: {
+          ...current.rosterByCategory,
+          [categoryId]: {
+            ...rosterByTeam,
+            [teamId]: [...existing],
+          },
+        },
       }
     })
   }
 
-  function selectAllTeams() {
+  function selectAllTeamsForCategory(categoryId: string) {
     setData((current) => ({
       ...current,
-      selectedTeamIds: teams.map((team) => team.teamId),
-      rosterByTeam: Object.fromEntries(
-        teams.map((team) => [team.teamId, team.players.map((player) => player.id)]),
-      ),
+      selectedTeamIdsByCategory: {
+        ...current.selectedTeamIdsByCategory,
+        [categoryId]: teams.map((team) => team.teamId),
+      },
+      rosterByCategory: {
+        ...current.rosterByCategory,
+        [categoryId]: Object.fromEntries(
+          teams.map((team) => [team.teamId, eligiblePlayerIds(team, categoryId)]),
+        ),
+      },
     }))
   }
 
-  function selectAllPlayersForTeam(teamId: string) {
+  function clearCategoryEnrollment(categoryId: string) {
+    setData((current) => {
+      const { [categoryId]: _teams, ...restTeams } = current.selectedTeamIdsByCategory
+      const { [categoryId]: _roster, ...restRoster } = current.rosterByCategory
+      return {
+        ...current,
+        selectedTeamIdsByCategory: restTeams,
+        rosterByCategory: restRoster,
+      }
+    })
+  }
+
+  function selectAllPlayersForTeam(categoryId: string, teamId: string) {
     const team = teams.find((item) => item.teamId === teamId)
     if (!team) return
-    setData((current) => ({
-      ...current,
-      rosterByTeam: {
-        ...current.rosterByTeam,
-        [teamId]: team.players.map((player) => player.id),
-      },
-    }))
+    setData((current) => {
+      const rosterByTeam = current.rosterByCategory[categoryId] ?? {}
+      return {
+        ...current,
+        rosterByCategory: {
+          ...current.rosterByCategory,
+          [categoryId]: {
+            ...rosterByTeam,
+            [teamId]: eligiblePlayerIds(team, categoryId),
+          },
+        },
+      }
+    })
   }
 
   function markSlugManualEdit() {
@@ -209,10 +315,15 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
       setOpenStep(1)
       return
     }
+    if (data.selectedCategoryIds.length === 0) {
+      setError('Elige al menos una categoría para la temporada.')
+      setOpenStep(2)
+      return
+    }
     if (data.mobile.configureMobile) {
       if (!data.mobile.slug.trim() || !data.mobile.displayName.trim()) {
         setError('Completa slug y nombre visible de la app móvil.')
-        setOpenStep(3)
+        setOpenStep(4)
         return
       }
     }
@@ -229,6 +340,7 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
           startDate: new Date(data.startDate).toISOString(),
           endDate: new Date(data.endDate).toISOString(),
           footballFormat: data.footballFormat,
+          categoryIds: data.selectedCategoryIds,
         }),
       })
       if (!res.ok) {
@@ -252,14 +364,20 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
       return
     }
 
-    if (data.selectedTeamIds.length > 0) {
+    for (const categoryId of data.selectedCategoryIds) {
+      const selectedTeamIds = data.selectedTeamIdsByCategory[categoryId] ?? []
+      if (selectedTeamIds.length === 0) continue
+
+      const selectedTeams = teams.filter((team) => selectedTeamIds.includes(team.teamId))
+      const rosterByTeam = data.rosterByCategory[categoryId] ?? {}
       const enrollmentPayload = {
+        categoryId,
         teams: selectedTeams.map((team, index) => ({
           teamId: team.teamId,
           displayName: team.name,
           color: team.color,
           sortOrder: index,
-          playerIds: data.rosterByTeam[team.teamId] ?? [],
+          playerIds: rosterByTeam[team.teamId] ?? [],
         })),
       }
       const enrollmentResult = await submitJson(
@@ -268,8 +386,10 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
         enrollmentPayload,
       )
       if (!enrollmentResult.ok) {
+        const categoryName =
+          categories.find((category) => category.id === categoryId)?.name ?? 'una categoría'
         setError(
-          `La temporada se creó, pero falló la inscripción: ${enrollmentResult.message}. Puedes completarla en App móvil.`,
+          `La temporada se creó, pero falló la inscripción de ${categoryName}: ${enrollmentResult.message}. Puedes completarla en App móvil.`,
         )
         setLoading(false)
         router.push(orgPath(`/admin/seasons/${seasonId}/mobile`))
@@ -322,7 +442,7 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
       variant="season"
       icon="🏆"
       title="Nueva temporada"
-      subtitle="Configura la temporada, equipos y app móvil paso a paso."
+      subtitle="Configura la temporada, categorías, equipos y app móvil paso a paso."
       savedAtLabel={savedAtLabel}
       onDiscardDraft={() => {
         slugManuallyEditedRef.current = false
@@ -336,11 +456,8 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
       summary={
         <SeasonCreateSummary
           rows={summaryRows}
-          enrollment={
-            data.selectedTeamIds.length > 0
-              ? { teamCount: data.selectedTeamIds.length, playerCount: enrolledPlayerCount }
-              : undefined
-          }
+          categoryNames={selectedCategories.map((category) => category.name)}
+          enrollmentByCategory={hasAnyEnrollment ? enrollmentByCategory : undefined}
           mobile={
             data.mobile.configureMobile
               ? { slug: data.mobile.slug, displayName: data.mobile.displayName }
@@ -402,99 +519,176 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
 
       <WizardStep
         step={2}
-        title="Equipos e inscripción"
-        subtitle="Opcional — puedes hacerlo después en App móvil"
+        title="Categorías"
+        subtitle="Elige las categorías que incluirá la temporada"
         isOpen={data.openStep === 2}
         onToggle={() => setOpenStep(2)}
       >
-        {teams.length === 0 ? (
-          <p className="text-sm text-kelme-gray-600">
-            Aún no hay equipos en tu organización. Puedes crear la temporada y agregar equipos
-            después.
-          </p>
+        {categories.length === 0 ? (
+          <div className="space-y-3">
+            <p className="text-sm text-kelme-gray-600">
+              Crea al menos una categoría en Categorías amistosas (menú Partidos) antes de armar la
+              temporada.
+            </p>
+            <Link
+              href={orgPath('/admin/friendly-categories')}
+              className="inline-block text-sm text-kelme-red hover:underline"
+            >
+              Ir a categorías amistosas
+            </Link>
+          </div>
         ) : (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={selectAllTeams}
-                className="rounded-lg border border-kelme-border px-3 py-1.5 text-sm hover:border-kelme-red"
-              >
-                Seleccionar todos los equipos
-              </button>
-              {data.selectedTeamIds.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => patch({ selectedTeamIds: [], rosterByTeam: {} })}
-                  className="rounded-lg border border-kelme-border px-3 py-1.5 text-sm text-kelme-gray-600 hover:border-kelme-red"
+          <div className="space-y-3">
+            <p className="text-sm text-kelme-gray-500">
+              Marca una o más categorías. Cada una tendrá su propia inscripción de equipos.
+            </p>
+            <div className="grid gap-2 md:grid-cols-2">
+              {categories.map((category) => (
+                <label
+                  key={category.id}
+                  className="flex items-center gap-2 rounded-lg border border-kelme-border px-3 py-2 text-sm"
                 >
-                  Limpiar selección
-                </button>
-              ) : null}
+                  <input
+                    type="checkbox"
+                    checked={data.selectedCategoryIds.includes(category.id)}
+                    onChange={() => toggleCategory(category.id)}
+                  />
+                  <span>{category.name}</span>
+                </label>
+              ))}
             </div>
-
-            <SeasonTeamsEditor
-              teams={teams}
-              selectedTeamIds={data.selectedTeamIds}
-              onToggleTeam={toggleTeam}
-            />
-
-            {selectedTeams.length > 0 ? (
-              <section className="space-y-4 rounded-lg border border-kelme-border p-4">
-                <h3 className="font-semibold text-kelme-gray-900">Planteles</h3>
-                <p className="text-sm text-kelme-gray-500">
-                  Al inscribir un equipo se seleccionan todos sus jugadores. Ajusta la lista si
-                  necesitas.
-                </p>
-                {selectedTeams.map((team) => (
-                  <div key={team.teamId} className="space-y-2">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h4 className="font-medium">{team.name}</h4>
-                      <button
-                        type="button"
-                        onClick={() => selectAllPlayersForTeam(team.teamId)}
-                        className="text-xs text-kelme-red hover:underline"
-                      >
-                        Seleccionar todos
-                      </button>
-                    </div>
-                    {team.players.length === 0 ? (
-                      <p className="text-sm text-kelme-gray-500">Este equipo no tiene jugadores.</p>
-                    ) : (
-                      <div className="grid gap-2 md:grid-cols-2">
-                        {team.players.map((player) => (
-                          <label
-                            key={player.id}
-                            className="flex items-center gap-2 rounded-lg border border-kelme-border px-3 py-2 text-sm"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={(data.rosterByTeam[team.teamId] ?? []).includes(player.id)}
-                              onChange={() => togglePlayer(team.teamId, player.id)}
-                            />
-                            <span>
-                              {player.jerseyNumber != null ? `#${player.jerseyNumber} ` : ''}
-                              {player.name}
-                              {player.position ? ` (${player.position})` : ''}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </section>
-            ) : null}
           </div>
         )}
       </WizardStep>
 
       <WizardStep
         step={3}
-        title="App móvil"
-        subtitle="Opcional — slug, nombre y colores de la edición"
+        title="Inscripción"
+        subtitle="Opcional — puedes hacerlo después en App móvil"
         isOpen={data.openStep === 3}
         onToggle={() => setOpenStep(3)}
+      >
+        {data.selectedCategoryIds.length === 0 ? (
+          <p className="text-sm text-kelme-gray-600">
+            Primero elige al menos una categoría en el paso anterior.
+          </p>
+        ) : teams.length === 0 ? (
+          <p className="text-sm text-kelme-gray-600">
+            Aún no hay equipos en tu organización. Puedes crear la temporada y agregar equipos
+            después.
+          </p>
+        ) : (
+          <div className="space-y-8">
+            {selectedCategories.map((category) => {
+              const selectedTeamIds = data.selectedTeamIdsByCategory[category.id] ?? []
+              const rosterByTeam = data.rosterByCategory[category.id] ?? {}
+              const selectedTeams = teams.filter((team) => selectedTeamIds.includes(team.teamId))
+
+              return (
+                <section key={category.id} className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="font-display text-lg font-semibold text-kelme-gray-900">
+                      {category.name}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => selectAllTeamsForCategory(category.id)}
+                        className="rounded-lg border border-kelme-border px-3 py-1.5 text-sm hover:border-kelme-red"
+                      >
+                        Seleccionar todos los equipos
+                      </button>
+                      {selectedTeamIds.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => clearCategoryEnrollment(category.id)}
+                          className="rounded-lg border border-kelme-border px-3 py-1.5 text-sm text-kelme-gray-600 hover:border-kelme-red"
+                        >
+                          Limpiar selección
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <SeasonTeamsEditor
+                    teams={teams}
+                    selectedTeamIds={selectedTeamIds}
+                    onToggleTeam={(teamId) => toggleTeam(category.id, teamId)}
+                  />
+
+                  {selectedTeams.length > 0 ? (
+                    <section className="space-y-4 rounded-lg border border-kelme-border p-4">
+                      <h4 className="font-semibold text-kelme-gray-900">Planteles</h4>
+                      <p className="text-sm text-kelme-gray-500">
+                        Al inscribir un equipo se seleccionan sus jugadores elegibles para esta
+                        categoría. Ajusta la lista si necesitas.
+                      </p>
+                      {selectedTeams.map((team) => {
+                        const eligiblePlayers = team.players.filter((player) =>
+                          player.categoryIds?.includes(category.id),
+                        )
+
+                        return (
+                          <div key={team.teamId} className="space-y-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <h5 className="font-medium">{team.name}</h5>
+                              {eligiblePlayers.length > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() => selectAllPlayersForTeam(category.id, team.teamId)}
+                                  className="text-xs text-kelme-red hover:underline"
+                                >
+                                  Seleccionar todos
+                                </button>
+                              ) : null}
+                            </div>
+                            {eligiblePlayers.length === 0 ? (
+                              <p className="text-sm text-kelme-gray-500">
+                                Este equipo no tiene jugadores en esta categoría.
+                              </p>
+                            ) : (
+                              <div className="grid gap-2 md:grid-cols-2">
+                                {eligiblePlayers.map((player) => (
+                                  <label
+                                    key={player.id}
+                                    className="flex items-center gap-2 rounded-lg border border-kelme-border px-3 py-2 text-sm"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={(rosterByTeam[team.teamId] ?? []).includes(
+                                        player.id,
+                                      )}
+                                      onChange={() =>
+                                        togglePlayer(category.id, team.teamId, player.id)
+                                      }
+                                    />
+                                    <span>
+                                      {player.jerseyNumber != null ? `#${player.jerseyNumber} ` : ''}
+                                      {player.name}
+                                      {player.position ? ` (${player.position})` : ''}
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </section>
+                  ) : null}
+                </section>
+              )
+            })}
+          </div>
+        )}
+      </WizardStep>
+
+      <WizardStep
+        step={4}
+        title="App móvil"
+        subtitle="Opcional — slug, nombre y colores de la edición"
+        isOpen={data.openStep === 4}
+        onToggle={() => setOpenStep(4)}
       >
         <SeasonMobileConfigFields
           organizationSlug={organizationSlug}
@@ -505,11 +699,11 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
       </WizardStep>
 
       <WizardStep
-        step={4}
+        step={5}
         title="Resumen"
         subtitle="Revisa antes de crear"
-        isOpen={data.openStep === 4}
-        onToggle={() => setOpenStep(4)}
+        isOpen={data.openStep === 5}
+        onToggle={() => setOpenStep(5)}
       >
         <dl className="grid gap-2 text-sm">
           {summaryRows.map((row) => (
@@ -522,17 +716,26 @@ export function SeasonCreateWizard({ organizationSlug, teams }: Props) {
             </div>
           ))}
           <div className="flex justify-between gap-3 border-b border-kelme-border py-2">
-            <dt className="text-kelme-gray-500">Equipos inscritos</dt>
+            <dt className="text-kelme-gray-500">Categorías</dt>
             <dd className="font-medium text-kelme-gray-900">
-              {data.selectedTeamIds.length > 0 ? data.selectedTeamIds.length : 'Ninguno (por ahora)'}
+              {selectedCategories.length > 0
+                ? selectedCategories.map((category) => category.name).join(', ')
+                : 'Ninguna'}
             </dd>
           </div>
-          <div className="flex justify-between gap-3 border-b border-kelme-border py-2">
-            <dt className="text-kelme-gray-500">Jugadores inscritos</dt>
-            <dd className="font-medium text-kelme-gray-900">
-              {enrolledPlayerCount > 0 ? enrolledPlayerCount : '—'}
-            </dd>
-          </div>
+          {enrollmentByCategory.map((block) => (
+            <div
+              key={block.name}
+              className="flex justify-between gap-3 border-b border-kelme-border py-2"
+            >
+              <dt className="text-kelme-gray-500">{block.name}</dt>
+              <dd className="text-right font-medium text-kelme-gray-900">
+                {block.teamCount > 0
+                  ? `${block.teamCount} equipos · ${block.playerCount} jugadores`
+                  : 'Sin inscripción (por ahora)'}
+              </dd>
+            </div>
+          ))}
           <div className="flex justify-between gap-3 py-2">
             <dt className="text-kelme-gray-500">App móvil</dt>
             <dd className="font-medium text-kelme-gray-900">

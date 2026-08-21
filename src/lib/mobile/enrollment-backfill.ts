@@ -80,11 +80,15 @@ export async function backfillSeasonEnrollment(db: PrismaClient): Promise<Backfi
   const seasons = await db.season.findMany({
     include: {
       mobileConfig: true,
+      seasonCategories: {
+        include: { category: { select: { id: true } } },
+      },
       matches: {
         where: { matchType: MatchType.LEAGUE, seasonId: { not: null } },
         select: {
           homeTeamId: true,
           awayTeamId: true,
+          seasonCategoryId: true,
           callUps: { select: { playerId: true, player: { select: { teamId: true } } } },
         },
       },
@@ -105,6 +109,10 @@ export async function backfillSeasonEnrollment(db: PrismaClient): Promise<Backfi
     }
 
     if (teamIds.size === 0) continue
+
+    const seasonCategory =
+      season.seasonCategories.length === 1 ? season.seasonCategories[0]! : null
+    if (!seasonCategory) continue
 
     const teams = await db.team.findMany({
       where: { id: { in: [...teamIds] } },
@@ -138,9 +146,15 @@ export async function backfillSeasonEnrollment(db: PrismaClient): Promise<Backfi
 
     for (const team of seed.teams) {
       const seasonTeam = await db.seasonTeam.upsert({
-        where: { seasonId_teamId: { seasonId: season.id, teamId: team.teamId } },
+        where: {
+          seasonCategoryId_teamId: {
+            seasonCategoryId: seasonCategory.id,
+            teamId: team.teamId,
+          },
+        },
         create: {
           seasonId: season.id,
+          seasonCategoryId: seasonCategory.id,
           teamId: team.teamId,
           displayName: team.displayName,
           color: team.color,
