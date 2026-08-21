@@ -85,6 +85,18 @@ export async function POST(req: Request) {
     }
   }
 
+  if (categoryIds?.length) {
+    const validCount = await db.friendlyCategory.count({
+      where: { id: { in: categoryIds }, organizationId },
+    })
+    if (validCount !== categoryIds.length) {
+      return NextResponse.json(
+        { error: 'Categoría no válida para esta organización' },
+        { status: 400 },
+      )
+    }
+  }
+
   const hasAccount = Boolean(email && password && name)
 
   const player = await db.$transaction(async (tx) => {

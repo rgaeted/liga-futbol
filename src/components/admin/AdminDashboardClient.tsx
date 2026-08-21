@@ -16,7 +16,8 @@ function dashboardUrl(organizationSlug: string, seasonId: string | null): string
 }
 
 export function AdminDashboardClient() {
-  const organizationSlug = useOrgPath()  const searchParams = useSearchParams()
+  const organizationSlug = useOrgPath()
+  const searchParams = useSearchParams()
   const seasonId = searchParams.get('season')
   const [data, setData] = useState<AdminDashboardData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -110,7 +111,8 @@ export function AdminDashboardClient() {
           <Link
             href={orgPath(organizationSlug, '/admin/matches')}
             className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
-          >            Ir a partidos
+          >
+            Ir a partidos
           </Link>
         </div>
       </div>

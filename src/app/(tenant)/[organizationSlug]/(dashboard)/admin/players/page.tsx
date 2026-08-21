@@ -5,6 +5,8 @@ import { OrgPlayerForm } from '@/components/admin/OrgPlayerForm'
 import { PlayersTable } from '@/components/admin/PlayersTable'
 import { playerDisplayName } from '@/lib/person-name'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPlayersPage({
   params,
 }: {
