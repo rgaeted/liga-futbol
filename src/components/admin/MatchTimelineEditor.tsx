@@ -465,7 +465,6 @@ export function MatchTimelineEditor({
                           ...editing,
                           type,
                           assistPlayerId: '',
-                          assistPlayerId: '',
                         })
                       }}
                       className="rounded border border-kelme-border px-2 py-1"

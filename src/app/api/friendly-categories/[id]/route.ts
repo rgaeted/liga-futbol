@@ -43,14 +43,14 @@ export async function DELETE(
 
   const existing = await db.friendlyCategory.findUnique({
     where: { id },
-    include: { _count: { select: { playerMemberships: true, matches: true } } },
+    include: { _count: { select: { playerLinks: true, matches: true } } },
   })
   if (!existing) {
     return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 404 })
   }
   assertSameOrganization(existing.organizationId, organizationId)
 
-  if (existing._count.playerMemberships > 0 || existing._count.matches > 0) {
+  if (existing._count.playerLinks > 0 || existing._count.matches > 0) {
     return NextResponse.json(
       {
         error:

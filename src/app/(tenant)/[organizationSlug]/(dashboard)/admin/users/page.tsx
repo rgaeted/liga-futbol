@@ -34,14 +34,13 @@ export default async function AdminUsersPage({
             select: {
               players: {
                 where: { organizationId },
-                select: { teamId: true },
-                take: 1,
-              },
-              friendlyPlayers: {
-                where: { organizationId },
                 select: {
-                  id: true,
-                  participations: { where: { isCoach: true }, select: { id: true }, take: 1 },
+                  teamId: true,
+                  friendlyParticipations: {
+                    where: { isCoach: true },
+                    select: { id: true },
+                    take: 1,
+                  },
                 },
               },
             },
@@ -69,10 +68,10 @@ export default async function AdminUsersPage({
           roleTags: resolveUserRoleTags({
             role: m.role,
             hasCoachedTeam: Boolean(m.user.coachedTeam),
-            hasLeagueTeam: Boolean(m.user.person?.players[0]?.teamId),
-            hasFriendlyProfile: Boolean(m.user.person?.friendlyPlayers.length),
+            hasLeagueTeam: Boolean(m.user.person?.players.some((p) => p.teamId)),
+            hasFriendlyProfile: Boolean(m.user.person?.players.length),
             isFriendlyCoach: Boolean(
-              m.user.person?.friendlyPlayers.some((fp) => fp.participations.length),
+              m.user.person?.players.some((p) => p.friendlyParticipations.length),
             ),
           }),
         }))}

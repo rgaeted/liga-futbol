@@ -10,7 +10,7 @@ export async function GET() {
     where: { organizationId },
     orderBy: { name: 'asc' },
     include: {
-      _count: { select: { playerMemberships: true, matches: true } },
+      _count: { select: { playerLinks: true, matches: true } },
     },
   })
   return NextResponse.json(categories)

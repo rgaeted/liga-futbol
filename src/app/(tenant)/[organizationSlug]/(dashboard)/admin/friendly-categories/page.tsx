@@ -20,7 +20,7 @@ export default async function AdminFriendlyCategoriesPage({
   const categories = await db.friendlyCategory.findMany({
     where: { organizationId },
     orderBy: { name: 'asc' },
-    include: { _count: { select: { playerMemberships: true, matches: true } } },
+    include: { _count: { select: { playerLinks: true, matches: true } } },
   })
 
   return (
@@ -37,7 +37,7 @@ export default async function AdminFriendlyCategoriesPage({
           name: c.name,
           description: c.description,
           isActive: c.isActive,
-          playerCount: c._count.playerMemberships,
+          playerCount: c._count.playerLinks,
           matchCount: c._count.matches,
         }))}
       />

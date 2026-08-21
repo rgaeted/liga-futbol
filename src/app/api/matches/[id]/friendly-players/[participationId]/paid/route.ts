@@ -62,7 +62,7 @@ export async function PATCH(
     const updated = await db.friendlyMatchPlayer.update({
       where: { id: participationId },
       data: { paid: parsed.data.paid },
-      include: { friendlyPlayer: true },
+      include: { player: true },
     })
     return NextResponse.json(updated)
   } catch (error) {
