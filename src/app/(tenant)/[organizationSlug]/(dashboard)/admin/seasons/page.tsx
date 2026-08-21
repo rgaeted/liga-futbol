@@ -1,7 +1,7 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { requireOrganizationId } from '@/lib/tenant-access'
-import { SeasonForm } from '@/components/admin/SeasonForm'
 import { SeasonsTable } from '@/components/admin/SeasonsTable'
 
 export const dynamic = 'force-dynamic'
@@ -26,8 +26,15 @@ export default async function AdminSeasonsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold">Temporadas</h1>
-      <SeasonForm />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="font-display text-2xl font-bold">Temporadas</h1>
+        <Link
+          href={`/${organizationSlug}/admin/seasons/new`}
+          className="rounded-lg bg-kelme-red px-4 py-2 text-sm font-semibold text-white hover:bg-kelme-red-dark"
+        >
+          Nueva temporada
+        </Link>
+      </div>
       <SeasonsTable
         seasons={seasons.map((s) => ({
           id: s.id,

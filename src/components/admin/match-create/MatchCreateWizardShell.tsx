@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useOrgPath } from '@/hooks/useOrgPath'
 
 type Props = {
-  variant: 'league' | 'friendly'
+  variant: 'league' | 'friendly' | 'season'
   icon: ReactNode
   title: string
   subtitle: string
@@ -20,6 +20,8 @@ type Props = {
   error?: string
   onSubmit: () => void
   backHref?: string
+  backLabel?: string
+  draftHint?: string
 }
 
 export function MatchCreateWizardShell({
@@ -38,9 +40,12 @@ export function MatchCreateWizardShell({
   error,
   onSubmit,
   backHref,
+  backLabel = '← Volver a partidos',
+  draftHint = 'Se guarda automáticamente como borrador',
 }: Props) {
   const orgPath = useOrgPath()
-  const resolvedBackHref = backHref ?? orgPath('/admin/matches')
+  const resolvedBackHref =
+    backHref ?? orgPath(variant === 'season' ? '/admin/seasons' : '/admin/matches')
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -51,7 +56,9 @@ export function MatchCreateWizardShell({
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl ${
               variant === 'friendly'
                 ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-red-100 text-red-700'
+                : variant === 'season'
+                  ? 'bg-sky-100 text-sky-700'
+                  : 'bg-red-100 text-red-700'
             }`}
           >
             {icon}
@@ -67,7 +74,7 @@ export function MatchCreateWizardShell({
             </div>
             <p className="mt-1 text-sm text-kelme-gray-500">{subtitle}</p>
             <Link href={resolvedBackHref} className="mt-2 inline-block text-sm text-kelme-red hover:underline">
-              ← Volver a partidos
+              {backLabel}
             </Link>
           </div>
         </div>
@@ -129,9 +136,9 @@ export function MatchCreateWizardShell({
         >
           {loading ? 'Creando…' : submitLabel}
         </button>
-        <p className="mt-2 text-center text-xs text-kelme-gray-400">
-          Se guarda automáticamente como borrador
-        </p>
+        {draftHint ? (
+          <p className="mt-2 text-center text-xs text-kelme-gray-400">{draftHint}</p>
+        ) : null}
         {error ? <p className="mt-3 text-sm text-kelme-red">{error}</p> : null}
       </div>
     </div>
