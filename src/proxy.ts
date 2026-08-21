@@ -3,9 +3,7 @@ import { NextResponse } from 'next/server'
 import authConfig from '@/lib/auth.config'
 import { isDatabaseHealthRequest } from '@/lib/database-health'
 import { decideMigrationRequest, isPublicRequest } from '@/lib/proxy-policy'
-import { tenantDashboardArea } from '@/lib/proxy-tenant'
 import { rewriteLegacyTenantPath } from '@/lib/tenant-paths'
-import { canAccess, getDashboardPath } from '@/lib/membership-role'
 
 const { auth } = NextAuth(authConfig)
 
@@ -56,22 +54,9 @@ export const proxy = auth((req) => {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  if (!pathname.startsWith('/api/')) {
-    const tenantArea = tenantDashboardArea(pathname)
-    if (tenantArea) {
-      const { slug, area } = tenantArea
-      const membershipRole = req.auth.user.membershipRole
-      const activeSlug = req.auth.user.activeOrganizationSlug
-
-      if (activeSlug && activeSlug !== slug) {
-        return NextResponse.redirect(new URL('/organizaciones', req.url))
-      }
-
-      if (membershipRole && !canAccess(membershipRole, area)) {
-        return NextResponse.redirect(new URL(getDashboardPath(slug, membershipRole), req.url))
-      }
-    }
-  }
+  // Autorización por tenant: la valida cada layout con findTenantMembership(slug).
+  // No usar activeOrganizationSlug del JWT aquí — en multi-org bloqueaba /kelme/admin
+  // cuando la sesión tenía otra liga activa.
 
   return NextResponse.next()
 })

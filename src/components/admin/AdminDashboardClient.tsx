@@ -24,27 +24,38 @@ export function AdminDashboardClient() {
   const [loading, setLoading] = useState(true)
 
   const fetchDashboard = useCallback(async (): Promise<AdminDashboardData> => {
-    const res = await fetch(dashboardUrl(organizationSlug, seasonId), { cache: 'no-store' })
-    if (!res.ok) {
-      throw new Error(
-        res.status === 401 ? 'Sesión expirada' : 'Error al cargar el panel',
-      )
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 25_000)
+    try {
+      const res = await fetch(dashboardUrl(organizationSlug, seasonId), {
+        cache: 'no-store',
+        signal: controller.signal,
+      })
+      if (!res.ok) {
+        throw new Error(
+          res.status === 401 ? 'Sesión expirada' : 'Error al cargar el panel',
+        )
+      }
+      const contentType = res.headers.get('content-type') ?? ''
+      if (!contentType.includes('application/json')) {
+        throw new Error('Error al cargar el panel')
+      }
+      return res.json() as Promise<AdminDashboardData>
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        throw new Error('La carga tardó demasiado. Intenta de nuevo.')
+      }
+      throw err
+    } finally {
+      window.clearTimeout(timeout)
     }
-    const contentType = res.headers.get('content-type') ?? ''
-    if (!contentType.includes('application/json')) {
-      throw new Error('Error al cargar el panel')
-    }
-    return res.json() as Promise<AdminDashboardData>
   }, [organizationSlug, seasonId])
 
-  const [loadedSeason, setLoadedSeason] = useState<string | null>(null)
-  const seasonKey = seasonId ?? ''
-  if (loadedSeason !== seasonKey) {
-    setLoadedSeason(seasonKey)
+  useEffect(() => {
     setLoading(true)
     setError(null)
     setData(null)
-  }
+  }, [seasonId])
 
   useEffect(() => {
     let cancelled = false

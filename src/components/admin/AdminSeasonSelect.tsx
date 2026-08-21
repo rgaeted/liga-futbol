@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useOrgPath } from '@/hooks/useOrgPath'
 
 export function AdminSeasonSelect({
   seasons,
@@ -10,6 +11,7 @@ export function AdminSeasonSelect({
   value: string | null
 }) {
   const router = useRouter()
+  const orgPath = useOrgPath()
 
   if (seasons.length === 0) return null
 
@@ -18,7 +20,7 @@ export function AdminSeasonSelect({
       value={value ?? seasons[0]?.id ?? ''}
       onChange={(e) => {
         const next = e.target.value
-        router.push(next ? `/admin?season=${encodeURIComponent(next)}` : '/admin')
+        router.push(next ? orgPath(`/admin?season=${encodeURIComponent(next)}`) : orgPath('/admin'))
       }}
       className="h-[42px] rounded-[10px] border border-zinc-200 bg-white px-3 font-ui text-sm font-semibold text-zinc-900"
     >

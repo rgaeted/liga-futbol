@@ -10,7 +10,7 @@ const getCachedDashboard = unstable_cache(
   async (organizationId: string, seasonId: string | null) =>
     getAdminDashboardData(organizationId, seasonId),
   ['admin-dashboard'],
-  { revalidate: 30, tags: ['admin-dashboard'] },
+  { revalidate: 15, tags: ['admin-dashboard'] },
 )
 
 export async function GET(req: Request) {
