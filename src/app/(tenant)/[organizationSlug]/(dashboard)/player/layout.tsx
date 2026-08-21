@@ -2,7 +2,7 @@ import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { MembershipRole, getDashboardPath, membershipRoleLabel } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
-import { findTenantMembership, canAccessTenantArea, syncActiveOrganizationCookie } from '@/lib/tenant-access'
+import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 import { SyncTenantSession } from '@/components/tenant/SyncTenantSession'
@@ -41,8 +41,6 @@ export default async function PlayerLayout({
   const isFriendlyCoach = membership.role === MembershipRole.FRIENDLY_COACH
   const nav = isFriendlyCoach ? friendlyCoachNav(organizationSlug) : buildPlayerNav(organizationSlug)
   const roleLabel = membershipRoleLabel(membership.role)
-
-  await syncActiveOrganizationCookie(membership.organizationId)
 
   async function handleSignOut() {
     'use server'
