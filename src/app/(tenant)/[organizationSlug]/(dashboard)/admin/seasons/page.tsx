@@ -1,9 +1,28 @@
+import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
+import { requireOrganizationId } from '@/lib/tenant-access'
 import { SeasonForm } from '@/components/admin/SeasonForm'
 import { SeasonsTable } from '@/components/admin/SeasonsTable'
 
-export default async function AdminSeasonsPage() {
-  const seasons = await db.season.findMany({ orderBy: { startDate: 'desc' } })
+export const dynamic = 'force-dynamic'
+
+export default async function AdminSeasonsPage({
+  params,
+}: {
+  params: Promise<{ organizationSlug: string }>
+}) {
+  const { organizationSlug } = await params
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    notFound()
+  }
+
+  const seasons = await db.season.findMany({
+    where: { organizationId },
+    orderBy: { startDate: 'desc' },
+  })
 
   return (
     <div className="space-y-6">

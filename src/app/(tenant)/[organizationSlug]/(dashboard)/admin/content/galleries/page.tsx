@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
 import { ContentSeasonBar } from '@/components/admin/content/ContentSeasonBar'
 import { GalleriesTable } from '@/components/admin/content/GalleriesTable'
 import { db } from '@/lib/db'
 import { orgPath } from '@/lib/tenant-paths'
+import { requireOrganizationId } from '@/lib/tenant-access'
 
 export default async function AdminGalleriesPage({
   params,
@@ -14,7 +15,16 @@ export default async function AdminGalleriesPage({
 }) {
   const { organizationSlug } = await params
   const query = await searchParams
-  const seasons = await db.season.findMany({ orderBy: { startDate: 'desc' } })
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    notFound()
+  }
+  const seasons = await db.season.findMany({
+    where: { organizationId },
+    orderBy: { startDate: 'desc' },
+  })
   const selectedSeasonId = query.season ?? seasons[0]?.id ?? null
   if (!selectedSeasonId && seasons.length > 0) {
     redirect(orgPath(organizationSlug, `/admin/content/galleries?season=${seasons[0].id}`))

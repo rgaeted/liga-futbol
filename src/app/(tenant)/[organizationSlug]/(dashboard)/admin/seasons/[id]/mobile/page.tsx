@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { slugFromSeasonName } from '@/lib/validations/mobile-season'
 import { orgPath } from '@/lib/tenant-paths'
+import { requireOrganizationId } from '@/lib/tenant-access'
 import { SeasonMobilePageClient } from '@/components/admin/season-mobile/SeasonRosterEditor'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
@@ -12,12 +13,20 @@ export default async function SeasonMobileAdminPage({
   params: Promise<{ organizationSlug: string; id: string }>
 }) {
   const { organizationSlug, id } = await params
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    notFound()
+  }
+
   const season = await db.season.findUnique({ where: { id } })
-  if (!season) notFound()
+  if (!season || season.organizationId !== organizationId) notFound()
 
   const [config, teamsRaw, seasonTeams] = await Promise.all([
     db.seasonMobileConfig.findUnique({ where: { seasonId: id } }),
     db.team.findMany({
+      where: { organizationId },
       orderBy: { name: 'asc' },
       include: {
         players: {

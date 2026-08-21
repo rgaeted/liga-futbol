@@ -6,6 +6,7 @@ import { GalleryPhotoGrid } from '@/components/admin/content/GalleryPhotoGrid'
 import { db } from '@/lib/db'
 import { editorialPublicUrl } from '@/lib/editorial/urls'
 import { orgPath } from '@/lib/tenant-paths'
+import { requireOrganizationId } from '@/lib/tenant-access'
 
 export default async function AdminGalleryDetailPage({
   params,
@@ -16,7 +17,16 @@ export default async function AdminGalleryDetailPage({
 }) {
   const { organizationSlug, id } = await params
   const query = await searchParams
-  const seasons = await db.season.findMany({ orderBy: { startDate: 'desc' } })
+  let organizationId: string
+  try {
+    organizationId = await requireOrganizationId(organizationSlug)
+  } catch {
+    notFound()
+  }
+  const seasons = await db.season.findMany({
+    where: { organizationId },
+    orderBy: { startDate: 'desc' },
+  })
 
   if (id === 'new') {
     const selectedSeasonId = query.season ?? seasons[0]?.id
