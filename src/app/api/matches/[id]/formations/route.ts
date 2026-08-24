@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { MatchStatus, MatchType } from '@prisma/client'
+import { MatchStatus, MatchType, Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { MembershipRole } from '@/lib/membership-role'
@@ -10,9 +10,14 @@ import {
   isValidScheme,
   isValidSlotKey,
 } from '@/lib/formations'
-import { validateSlotLayout } from '@/lib/formation-slot-layout'
+import { validateSlotLayout, type SlotLayout } from '@/lib/formation-slot-layout'
 import { buildMatchFormationSides } from '@/lib/match-formations'
 import { minCallUpSize, resolveMatchFootballFormat } from '@/lib/football-format'
+
+function prismaSlotLayout(value: SlotLayout | null | undefined): Prisma.InputJsonValue | typeof Prisma.DbNull {
+  if (value == null) return Prisma.DbNull
+  return value
+}
 
 export async function GET(
   _req: Request,
@@ -209,9 +214,9 @@ export async function PUT(
           matchId,
           teamId: data.teamId!,
           scheme: data.scheme,
-          slotLayout: data.slotLayout ?? null,
+          slotLayout: prismaSlotLayout(data.slotLayout),
         },
-        update: { scheme: data.scheme, slotLayout: data.slotLayout ?? null },
+        update: { scheme: data.scheme, slotLayout: prismaSlotLayout(data.slotLayout) },
       })
 
       await tx.callUp.deleteMany({
@@ -283,9 +288,9 @@ export async function PUT(
           matchId,
           side: data.side!,
           scheme: data.scheme,
-          slotLayout: data.slotLayout ?? null,
+          slotLayout: prismaSlotLayout(data.slotLayout),
         },
-        update: { scheme: data.scheme, slotLayout: data.slotLayout ?? null },
+        update: { scheme: data.scheme, slotLayout: prismaSlotLayout(data.slotLayout) },
       })
 
       await tx.friendlyMatchPlayer.updateMany({
