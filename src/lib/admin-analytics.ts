@@ -73,3 +73,57 @@ export function weatherPeriodSummary(
     topLabels,
   }
 }
+
+export type AnalyticsPersonStat = {
+  playerId: string
+  name: string
+  value: number
+  meta: string
+}
+
+export function rankByCount(
+  counts: Map<string, { name: string; value: number; meta?: string }>,
+  take = 8,
+): AnalyticsPersonStat[] {
+  return [...counts.entries()]
+    .map(([playerId, row]) => ({
+      playerId,
+      name: row.name,
+      value: row.value,
+      meta: row.meta ?? '',
+    }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, 'es'))
+    .slice(0, take)
+}
+
+function bump(
+  map: Map<string, { name: string; value: number; meta?: string }>,
+  playerId: string | null | undefined,
+  name: string | null | undefined,
+) {
+  if (!playerId) return
+  const current = map.get(playerId) ?? { name: name ?? 'Jugador', value: 0, meta: '' }
+  current.value += 1
+  if (name) current.name = name
+  map.set(playerId, current)
+}
+
+export function tallyGoalEvents(
+  events: Array<{
+    type: string
+    playerId: string | null
+    assistPlayerId?: string | null
+    playerName?: string | null
+    assistName?: string | null
+  }>,
+): { scorers: AnalyticsPersonStat[]; assists: AnalyticsPersonStat[] } {
+  const goals = new Map<string, { name: string; value: number; meta?: string }>()
+  const assists = new Map<string, { name: string; value: number; meta?: string }>()
+  for (const event of events) {
+    if (event.type !== 'GOAL') continue
+    bump(goals, event.playerId, event.playerName)
+    bump(assists, event.assistPlayerId, event.assistName)
+  }
+  return { scorers: rankByCount(goals), assists: rankByCount(assists) }
+}

@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   applyMatchCap,
   paidRate,
+  rankByCount,
   resolveAnalyticsPeriod,
   shouldShowBlock,
+  tallyGoalEvents,
   weatherPeriodSummary,
 } from '@/lib/admin-analytics'
 
@@ -69,5 +71,32 @@ describe('weatherPeriodSummary', () => {
       maxTempC: 20,
       topLabels: ['Lluvia', 'Despejado'],
     })
+  })
+})
+
+describe('tallyGoalEvents', () => {
+  it('counts GOAL only and ignores OWN_GOAL', () => {
+    const { scorers, assists } = tallyGoalEvents([
+      { type: 'GOAL', playerId: 'p1', assistPlayerId: 'p2', playerName: 'Ana', assistName: 'Ben' },
+      { type: 'GOAL', playerId: 'p1', playerName: 'Ana' },
+      { type: 'OWN_GOAL', playerId: 'p1', playerName: 'Ana' },
+      { type: 'YELLOW_CARD', playerId: 'p1', playerName: 'Ana' },
+    ])
+    expect(scorers).toEqual([{ playerId: 'p1', name: 'Ana', value: 2, meta: '' }])
+    expect(assists).toEqual([{ playerId: 'p2', name: 'Ben', value: 1, meta: '' }])
+  })
+})
+
+describe('rankByCount', () => {
+  it('sorts desc and takes 8', () => {
+    const counts = new Map(
+      Array.from({ length: 9 }, (_, i) => [
+        `p${i}`,
+        { name: `J${i}`, value: i, meta: '' },
+      ]),
+    )
+    const ranked = rankByCount(counts, 8)
+    expect(ranked).toHaveLength(8)
+    expect(ranked[0]?.playerId).toBe('p8')
   })
 })
