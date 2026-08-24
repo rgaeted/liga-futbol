@@ -468,8 +468,11 @@ export async function getOrgAnalyticsDashboard(
 
   const { rows: matches, truncated } = applyMatchCap(rawMatches as AnalyticsMatchRow[], 200)
   const finished = matches.filter((m) => m.status === MatchStatus.FINISHED)
-  const scheduledLike = matches.filter((m) =>
-    [MatchStatus.SCHEDULED, MatchStatus.LIVE, MatchStatus.HALFTIME].includes(m.status),
+  const scheduledLike = matches.filter(
+    (m) =>
+      m.status === MatchStatus.SCHEDULED ||
+      m.status === MatchStatus.LIVE ||
+      m.status === MatchStatus.HALFTIME,
   )
 
   const friendlyRows = matches.flatMap((m) => m.friendlyPlayers)
