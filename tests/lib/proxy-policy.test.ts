@@ -124,4 +124,18 @@ describe('proxy policy', () => {
       })
     ).toBeNull()
   })
+
+  it('treats exact organization slug paths as public', () => {
+    expect(isPublicRequest('GET', '/loslunes')).toBe(true)
+    expect(isPublicRequest('HEAD', '/kelme')).toBe(true)
+    expect(isPublicRequest('GET', '/loslunes/admin')).toBe(false)
+    expect(isPublicRequest('GET', '/loslunes/player')).toBe(false)
+    expect(isPublicRequest('POST', '/loslunes')).toBe(false)
+  })
+
+  it('does not treat reserved single segments as org landings', () => {
+    expect(isPublicRequest('GET', '/plataforma')).toBe(false)
+    expect(isPublicRequest('GET', '/organizaciones')).toBe(false)
+    expect(isPublicRequest('GET', '/api')).toBe(false)
+  })
 })

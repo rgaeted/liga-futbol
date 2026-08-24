@@ -1,3 +1,5 @@
+import { parseOrganizationSlug } from '@/lib/organization-slug'
+
 export type MigrationDecision =
   | { kind: 'redirect'; location: string }
   | { kind: 'json'; status: 503; body: { error: string } }
@@ -6,6 +8,13 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 const tenantLive = /^\/[^/]+\/live(?:\/|$)/
 const tenantAyuda = /^\/[^/]+\/ayuda(?:\/|$)/
+
+function isTenantOrgLandingGet(method: string, pathname: string): boolean {
+  if (method !== 'GET' && method !== 'HEAD') return false
+  const match = /^\/([^/]+)$/.exec(pathname)
+  if (!match) return false
+  return parseOrganizationSlug(match[1]).ok
+}
 
 export function isPublicRequest(method: string, pathname: string): boolean {
   const isPhotoGet =
@@ -57,7 +66,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isMobileInstallationPost ||
     isMobileInstallationSubscriptionsPut ||
     isMobileInstallationDelete ||
-    isPlayersClaimPost
+    isPlayersClaimPost ||
+    isTenantOrgLandingGet(method, pathname)
   )
 }
 
