@@ -34,7 +34,7 @@ function LiveOrganizationBrand({
   }
 
   return (
-    <p className="font-display text-lg font-bold uppercase tracking-widest text-white/90">
+    <p className="font-display text-lg font-bold uppercase tracking-widest text-[#E8E4D8]">
       {name}
     </p>
   )
@@ -66,7 +66,7 @@ export function LiveScoreboard({
   const hasFormations = match.formations.some((formation) => formation.lineup)
 
   return (
-    <div className="min-h-screen bg-kelme-live-bg text-white">
+    <div className="min-h-screen bg-[#0B1210] text-[#E8E4D8]">
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-6 flex justify-center">
           <LiveOrganizationBrand
@@ -114,9 +114,9 @@ export function LiveScoreboard({
               />
             </div>
             <div className="shrink-0 px-2 text-center">
-              <p className="font-display text-5xl font-extrabold tabular-nums text-white sm:text-6xl">
+              <p className="font-data text-5xl font-extrabold tabular-nums text-[#E8E4D8] sm:text-6xl">
                 {match.homeScore}
-                <span className="mx-1 text-white/35">-</span>
+                <span className="mx-1 text-[#8A938C]/50">-</span>
                 {match.awayScore}
               </p>
             </div>

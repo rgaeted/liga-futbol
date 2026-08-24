@@ -6,7 +6,7 @@ export type { LiveMatchWeather } from '@/lib/live-match-snapshot'
 
 function MapPinIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 text-white/55">
+    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 text-[#8A938C]">
       <path
         fill="none"
         stroke="currentColor"
@@ -22,7 +22,7 @@ function MapPinIcon() {
 
 function CloudIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 text-white/70">
+    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 text-[#8A938C]">
       <path
         fill="none"
         stroke="currentColor"
@@ -37,7 +37,7 @@ function CloudIcon() {
 
 function ThermometerIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 text-white/70">
+    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 text-[#8A938C]">
       <path
         fill="none"
         stroke="currentColor"
@@ -52,7 +52,7 @@ function ThermometerIcon() {
 
 function DropletIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 text-white/70">
+    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 text-[#8A938C]">
       <path
         fill="none"
         stroke="currentColor"
@@ -67,7 +67,7 @@ function DropletIcon() {
 
 function WindIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 text-white/70">
+    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 text-[#8A938C]">
       <path
         fill="none"
         stroke="currentColor"
@@ -88,7 +88,7 @@ function ContextPill({
   children: ReactNode
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] px-3 py-1.5 font-ui text-xs text-white/85 ring-1 ring-white/10">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#121A18] px-3 py-1.5 font-ui text-xs text-[#E8E4D8] ring-1 ring-[#2A3A32]">
       {icon}
       <span>{children}</span>
     </span>
@@ -108,24 +108,28 @@ export function LiveMatchContextBar({ venue, locationLabel, weather }: Props) {
   if (!hasLocation && !hasWeather) return null
 
   return (
-    <div className="mb-6 flex flex-col items-center gap-3 px-2 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-4 sm:gap-y-2">
+    <div className="relative mb-6 flex flex-col items-center gap-3 px-2 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-4 sm:gap-y-2">
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-[2px] bg-org-primary"
+      />
       {hasLocation && (
-        <div className="flex max-w-full items-center gap-2 text-center sm:text-left">
+        <div className="flex max-w-full items-center gap-2 pt-3 text-center sm:text-left">
           <MapPinIcon />
-          <p className="font-ui text-sm leading-snug text-white/75">
-            {venue ? <span className="font-semibold text-white">{venue}</span> : null}
-            {venue && locationLabel ? <span className="text-white/45"> · </span> : null}
+          <p className="font-ui text-sm leading-snug text-[#8A938C]">
+            {venue ? <span className="font-display font-semibold text-[#E8E4D8]">{venue}</span> : null}
+            {venue && locationLabel ? <span className="text-[#8A938C]/60"> · </span> : null}
             {locationLabel ? <span>{locationLabel}</span> : null}
           </p>
         </div>
       )}
 
       {hasLocation && hasWeather ? (
-        <span aria-hidden className="hidden h-4 w-px bg-white/15 sm:block" />
+        <span aria-hidden className="hidden h-4 w-px bg-[#2A3A32] sm:block" />
       ) : null}
 
       {hasWeather && weather ? (
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-3 sm:pt-0">
           <ContextPill icon={<CloudIcon />}>{weather.label}</ContextPill>
           <ContextPill icon={<ThermometerIcon />}>
             {formatLiveWeatherTempC(weather.tempC)}
