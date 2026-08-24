@@ -25,15 +25,15 @@ export default async function OrganizacionesPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f5f5f7] px-4 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-[#0B1210] px-4 py-12">
       <div className="w-full max-w-lg space-y-6">
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#c91f26] text-xl font-black text-white">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-org-primary text-xl font-black text-[#E8E4D8]">
             LL
           </div>
           <div>
-            <h1 className="font-display text-2xl font-black text-[#17171a]">Elige una empresa</h1>
-            <p className="mt-1 font-ui text-sm text-[#777]">
+            <h1 className="font-display text-2xl font-black text-[#E8E4D8]">Elige una empresa</h1>
+            <p className="mt-1 font-ui text-sm text-[#8A938C]">
               Tienes acceso a varias ligas. Elige una para entrar; puedes cambiar después desde el
               selector del panel.
             </p>

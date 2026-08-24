@@ -44,18 +44,18 @@ function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="card-kelme space-y-4 p-8">
       <div className="text-center">
-        <h1 className="font-display text-xl font-black text-[#17171a]">Ingresar</h1>
-        <p className="mt-1 font-ui text-sm text-[#8d8d96]">Accede a LigaLab</p>
+        <h1 className="font-display text-xl font-black text-[#E8E4D8]">Ingresar</h1>
+        <p className="mt-1 font-ui text-sm text-[#8A938C]">Accede a LigaLab</p>
       </div>
       <input name="email" type="email" placeholder="Email" required className="input-kelme" />
       <input name="password" type="password" placeholder="Contraseña" required className="input-kelme" />
-      {error && <p className="font-ui text-sm font-semibold text-[#c91f26]">{error}</p>}
+      {error && <p className="font-ui text-sm font-semibold text-org-primary">{error}</p>}
       <button type="submit" disabled={loading} className="btn-kelme w-full">
         {loading ? 'Entrando…' : 'Ingresar'}
       </button>
-      <p className="text-center font-ui text-sm text-[#8d8d96]">
+      <p className="text-center font-ui text-sm text-[#8A938C]">
         ¿No tienes cuenta?{' '}
-        <Link href="/register" className="font-bold text-[#c91f26] hover:underline">
+        <Link href="/register" className="font-bold text-org-primary hover:underline">
           Regístrate
         </Link>
       </p>
@@ -65,24 +65,24 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f5f5f7] px-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#0B1210] px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#c91f26] text-xl font-black text-white">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-org-primary text-xl font-black text-[#E8E4D8]">
             LL
           </div>
           <div className="text-center">
-            <span className="font-display text-2xl font-black tracking-[0.08em] text-[#17171a]">
+            <span className="font-display text-2xl font-black tracking-[0.08em] text-[#E8E4D8]">
               LIGALAB
             </span>
-            <p className="mt-0.5 text-[10px] font-extrabold tracking-[0.13em] text-[#aaa]">
+            <p className="mt-0.5 text-[10px] font-extrabold tracking-[0.13em] text-[#8A938C]">
               GESTIÓN DEPORTIVA
             </p>
           </div>
         </div>
         <Suspense
           fallback={
-            <div className="card-kelme p-8 text-center font-ui text-sm text-[#8d8d96]">
+            <div className="card-kelme p-8 text-center font-ui text-sm text-[#8A938C]">
               Cargando…
             </div>
           }

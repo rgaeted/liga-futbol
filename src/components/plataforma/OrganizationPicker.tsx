@@ -37,28 +37,28 @@ export function OrganizationPicker({ memberships }: { memberships: MembershipOpt
 
   if (memberships.length === 0) {
     return (
-      <p className="rounded-lg border border-zinc-200 bg-white p-6 text-center font-ui text-sm text-zinc-600">
+      <p className="rounded-lg border border-[#2A3A32] bg-[#121A18] p-6 text-center font-ui text-sm text-[#8A938C]">
         No tienes empresas activas disponibles.
       </p>
     )
   }
 
   return (
-    <ul className="divide-y divide-[#ececef] rounded-[14px] border border-[#e5e5e9] bg-white">
+    <ul className="divide-y divide-[#2A3A32] rounded-[14px] border border-[#2A3A32] bg-[#121A18]">
       {memberships.map((m) => (
         <li key={m.organizationId}>
           <button
             type="button"
             onClick={() => selectOrganization(m.organizationId)}
-            className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left hover:bg-[#fafafa]"
+            className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left hover:bg-[#0B1210]"
           >
             <span className="min-w-0">
-              <span className="block truncate font-ui font-bold text-[#17171a]">{m.name}</span>
-              <span className="mt-0.5 block font-ui text-sm text-[#8d8d96]">
+              <span className="block truncate font-ui font-bold text-[#E8E4D8]">{m.name}</span>
+              <span className="mt-0.5 block font-ui text-sm text-[#8A938C]">
                 /{m.slug} · {membershipRoleLabel(m.role)}
               </span>
             </span>
-            <span className="shrink-0 rounded-full bg-[#fff0f1] px-3 py-1 font-ui text-xs font-bold text-[#c91f26]">
+            <span className="shrink-0 rounded-full bg-[#0B1210] px-3 py-1 font-ui text-xs font-bold text-org-primary">
               Ingresar
             </span>
           </button>
