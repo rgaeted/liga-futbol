@@ -1,77 +1,88 @@
 @import "tailwindcss";
 
 :root {
-  --kelme-red: #c91f26;
-  --kelme-red-dark: #b01b22;
-  --kelme-red-bright: #FF1E00;
-  --kelme-green: #0f9d68;
-  --kelme-black: #17171a;
-  --kelme-white: #FFFFFF;
-  --org-primary: var(--kelme-red);
-  --org-secondary: #ffffff;
-  --gray-900: #17171a;
-  --gray-600: #505058;
-  --gray-400: #8d8d96;
-  --gray-100: #f5f5f7;
-  --border: #e5e5e9;
-  --background: #f5f5f7;
-  --foreground: #17171a;
-  --surface: #FFFFFF;
+  --night: #0B1210;
+  --turf: #121A18;
+  --line: #2A3A32;
+  --flood: #E8E4D8;
+  --mist: #8A938C;
+  --ember: #C91F26;
+  --org-primary: var(--ember);
+  --org-secondary: var(--flood);
+  --kelme-red: var(--org-primary);
+  --kelme-red-dark: #9A181E;
+  --kelme-red-bright: var(--org-primary);
+  --kelme-green: #3D8B6E;
+  --kelme-black: var(--night);
+  --kelme-white: var(--flood);
+  --gray-900: var(--flood);
+  --gray-600: var(--mist);
+  --gray-400: var(--mist);
+  --gray-100: var(--turf);
+  --border: var(--line);
+  --background: var(--night);
+  --foreground: var(--flood);
+  --surface: var(--turf);
 }
 
 @theme inline {
-  --color-kelme-red: #c91f26;
-  --color-kelme-red-dark: #b01b22;
-  --color-kelme-red-bright: #FF1E00;
-  --color-kelme-green: #0f9d68;
-  --color-kelme-black: #17171a;
-  --color-kelme-white: #FFFFFF;
-  --color-kelme-gray-900: #17171a;
-  --color-kelme-gray-600: #505058;
-  --color-kelme-gray-400: #8d8d96;
-  --color-kelme-gray-100: #f5f5f7;
-  --color-kelme-border: #e5e5e9;
-  --color-kelme-surface: #FFFFFF;
-  --color-kelme-bg: #f5f5f7;
-  --color-kelme-live-bg: #0D0D0D;
-  --color-kelme-live-surface: #1A1A1A;
-  --font-display: var(--font-montserrat);
-  --font-ui: var(--font-poppins);
-  --font-body: var(--font-roboto);
+  --color-kelme-red: var(--org-primary);
+  --color-kelme-red-dark: #9A181E;
+  --color-kelme-red-bright: var(--org-primary);
+  --color-kelme-green: #3D8B6E;
+  --color-kelme-black: var(--night);
+  --color-kelme-white: var(--flood);
+  --color-kelme-gray-900: var(--flood);
+  --color-kelme-gray-600: var(--mist);
+  --color-kelme-gray-400: var(--mist);
+  --color-kelme-gray-100: var(--turf);
+  --color-kelme-border: var(--line);
+  --color-kelme-surface: var(--turf);
+  --color-kelme-bg: var(--night);
+  --color-kelme-live-bg: var(--night);
+  --color-kelme-live-surface: var(--turf);
+  --font-display: var(--font-oswald);
+  --font-ui: var(--font-manrope);
+  --font-body: var(--font-manrope);
+  --font-data: var(--font-ibm-plex-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-roboto), Roboto, sans-serif;
+  background: var(--night);
+  color: var(--flood);
+  font-family: var(--font-manrope), Manrope, sans-serif;
 }
 
 .font-display {
-  font-family: var(--font-montserrat), Montserrat, sans-serif;
+  font-family: var(--font-oswald), Oswald, sans-serif;
 }
 
 .font-ui {
-  font-family: var(--font-poppins), Poppins, sans-serif;
+  font-family: var(--font-manrope), Manrope, sans-serif;
+}
+
+.font-data {
+  font-family: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
 }
 
 .btn-kelme {
-  @apply rounded-xl bg-[#c91f26] px-4 py-3 font-ui text-sm font-extrabold text-white shadow-[0_6px_14px_#c91f2630] transition hover:bg-[#b01b22] disabled:opacity-50;
+  @apply rounded-xl bg-org-primary px-4 py-3 font-ui text-sm font-extrabold text-[#E8E4D8] shadow-none transition hover:brightness-110 disabled:opacity-50;
 }
 
 .btn-kelme-outline {
-  @apply rounded-xl border border-[#dddde2] bg-white px-4 py-3 font-ui text-sm font-bold text-[#34343a] transition hover:bg-[#f7f7f9] disabled:opacity-50;
+  @apply rounded-xl border border-kelme-border bg-transparent px-4 py-3 font-ui text-sm font-bold text-[#E8E4D8] transition hover:bg-[#121A18] disabled:opacity-50;
 }
 
 .input-kelme {
-  @apply w-full rounded-xl border border-[#dddde2] bg-white px-3.5 py-3 text-sm font-semibold text-[#34343a] outline-none placeholder:font-normal placeholder:text-[#8d8d96] focus:border-[#c91f26] focus:ring-2 focus:ring-[#c91f2620];
+  @apply w-full rounded-xl border border-kelme-border bg-[#0B1210] px-3.5 py-3 text-sm font-semibold text-[#E8E4D8] outline-none placeholder:font-normal placeholder:text-[#8A938C] focus:border-[color:var(--org-primary)] focus:ring-2 focus:ring-[color:var(--org-primary)]/25;
 }
 
 .card-kelme {
-  @apply rounded-[18px] border border-[#e5e5e9] bg-white;
+  @apply rounded-[18px] border border-kelme-border bg-kelme-surface;
 }
 
 .table-kelme thead {
-  @apply bg-kelme-gray-100 text-kelme-gray-600;
+  @apply bg-kelme-surface text-kelme-gray-600;
 }
 
 .table-kelme th,
@@ -80,20 +91,31 @@ body {
 }
 
 .link-nav {
-  @apply font-ui text-sm font-medium text-kelme-gray-600 transition-colors hover:text-kelme-red;
+  @apply font-ui text-sm font-medium text-kelme-gray-600 transition-colors hover:text-org-primary;
 }
 
 .link-nav-active {
-  @apply font-ui text-sm font-semibold text-kelme-red underline decoration-2 underline-offset-4;
+  @apply font-ui text-sm font-semibold text-[#E8E4D8] underline decoration-2 decoration-[color:var(--org-primary)] underline-offset-4;
 }
 
 @keyframes kelme-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.55; }
 }
 
 .live-pulse {
-  animation: kelme-pulse 1.4s ease-in-out infinite;
+  animation: kelme-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-pulse {
+    animation: none;
+  }
+  .btn-kelme,
+  .btn-kelme-outline,
+  .input-kelme {
+    transition: none;
+  }
 }
 
 .bg-org-primary {
