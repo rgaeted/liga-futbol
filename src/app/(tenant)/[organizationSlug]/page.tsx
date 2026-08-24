@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { MarketingShell } from '@/components/kelme/MarketingShell'
 import { OrgPublicLanding } from '@/components/marketing/OrgPublicLanding'
 import { getOrgPublicLanding } from '@/lib/org-public-landing'
+import { resolveOrgLandingPanelHref } from '@/lib/org-landing-panel-href'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +12,10 @@ export default async function OrgLandingPage({
   params: Promise<{ organizationSlug: string }>
 }) {
   const { organizationSlug } = await params
-  const data = await getOrgPublicLanding(organizationSlug)
+  const [data, panelHref] = await Promise.all([
+    getOrgPublicLanding(organizationSlug),
+    resolveOrgLandingPanelHref(organizationSlug),
+  ])
   if (!data) notFound()
 
   const orgPath = `/${data.organization.slug}`
@@ -22,9 +26,10 @@ export default async function OrgLandingPage({
       homeHref={orgPath}
       ayudaHref={`${orgPath}/ayuda`}
       loginCallback={orgPath}
+      panelHref={panelHref}
       active="home"
     >
-      <OrgPublicLanding data={data} />
+      <OrgPublicLanding data={data} panelHref={panelHref} />
     </MarketingShell>
   )
 }

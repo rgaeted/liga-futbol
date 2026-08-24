@@ -8,6 +8,8 @@ type Props = {
   ayudaHref?: string
   loginCallback?: string
   showLogin?: boolean
+  /** When set, replaces the login CTA (logged-in user with org access). */
+  panelHref?: string | null
 }
 
 export function MarketingShell({
@@ -18,10 +20,12 @@ export function MarketingShell({
   ayudaHref = '/kelme/ayuda',
   loginCallback,
   showLogin = true,
+  panelHref,
 }: Props) {
   const loginHref = loginCallback
     ? `/login?callbackUrl=${encodeURIComponent(loginCallback)}`
     : '/login'
+  const showAuthNav = showLogin && !panelHref
 
   return (
     <div className="flex min-h-screen flex-col bg-[#0B1210] text-[#E8E4D8]">
@@ -55,7 +59,11 @@ export function MarketingShell({
             >
               Guía de uso
             </Link>
-            {showLogin ? (
+            {panelHref ? (
+              <Link href={panelHref} className="btn-kelme text-sm">
+                Ir al panel
+              </Link>
+            ) : showAuthNav ? (
               <Link href={loginHref} className="btn-kelme text-sm">
                 Ingresar
               </Link>

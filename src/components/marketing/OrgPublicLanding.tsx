@@ -52,7 +52,13 @@ function PlayerRanking({
   )
 }
 
-export function OrgPublicLanding({ data }: { data: OrgPublicLandingData }) {
+export function OrgPublicLanding({
+  data,
+  panelHref = null,
+}: {
+  data: OrgPublicLandingData
+  panelHref?: string | null
+}) {
   const { organization, live, nextMatch, results, scorers, assists } = data
   const slug = organization.slug
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/${slug}`)}`
@@ -95,12 +101,20 @@ export function OrgPublicLanding({ data }: { data: OrgPublicLandingData }) {
                 Ver en vivo
               </Link>
             ) : null}
-            <Link href={loginHref} className="btn-kelme">
-              Ingresar
-            </Link>
-            <Link href="/register" className="btn-kelme-outline">
-              Registrarse
-            </Link>
+            {panelHref ? (
+              <Link href={panelHref} className="btn-kelme">
+                Ir al panel
+              </Link>
+            ) : (
+              <>
+                <Link href={loginHref} className="btn-kelme">
+                  Ingresar
+                </Link>
+                <Link href="/register" className="btn-kelme-outline">
+                  Registrarse
+                </Link>
+              </>
+            )}
             <ShareOrgLink orgName={organization.name} slug={slug} />
           </div>
         </div>
