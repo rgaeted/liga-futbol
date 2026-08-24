@@ -4,8 +4,12 @@ import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 import authConfig from '@/lib/auth.config'
-import type { MembershipRole } from '@/lib/membership-role'
-import { hasAnyMembershipRole, MembershipRole, primaryMembershipRole } from '@/lib/membership-role'
+import {
+  hasAnyMembershipRole,
+  MembershipRole,
+  primaryMembershipRole,
+  type MembershipRole as MembershipRoleType,
+} from '@/lib/membership-role'
 import { assertSameOrganization } from '@/lib/org-scope'
 import { ORG_COOKIE, clearOrgCookieOptions } from '@/lib/org-cookie'
 
@@ -47,7 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         )
         const singleMembership =
           activeMemberships.length === 1 ? activeMemberships[0] : null
-        const roles = (singleMembership?.roles ?? []) as MembershipRole[]
+        const roles = (singleMembership?.roles ?? []) as MembershipRoleType[]
 
         return {
           id: user.id,
@@ -70,7 +74,7 @@ export async function requirePlatformAdmin() {
   return session
 }
 
-export async function requireOrgRole(allowed: MembershipRole[]) {
+export async function requireOrgRole(allowed: MembershipRoleType[]) {
   const session = await auth()
   if (!session?.user?.id) throw new Error('Unauthorized')
 
@@ -128,7 +132,7 @@ export async function requireOrgRole(allowed: MembershipRole[]) {
 }
 
 /** Resuelve permisos contra la organización del partido (no la cookie activa). */
-export async function requireMatchOrgRole(matchId: string, allowed: MembershipRole[]) {
+export async function requireMatchOrgRole(matchId: string, allowed: MembershipRoleType[]) {
   const session = await auth()
   if (!session?.user?.id) throw new Error('Unauthorized')
 
