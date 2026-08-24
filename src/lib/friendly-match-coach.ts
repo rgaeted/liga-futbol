@@ -28,14 +28,22 @@ function unlinkedPersonNameFilter(name: string) {
   }
 }
 
-/** Player ids in org that represent this user as DT amistoso (linked account or name-matched roster). */
+/** Partidos amistosos visibles en el tenant (anfitrión o visitante en desafíos). */
+export function friendlyCoachMatchesForOrgWhere(organizationId: string) {
+  return {
+    matchType: 'FRIENDLY' as const,
+    OR: [{ organizationId }, { guestOrganizationId: organizationId }],
+  }
+}
+
+/** Player ids del usuario como DT (puede ser ficha de otra org en desafíos cross-org). */
 export async function coachPlayerIdsForUser(
   userId: string,
   organizationId: string,
   options?: { autoLink?: boolean },
 ): Promise<string[]> {
   const linked = await db.player.findMany({
-    where: { organizationId, person: { userId } },
+    where: { person: { userId } },
     select: { id: true },
   })
   if (linked.length > 0) return linked.map((p) => p.id)
@@ -54,7 +62,6 @@ export async function coachPlayerIdsForUser(
 
   const candidates = await db.player.findMany({
     where: {
-      organizationId,
       person: unlinkedPersonNameFilter(user.name),
       friendlyParticipations: { some: { isCoach: true } },
     },
@@ -152,7 +159,7 @@ export async function listFriendlyCoachMatchesForUser(userId: string, organizati
     where: {
       playerId: { in: playerIds },
       isCoach: true,
-      match: { matchType: 'FRIENDLY' },
+      match: friendlyCoachMatchesForOrgWhere(organizationId),
     },
     include: friendlyCoachMatchInclude,
     orderBy: { match: { scheduledAt: 'desc' } },

@@ -3,6 +3,7 @@ import {
   validateFriendlyCoaches,
   coachesFromRoster,
   coachPlayerIdsForUser,
+  friendlyCoachMatchesForOrgWhere,
 } from '@/lib/friendly-match-coach'
 import { db } from '@/lib/db'
 
@@ -58,7 +59,20 @@ describe('coachPlayerIdsForUser', () => {
     expect(db.organizationMembership.findUnique).not.toHaveBeenCalled()
   })
 
-  it('falls back to name-matched unlinked coach players for FRIENDLY_COACH users', async () => {
+  it('returns linked player ids across orgs (cross-org desafío)', async () => {
+    vi.mocked(db.player.findMany).mockResolvedValue([
+      { id: 'player-loslunes' },
+    ] as never)
+
+    await expect(coachPlayerIdsForUser('user-1', 'org-kelme')).resolves.toEqual(['player-loslunes'])
+    expect(db.player.findMany).toHaveBeenCalledWith({
+      where: { person: { userId: 'user-1' } },
+      select: { id: true },
+    })
+    expect(db.organizationMembership.findUnique).not.toHaveBeenCalled()
+  })
+
+  it('falls back to name-matched unlinked coach players in any org', async () => {
     vi.mocked(db.player.findMany)
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ id: 'player-roger', personId: 'person-roger' }] as never)
@@ -71,6 +85,17 @@ describe('coachPlayerIdsForUser', () => {
     } as never)
 
     await expect(coachPlayerIdsForUser('user-1', 'org-kelme')).resolves.toEqual(['player-roger'])
+    expect(db.player.findMany).toHaveBeenLastCalledWith({
+      where: {
+        person: {
+          userId: null,
+          firstName: { equals: 'Roger', mode: 'insensitive' },
+          lastName: { equals: 'Carpio', mode: 'insensitive' },
+        },
+        friendlyParticipations: { some: { isCoach: true } },
+      },
+      select: { id: true, personId: true },
+    })
   })
 
   it('auto-links a single unlinked coach person when safe', async () => {
@@ -91,6 +116,15 @@ describe('coachPlayerIdsForUser', () => {
     expect(db.person.update).toHaveBeenCalledWith({
       where: { id: 'person-roger' },
       data: { userId: 'user-1' },
+    })
+  })
+})
+
+describe('friendlyCoachMatchesForOrgWhere', () => {
+  it('includes host and guest org matches', () => {
+    expect(friendlyCoachMatchesForOrgWhere('org-kelme')).toEqual({
+      matchType: 'FRIENDLY',
+      OR: [{ organizationId: 'org-kelme' }, { guestOrganizationId: 'org-kelme' }],
     })
   })
 })
