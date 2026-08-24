@@ -10,6 +10,7 @@ import {
   isValidScheme,
   isValidSlotKey,
 } from '@/lib/formations'
+import { validateSlotLayout } from '@/lib/formation-slot-layout'
 import { buildMatchFormationSides } from '@/lib/match-formations'
 import { minCallUpSize, resolveMatchFootballFormat } from '@/lib/football-format'
 
@@ -135,6 +136,13 @@ export async function PUT(
     return NextResponse.json({ error: 'Esquema inválido para este tipo de fútbol' }, { status: 400 })
   }
 
+  if (data.slotLayout !== undefined && data.slotLayout !== null) {
+    const layoutCheck = validateSlotLayout(data.scheme, footballFormat, data.slotLayout)
+    if (!layoutCheck.ok) {
+      return NextResponse.json({ error: layoutCheck.error }, { status: 400 })
+    }
+  }
+
   for (const slot of data.slots) {
     if (!isValidSlotKey(data.scheme, slot.slotKey, footballFormat)) {
       return NextResponse.json(
@@ -197,8 +205,13 @@ export async function PUT(
     await db.$transaction(async (tx) => {
       await tx.matchFormation.upsert({
         where: { matchId_teamId: { matchId, teamId: data.teamId! } },
-        create: { matchId, teamId: data.teamId!, scheme: data.scheme },
-        update: { scheme: data.scheme },
+        create: {
+          matchId,
+          teamId: data.teamId!,
+          scheme: data.scheme,
+          slotLayout: data.slotLayout ?? null,
+        },
+        update: { scheme: data.scheme, slotLayout: data.slotLayout ?? null },
       })
 
       await tx.callUp.deleteMany({
@@ -266,8 +279,13 @@ export async function PUT(
     await db.$transaction(async (tx) => {
       await tx.matchFormation.upsert({
         where: { matchId_side: { matchId, side: data.side! } },
-        create: { matchId, side: data.side!, scheme: data.scheme },
-        update: { scheme: data.scheme },
+        create: {
+          matchId,
+          side: data.side!,
+          scheme: data.scheme,
+          slotLayout: data.slotLayout ?? null,
+        },
+        update: { scheme: data.scheme, slotLayout: data.slotLayout ?? null },
       })
 
       await tx.friendlyMatchPlayer.updateMany({
