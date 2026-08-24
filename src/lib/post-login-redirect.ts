@@ -1,5 +1,5 @@
 import { getDashboardPath, primaryMembershipRole, type MembershipRole } from '@/lib/membership-role'
-import { RESERVED_ORGANIZATION_SLUGS } from '@/lib/organization-slug'
+import { parseOrganizationSlug, RESERVED_ORGANIZATION_SLUGS } from '@/lib/organization-slug'
 
 export type PostLoginMembership = {
   slug: string
@@ -57,6 +57,29 @@ export function safePostLoginCallback(raw: string | null | undefined): string | 
   return raw
 }
 
+export function isOrgLandingPath(path: string): boolean {
+  const match = /^\/([^/]+)$/.exec(path)
+  if (!match) return false
+  return parseOrganizationSlug(match[1]).ok
+}
+
+function resolveOrgLandingCallback(
+  slug: string,
+  input: {
+    isPlatformAdmin: boolean
+    memberships: PostLoginMembership[]
+  },
+): string | null {
+  const membership = input.memberships.find((m) => m.slug === slug && m.status === 'ACTIVE')
+  if (membership) {
+    return getDashboardPath(slug, primaryMembershipRole(membership.roles))
+  }
+  if (input.isPlatformAdmin) {
+    return `/${slug}/admin`
+  }
+  return null
+}
+
 export function resolvePostLoginDestination(input: {
   isPlatformAdmin: boolean
   memberships: PostLoginMembership[]
@@ -64,7 +87,17 @@ export function resolvePostLoginDestination(input: {
   friendlyParticipationsBySlug?: Record<string, number>
 }): string {
   const callback = safePostLoginCallback(input.callbackUrl)
-  if (callback) return callback
+  if (callback) {
+    if (isOrgLandingPath(callback)) {
+      const slug = organizationSlugFromPath(callback)
+      if (slug) {
+        const dashboard = resolveOrgLandingCallback(slug, input)
+        if (dashboard) return dashboard
+      }
+    } else {
+      return callback
+    }
+  }
   return resolvePostLoginPath(input)
 }
 

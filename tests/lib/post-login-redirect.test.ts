@@ -91,6 +91,36 @@ describe('resolvePostLoginPath', () => {
     ).toBe('/kelme/admin/challenges')
   })
 
+  it('redirects org landing callback to dashboard instead of the public vitrine', () => {
+    expect(
+      resolvePostLoginDestination({
+        isPlatformAdmin: false,
+        memberships: [{ slug: 'loslunes', roles: [MembershipRole.ORG_ADMIN], status: 'ACTIVE' }],
+        callbackUrl: '/loslunes',
+      }),
+    ).toBe('/loslunes/admin')
+  })
+
+  it('sends platform admin from org landing callback to that org admin', () => {
+    expect(
+      resolvePostLoginDestination({
+        isPlatformAdmin: true,
+        memberships: [],
+        callbackUrl: '/loslunes',
+      }),
+    ).toBe('/loslunes/admin')
+  })
+
+  it('falls back when org landing callback is for an org without access', () => {
+    expect(
+      resolvePostLoginDestination({
+        isPlatformAdmin: false,
+        memberships: [{ slug: 'kelme', roles: [MembershipRole.COACH], status: 'ACTIVE' }],
+        callbackUrl: '/loslunes',
+      }),
+    ).toBe('/kelme/coach')
+  })
+
   it('extracts organization slug from tenant paths', () => {
     expect(organizationSlugFromPath('/kelme/admin/matches')).toBe('kelme')
   })
