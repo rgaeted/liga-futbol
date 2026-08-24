@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { MembershipRole } from '@/lib/membership-role'
+import { MembershipRole, hasMembershipRole } from '@/lib/membership-role'
 import { db } from '@/lib/db'
 
 export type PlatformOrgAdminErrorCode =
@@ -35,7 +35,7 @@ export type PlatformUserSearchResult = {
   email: string
   name: string
   memberships: Array<{
-    role: MembershipRole
+    roles: MembershipRole[]
     organization: { id: string; slug: string; name: string }
   }>
 }
@@ -45,7 +45,7 @@ const orgAdminSelect = {
   email: true,
   name: true,
   memberships: {
-    where: { role: MembershipRole.ORG_ADMIN },
+    where: { roles: { has: MembershipRole.ORG_ADMIN } },
     select: {
       organization: {
         select: { id: true, slug: true, name: true, status: true },
@@ -135,15 +135,15 @@ export async function grantOrgAdminAccess(input: {
           data: {
             organizationId,
             userId,
-            role: MembershipRole.ORG_ADMIN,
+            roles: [MembershipRole.ORG_ADMIN],
           },
         })
         continue
       }
-      if (membership.role !== MembershipRole.ORG_ADMIN) {
+      if (!hasMembershipRole(membership.roles, MembershipRole.ORG_ADMIN)) {
         await tx.organizationMembership.update({
           where: { id: membership.id },
-          data: { role: MembershipRole.ORG_ADMIN },
+          data: { roles: [...membership.roles, MembershipRole.ORG_ADMIN] },
         })
       }
     }
@@ -174,7 +174,7 @@ export async function searchPlatformUsers(query: string): Promise<PlatformUserSe
       name: true,
       memberships: {
         select: {
-          role: true,
+          roles: true,
           organization: { select: { id: true, slug: true, name: true } },
         },
         orderBy: { organization: { name: 'asc' } },
@@ -187,7 +187,7 @@ export async function searchPlatformUsers(query: string): Promise<PlatformUserSe
 
 export async function listOrgAdmins(): Promise<OrgAdminUser[]> {
   const users = await db.user.findMany({
-    where: { memberships: { some: { role: MembershipRole.ORG_ADMIN } } },
+    where: { memberships: { some: { roles: { has: MembershipRole.ORG_ADMIN } } } },
     orderBy: { name: 'asc' },
     select: orgAdminSelect,
   })
@@ -206,8 +206,17 @@ export async function revokeOrgAdminMembership(
   if (!membership) {
     throw new PlatformOrgAdminError('not_found')
   }
-  if (membership.role !== MembershipRole.ORG_ADMIN) {
+  if (!hasMembershipRole(membership.roles, MembershipRole.ORG_ADMIN)) {
     throw new PlatformOrgAdminError('not_org_admin')
   }
-  await db.organizationMembership.delete({ where: { id: membership.id } })
+  if (membership.roles.length === 1) {
+    await db.organizationMembership.delete({ where: { id: membership.id } })
+    return
+  }
+  await db.organizationMembership.update({
+    where: { id: membership.id },
+    data: {
+      roles: membership.roles.filter((role) => role !== MembershipRole.ORG_ADMIN),
+    },
+  })
 }

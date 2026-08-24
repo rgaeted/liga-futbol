@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getDashboardPath } from '@/lib/membership-role'
+import { resolvePrimaryDashboardPath } from '@/lib/membership-role'
 import { redirect } from 'next/navigation'
 import { OrganizationPicker } from '@/components/plataforma/OrganizationPicker'
 
@@ -21,7 +21,7 @@ export default async function OrganizacionesPage() {
   const active = memberships.filter((m) => m.organization.status === 'ACTIVE')
 
   if (active.length === 1) {
-    redirect(getDashboardPath(active[0].organization.slug, active[0].role))
+    redirect(resolvePrimaryDashboardPath(active[0].organization.slug, active[0].roles))
   }
 
   return (
@@ -45,7 +45,7 @@ export default async function OrganizacionesPage() {
               organizationId: m.organizationId,
               name: m.organization.name,
               slug: m.organization.slug,
-              role: m.role,
+              roles: m.roles,
             }))}
           />
         </div>

@@ -1,9 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   MembershipRole,
   canAccess,
+  canAccessAreas,
   getDashboardPath,
+  hasAnyMembershipRole,
+  hasMembershipRole,
   membershipRoleFromLegacyUserRole,
+  primaryMembershipRole,
+  resolvePrimaryDashboardPath,
 } from '@/lib/membership-role'
 
 describe('membership roles', () => {
@@ -26,5 +31,50 @@ describe('membership roles', () => {
 
   it('maps legacy ADMIN to ORG_ADMIN', () => {
     expect(membershipRoleFromLegacyUserRole('ADMIN')).toBe(MembershipRole.ORG_ADMIN)
+  })
+})
+
+describe('multi-role helpers', () => {
+  it('hasAnyMembershipRole checks intersection', () => {
+    expect(
+      hasAnyMembershipRole(
+        [MembershipRole.PLAYER, MembershipRole.FRIENDLY_COACH],
+        [MembershipRole.FRIENDLY_COACH],
+      ),
+    ).toBe(true)
+    expect(hasAnyMembershipRole([MembershipRole.PLAYER], [MembershipRole.ORG_ADMIN])).toBe(false)
+  })
+
+  it('canAccessAreas unions role areas', () => {
+    expect(
+      canAccessAreas([MembershipRole.ORG_ADMIN, MembershipRole.PLAYER], 'admin'),
+    ).toBe(true)
+    expect(
+      canAccessAreas([MembershipRole.PLAYER, MembershipRole.FRIENDLY_COACH], 'player'),
+    ).toBe(true)
+    expect(canAccessAreas([MembershipRole.REFEREE], 'admin')).toBe(false)
+  })
+
+  it('resolvePrimaryDashboardPath prefers admin', () => {
+    expect(
+      resolvePrimaryDashboardPath('kelme', [
+        MembershipRole.PLAYER,
+        MembershipRole.ORG_ADMIN,
+      ]),
+    ).toBe('/kelme/admin')
+  })
+
+  it('primaryMembershipRole follows dashboard priority', () => {
+    expect(
+      primaryMembershipRole([MembershipRole.PLAYER, MembershipRole.FRIENDLY_COACH]),
+    ).toBe(MembershipRole.FRIENDLY_COACH)
+    expect(
+      primaryMembershipRole([MembershipRole.PLAYER, MembershipRole.ORG_ADMIN]),
+    ).toBe(MembershipRole.ORG_ADMIN)
+  })
+
+  it('hasMembershipRole checks single role', () => {
+    expect(hasMembershipRole([MembershipRole.PLAYER], MembershipRole.PLAYER)).toBe(true)
+    expect(hasMembershipRole([MembershipRole.PLAYER], MembershipRole.COACH)).toBe(false)
   })
 })

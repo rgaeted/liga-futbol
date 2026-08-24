@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { membershipRolesLabel } from '@/lib/membership-role'
 import type { PlatformUserSearchResult } from '@/lib/platform-org-admins'
 import {
   PlatformPanel,
@@ -142,7 +143,7 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
                     <p className="mt-1 text-xs text-[#8A938C]">
                       Ya participa en:{' '}
                       {selectedUser.memberships
-                        .map((m) => `${m.organization.name} (${m.role})`)
+                        .map((m) => `${m.organization.name} (${membershipRolesLabel(m.roles)})`)
                         .join(', ')}
                     </p>
                   ) : (

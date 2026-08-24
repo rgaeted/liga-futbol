@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
-import { MembershipRole } from '@/lib/membership-role'
+import { MembershipRole, hasMembershipRole } from '@/lib/membership-role'
 import { editorialImageExtension, validateEditorialImage } from '@/lib/editorial/image'
 import {
   bestEffortDeleteEditorialObjects,
@@ -27,7 +27,7 @@ export async function POST(
         organizationId_userId: { organizationId, userId },
       },
     })
-    if (!membership || membership.role !== MembershipRole.REFEREE) {
+    if (!membership || !hasMembershipRole(membership.roles, MembershipRole.REFEREE)) {
       return NextResponse.json({ error: 'Árbitro no encontrado' }, { status: 404 })
     }
 

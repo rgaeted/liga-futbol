@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requirePlatformAdmin } from '@/lib/auth'
-import { MembershipRole } from '@/lib/membership-role'
+import { MembershipRole, hasMembershipRole } from '@/lib/membership-role'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { grantRefereeAccessSchema } from '@/lib/validations/referee'
 
@@ -40,15 +40,9 @@ export async function POST(
         organizationId_userId: { organizationId, userId },
       },
     })
-    if (existing?.role === MembershipRole.REFEREE) {
+    if (existing && hasMembershipRole(existing.roles, MembershipRole.REFEREE)) {
       return NextResponse.json(
         { error: 'Este árbitro ya pita en la organización' },
-        { status: 409 },
-      )
-    }
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Este correo ya tiene otro rol en la organización' },
         { status: 409 },
       )
     }
@@ -56,7 +50,12 @@ export async function POST(
     await db.$transaction(async (tx) => {
       if (!existing) {
         await tx.organizationMembership.create({
-          data: { organizationId, userId, role: MembershipRole.REFEREE },
+          data: { organizationId, userId, roles: [MembershipRole.REFEREE] },
+        })
+      } else {
+        await tx.organizationMembership.update({
+          where: { id: existing.id },
+          data: { roles: [...existing.roles, MembershipRole.REFEREE] },
         })
       }
       await tx.refereeProfile.upsert({

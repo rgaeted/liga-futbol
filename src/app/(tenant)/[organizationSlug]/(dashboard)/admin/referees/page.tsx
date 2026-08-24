@@ -23,7 +23,7 @@ export default async function AdminRefereesPage({
 
   const [memberships, pendingReceived] = await Promise.all([
     db.organizationMembership.findMany({
-      where: { organizationId, role: MembershipRole.REFEREE },
+      where: { organizationId, roles: { has: MembershipRole.REFEREE } },
       include: {
         user: {
           include: refereeListUserInclude(organizationId),

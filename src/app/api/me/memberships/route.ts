@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { primaryMembershipRole } from '@/lib/membership-role'
 
 export async function GET() {
   const session = await auth()
@@ -24,7 +25,8 @@ export async function GET() {
       organizationId: m.organizationId,
       slug: m.organization.slug,
       name: m.organization.name,
-      role: m.role,
+      roles: m.roles,
+      role: primaryMembershipRole(m.roles),
     })),
   )
 }

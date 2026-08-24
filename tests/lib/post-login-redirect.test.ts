@@ -20,7 +20,7 @@ describe('resolvePostLoginPath', () => {
     expect(
       resolvePostLoginPath({
         isPlatformAdmin: false,
-        memberships: [{ slug: 'kelme', role: MembershipRole.COACH, status: 'ACTIVE' }],
+        memberships: [{ slug: 'kelme', roles: [MembershipRole.COACH], status: 'ACTIVE' }],
       }),
     ).toBe('/kelme/coach')
   })
@@ -30,8 +30,8 @@ describe('resolvePostLoginPath', () => {
       resolvePostLoginPath({
         isPlatformAdmin: false,
         memberships: [
-          { slug: 'kelme', role: MembershipRole.ORG_ADMIN, status: 'ACTIVE' },
-          { slug: 'otra', role: MembershipRole.REFEREE, status: 'ACTIVE' },
+          { slug: 'kelme', roles: [MembershipRole.ORG_ADMIN], status: 'ACTIVE' },
+          { slug: 'otra', roles: [MembershipRole.REFEREE], status: 'ACTIVE' },
         ],
       }),
     ).toBe('/organizaciones')
@@ -41,7 +41,7 @@ describe('resolvePostLoginPath', () => {
     expect(
       resolvePostLoginPath({
         isPlatformAdmin: false,
-        memberships: [{ slug: 'kelme', role: MembershipRole.ORG_ADMIN, status: 'PAUSED' }],
+        memberships: [{ slug: 'kelme', roles: [MembershipRole.ORG_ADMIN], status: 'PAUSED' }],
       }),
     ).toBe('/login?error=sin-acceso')
   })
@@ -50,7 +50,7 @@ describe('resolvePostLoginPath', () => {
     expect(
       resolvePostLoginDestination({
         isPlatformAdmin: false,
-        memberships: [{ slug: 'kelme', role: MembershipRole.ORG_ADMIN, status: 'ACTIVE' }],
+        memberships: [{ slug: 'kelme', roles: [MembershipRole.ORG_ADMIN], status: 'ACTIVE' }],
         callbackUrl: '/kelme/admin/challenges',
       }),
     ).toBe('/kelme/admin/challenges')

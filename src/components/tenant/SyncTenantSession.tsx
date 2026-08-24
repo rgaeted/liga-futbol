@@ -3,48 +3,51 @@
 import { useSession } from 'next-auth/react'
 import { useEffect, useRef } from 'react'
 import type { MembershipRole } from '@/lib/membership-role'
+import { primaryMembershipRole } from '@/lib/membership-role'
 
 type Props = {
   organizationId: string
   organizationSlug: string
-  role: MembershipRole
+  roles: MembershipRole[]
 }
 
-function tenantSessionKey(organizationId: string, organizationSlug: string, role: MembershipRole) {
-  return `${organizationId}:${organizationSlug}:${role}`
+function tenantSessionKey(organizationId: string, organizationSlug: string, roles: MembershipRole[]) {
+  return `${organizationId}:${organizationSlug}:${roles.join(',')}`
 }
 
 function sessionMatchesTenant(
   session: {
     activeOrganizationSlug?: string | null
     activeOrganizationId?: string | null
-    membershipRole?: MembershipRole | null
+    membershipRoles?: MembershipRole[]
   },
   organizationId: string,
   organizationSlug: string,
-  role: MembershipRole,
+  roles: MembershipRole[],
 ) {
+  const sessionRoles = session.membershipRoles ?? []
   return (
     session.activeOrganizationSlug === organizationSlug &&
     session.activeOrganizationId === organizationId &&
-    session.membershipRole === role
+    roles.length === sessionRoles.length &&
+    roles.every((role) => sessionRoles.includes(role))
   )
 }
 
 /** Alinea cookie + JWT con la empresa de la URL (multi-org), sin loops de update(). */
-export function SyncTenantSession({ organizationId, organizationSlug, role }: Props) {
+export function SyncTenantSession({ organizationId, organizationSlug, roles }: Props) {
   const { data: session, update, status } = useSession()
   const syncedKeyRef = useRef<string | null>(null)
   const syncingRef = useRef(false)
 
   const activeOrganizationId = session?.user.activeOrganizationId
   const activeOrganizationSlug = session?.user.activeOrganizationSlug
-  const membershipRole = session?.user.membershipRole
+  const membershipRoles = session?.user.membershipRoles
 
   useEffect(() => {
     if (status !== 'authenticated' || !session?.user) return
 
-    const targetKey = tenantSessionKey(organizationId, organizationSlug, role)
+    const targetKey = tenantSessionKey(organizationId, organizationSlug, roles)
     if (syncedKeyRef.current === targetKey) return
     if (syncingRef.current) return
 
@@ -53,11 +56,11 @@ export function SyncTenantSession({ organizationId, organizationSlug, role }: Pr
         {
           activeOrganizationId,
           activeOrganizationSlug,
-          membershipRole,
+          membershipRoles,
         },
         organizationId,
         organizationSlug,
-        role,
+        roles,
       )
     ) {
       syncedKeyRef.current = targetKey
@@ -76,7 +79,8 @@ export function SyncTenantSession({ organizationId, organizationSlug, role }: Pr
         if (!res.ok) return
 
         await update({
-          membershipRole: role,
+          membershipRoles: roles,
+          membershipRole: primaryMembershipRole(roles),
           activeOrganizationId: organizationId,
           activeOrganizationSlug: organizationSlug,
         })
@@ -88,10 +92,10 @@ export function SyncTenantSession({ organizationId, organizationSlug, role }: Pr
   }, [
     organizationId,
     organizationSlug,
-    role,
+    roles,
     activeOrganizationId,
     activeOrganizationSlug,
-    membershipRole,
+    membershipRoles,
     session?.user,
     status,
     update,

@@ -1,15 +1,14 @@
 import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { getDashboardPath } from '@/lib/membership-role'
+import { resolvePrimaryDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
 import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
+import { buildTenantNavGroups, loadTenantNavContext, tenantRoleLabel } from '@/lib/tenant-nav'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 import { SyncTenantSession } from '@/components/tenant/SyncTenantSession'
 
-function buildRefereeNav(slug: string) {
-  return [{ href: orgPath(slug, '/referee'), label: 'Mis partidos', icon: 'PA' }]
-}
+export const dynamic = 'force-dynamic'
 
 export default async function RefereeLayout({
   children,
@@ -23,10 +22,17 @@ export default async function RefereeLayout({
   if (!session?.user?.id) redirect('/login')
 
   const membership = await findTenantMembership(session.user.id, organizationSlug)
-  if (!membership || !canAccessTenantArea(membership.role, 'referee')) {
-    if (membership) redirect(getDashboardPath(organizationSlug, membership.role))
+  if (!membership || !canAccessTenantArea(membership.roles, 'referee')) {
+    if (membership) redirect(resolvePrimaryDashboardPath(organizationSlug, membership.roles))
     redirect('/organizaciones')
   }
+
+  const navContext = await loadTenantNavContext(
+    session.user.id,
+    membership.organizationId,
+    membership.roles,
+  )
+  const navGroups = buildTenantNavGroups(organizationSlug, navContext)
 
   async function handleSignOut() {
     'use server'
@@ -35,11 +41,11 @@ export default async function RefereeLayout({
 
   return (
     <DashboardShell
-      nav={buildRefereeNav(organizationSlug)}
-      navGroupLabel="Árbitro"
+      navGroups={navGroups}
       organizationName={membership.organization.name}
+      organizationSlug={organizationSlug}
       userName={session.user.name ?? 'Árbitro'}
-      roleLabel="Árbitro"
+      roleLabel={tenantRoleLabel(navContext)}
       helpHref={orgPath(organizationSlug, '/ayuda')}
       signOutAction={handleSignOut}
     >
@@ -47,7 +53,7 @@ export default async function RefereeLayout({
       <SyncTenantSession
         organizationId={membership.organizationId}
         organizationSlug={organizationSlug}
-        role={membership.role}
+        roles={membership.roles}
       />
       {children}
     </DashboardShell>

@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       data: {
         organizationId: player.organizationId,
         userId: user.id,
-        role: MembershipRole.PLAYER,
+        roles: [MembershipRole.PLAYER],
       },
     })
   })

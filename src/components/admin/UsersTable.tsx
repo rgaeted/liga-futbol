@@ -5,21 +5,20 @@ import { useState } from 'react'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
 import type { UserRoleTag } from '@/lib/user-roles-display'
-import { accessRoles } from '@/lib/validations/user'
+import { assignableRoles } from '@/lib/validations/user'
 
 export type UserRow = {
   id: string
   name: string
   email: string
-  role: string
+  roles: string[]
   roleTags: UserRoleTag[]
 }
 
-const ACCESS_ROLE_LABELS: Record<(typeof accessRoles)[number], string> = {
+const ASSIGNABLE_ROLE_LABELS: Record<(typeof assignableRoles)[number], string> = {
   ORG_ADMIN: 'Admin',
   COACH: 'DT liga',
   REFEREE: 'Árbitro',
-  FRIENDLY_COACH: 'DT amistoso',
   PLAYER: 'Jugador',
 }
 
@@ -51,7 +50,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
-  const [role, setRole] = useState<(typeof accessRoles)[number]>('COACH')
+  const [roles, setRoles] = useState<(typeof assignableRoles)[number][]>(['COACH'])
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -59,17 +58,31 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
   function startEdit(user: UserRow) {
     setEditingId(user.id)
     setName(user.name)
-    setRole(user.role as (typeof accessRoles)[number])
+    setRoles(
+      user.roles.filter((role): role is (typeof assignableRoles)[number] =>
+        (assignableRoles as readonly string[]).includes(role),
+      ),
+    )
     setPassword('')
     setError('')
   }
 
+  function toggleRole(role: (typeof assignableRoles)[number]) {
+    setRoles((current) =>
+      current.includes(role) ? current.filter((r) => r !== role) : [...current, role],
+    )
+  }
+
   async function save(user: UserRow) {
+    if (roles.length === 0) {
+      setError('Debes elegir al menos un rol')
+      return
+    }
     setSaving(true)
     setError('')
     const result = await submitJson(`/api/users/${user.id}`, 'PUT', {
       name,
-      role,
+      roles,
       ...(password ? { password } : {}),
     })
     setSaving(false)
@@ -94,14 +107,8 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
         </thead>
         <tbody>
           {users.map((user) => {
-            const extraTags = user.roleTags.filter((tag) => {
-              if (role === 'ORG_ADMIN' && tag.id === 'admin') return false
-              if (role === 'COACH' && tag.id === 'coach_league') return false
-              if (role === 'REFEREE' && tag.id === 'referee') return false
-              if (role === 'PLAYER' && tag.id === 'player') return false
-              return true
-            })
             const isSelf = user.id === currentUserId
+            const autoTags = user.roleTags.filter((tag) => tag.id === 'coach_friendly')
 
             return (
               <tr key={user.id} className="border-t border-kelme-border">
@@ -117,34 +124,31 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                     <td className="p-3">{user.email}</td>
                     <td className="p-3">
                       <div className="space-y-2">
-                        <label className="block text-xs text-kelme-gray-500">
-                          Rol de acceso
-                          <select
-                            value={role}
-                            onChange={(e) =>
-                              setRole(e.target.value as (typeof accessRoles)[number])
-                            }
-                            disabled={isSelf}
-                            className="mt-1 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1 disabled:opacity-60"
-                          >
-                            {accessRoles.map((value) => (
-                              <option key={value} value={value}>
-                                {ACCESS_ROLE_LABELS[value]}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                        <fieldset className="space-y-1">
+                          <legend className="text-xs text-kelme-gray-500">Roles de acceso</legend>
+                          {assignableRoles.map((value) => (
+                            <label key={value} className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={roles.includes(value)}
+                                onChange={() => toggleRole(value)}
+                                disabled={isSelf && value === 'ORG_ADMIN'}
+                              />
+                              {ASSIGNABLE_ROLE_LABELS[value]}
+                            </label>
+                          ))}
+                        </fieldset>
                         {isSelf && (
                           <p className="text-xs text-kelme-gray-400">
-                            No puedes cambiar tu propio rol de acceso.
+                            No puedes quitarte tu propio rol de administrador.
                           </p>
                         )}
-                        {extraTags.length > 0 && (
+                        {autoTags.length > 0 && (
                           <div>
                             <p className="mb-1 text-xs text-kelme-gray-500">
-                              También en el torneo (según datos vinculados):
+                              Roles automáticos (no editables):
                             </p>
-                            <RoleBadges tags={extraTags} />
+                            <RoleBadges tags={autoTags} />
                           </div>
                         )}
                       </div>
@@ -193,7 +197,7 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                         >
                           Editar
                         </button>
-                        {!isSelf && user.role !== 'PLAYER' && (
+                        {!isSelf && !user.roles.includes('PLAYER') && (
                           <DeleteButton
                             url={`/api/users/${user.id}`}
                             confirmMessage={`¿Eliminar al usuario ${user.name}?`}

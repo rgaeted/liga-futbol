@@ -19,7 +19,7 @@ export default async function NewFriendlyMatchPage({
 
   const [refereeMemberships, friendlyCategories, friendlyPlayers, teams] = await Promise.all([
     db.organizationMembership.findMany({
-      where: { organizationId, role: MembershipRole.REFEREE },
+      where: { organizationId, roles: { has: MembershipRole.REFEREE } },
       include: { user: { select: { id: true, name: true } } },
     }),
     db.friendlyCategory.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),

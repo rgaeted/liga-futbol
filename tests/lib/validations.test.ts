@@ -83,7 +83,7 @@ describe('user validations', () => {
       email: 'admin@liga.com',
       name: 'Admin Org',
       password: 'password123',
-      role: 'ORG_ADMIN',
+      roles: ['ORG_ADMIN'],
     })
     expect(result.success).toBe(true)
   })
@@ -92,27 +92,34 @@ describe('user validations', () => {
       email: 'nuevo-dt@liga.com',
       name: 'Nuevo DT',
       password: 'password123',
-      role: 'COACH',
+      roles: ['COACH'],
     })
     expect(result.success).toBe(true)
   })
-  it('createUserSchema rejects PLAYER role', () => {
+  it('createUserSchema accepts PLAYER role', () => {
     const result = createUserSchema.safeParse({
-      email: 'x@liga.com', name: 'X', password: 'password123', role: 'PLAYER',
+      email: 'x@liga.com',
+      name: 'Jugador X',
+      password: 'password123',
+      roles: ['PLAYER'],
     })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
   it('updateUserSchema allows changing name without password', () => {
     const result = updateUserSchema.safeParse({ name: 'Nombre Nuevo' })
     expect(result.success).toBe(true)
   })
-  it('updateUserSchema allows changing access role to ORG_ADMIN', () => {
-    const result = updateUserSchema.safeParse({ role: 'ORG_ADMIN' })
+  it('updateUserSchema allows changing access roles to ORG_ADMIN', () => {
+    const result = updateUserSchema.safeParse({ roles: ['ORG_ADMIN'] })
     expect(result.success).toBe(true)
   })
-  it('updateUserSchema allows changing access role to PLAYER', () => {
-    const result = updateUserSchema.safeParse({ role: 'PLAYER' })
+  it('updateUserSchema allows changing access roles to PLAYER', () => {
+    const result = updateUserSchema.safeParse({ roles: ['PLAYER'] })
     expect(result.success).toBe(true)
+  })
+  it('updateUserSchema rejects FRIENDLY_COACH in manual assignment', () => {
+    const result = updateUserSchema.safeParse({ roles: ['FRIENDLY_COACH'] as never })
+    expect(result.success).toBe(false)
   })
   it('updateUserSchema rejects short password when provided', () => {
     const result = updateUserSchema.safeParse({ password: '123' })

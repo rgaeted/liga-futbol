@@ -18,8 +18,31 @@ const ROLE_ACCESS: Record<MembershipRole, RouteArea[]> = {
   [MembershipRole.FRIENDLY_COACH]: ['player', 'live'],
 }
 
+const DASHBOARD_ROLE_PRIORITY: MembershipRole[] = [
+  MembershipRole.ORG_ADMIN,
+  MembershipRole.COACH,
+  MembershipRole.REFEREE,
+  MembershipRole.FRIENDLY_COACH,
+  MembershipRole.PLAYER,
+]
+
 export function canAccess(role: MembershipRole, area: RouteArea): boolean {
   return ROLE_ACCESS[role].includes(area)
+}
+
+export function hasMembershipRole(roles: MembershipRole[], role: MembershipRole): boolean {
+  return roles.includes(role)
+}
+
+export function hasAnyMembershipRole(
+  roles: MembershipRole[],
+  allowed: MembershipRole[],
+): boolean {
+  return roles.some((role) => allowed.includes(role))
+}
+
+export function canAccessAreas(roles: MembershipRole[], area: RouteArea): boolean {
+  return roles.some((role) => canAccess(role, area))
 }
 
 export function getDashboardPath(slug: string, role: MembershipRole): string {
@@ -33,8 +56,23 @@ export function getDashboardPath(slug: string, role: MembershipRole): string {
   return paths[role]
 }
 
+export function primaryMembershipRole(roles: MembershipRole[]): MembershipRole {
+  for (const role of DASHBOARD_ROLE_PRIORITY) {
+    if (roles.includes(role)) return role
+  }
+  return roles[0] ?? MembershipRole.PLAYER
+}
+
+export function resolvePrimaryDashboardPath(slug: string, roles: MembershipRole[]): string {
+  return getDashboardPath(slug, primaryMembershipRole(roles))
+}
+
 export function isPlayerAreaRole(role: MembershipRole): boolean {
   return role === MembershipRole.PLAYER || role === MembershipRole.FRIENDLY_COACH
+}
+
+export function isPlayerAreaRoles(roles: MembershipRole[]): boolean {
+  return roles.some(isPlayerAreaRole)
 }
 
 const MEMBERSHIP_ROLE_LABELS: Record<MembershipRole, string> = {
@@ -47,6 +85,10 @@ const MEMBERSHIP_ROLE_LABELS: Record<MembershipRole, string> = {
 
 export function membershipRoleLabel(role: MembershipRole): string {
   return MEMBERSHIP_ROLE_LABELS[role]
+}
+
+export function membershipRolesLabel(roles: MembershipRole[]): string {
+  return roles.map(membershipRoleLabel).join(' · ')
 }
 
 export function membershipRoleFromLegacyUserRole(

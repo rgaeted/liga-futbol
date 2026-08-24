@@ -12,7 +12,7 @@ export default async function PlataformaArbitrosPage() {
       where: {
         OR: [
           { refereeProfile: { isNot: null } },
-          { memberships: { some: { role: MembershipRole.REFEREE } } },
+          { memberships: { some: { roles: { has: MembershipRole.REFEREE } } } },
         ],
       },
       select: {
@@ -21,7 +21,7 @@ export default async function PlataformaArbitrosPage() {
         email: true,
         refereeProfile: { select: { phone: true, whatsapp: true } },
         memberships: {
-          where: { role: MembershipRole.REFEREE },
+          where: { roles: { has: MembershipRole.REFEREE } },
           select: {
             organization: { select: { id: true, slug: true, name: true, status: true } },
           },

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
-import { MembershipRole } from '@/lib/membership-role'
+import { MembershipRole, hasMembershipRole } from '@/lib/membership-role'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { RefereeShareError, assertCanShareReferee } from '@/lib/referees'
 import { shareRefereeSchema } from '@/lib/validations/referee'
@@ -34,7 +34,10 @@ export async function POST(
     assertCanShareReferee({
       fromOrganizationId: organizationId,
       toOrganizationId: destOrg.id,
-      isRefereeInFrom: originMembership?.role === MembershipRole.REFEREE,
+      isRefereeInFrom: hasMembershipRole(
+        originMembership?.roles ?? [],
+        MembershipRole.REFEREE,
+      ),
     })
 
     const destMembership = await db.organizationMembership.findUnique({
@@ -42,15 +45,9 @@ export async function POST(
         organizationId_userId: { organizationId: destOrg.id, userId },
       },
     })
-    if (destMembership?.role === MembershipRole.REFEREE) {
+    if (destMembership && hasMembershipRole(destMembership.roles, MembershipRole.REFEREE)) {
       return NextResponse.json(
         { error: 'Este árbitro ya pita en la organización destino' },
-        { status: 409 },
-      )
-    }
-    if (destMembership) {
-      return NextResponse.json(
-        { error: 'Este correo ya tiene otro rol en la organización destino' },
         { status: 409 },
       )
     }

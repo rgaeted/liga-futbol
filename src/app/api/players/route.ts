@@ -109,7 +109,7 @@ export async function POST(req: Request) {
         data: {
           organizationId,
           userId: user.id,
-          role: MembershipRole.PLAYER,
+          roles: [MembershipRole.PLAYER],
         },
       })
       const personNames = splitPersonName(name!)

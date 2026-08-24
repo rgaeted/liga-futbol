@@ -1,66 +1,14 @@
 ﻿import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { MembershipRole, getDashboardPath } from '@/lib/membership-role'
+import { resolvePrimaryDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
 import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
-import { AdminShell } from '@/components/admin/AdminShell'
+import { buildTenantNavGroups, loadTenantNavContext, tenantRoleLabel } from '@/lib/tenant-nav'
+import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
 import { SyncTenantSession } from '@/components/tenant/SyncTenantSession'
-import type { DashboardNavGroup } from '@/components/dashboard/dashboard-ui'
 
 export const dynamic = 'force-dynamic'
-
-export function buildAdminNavGroups(slug: string): DashboardNavGroup[] {
-  const base = (path: string) => orgPath(slug, path)
-  return [
-    {
-      label: 'General',
-      items: [{ href: base('/admin'), label: 'Resumen', icon: 'IN' }],
-    },
-    {
-      label: 'Competición',
-      items: [
-        { href: base('/admin/teams'), label: 'Equipos', icon: 'EQ' },
-        { href: base('/admin/players'), label: 'Jugadores', icon: 'JU' },
-        { href: base('/admin/matches'), label: 'Partidos', icon: 'PA',
-          activePrefixes: [base('/admin/matches'), base('/admin/friendly-categories')] },
-        {
-          href: base('/admin/referees'),
-          label: 'Árbitros',
-          icon: 'AR',
-          activePrefixes: [base('/admin/referees')],
-        },
-      ],
-    },
-    {
-      label: 'Liga',
-      items: [
-        { href: base('/admin/seasons'), label: 'Temporadas', icon: 'TE' },
-        {
-          href: base('/admin/challenges'),
-          label: 'Desafíos',
-          icon: 'DE',
-          activePrefixes: [base('/admin/challenges')],
-        },
-        {
-          href: base('/admin/content'),
-          label: 'Contenido',
-          icon: 'CO',
-          activePrefixes: [
-            base('/admin/content'),
-            base('/admin/content/articles'),
-            base('/admin/content/galleries'),
-            base('/admin/content/sponsors'),
-          ],
-        },
-      ],
-    },
-    {
-      label: 'Administración',
-      items: [{ href: base('/admin/users'), label: 'Usuarios', icon: 'US' }],
-    },
-  ]
-}
 
 export default async function AdminLayout({
   children,
@@ -75,10 +23,17 @@ export default async function AdminLayout({
   if (!session?.user?.id) redirect(`/login?callbackUrl=${adminPath}`)
 
   const membership = await findTenantMembership(session.user.id, organizationSlug)
-  if (!membership || !canAccessTenantArea(membership.role, 'admin')) {
-    if (membership) redirect(getDashboardPath(organizationSlug, membership.role))
+  if (!membership || !canAccessTenantArea(membership.roles, 'admin')) {
+    if (membership) redirect(resolvePrimaryDashboardPath(organizationSlug, membership.roles))
     redirect('/organizaciones')
   }
+
+  const navContext = await loadTenantNavContext(
+    session.user.id,
+    membership.organizationId,
+    membership.roles,
+  )
+  const navGroups = buildTenantNavGroups(organizationSlug, navContext)
 
   async function handleSignOut() {
     'use server'
@@ -86,20 +41,23 @@ export default async function AdminLayout({
   }
 
   return (
-    <AdminShell
-      navGroups={buildAdminNavGroups(organizationSlug)}
+    <DashboardShell
+      navGroups={navGroups}
       organizationName={membership.organization.name}
       organizationSlug={organizationSlug}
       userName={session.user.name ?? 'Admin'}
+      roleLabel={tenantRoleLabel(navContext)}
+      helpHref={orgPath(organizationSlug, '/ayuda')}
+      showPlatformLink={session.user.isPlatformAdmin}
       signOutAction={handleSignOut}
     >
       <SyncOrgCookie organizationId={membership.organizationId} />
       <SyncTenantSession
         organizationId={membership.organizationId}
         organizationSlug={organizationSlug}
-        role={membership.role}
+        roles={membership.roles}
       />
       {children}
-    </AdminShell>
+    </DashboardShell>
   )
 }

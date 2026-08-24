@@ -88,11 +88,11 @@ async function grantOrgAdmin(email: string, organizationId: string) {
     where: {
       organizationId_userId: { organizationId, userId: user.id },
     },
-    update: { role: MembershipRole.ORG_ADMIN },
+    update: { roles: [MembershipRole.ORG_ADMIN] },
     create: {
       organizationId,
       userId: user.id,
-      role: MembershipRole.ORG_ADMIN,
+      roles: [MembershipRole.ORG_ADMIN],
     },
   })
   return true

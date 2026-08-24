@@ -4,7 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import { getDashboardPath, membershipRoleLabel } from '@/lib/membership-role'
+import {
+  getDashboardPath,
+  membershipRolesLabel,
+  primaryMembershipRole,
+} from '@/lib/membership-role'
 import type { MembershipRole } from '@/lib/membership-role'
 import { organizationSlugFromPath } from '@/lib/post-login-redirect'
 
@@ -12,6 +16,7 @@ type MembershipOption = {
   organizationId: string
   slug: string
   name: string
+  roles: MembershipRole[]
   role: MembershipRole
 }
 
@@ -45,12 +50,13 @@ export function OrganizationSwitcher() {
     const { path } = (await res.json()) as { path: string }
 
     await update({
-      membershipRole: target.role,
+      membershipRoles: target.roles,
+      membershipRole: primaryMembershipRole(target.roles),
       activeOrganizationId: target.organizationId,
       activeOrganizationSlug: target.slug,
     })
 
-    window.location.assign(path || getDashboardPath(target.slug, target.role))
+    window.location.assign(path || getDashboardPath(target.slug, primaryMembershipRole(target.roles)))
   }
 
   return (
@@ -65,7 +71,7 @@ export function OrganizationSwitcher() {
         >
           {memberships.map((m) => (
             <option key={m.organizationId} value={m.organizationId}>
-              {m.name} · {membershipRoleLabel(m.role)}
+              {m.name} · {membershipRolesLabel(m.roles)}
             </option>
           ))}
         </select>

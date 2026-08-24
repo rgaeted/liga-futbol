@@ -12,7 +12,7 @@ vi.mock('bcryptjs', () => ({
 
 vi.mock('@/lib/db', () => ({
   db: {
-    organizationMembership: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn() },
+    organizationMembership: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
     user: { findUnique: vi.fn(), create: vi.fn() },
     refereeProfile: { upsert: vi.fn(), create: vi.fn() },
     $transaction: vi.fn(),
@@ -23,7 +23,6 @@ import { requireOrgRole } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 const orgId = 'org-kelme'
-const otherOrgId = 'org-other'
 
 describe('GET /api/admin/referees', () => {
   beforeEach(() => {
@@ -52,7 +51,7 @@ describe('GET /api/admin/referees', () => {
     expect(response.status).toBe(200)
     expect(db.organizationMembership.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { organizationId: orgId, role: MembershipRole.REFEREE },
+        where: { organizationId: orgId, roles: { has: MembershipRole.REFEREE } },
       }),
     )
     const body = await response.json()
@@ -71,11 +70,18 @@ describe('POST /api/admin/referees', () => {
     })
   })
 
-  it('returns 409 when existing user has COACH role in org', async () => {
+  it('adds REFEREE to existing COACH membership', async () => {
+    const membershipUpdate = vi.fn()
     vi.mocked(db.user.findUnique).mockResolvedValue({
       id: 'user-1',
-      memberships: [{ role: MembershipRole.COACH }],
+      memberships: [{ id: 'mem-1', roles: [MembershipRole.COACH] }],
     } as never)
+    vi.mocked(db.$transaction).mockImplementation(async (callback) =>
+      callback({
+        organizationMembership: { create: vi.fn(), update: membershipUpdate },
+        refereeProfile: { upsert: vi.fn() },
+      } as never),
+    )
 
     const response = await POST(
       new Request('http://localhost', {
@@ -89,9 +95,11 @@ describe('POST /api/admin/referees', () => {
       }),
     )
 
-    expect(response.status).toBe(409)
-    const body = await response.json()
-    expect(body.error).toMatch(/otro rol/)
+    expect(response.status).toBe(201)
+    expect(membershipUpdate).toHaveBeenCalledWith({
+      where: { id: 'mem-1' },
+      data: { roles: [MembershipRole.COACH, MembershipRole.REFEREE] },
+    })
   })
 
   it('creates membership and profile for existing user without membership', async () => {

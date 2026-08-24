@@ -1,5 +1,4 @@
 import { editorialPublicUrl } from '@/lib/editorial/urls'
-import { MembershipRole } from '@/lib/membership-role'
 import { normalizeChilePhone, whatsappMeUrl } from '@/lib/phone-cl'
 import type { Match, MatchStatus, RefereeProfile, User } from '@prisma/client'
 
@@ -27,16 +26,13 @@ export function assertCanShareReferee(input: {
 }
 
 export function assertCanAcceptRefereeShare(input: {
-  destRole: MembershipRole | null
+  destHasReferee: boolean
   pending: boolean
 }) {
   if (!input.pending) {
     throw new RefereeShareError('La invitación ya no está pendiente', 409)
   }
-  if (input.destRole && input.destRole !== MembershipRole.REFEREE) {
-    throw new RefereeShareError('Este correo ya tiene otro rol en tu organización', 409)
-  }
-  if (input.destRole === MembershipRole.REFEREE) {
+  if (input.destHasReferee) {
     throw new RefereeShareError('Este árbitro ya pita en tu organización', 409)
   }
 }

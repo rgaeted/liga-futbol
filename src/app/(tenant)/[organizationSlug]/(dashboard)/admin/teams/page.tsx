@@ -26,7 +26,7 @@ export default async function AdminTeamsPage({
       orderBy: { name: 'asc' },
     }),
     db.organizationMembership.findMany({
-      where: { organizationId, role: MembershipRole.COACH },
+      where: { organizationId, roles: { has: MembershipRole.COACH } },
       include: {
         user: {
           select: { id: true, name: true, coachedTeam: { select: { id: true } } },

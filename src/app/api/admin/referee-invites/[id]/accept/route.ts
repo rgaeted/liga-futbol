@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { RefereeShareInviteStatus } from '@prisma/client'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
-import { MembershipRole } from '@/lib/membership-role'
+import { MembershipRole, hasMembershipRole } from '@/lib/membership-role'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { RefereeShareError, assertCanAcceptRefereeShare } from '@/lib/referees'
 
@@ -30,18 +30,27 @@ export async function POST(
 
     const destMembership = invite.refereeUser.memberships[0] ?? null
     assertCanAcceptRefereeShare({
-      destRole: destMembership?.role ?? null,
+      destHasReferee: destMembership
+        ? hasMembershipRole(destMembership.roles, MembershipRole.REFEREE)
+        : false,
       pending: invite.status === RefereeShareInviteStatus.PENDING,
     })
 
     await db.$transaction(async (tx) => {
-      await tx.organizationMembership.create({
-        data: {
-          organizationId,
-          userId: invite.refereeUserId,
-          role: MembershipRole.REFEREE,
-        },
-      })
+      if (!destMembership) {
+        await tx.organizationMembership.create({
+          data: {
+            organizationId,
+            userId: invite.refereeUserId,
+            roles: [MembershipRole.REFEREE],
+          },
+        })
+      } else {
+        await tx.organizationMembership.update({
+          where: { id: destMembership.id },
+          data: { roles: [...destMembership.roles, MembershipRole.REFEREE] },
+        })
+      }
       await tx.refereeShareInvite.update({
         where: { id },
         data: { status: RefereeShareInviteStatus.ACCEPTED },

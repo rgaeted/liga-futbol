@@ -37,7 +37,7 @@ export default async function NewLeagueMatchPage({
       },
     }),
     db.organizationMembership.findMany({
-      where: { organizationId, role: MembershipRole.REFEREE },
+      where: { organizationId, roles: { has: MembershipRole.REFEREE } },
       include: { user: { select: { id: true, name: true } } },
     }),
   ])

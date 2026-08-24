@@ -3,9 +3,8 @@ import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
 import { createUserSchema } from '@/lib/validations/user'
-import { MembershipRole } from '@/lib/membership-role'
+import { MembershipRole, primaryMembershipRole } from '@/lib/membership-role'
 import { resolveUserRoleTags } from '@/lib/user-roles-display'
-import { linkCoachPersonIfNeeded } from '@/lib/friendly-match-coach'
 
 export async function GET() {
   const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
@@ -37,17 +36,17 @@ export async function GET() {
         },
       },
     },
-    orderBy: [{ role: 'asc' }, { user: { name: 'asc' } }],
+    orderBy: [{ user: { name: 'asc' } }],
   })
   return NextResponse.json(
     memberships.map((m) => ({
       id: m.user.id,
       email: m.user.email,
       name: m.user.name,
-      role: m.role,
+      roles: m.roles,
       createdAt: m.user.createdAt,
       roleTags: resolveUserRoleTags({
-        role: m.role,
+        roles: m.roles,
         hasCoachedTeam: Boolean(m.user.coachedTeam),
         hasLeagueTeam: Boolean(m.user.person?.players.some((p) => p.teamId)),
         hasFriendlyProfile: Boolean(m.user.person?.players.length),
@@ -66,7 +65,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { email, name, password, role } = parsed.data
+  const { email, name, password, roles } = parsed.data
 
   const existing = await db.user.findUnique({ where: { email } })
   if (existing) {
@@ -80,14 +79,10 @@ export async function POST(req: Request) {
       select: { id: true, email: true, name: true },
     })
     await tx.organizationMembership.create({
-      data: { organizationId, userId: created.id, role },
+      data: { organizationId, userId: created.id, roles },
     })
-    return { ...created, role }
+    return { ...created, roles }
   })
-
-  if (role === MembershipRole.FRIENDLY_COACH) {
-    await linkCoachPersonIfNeeded(user.id, organizationId)
-  }
 
   return NextResponse.json(user, { status: 201 })
 }

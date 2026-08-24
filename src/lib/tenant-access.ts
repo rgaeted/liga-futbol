@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 import type { MembershipRole } from '@/lib/membership-role'
+import { hasAnyMembershipRole, primaryMembershipRole } from '@/lib/membership-role'
 import { ORG_COOKIE, orgCookieOptions } from '@/lib/org-cookie'
 
 export async function findTenantMembership(userId: string, organizationSlug: string) {
@@ -56,7 +57,7 @@ export async function requireOrgRoleForSlug(
   if (!session?.user?.id) throw new Error('Unauthorized')
 
   const membership = await findTenantMembership(session.user.id, organizationSlug)
-  if (!membership || !allowed.includes(membership.role)) {
+  if (!membership || !hasAnyMembershipRole(membership.roles, allowed)) {
     throw new Error('Unauthorized')
   }
 
@@ -65,16 +66,19 @@ export async function requireOrgRoleForSlug(
   return {
     session,
     organizationId: membership.organizationId,
-    role: membership.role,
+    roles: membership.roles,
+    role: primaryMembershipRole(membership.roles),
   }
 }
 
-export function canAccessTenantArea(role: MembershipRole, area: string): boolean {
+export function canAccessTenantArea(roles: MembershipRole[], area: string): boolean {
   const map: Record<string, MembershipRole[]> = {
     admin: ['ORG_ADMIN'],
     coach: ['COACH'],
     referee: ['REFEREE'],
     player: ['PLAYER', 'FRIENDLY_COACH'],
   }
-  return map[area]?.includes(role) ?? false
+  const allowed = map[area]
+  if (!allowed) return false
+  return hasAnyMembershipRole(roles, allowed)
 }

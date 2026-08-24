@@ -16,7 +16,7 @@ export default async function HomePage() {
         isPlatformAdmin: session.user.isPlatformAdmin,
         memberships: memberships.map((m) => ({
           slug: m.organization.slug,
-          role: m.role,
+          roles: m.roles,
           status: m.organization.status,
         })),
       }),

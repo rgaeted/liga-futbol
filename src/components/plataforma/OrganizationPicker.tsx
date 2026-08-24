@@ -1,14 +1,17 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { membershipRoleLabel } from '@/lib/membership-role'
-import type { MembershipRole } from '@/lib/membership-role'
+import {
+  membershipRolesLabel,
+  primaryMembershipRole,
+  type MembershipRole,
+} from '@/lib/membership-role'
 
 type MembershipOption = {
   organizationId: string
   name: string
   slug: string
-  role: MembershipRole
+  roles: MembershipRole[]
 }
 
 export function OrganizationPicker({ memberships }: { memberships: MembershipOption[] }) {
@@ -27,7 +30,8 @@ export function OrganizationPicker({ memberships }: { memberships: MembershipOpt
     const { path } = (await res.json()) as { path: string }
 
     await update({
-      membershipRole: target.role,
+      membershipRoles: target.roles,
+      membershipRole: primaryMembershipRole(target.roles),
       activeOrganizationId: target.organizationId,
       activeOrganizationSlug: target.slug,
     })
@@ -55,7 +59,7 @@ export function OrganizationPicker({ memberships }: { memberships: MembershipOpt
             <span className="min-w-0">
               <span className="block truncate font-ui font-bold text-[#E8E4D8]">{m.name}</span>
               <span className="mt-0.5 block font-ui text-sm text-[#8A938C]">
-                /{m.slug} · {membershipRoleLabel(m.role)}
+                /{m.slug} · {membershipRolesLabel(m.roles)}
               </span>
             </span>
             <span className="shrink-0 rounded-full bg-[#0B1210] px-3 py-1 font-ui text-xs font-bold text-org-primary">

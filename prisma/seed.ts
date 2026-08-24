@@ -30,8 +30,8 @@ async function upsertMembershipUser(
     where: {
       organizationId_userId: { organizationId, userId: user.id },
     },
-    update: { role },
-    create: { organizationId, userId: user.id, role },
+    update: { roles: [role] },
+    create: { organizationId, userId: user.id, roles: [role] },
   })
   return user
 }

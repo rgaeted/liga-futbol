@@ -50,9 +50,9 @@ export async function coachPlayerIdsForUser(
 
   const membership = await db.organizationMembership.findUnique({
     where: { organizationId_userId: { organizationId, userId } },
-    select: { role: true },
+    select: { roles: true },
   })
-  if (membership?.role !== MembershipRole.FRIENDLY_COACH) return []
+  if (!membership?.roles.includes(MembershipRole.FRIENDLY_COACH)) return []
 
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -164,8 +164,4 @@ export async function listFriendlyCoachMatchesForUser(userId: string, organizati
     include: friendlyCoachMatchInclude,
     orderBy: { match: { scheduledAt: 'desc' } },
   })
-}
-
-export async function linkCoachPersonIfNeeded(userId: string, organizationId: string) {
-  await coachPlayerIdsForUser(userId, organizationId, { autoLink: true })
 }

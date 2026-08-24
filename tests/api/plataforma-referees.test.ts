@@ -12,7 +12,7 @@ vi.mock('@/lib/db', () => ({
   db: {
     user: { findMany: vi.fn(), findUnique: vi.fn() },
     organization: { findUnique: vi.fn() },
-    organizationMembership: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
+    organizationMembership: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     refereeProfile: { upsert: vi.fn() },
     match: { findFirst: vi.fn() },
     $transaction: vi.fn(),
@@ -77,14 +77,22 @@ describe('POST /api/plataforma/referees/[userId]/access', () => {
 
     expect(response.status).toBe(201)
     expect(membershipCreate).toHaveBeenCalledWith({
-      data: { organizationId: 'org-1', userId: 'ref-1', role: MembershipRole.REFEREE },
+      data: { organizationId: 'org-1', userId: 'ref-1', roles: [MembershipRole.REFEREE] },
     })
   })
 
-  it('returns 409 when user has COACH role in org', async () => {
+  it('adds REFEREE to existing COACH membership', async () => {
+    const membershipUpdate = vi.fn()
     vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
-      role: MembershipRole.COACH,
+      id: 'mem-1',
+      roles: [MembershipRole.COACH],
     } as never)
+    vi.mocked(db.$transaction).mockImplementation(async (callback) =>
+      callback({
+        organizationMembership: { create: vi.fn(), update: membershipUpdate },
+        refereeProfile: { upsert: vi.fn() },
+      } as never),
+    )
 
     const response = await grantPost(
       new Request('http://localhost', {
@@ -95,7 +103,11 @@ describe('POST /api/plataforma/referees/[userId]/access', () => {
       { params: Promise.resolve({ userId: 'ref-1' }) },
     )
 
-    expect(response.status).toBe(409)
+    expect(response.status).toBe(201)
+    expect(membershipUpdate).toHaveBeenCalledWith({
+      where: { id: 'mem-1' },
+      data: { roles: [MembershipRole.COACH, MembershipRole.REFEREE] },
+    })
   })
 })
 
@@ -108,7 +120,7 @@ describe('DELETE /api/plataforma/referees/[userId]/memberships/[organizationId]'
   it('revokes referee membership', async () => {
     vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
       id: 'mem-1',
-      role: MembershipRole.REFEREE,
+      roles: [MembershipRole.REFEREE],
     } as never)
     vi.mocked(db.match.findFirst).mockResolvedValue(null)
 
@@ -123,7 +135,7 @@ describe('DELETE /api/plataforma/referees/[userId]/memberships/[organizationId]'
   it('returns 409 when referee has assigned matches', async () => {
     vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
       id: 'mem-1',
-      role: MembershipRole.REFEREE,
+      roles: [MembershipRole.REFEREE],
     } as never)
     vi.mocked(db.match.findFirst).mockResolvedValue({ id: 'match-1' } as never)
 

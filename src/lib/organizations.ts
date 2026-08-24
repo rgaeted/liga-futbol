@@ -64,7 +64,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
         data: {
           organizationId: organization.id,
           userId: existingUser.id,
-          role: MembershipRole.ORG_ADMIN,
+          roles: [MembershipRole.ORG_ADMIN],
         },
       })
 
@@ -84,7 +84,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
         memberships: {
           create: {
             organizationId: organization.id,
-            role: MembershipRole.ORG_ADMIN,
+            roles: [MembershipRole.ORG_ADMIN],
           },
         },
       },

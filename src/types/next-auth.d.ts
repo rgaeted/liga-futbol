@@ -5,6 +5,7 @@ declare module 'next-auth' {
   interface User {
     id: string
     isPlatformAdmin: boolean
+    membershipRoles: MembershipRole[]
     membershipRole: MembershipRole | null
     activeOrganizationId: string | null
     activeOrganizationSlug: string | null
@@ -15,6 +16,7 @@ declare module 'next-auth' {
       email: string
       name: string
       isPlatformAdmin: boolean
+      membershipRoles: MembershipRole[]
       membershipRole: MembershipRole | null
       activeOrganizationId: string | null
       activeOrganizationSlug: string | null
@@ -26,6 +28,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id: string
     isPlatformAdmin: boolean
+    membershipRoles: MembershipRole[]
     membershipRole: MembershipRole | null
     activeOrganizationId: string | null
     activeOrganizationSlug: string | null

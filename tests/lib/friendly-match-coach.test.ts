@@ -77,7 +77,7 @@ describe('coachPlayerIdsForUser', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ id: 'player-roger', personId: 'person-roger' }] as never)
     vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
-      role: 'FRIENDLY_COACH',
+      roles: ['FRIENDLY_COACH'],
     } as never)
     vi.mocked(db.user.findUnique).mockResolvedValue({
       name: 'Roger Carpio',
@@ -103,7 +103,7 @@ describe('coachPlayerIdsForUser', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ id: 'player-roger', personId: 'person-roger' }] as never)
     vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
-      role: 'FRIENDLY_COACH',
+      roles: ['FRIENDLY_COACH'],
     } as never)
     vi.mocked(db.user.findUnique).mockResolvedValue({
       name: 'Roger Carpio',

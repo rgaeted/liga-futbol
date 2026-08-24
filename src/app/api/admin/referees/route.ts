@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
-import { MembershipRole } from '@/lib/membership-role'
+import { MembershipRole, hasMembershipRole } from '@/lib/membership-role'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import {
   normalizePhoneField,
@@ -16,7 +16,7 @@ export async function GET() {
     const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
 
     const memberships = await db.organizationMembership.findMany({
-      where: { organizationId, role: MembershipRole.REFEREE },
+      where: { organizationId, roles: { has: MembershipRole.REFEREE } },
       include: {
         user: {
           include: refereeListUserInclude(organizationId),
@@ -57,9 +57,9 @@ export async function POST(req: Request) {
 
     if (existing) {
       const membership = existing.memberships[0]
-      if (membership && membership.role !== MembershipRole.REFEREE) {
+      if (membership && hasMembershipRole(membership.roles, MembershipRole.REFEREE)) {
         return NextResponse.json(
-          { error: 'Este correo ya tiene otro rol en tu organización' },
+          { error: 'Este árbitro ya pita en tu organización' },
           { status: 409 },
         )
       }
@@ -70,8 +70,13 @@ export async function POST(req: Request) {
             data: {
               organizationId,
               userId: existing.id,
-              role: MembershipRole.REFEREE,
+              roles: [MembershipRole.REFEREE],
             },
+          })
+        } else {
+          await tx.organizationMembership.update({
+            where: { id: membership.id },
+            data: { roles: [...membership.roles, MembershipRole.REFEREE] },
           })
         }
         await tx.refereeProfile.upsert({
@@ -99,7 +104,7 @@ export async function POST(req: Request) {
         data: {
           organizationId,
           userId: created.id,
-          role: MembershipRole.REFEREE,
+          roles: [MembershipRole.REFEREE],
         },
       })
       await tx.refereeProfile.create({

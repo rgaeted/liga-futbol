@@ -1,6 +1,8 @@
-import { MembershipRole, type Prisma } from '@prisma/client'
+import { type Prisma } from '@prisma/client'
 import { validateFriendlyCaptains, type FriendlyRosterEntry } from '@/lib/friendly-match-captain'
 import { validateFriendlyCoaches } from '@/lib/friendly-match-coach'
+import { MembershipRole } from '@/lib/membership-role'
+import { mergeMembershipRole } from '@/lib/membership-roles'
 
 export type { FriendlyRosterEntry } from '@/lib/friendly-match-captain'
 
@@ -112,14 +114,7 @@ export async function syncFriendlyMatchRoster(
     })
     const coachUserId = player?.person.userId
     if (coachUserId) {
-      await tx.organizationMembership.updateMany({
-        where: {
-          userId: coachUserId,
-          organizationId: player.organizationId,
-          role: MembershipRole.PLAYER,
-        },
-        data: { role: MembershipRole.FRIENDLY_COACH },
-      })
+      await mergeMembershipRole(coachUserId, player.organizationId, MembershipRole.FRIENDLY_COACH)
     }
   }
 }

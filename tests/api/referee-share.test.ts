@@ -12,7 +12,7 @@ vi.mock('@/lib/auth', () => ({
 vi.mock('@/lib/db', () => ({
   db: {
     organization: { findUnique: vi.fn() },
-    organizationMembership: { findUnique: vi.fn(), create: vi.fn() },
+    organizationMembership: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
     refereeShareInvite: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     refereeProfile: { upsert: vi.fn() },
     $transaction: vi.fn(),
@@ -61,7 +61,7 @@ describe('POST /api/admin/referees/[userId]/share', () => {
       status: 'ACTIVE',
     } as never)
     vi.mocked(db.organizationMembership.findUnique)
-      .mockResolvedValueOnce({ role: MembershipRole.REFEREE } as never)
+      .mockResolvedValueOnce({ roles: [MembershipRole.REFEREE] } as never)
       .mockResolvedValueOnce(null)
     vi.mocked(db.refereeShareInvite.create).mockResolvedValue({ id: inviteId } as never)
 
@@ -100,7 +100,7 @@ describe('POST /api/admin/referee-invites/[id]/accept', () => {
     } as never)
     vi.mocked(db.$transaction).mockImplementation(async (callback) =>
       callback({
-        organizationMembership: { create: membershipCreate },
+        organizationMembership: { create: membershipCreate, update: vi.fn() },
         refereeShareInvite: { update: vi.fn() },
         refereeProfile: { upsert: vi.fn() },
       } as never),
@@ -116,8 +116,39 @@ describe('POST /api/admin/referee-invites/[id]/accept', () => {
       data: {
         organizationId: toOrgId,
         userId: refereeUserId,
-        role: MembershipRole.REFEREE,
+        roles: [MembershipRole.REFEREE],
       },
+    })
+  })
+
+  it('adds REFEREE to existing COACH membership on accept', async () => {
+    const membershipUpdate = vi.fn()
+    vi.mocked(db.refereeShareInvite.findUnique).mockResolvedValue({
+      id: inviteId,
+      refereeUserId,
+      toOrganizationId: toOrgId,
+      status: RefereeShareInviteStatus.PENDING,
+      refereeUser: {
+        memberships: [{ id: 'mem-1', roles: [MembershipRole.COACH] }],
+      },
+    } as never)
+    vi.mocked(db.$transaction).mockImplementation(async (callback) =>
+      callback({
+        organizationMembership: { create: vi.fn(), update: membershipUpdate },
+        refereeShareInvite: { update: vi.fn() },
+        refereeProfile: { upsert: vi.fn() },
+      } as never),
+    )
+
+    const response = await acceptPost(
+      new Request('http://localhost', { method: 'POST' }),
+      { params: Promise.resolve({ id: inviteId }) },
+    )
+
+    expect(response.status).toBe(200)
+    expect(membershipUpdate).toHaveBeenCalledWith({
+      where: { id: 'mem-1' },
+      data: { roles: [MembershipRole.COACH, MembershipRole.REFEREE] },
     })
   })
 })

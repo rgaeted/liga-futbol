@@ -5,6 +5,7 @@ import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 import authConfig from '@/lib/auth.config'
 import type { MembershipRole } from '@/lib/membership-role'
+import { hasAnyMembershipRole, primaryMembershipRole } from '@/lib/membership-role'
 import { assertSameOrganization } from '@/lib/org-scope'
 import { ORG_COOKIE, clearOrgCookieOptions } from '@/lib/org-cookie'
 
@@ -46,13 +47,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         )
         const singleMembership =
           activeMemberships.length === 1 ? activeMemberships[0] : null
+        const roles = (singleMembership?.roles ?? []) as MembershipRole[]
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           isPlatformAdmin: user.isPlatformAdmin,
-          membershipRole: (singleMembership?.role ?? null) as MembershipRole | null,
+          membershipRoles: roles,
+          membershipRole: roles.length > 0 ? primaryMembershipRole(roles) : null,
           activeOrganizationId: singleMembership?.organization.id ?? null,
           activeOrganizationSlug: singleMembership?.organization.slug ?? null,
         }
@@ -83,17 +86,27 @@ export async function requireOrgRole(allowed: MembershipRole[]) {
         },
       },
     })
-    if (membership && allowed.includes(membership.role)) {
-      return { session, organizationId: orgIdFromCookie, role: membership.role }
+    if (membership && hasAnyMembershipRole(membership.roles, allowed)) {
+      return {
+        session,
+        organizationId: orgIdFromCookie,
+        roles: membership.roles,
+        role: primaryMembershipRole(membership.roles),
+      }
     }
   }
 
-  const role = session.user.membershipRole
+  const roles = session.user.membershipRoles
   const orgId = session.user.activeOrganizationId
-  if (!role || !orgId || !allowed.includes(role)) {
+  if (!orgId || roles.length === 0 || !hasAnyMembershipRole(roles, allowed)) {
     throw new Error('Unauthorized')
   }
-  return { session, organizationId: orgId, role }
+  return {
+    session,
+    organizationId: orgId,
+    roles,
+    role: primaryMembershipRole(roles),
+  }
 }
 
 /** Resuelve permisos contra la organización del partido (no la cookie activa). */
@@ -111,14 +124,15 @@ export async function requireMatchOrgRole(matchId: string, allowed: MembershipRo
     },
   })
 
-  if (!membership || !allowed.includes(membership.role)) {
+  if (!membership || !hasAnyMembershipRole(membership.roles, allowed)) {
     throw new Error('Unauthorized')
   }
 
   return {
     session,
     organizationId: match.organizationId,
-    role: membership.role,
+    roles: membership.roles,
+    role: primaryMembershipRole(membership.roles),
     match,
   }
 }

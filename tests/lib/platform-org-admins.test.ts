@@ -87,7 +87,7 @@ describe('grantOrgAdminAccess', () => {
       data: {
         organizationId: 'org-kelme',
         userId: 'user-1',
-        role: MembershipRole.ORG_ADMIN,
+        roles: [MembershipRole.ORG_ADMIN],
       },
     })
   })
@@ -130,7 +130,7 @@ describe('grantOrgAdminAccess', () => {
       data: {
         organizationId: 'org-demo',
         userId: 'user-1',
-        role: MembershipRole.ORG_ADMIN,
+        roles: [MembershipRole.ORG_ADMIN],
       },
     })
   })
@@ -148,7 +148,7 @@ describe('grantOrgAdminAccess', () => {
         organizationMembership: {
           findUnique: vi.fn().mockResolvedValue({
             id: 'mem-1',
-            role: MembershipRole.PLAYER,
+            roles: [MembershipRole.PLAYER],
           }),
           create: vi.fn(),
           update: membershipUpdate,
@@ -164,7 +164,7 @@ describe('grantOrgAdminAccess', () => {
 
     expect(membershipUpdate).toHaveBeenCalledWith({
       where: { id: 'mem-1' },
-      data: { role: MembershipRole.ORG_ADMIN },
+      data: { roles: [MembershipRole.PLAYER, MembershipRole.ORG_ADMIN] },
     })
   })
 
@@ -182,7 +182,7 @@ describe('grantOrgAdminAccess', () => {
         organizationMembership: {
           findUnique: vi.fn().mockResolvedValue({
             id: 'mem-1',
-            role: MembershipRole.ORG_ADMIN,
+            roles: [MembershipRole.ORG_ADMIN],
           }),
           create: membershipCreate,
           update: membershipUpdate,
@@ -259,7 +259,7 @@ describe('listOrgAdmins', () => {
     expect(users[0].organizations).toHaveLength(2)
     expect(db.user.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { memberships: { some: { role: MembershipRole.ORG_ADMIN } } },
+        where: { memberships: { some: { roles: { has: MembershipRole.ORG_ADMIN } } } },
         orderBy: { name: 'asc' },
       }),
     )
@@ -274,7 +274,7 @@ describe('revokeOrgAdminMembership', () => {
   it('deletes an ORG_ADMIN membership', async () => {
     vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
       id: 'mem-1',
-      role: MembershipRole.ORG_ADMIN,
+      roles: [MembershipRole.ORG_ADMIN],
     } as never)
     vi.mocked(db.organizationMembership.delete).mockResolvedValue({} as never)
 
@@ -297,7 +297,7 @@ describe('revokeOrgAdminMembership', () => {
   it('returns not_org_admin when the role is not ORG_ADMIN', async () => {
     vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
       id: 'mem-1',
-      role: MembershipRole.PLAYER,
+      roles: [MembershipRole.PLAYER],
     } as never)
 
     await expect(revokeOrgAdminMembership('user-1', 'org-kelme')).rejects.toMatchObject({
@@ -325,7 +325,7 @@ describe('searchPlatformUsers', () => {
         name: 'Ana Pérez',
         memberships: [
           {
-            role: MembershipRole.PLAYER,
+            roles: [MembershipRole.PLAYER],
             organization: { id: 'org-kelme', slug: 'kelme', name: 'Torneos Kelme' },
           },
         ],

@@ -1,20 +1,24 @@
 import { z } from 'zod'
 
-const staffRoles = ['ORG_ADMIN', 'COACH', 'REFEREE'] as const
-export const accessRoles = ['ORG_ADMIN', 'COACH', 'REFEREE', 'FRIENDLY_COACH', 'PLAYER'] as const
+export const assignableRoles = ['ORG_ADMIN', 'COACH', 'REFEREE', 'PLAYER'] as const
+
+const rolesSchema = z
+  .array(z.enum(assignableRoles))
+  .min(1, 'Debes elegir al menos un rol')
+  .refine((roles) => new Set(roles).size === roles.length, 'Roles duplicados')
 
 export const createUserSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2),
   password: z.string().min(6),
-  role: z.enum(staffRoles),
+  roles: rolesSchema,
 })
 
 export const updateUserSchema = z.object({
   email: z.string().email().optional(),
   name: z.string().min(2).optional(),
   password: z.string().min(6).optional(),
-  role: z.enum(accessRoles).optional(),
+  roles: rolesSchema.optional(),
 })
 
 export type CreateUserInput = z.infer<typeof createUserSchema>

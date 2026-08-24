@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { Role } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 import { resolveUserRoleTags } from '@/lib/user-roles-display'
 
 describe('resolveUserRoleTags', () => {
   it('lists all roles with least restrictive first', () => {
     const tags = resolveUserRoleTags({
-      role: Role.PLAYER,
+      roles: [MembershipRole.PLAYER, MembershipRole.FRIENDLY_COACH],
       hasCoachedTeam: false,
       hasLeagueTeam: true,
       hasFriendlyProfile: true,
@@ -20,7 +20,7 @@ describe('resolveUserRoleTags', () => {
 
   it('puts admin before any other role', () => {
     const tags = resolveUserRoleTags({
-      role: Role.ADMIN,
+      roles: [MembershipRole.ORG_ADMIN, MembershipRole.PLAYER],
       hasCoachedTeam: false,
       hasLeagueTeam: false,
       hasFriendlyProfile: true,
@@ -33,7 +33,7 @@ describe('resolveUserRoleTags', () => {
   it('shows league coach from team assignment or COACH role', () => {
     expect(
       resolveUserRoleTags({
-        role: Role.COACH,
+        roles: [MembershipRole.COACH],
         hasCoachedTeam: true,
         hasLeagueTeam: false,
         hasFriendlyProfile: false,
@@ -45,7 +45,7 @@ describe('resolveUserRoleTags', () => {
   it('falls back to generic player when no profile flags', () => {
     expect(
       resolveUserRoleTags({
-        role: Role.PLAYER,
+        roles: [MembershipRole.PLAYER],
         hasCoachedTeam: false,
         hasLeagueTeam: false,
         hasFriendlyProfile: false,

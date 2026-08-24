@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { MembershipRole } from '@/lib/membership-role'
+import { MembershipRole, hasMembershipRole } from '@/lib/membership-role'
 
 export class PlatformRefereeError extends Error {
   constructor(readonly code: PlatformRefereeErrorCode) {
@@ -23,7 +23,7 @@ export async function revokeRefereeMembership(
   if (!membership) {
     throw new PlatformRefereeError('not_found')
   }
-  if (membership.role !== MembershipRole.REFEREE) {
+  if (!hasMembershipRole(membership.roles, MembershipRole.REFEREE)) {
     throw new PlatformRefereeError('not_referee')
   }
 
@@ -39,5 +39,15 @@ export async function revokeRefereeMembership(
     throw new PlatformRefereeError('has_assigned_matches')
   }
 
-  await db.organizationMembership.delete({ where: { id: membership.id } })
+  if (membership.roles.length === 1) {
+    await db.organizationMembership.delete({ where: { id: membership.id } })
+    return
+  }
+
+  await db.organizationMembership.update({
+    where: { id: membership.id },
+    data: {
+      roles: membership.roles.filter((role) => role !== MembershipRole.REFEREE),
+    },
+  })
 }

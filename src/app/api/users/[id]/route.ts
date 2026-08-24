@@ -3,8 +3,15 @@ import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
 import { updateUserSchema } from '@/lib/validations/user'
-import { MembershipRole } from '@/lib/membership-role'
-import { linkCoachPersonIfNeeded } from '@/lib/friendly-match-coach'
+import { MembershipRole, hasMembershipRole, primaryMembershipRole } from '@/lib/membership-role'
+
+function mergeAssignableRoles(
+  currentRoles: MembershipRole[],
+  assignableRoles: MembershipRole[],
+): MembershipRole[] {
+  const autoRoles = currentRoles.filter((role) => role === MembershipRole.FRIENDLY_COACH)
+  return [...new Set([...assignableRoles, ...autoRoles])]
+}
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { organizationId, session } = await requireOrgRole([MembershipRole.ORG_ADMIN])
@@ -14,12 +21,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { password, role, ...rest } = parsed.data
+  const { password, roles: assignableRoles, ...rest } = parsed.data
 
-  if (session.user.id === id && role && role !== MembershipRole.ORG_ADMIN) {
+  if (
+    session.user.id === id &&
+    assignableRoles &&
+    !assignableRoles.includes(MembershipRole.ORG_ADMIN)
+  ) {
     return NextResponse.json(
-      { error: 'No puedes cambiar tu propio rol de acceso' },
-      { status: 409 }
+      { error: 'No puedes quitarte tu propio rol de administrador' },
+      { status: 409 },
     )
   }
 
@@ -33,19 +44,23 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 
   const user = await db.$transaction(async (tx) => {
-    if (role && role !== MembershipRole.COACH && membership.role === MembershipRole.COACH) {
+    if (
+      assignableRoles &&
+      !assignableRoles.includes(MembershipRole.COACH) &&
+      hasMembershipRole(membership.roles, MembershipRole.COACH)
+    ) {
       await tx.team.updateMany({
         where: { coachId: id, organizationId },
         data: { coachId: null },
       })
     }
 
-    if (role) {
+    if (assignableRoles) {
       await tx.organizationMembership.update({
         where: {
           organizationId_userId: { organizationId, userId: id },
         },
-        data: { role },
+        data: { roles: mergeAssignableRoles(membership.roles, assignableRoles) },
       })
     }
 
@@ -61,14 +76,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
   const updatedMembership = await db.organizationMembership.findUniqueOrThrow({
     where: { organizationId_userId: { organizationId, userId: id } },
-    select: { role: true },
+    select: { roles: true },
   })
 
-  if (updatedMembership.role === MembershipRole.FRIENDLY_COACH) {
-    await linkCoachPersonIfNeeded(id, organizationId)
-  }
-
-  return NextResponse.json({ ...user, role: updatedMembership.role })
+  return NextResponse.json({
+    ...user,
+    roles: updatedMembership.roles,
+    role: primaryMembershipRole(updatedMembership.roles),
+  })
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -102,7 +117,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (user.person?.players[0]) {
     return NextResponse.json(
       { error: 'Es un jugador: elimínalo desde la sección Jugadores' },
-      { status: 409 }
+      { status: 409 },
     )
   }
 

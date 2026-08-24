@@ -11,27 +11,34 @@ import { OrganizationSwitcher } from '@/components/tenant/OrganizationSwitcher'
 type NavItem = { href: string; label: string; icon?: string }
 
 type Props = {
-  nav: NavItem[]
-  navGroupLabel: string
+  nav?: NavItem[]
+  navGroups?: DashboardNavGroup[]
+  navGroupLabel?: string
   organizationName: string
+  organizationSlug?: string
   userName: string
   roleLabel: string
   helpHref?: string
+  showPlatformLink?: boolean
   signOutAction: () => Promise<void>
   children: React.ReactNode
 }
 
 export function DashboardShell({
   nav,
+  navGroups,
   navGroupLabel,
   organizationName,
+  organizationSlug,
   userName,
   roleLabel,
   helpHref,
+  showPlatformLink = false,
   signOutAction,
   children,
 }: Props) {
-  const navGroups: DashboardNavGroup[] = [flatNavToGroup(navGroupLabel, nav)]
+  const resolvedNavGroups: DashboardNavGroup[] =
+    navGroups ?? (nav ? [flatNavToGroup(navGroupLabel ?? 'Menú', nav)] : [])
 
   return (
     <DashboardAppShell
@@ -40,12 +47,20 @@ export function DashboardShell({
       brandSubtitle={`LigaLab · ${roleLabel}`}
       userName={userName}
       roleLabel={roleLabel}
-      navGroups={navGroups}
+      navGroups={resolvedNavGroups}
       signOutAction={signOutAction}
       markClassName="bg-org-primary"
       topActions={
         <>
           <OrganizationSwitcher />
+          {showPlatformLink && organizationSlug ? (
+            <Link
+              href="/plataforma"
+              className="hidden rounded-xl border border-[#2A3A32] bg-transparent px-3.5 py-2.5 text-sm font-bold text-[#E8E4D8] hover:bg-[#0B1210] sm:inline-flex"
+            >
+              Plataforma
+            </Link>
+          ) : null}
           {helpHref ? (
             <Link
               href={helpHref}

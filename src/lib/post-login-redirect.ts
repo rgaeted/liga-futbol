@@ -1,9 +1,9 @@
-import { getDashboardPath, type MembershipRole } from '@/lib/membership-role'
+import { getDashboardPath, primaryMembershipRole, type MembershipRole } from '@/lib/membership-role'
 import { RESERVED_ORGANIZATION_SLUGS } from '@/lib/organization-slug'
 
 export type PostLoginMembership = {
   slug: string
-  role: MembershipRole
+  roles: MembershipRole[]
   status: 'ACTIVE' | 'PAUSED'
 }
 
@@ -12,7 +12,9 @@ export function resolvePostLoginPath(input: {
   memberships: PostLoginMembership[]
 }): string {
   const active = input.memberships.filter((m) => m.status === 'ACTIVE')
-  if (active.length === 1) return getDashboardPath(active[0].slug, active[0].role)
+  if (active.length === 1) {
+    return getDashboardPath(active[0].slug, primaryMembershipRole(active[0].roles))
+  }
   if (active.length > 1) return '/organizaciones'
   if (input.isPlatformAdmin) return '/plataforma'
   return '/login?error=sin-acceso'

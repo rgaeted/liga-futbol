@@ -17,15 +17,21 @@ describe('assertCanShareReferee', () => {
 })
 
 describe('assertCanAcceptRefereeShare', () => {
-  it('rejects existing non-REFEREE membership', () => {
+  it('rejects when dest already has REFEREE', () => {
     expect(() =>
-      assertCanAcceptRefereeShare({ destRole: MembershipRole.COACH, pending: true }),
-    ).toThrow(/otro rol/)
+      assertCanAcceptRefereeShare({ destHasReferee: true, pending: true }),
+    ).toThrow(/ya pita/)
+  })
+
+  it('allows when dest has COACH but not REFEREE', () => {
+    expect(() =>
+      assertCanAcceptRefereeShare({ destHasReferee: false, pending: true }),
+    ).not.toThrow()
   })
 
   it('allows when dest has no membership', () => {
     expect(() =>
-      assertCanAcceptRefereeShare({ destRole: null, pending: true }),
+      assertCanAcceptRefereeShare({ destHasReferee: false, pending: true }),
     ).not.toThrow()
   })
 })

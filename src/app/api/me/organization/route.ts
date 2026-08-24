@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getDashboardPath } from '@/lib/membership-role'
+import { getDashboardPath, primaryMembershipRole } from '@/lib/membership-role'
 import { orgCookieOptions } from '@/lib/org-cookie'
 
 export async function POST(req: Request) {
@@ -31,7 +31,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Sin acceso a esta empresa' }, { status: 403 })
   }
 
-  const path = getDashboardPath(membership.organization.slug, membership.role)
+  const path = getDashboardPath(
+    membership.organization.slug,
+    primaryMembershipRole(membership.roles),
+  )
   const response = NextResponse.json({ path })
   response.cookies.set(orgCookieOptions(membership.organizationId))
   return response

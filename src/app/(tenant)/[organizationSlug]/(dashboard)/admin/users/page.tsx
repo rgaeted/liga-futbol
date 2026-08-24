@@ -48,15 +48,15 @@ export default async function AdminUsersPage({
         },
       },
     },
-    orderBy: [{ role: 'asc' }, { user: { name: 'asc' } }],
+    orderBy: [{ user: { name: 'asc' } }],
   })
 
   return (
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold">Usuarios</h1>
       <p className="text-sm text-kelme-gray-400">
-        Todas las cuentas con acceso a la plataforma. Si alguien acumula varios roles, se listan
-        todos; el más permisivo (menos restrictivo) aparece destacado en rojo.
+        Todas las cuentas con acceso a la plataforma. Puedes combinar roles (Admin, DT liga,
+        Árbitro, Jugador). El rol DT amistoso se activa solo al designar DT en un partido.
       </p>
       <UserForm />
       <UsersTable
@@ -64,9 +64,9 @@ export default async function AdminUsersPage({
           id: m.user.id,
           email: m.user.email,
           name: m.user.name,
-          role: m.role,
+          roles: m.roles,
           roleTags: resolveUserRoleTags({
-            role: m.role,
+            roles: m.roles,
             hasCoachedTeam: Boolean(m.user.coachedTeam),
             hasLeagueTeam: Boolean(m.user.person?.players.some((p) => p.teamId)),
             hasFriendlyProfile: Boolean(m.user.person?.players.length),

@@ -26,7 +26,7 @@ export async function createUserForFriendlyPlayer(
     data: {
       organizationId: params.organizationId,
       userId: user.id,
-      role: MembershipRole.PLAYER,
+      roles: [MembershipRole.PLAYER],
     },
   })
   const person = await tx.person.create({

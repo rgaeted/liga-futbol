@@ -43,7 +43,7 @@ export async function GET(req: Request) {
     isPlatformAdmin: session.user.isPlatformAdmin,
     memberships: activeMemberships.map((m) => ({
       slug: m.organization.slug,
-      role: m.role,
+      roles: m.roles,
       status: m.organization.status,
     })),
     callbackUrl,

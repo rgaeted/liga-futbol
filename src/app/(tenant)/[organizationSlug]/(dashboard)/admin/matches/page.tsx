@@ -68,7 +68,7 @@ export default async function AdminMatchesPage({
       orderBy: { scheduledAt: 'desc' },
     }),
     db.organizationMembership.findMany({
-      where: { organizationId, role: MembershipRole.REFEREE },
+      where: { organizationId, roles: { has: MembershipRole.REFEREE } },
       include: { user: { select: { id: true, name: true } } },
       orderBy: { user: { name: 'asc' } },
     }),
