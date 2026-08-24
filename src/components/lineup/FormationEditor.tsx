@@ -12,8 +12,15 @@ import { buildLineupView } from '@/lib/match-lineup'
 import { type SlotLayout } from '@/lib/formation-slot-layout'
 import { footballFormatLabel } from '@/lib/football-format'
 import { calculateFormationFit, playerFitScoreForSlot } from '@/lib/formation-position-fit'
+import {
+  customSchemeValue,
+  formatTemplateOptionLabel,
+  isCustomSchemeValue,
+  resolveEditorSchemeSelection,
+} from '@/lib/user-formation-templates'
 import { FormationPitch } from './FormationPitch'
 import { FormationFitScore, PlayerFitBadge } from './FormationFitScore'
+import { useFormationTemplates } from './useFormationTemplates'
 
 export type EditorPlayer = {
   id: string
@@ -41,6 +48,14 @@ type Props = {
   readOnly?: boolean
 }
 
+function layoutSignature(layout: SlotLayout): string {
+  return JSON.stringify(
+    Object.keys(layout)
+      .sort()
+      .map((key) => [key, layout[key]])
+  )
+}
+
 export function FormationEditor({
   footballFormat,
   initialScheme,
@@ -55,12 +70,17 @@ export function FormationEditor({
   const defaultScheme = useMemo(() => getDefaultScheme(footballFormat), [footballFormat])
   const resolvedInitialScheme = normalizeSchemeForFormat(initialScheme ?? defaultScheme, footballFormat)
 
+  const { templates, createTemplate, renameTemplate, deleteTemplate } =
+    useFormationTemplates(footballFormat)
+
   const [scheme, setScheme] = useState(resolvedInitialScheme)
+  const [selectValue, setSelectValue] = useState(resolvedInitialScheme)
   const [slots, setSlots] = useState<Record<string, string>>(initialSlots)
   const [slotLayout, setSlotLayout] = useState<SlotLayout>(initialSlotLayout ?? {})
   const [layoutMode, setLayoutMode] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [templateLoading, setTemplateLoading] = useState(false)
   const [error, setError] = useState('')
 
   const assignedIds = useMemo(() => new Set(Object.values(slots)), [slots])
@@ -94,21 +114,13 @@ export function FormationEditor({
     [scheme, footballFormat, slots, players]
   )
 
-  function onSchemeChange(next: string) {
-    if (next === scheme) return
-    const hasCustomLayout = Object.keys(slotLayout).length > 0
-    if (
-      hasCustomLayout &&
-      !window.confirm(
-        'Cambiar el esquema restablecerá las posiciones personalizadas en la cancha. ¿Continuar?'
-      )
-    ) {
-      return
-    }
+  function applySchemeSelection(nextSelectValue: string) {
+    const resolved = resolveEditorSchemeSelection(nextSelectValue, templates, footballFormat)
+    setSelectValue(nextSelectValue)
+    setScheme(resolved.scheme)
+    setSlotLayout(resolved.slotLayout)
 
-    setScheme(next)
-    setSlotLayout({})
-    const valid = new Set(getFormationSlots(next, footballFormat).map((s) => s.key))
+    const valid = new Set(getFormationSlots(resolved.scheme, footballFormat).map((s) => s.key))
     setSlots((prev) => {
       const nextSlots: Record<string, string> = {}
       for (const [k, v] of Object.entries(prev)) {
@@ -119,12 +131,39 @@ export function FormationEditor({
     setSelectedSlot(null)
   }
 
+  function onSelectChange(nextSelectValue: string) {
+    if (nextSelectValue === selectValue) return
+
+    const resolved = resolveEditorSchemeSelection(nextSelectValue, templates, footballFormat)
+    const layoutChanges =
+      layoutSignature(resolved.slotLayout) !== layoutSignature(slotLayout) ||
+      resolved.scheme !== scheme
+
+    if (
+      layoutChanges &&
+      (Object.keys(slotLayout).length > 0 || isCustomSchemeValue(selectValue)) &&
+      !window.confirm(
+        'Cambiar la formación restablecerá las posiciones personalizadas en la cancha. ¿Continuar?'
+      )
+    ) {
+      return
+    }
+
+    applySchemeSelection(nextSelectValue)
+  }
+
   function handleSlotLayoutChange(slotKey: string, pos: { topPct: number; leftPct: number }) {
     setSlotLayout((prev) => ({ ...prev, [slotKey]: pos }))
+    if (isCustomSchemeValue(selectValue)) {
+      setSelectValue(scheme)
+    }
   }
 
   function restoreDefaultLayout() {
     setSlotLayout({})
+    if (isCustomSchemeValue(selectValue)) {
+      setSelectValue(scheme)
+    }
   }
 
   function assignPlayerToSelected(playerId: string) {
@@ -146,6 +185,62 @@ export function FormationEditor({
       delete next[selectedSlot]
       return next
     })
+  }
+
+  async function handleSaveTemplate() {
+    const name = window.prompt('Nombre de la formación personalizada')
+    if (!name?.trim()) return
+
+    setTemplateLoading(true)
+    setError('')
+    try {
+      const template = await createTemplate({
+        name: name.trim(),
+        baseScheme: scheme,
+        slotLayout,
+      })
+      setSelectValue(customSchemeValue(template.id))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo guardar la plantilla')
+    } finally {
+      setTemplateLoading(false)
+    }
+  }
+
+  async function handleRenameTemplate(id: string, currentName: string) {
+    const name = window.prompt('Nuevo nombre', currentName)
+    if (!name?.trim() || name.trim() === currentName) return
+
+    setTemplateLoading(true)
+    setError('')
+    try {
+      await renameTemplate(id, name.trim())
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo renombrar la plantilla')
+    } finally {
+      setTemplateLoading(false)
+    }
+  }
+
+  async function handleDeleteTemplate(id: string) {
+    if (
+      !window.confirm('¿Eliminar esta formación personalizada? No se puede deshacer.')
+    ) {
+      return
+    }
+
+    setTemplateLoading(true)
+    setError('')
+    try {
+      await deleteTemplate(id)
+      if (selectValue === customSchemeValue(id)) {
+        setSelectValue(scheme)
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo eliminar la plantilla')
+    } finally {
+      setTemplateLoading(false)
+    }
   }
 
   async function handleSave() {
@@ -185,18 +280,63 @@ export function FormationEditor({
         <label className="block text-sm font-medium">
           Esquema
           <select
-            value={scheme}
-            onChange={(e) => onSchemeChange(e.target.value)}
+            value={selectValue}
+            onChange={(e) => onSelectChange(e.target.value)}
             disabled={readOnly}
             className="mt-1 w-full input-kelme rounded-lg px-3 py-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {schemes.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
+            <optgroup label="Clásicas">
+              {schemes.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </optgroup>
+            {templates.length > 0 && (
+              <optgroup label="Mis formaciones">
+                {templates.map((t) => (
+                  <option key={t.id} value={customSchemeValue(t.id)}>
+                    {formatTemplateOptionLabel(t.name, t.baseScheme)}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </label>
+        {!readOnly && templates.length > 0 && (
+          <div className="space-y-2 rounded-lg border border-kelme-border p-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-kelme-gray-400">
+              Mis formaciones
+            </p>
+            <ul className="space-y-1">
+              {templates.map((t) => (
+                <li key={t.id} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="min-w-0 truncate">
+                    {formatTemplateOptionLabel(t.name, t.baseScheme)}
+                  </span>
+                  <span className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      disabled={templateLoading}
+                      onClick={() => void handleRenameTemplate(t.id, t.name)}
+                      className="text-kelme-gray-400 hover:underline disabled:opacity-50"
+                    >
+                      Renombrar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={templateLoading}
+                      onClick={() => void handleDeleteTemplate(t.id)}
+                      className="text-kelme-red hover:underline disabled:opacity-50"
+                    >
+                      Eliminar
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <FormationFitScore fit={formationFit} />
         {!readOnly && (
           <div className="flex flex-wrap items-center gap-2">
@@ -221,6 +361,16 @@ export function FormationEditor({
                 className="text-sm text-kelme-gray-400 hover:underline"
               >
                 Restaurar posiciones
+              </button>
+            )}
+            {Object.keys(slotLayout).length > 0 && (
+              <button
+                type="button"
+                disabled={templateLoading}
+                onClick={() => void handleSaveTemplate()}
+                className="text-sm font-medium text-kelme-red hover:underline disabled:opacity-50"
+              >
+                Guardar como formación personalizada
               </button>
             )}
           </div>

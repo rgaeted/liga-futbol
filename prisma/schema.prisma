@@ -151,6 +151,22 @@ model User {
   refereeProfile         RefereeProfile?
   refereeShareInvites    RefereeShareInvite[] @relation("RefereeShareReferee")
   refereeShareInvitesSent RefereeShareInvite[] @relation("RefereeShareInvitedBy")
+  formationTemplates     UserFormationTemplate[]
+}
+
+model UserFormationTemplate {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  baseScheme     String
+  footballFormat FootballFormat
+  slotLayout     Json
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([userId, footballFormat, name])
+  @@index([userId, footballFormat])
 }
 
 model Person {
