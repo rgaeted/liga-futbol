@@ -41,6 +41,7 @@
   --color-kelme-bg: var(--night);
   --color-kelme-live-bg: var(--night);
   --color-kelme-live-surface: var(--turf);
+  --color-org-primary: var(--org-primary);
   --font-display: var(--font-oswald);
   --font-ui: var(--font-manrope);
   --font-body: var(--font-manrope);
