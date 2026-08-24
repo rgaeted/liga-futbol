@@ -46,12 +46,20 @@ export default async function PlataformaPage() {
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       {org.status === 'ACTIVE' ? (
-                        <Link
-                          href={`/${org.slug}/admin`}
-                          className="rounded-full bg-org-primary px-4 py-1.5 text-xs font-bold text-[#0B1210] hover:opacity-90"
-                        >
-                          Ingresar
-                        </Link>
+                        <>
+                          <Link
+                            href={`/${org.slug}`}
+                            className="rounded-full border border-[#2A3A32] px-4 py-1.5 text-xs font-bold text-[#E8E4D8] hover:bg-[#0B1210]"
+                          >
+                            Ver landing
+                          </Link>
+                          <Link
+                            href={`/${org.slug}/admin`}
+                            className="rounded-full bg-org-primary px-4 py-1.5 text-xs font-bold text-[#0B1210] hover:opacity-90"
+                          >
+                            Ingresar
+                          </Link>
+                        </>
                       ) : null}
                       <OrganizationStatusButton organizationId={org.id} status={org.status} />
                     </div>
