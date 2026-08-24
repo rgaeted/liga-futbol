@@ -29,4 +29,27 @@ describe('upsertMatchFormationSchema', () => {
     })
     expect(result.success).toBe(false)
   })
+
+  it('accepts optional slotLayout with valid coordinates', () => {
+    const result = upsertMatchFormationSchema.safeParse({
+      teamId: 'team-1',
+      scheme: '4-4-2',
+      slots: [],
+      slotLayout: { CM_L: { topPct: 50, leftPct: 50 } },
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.slotLayout).toEqual({ CM_L: { topPct: 50, leftPct: 50 } })
+    }
+  })
+
+  it('rejects slotLayout with out-of-range coordinates', () => {
+    const result = upsertMatchFormationSchema.safeParse({
+      teamId: 'team-1',
+      scheme: '4-4-2',
+      slots: [],
+      slotLayout: { CM_L: { topPct: 4, leftPct: 50 } },
+    })
+    expect(result.success).toBe(false)
+  })
 })

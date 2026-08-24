@@ -7,6 +7,11 @@ const slot = z.object({
   playerId: id,
 })
 
+const slotLayoutEntry = z.object({
+  topPct: z.number().min(5).max(95),
+  leftPct: z.number().min(5).max(95),
+})
+
 export const upsertMatchFormationSchema = z
   .object({
     scheme: z.string().min(1),
@@ -14,6 +19,7 @@ export const upsertMatchFormationSchema = z
     side: z.enum(['A', 'B']).optional(),
     slots: z.array(slot).default([]),
     benchPlayerIds: z.array(id).optional(),
+    slotLayout: z.record(z.string(), slotLayoutEntry).optional(),
   })
   .superRefine((data, ctx) => {
     const hasTeam = Boolean(data.teamId)
