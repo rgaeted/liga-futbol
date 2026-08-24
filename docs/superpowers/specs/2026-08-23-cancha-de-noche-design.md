@@ -1,9 +1,9 @@
 # Cancha de noche — Design Spec
 
-> Plan: (se escribe después de aprobar esta spec)
+> Plan: [`docs/superpowers/plans/2026-08-23-cancha-de-noche.md`](../plans/2026-08-23-cancha-de-noche.md)
 > Fecha: 2026-08-23
 > Producto: **LigaLab**
-> Estado: **Diseño en revisión**
+> Estado: **Spec aprobada · plan listo**
 
 ---
 
