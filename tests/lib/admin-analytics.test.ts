@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyMatchCap,
+  buildWeeklyBuckets,
   paidRate,
   rankByCount,
   resolveAnalyticsPeriod,
@@ -98,5 +99,23 @@ describe('rankByCount', () => {
     const ranked = rankByCount(counts, 8)
     expect(ranked).toHaveLength(8)
     expect(ranked[0]?.playerId).toBe('p8')
+  })
+})
+
+describe('buildWeeklyBuckets', () => {
+  it('returns one bucket when only one week has data', () => {
+    const buckets = buildWeeklyBuckets([
+      { scheduledAt: new Date('2026-08-10T20:00:00.000Z'), goals: 3, finished: true },
+    ])
+    expect(buckets.length).toBeLessThan(2)
+  })
+
+  it('groups two weeks', () => {
+    const buckets = buildWeeklyBuckets([
+      { scheduledAt: new Date('2026-08-03T20:00:00.000Z'), goals: 2, finished: true },
+      { scheduledAt: new Date('2026-08-17T20:00:00.000Z'), goals: 4, finished: true },
+    ])
+    expect(buckets.length).toBeGreaterThanOrEqual(2)
+    expect(buckets.reduce((n, b) => n + b.matches, 0)).toBe(2)
   })
 })
