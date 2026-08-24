@@ -49,7 +49,7 @@ export function DashboardShell({
           {helpHref ? (
             <Link
               href={helpHref}
-              className="hidden rounded-xl border border-[#dddde2] bg-white px-3.5 py-2.5 text-sm font-bold text-[#5f5f66] hover:bg-[#f7f7f9] sm:inline-flex"
+              className="hidden rounded-xl border border-[#2A3A32] bg-transparent px-3.5 py-2.5 text-sm font-bold text-[#E8E4D8] hover:bg-[#0B1210] sm:inline-flex"
             >
               Ayuda
             </Link>
