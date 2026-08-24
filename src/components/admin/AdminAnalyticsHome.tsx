@@ -9,7 +9,10 @@ import type {
   AnalyticsPeriod,
   OrgAnalyticsDashboard,
 } from '@/lib/admin-analytics'
-import { shouldShowBlock } from '@/lib/admin-analytics'
+
+function showBlock(rows: readonly unknown[]): boolean {
+  return rows.length > 0
+}
 
 const PERIOD_OPTIONS: Array<{ value: AnalyticsPeriod; label: string }> = [
   { value: '7', label: '7 días' },
@@ -20,7 +23,7 @@ const PERIOD_OPTIONS: Array<{ value: AnalyticsPeriod; label: string }> = [
 
 function RankingTable({ title, rows }: { title: string; rows: AnalyticsPersonStat[] }) {
   const orgPath = useOrgPath()
-  if (!shouldShowBlock(rows)) return null
+  if (!showBlock(rows)) return null
 
   return (
     <div className="rounded-[18px] border border-[#2A3A32] bg-[#121A18]">
@@ -171,7 +174,7 @@ export function AdminAnalyticsHome({ data }: { data: OrgAnalyticsDashboard }) {
 
             <div className="rounded-[18px] border border-[#2A3A32] bg-[#121A18] p-5">
               <h3 className="font-ui text-sm font-bold text-[#E8E4D8]">Operación</h3>
-              {shouldShowBlock(data.pending) ? (
+              {showBlock(data.pending) ? (
                 <ul className="mt-3 space-y-2">
                   {data.pending.map((item) => (
                     <li key={item.title}>
@@ -193,7 +196,7 @@ export function AdminAnalyticsHome({ data }: { data: OrgAnalyticsDashboard }) {
               ) : (
                 <p className="mt-3 text-sm text-[#8A938C]">Sin pendientes urgentes.</p>
               )}
-              {shouldShowBlock(data.unpaid) ? (
+              {showBlock(data.unpaid) ? (
                 <div className="mt-4 border-t border-[#2A3A32] pt-4">
                   <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[#8A938C]">
                     Impagos
@@ -286,7 +289,7 @@ export function AdminAnalyticsHome({ data }: { data: OrgAnalyticsDashboard }) {
           {data.league.visible ? (
             <div className="rounded-[18px] border border-[#2A3A32] bg-[#121A18] p-5">
               <h3 className="font-ui text-sm font-bold text-[#E8E4D8]">Liga en el período</h3>
-              {shouldShowBlock(data.league.standingsPreview) ? (
+              {showBlock(data.league.standingsPreview) ? (
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full min-w-[420px] text-left text-sm">
                     <thead>
