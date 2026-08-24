@@ -1,19 +1,19 @@
-import { Montserrat, Poppins, Roboto } from 'next/font/google'
+import { IBM_Plex_Mono, Manrope, Oswald } from 'next/font/google'
 
-export const montserrat = Montserrat({
-  variable: '--font-montserrat',
+export const oswald = Oswald({
+  variable: '--font-oswald',
   subsets: ['latin'],
-  weight: ['600', '700', '800'],
+  weight: ['500', '600', '700'],
 })
 
-export const poppins = Poppins({
-  variable: '--font-poppins',
+export const manrope = Manrope({
+  variable: '--font-manrope',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
 })
 
-export const roboto = Roboto({
-  variable: '--font-roboto',
+export const ibmPlexMono = IBM_Plex_Mono({
+  variable: '--font-ibm-plex-mono',
   subsets: ['latin'],
-  weight: ['400', '500'],
+  weight: ['400', '500', '600'],
 })

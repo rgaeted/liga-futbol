@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Providers } from '@/components/providers'
-import { montserrat, poppins, roboto } from '@/lib/fonts'
+import { ibmPlexMono, manrope, oswald } from '@/lib/fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#18181b',
+  themeColor: '#0B1210',
 }
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="es-CL"
-      className={`${montserrat.variable} ${poppins.variable} ${roboto.variable} h-full antialiased`}
+      className={`${oswald.variable} ${manrope.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
