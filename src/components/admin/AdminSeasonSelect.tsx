@@ -22,7 +22,7 @@ export function AdminSeasonSelect({
         const next = e.target.value
         router.push(next ? orgPath(`/admin?season=${encodeURIComponent(next)}`) : orgPath('/admin'))
       }}
-      className="h-[42px] rounded-[10px] border border-zinc-200 bg-white px-3 font-ui text-sm font-semibold text-zinc-900"
+      className="h-[42px] rounded-[10px] border border-[#2A3A32] bg-[#0B1210] px-3 font-ui text-sm font-semibold text-[#E8E4D8]"
     >
       {seasons.map((s) => (
         <option key={s.id} value={s.id}>

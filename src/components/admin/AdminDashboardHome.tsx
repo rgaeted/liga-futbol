@@ -15,32 +15,32 @@ export function AdminDashboardHome({ data }: { data: AdminDashboardData }) {
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="min-w-0">
           <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8A938C]">
               Panel de administración
             </span>
             {activeSeason?.isActive && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0B1210] px-2.5 py-0.5 text-[11px] font-bold text-[#3D8B6E]">
                 ● Temporada en curso
               </span>
             )}
           </div>
-          <h1 className="font-display text-4xl font-bold leading-none tracking-tight text-zinc-900">
+          <h1 className="font-display text-4xl font-semibold uppercase leading-none tracking-wide text-[#E8E4D8]">
             {data.seasonTitle}
           </h1>
-          <p className="mt-2 text-sm text-pretty text-zinc-500">{data.seasonSubtitle}</p>
+          <p className="mt-2 text-sm text-pretty text-[#8A938C]">{data.seasonSubtitle}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
           <AdminSeasonSelect seasons={data.seasons} value={data.seasonId} />
           <Link
             href={orgPath('/admin/matches')}
-            className="inline-flex h-[42px] items-center rounded-xl border border-[#dddde2] bg-white px-4 font-ui text-sm font-bold text-[#34343a] hover:bg-[#f7f7f9]"
+            className="inline-flex h-[42px] items-center rounded-xl border border-[#2A3A32] bg-transparent px-4 font-ui text-sm font-bold text-[#E8E4D8] hover:bg-[#121A18]"
           >
             Exportar
           </Link>
           <Link
             href={orgPath('/admin/matches')}
-            className="inline-flex h-[42px] items-center rounded-xl bg-[#c91f26] px-[18px] font-ui text-sm font-extrabold text-white shadow-[0_6px_14px_#c91f2630] hover:bg-[#b01b22]"
+            className="btn-kelme inline-flex h-[42px] items-center px-[18px]"
           >
             + Programar partido
           </Link>
@@ -49,23 +49,23 @@ export function AdminDashboardHome({ data }: { data: AdminDashboardData }) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.kpis.map((k) => (
-          <div key={k.label} className="rounded-[18px] border border-[#e5e5e9] bg-white px-5 py-[18px]">
+          <div key={k.label} className="rounded-[18px] border border-[#2A3A32] bg-[#121A18] px-5 py-[18px]">
             <div className="mb-2.5 flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wide text-[#999]">
+              <span className="text-[11px] font-black uppercase tracking-wide text-[#8A938C]">
                 {k.label}
               </span>
-              <span className="rounded-full bg-[#f4f4f6] px-2 py-0.5 text-[11px] font-bold text-[#777]">
+              <span className="rounded-full bg-[#0B1210] px-2 py-0.5 text-[11px] font-bold text-[#8A938C]">
                 {k.delta}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[40px] font-black leading-none">{k.value}</span>
-              <span className="text-[13px] font-semibold text-[#777]">{k.unit}</span>
+              <span className="font-data text-[40px] font-black leading-none text-[#E8E4D8]">{k.value}</span>
+              <span className="text-[13px] font-semibold text-[#8A938C]">{k.unit}</span>
             </div>
-            <div className="mt-3.5 h-[5px] overflow-hidden rounded-full bg-[#f0f0f2]">
-              <div className="h-full rounded-full bg-[#c91f26]" style={{ width: k.pct }} />
+            <div className="mt-3.5 h-[5px] overflow-hidden rounded-full bg-[#0B1210]">
+              <div className="h-full rounded-full bg-org-primary" style={{ width: k.pct }} />
             </div>
-            <div className="mt-2 text-[11px] text-[#aaa]">{k.foot}</div>
+            <div className="mt-2 text-[11px] text-[#8A938C]">{k.foot}</div>
           </div>
         ))}
       </div>
