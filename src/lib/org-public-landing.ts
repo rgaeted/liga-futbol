@@ -37,6 +37,10 @@ export type OrgPublicLanding = {
     name: string
     goals: number
   }>
+  assists: Array<{
+    name: string
+    assists: number
+  }>
 }
 
 const matchPublicSelect = {
@@ -163,17 +167,21 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
             type: true,
             playerId: true,
             player: { include: PLAYER_PERSON_NAME_INCLUDE },
+            assistPlayerId: true,
+            assistPlayer: { include: PLAYER_PERSON_NAME_INCLUDE },
           },
         },
       },
     }),
   ])
 
-  const scorerEvents = scorerMatches.flatMap((match) =>
+  const goalEvents = scorerMatches.flatMap((match) =>
     match.events.map((event) => ({
       type: event.type,
       playerId: event.playerId,
       playerName: event.player ? playerDisplayName(event.player) : null,
+      assistPlayerId: event.assistPlayerId,
+      assistName: event.assistPlayer ? playerDisplayName(event.assistPlayer) : null,
     })),
   )
 
@@ -187,7 +195,8 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     live: liveMatches.map(toLiveMatch),
     nextMatch: nextMatch ? toNextMatch(nextMatch) : null,
     results: results.map(toResultMatch),
-    scorers: tallyRecentScorers(scorerEvents),
+    scorers: tallyRecentScorers(goalEvents),
+    assists: tallyRecentAssists(goalEvents),
   }
 }
 
@@ -205,5 +214,26 @@ export function tallyRecentScorers(
   }
   return [...map.values()]
     .sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name, 'es'))
+    .slice(0, take)
+}
+
+export function tallyRecentAssists(
+  events: Array<{
+    type: string
+    assistPlayerId: string | null
+    assistName: string | null
+  }>,
+  take = 5,
+): Array<{ name: string; assists: number }> {
+  const map = new Map<string, { name: string; assists: number }>()
+  for (const e of events) {
+    if (e.type !== 'GOAL' || !e.assistPlayerId) continue
+    const row = map.get(e.assistPlayerId) ?? { name: e.assistName ?? 'Jugador', assists: 0 }
+    row.assists += 1
+    if (e.assistName) row.name = e.assistName
+    map.set(e.assistPlayerId, row)
+  }
+  return [...map.values()]
+    .sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name, 'es'))
     .slice(0, take)
 }

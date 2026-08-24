@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { tallyRecentScorers } from '@/lib/org-public-landing'
+import { tallyRecentAssists, tallyRecentScorers } from '@/lib/org-public-landing'
 
 describe('tallyRecentScorers', () => {
   it('counts GOAL only and ignores OWN_GOAL', () => {
@@ -30,6 +30,35 @@ describe('tallyRecentScorers', () => {
   })
 })
 
+describe('tallyRecentAssists', () => {
+  it('counts assists on GOAL events only when assistPlayerId is set', () => {
+    const assists = tallyRecentAssists([
+      { type: 'GOAL', assistPlayerId: 'p1', assistName: 'Ana' },
+      { type: 'GOAL', assistPlayerId: 'p1', assistName: 'Ana' },
+      { type: 'GOAL', assistPlayerId: null, assistName: null },
+      { type: 'OWN_GOAL', assistPlayerId: 'p1', assistName: 'Ana' },
+    ])
+    expect(assists).toEqual([{ name: 'Ana', assists: 2 }])
+  })
+
+  it('takes top 5 by assists then name', () => {
+    const events = Array.from({ length: 6 }, (_, i) => ({
+      type: 'GOAL',
+      assistPlayerId: `p${i}`,
+      assistName: `J${i}`,
+    })).concat(
+      Array.from({ length: 3 }, () => ({
+        type: 'GOAL',
+        assistPlayerId: 'p0',
+        assistName: 'J0',
+      })),
+    )
+    const assists = tallyRecentAssists(events, 5)
+    expect(assists).toHaveLength(5)
+    expect(assists[0]).toEqual({ name: 'J0', assists: 4 })
+  })
+})
+
 describe('public landing payload keys', () => {
   it('fixture JSON does not include paid or email', () => {
     const fixture = {
@@ -38,6 +67,7 @@ describe('public landing payload keys', () => {
       nextMatch: null,
       results: [],
       scorers: [{ name: 'Ana', goals: 1 }],
+      assists: [{ name: 'Ben', assists: 2 }],
     }
     const raw = JSON.stringify(fixture)
     expect(raw).not.toMatch(/paid/i)

@@ -11,8 +11,49 @@ function orgMonogram(name: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
+function PlayerRanking({
+  eyebrow,
+  title,
+  items,
+  valueKey,
+}: {
+  eyebrow: string
+  title: string
+  items: Array<{ name: string; goals?: number; assists?: number }>
+  valueKey: 'goals' | 'assists'
+}) {
+  return (
+    <div>
+      <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
+        {eyebrow}
+      </p>
+      <h2 className="font-display mt-1 text-2xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
+        {title}
+      </h2>
+      <ol className="mt-8 space-y-3">
+        {items.map((player, index) => (
+          <li
+            key={`${player.name}-${index}`}
+            className="card-kelme flex items-center justify-between gap-4 px-5 py-4"
+          >
+            <div className="flex items-center gap-4">
+              <span className="font-data w-6 text-center text-sm font-bold text-[#8A938C]">
+                {index + 1}
+              </span>
+              <span className="font-ui font-semibold text-[#E8E4D8]">{player.name}</span>
+            </div>
+            <span className="font-data text-lg font-bold text-org-primary">
+              {player[valueKey] ?? 0}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
 export function OrgPublicLanding({ data }: { data: OrgPublicLandingData }) {
-  const { organization, live, nextMatch, results, scorers } = data
+  const { organization, live, nextMatch, results, scorers, assists } = data
   const slug = organization.slug
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/${slug}`)}`
   const firstLive = live[0]
@@ -43,7 +84,7 @@ export function OrgPublicLanding({ data }: { data: OrgPublicLandingData }) {
                 {organization.name}
               </h1>
               <p className="mt-3 max-w-xl text-lg text-[#8A938C]">
-                Partidos, marcador y goleadores
+                Partidos, marcador, goleadores y asistencias
               </p>
             </div>
           </div>
@@ -72,7 +113,7 @@ export function OrgPublicLanding({ data }: { data: OrgPublicLandingData }) {
               Aún no hay partidos publicados
             </p>
             <p className="mt-2 text-sm text-[#8A938C]">
-              Vuelve más tarde para ver el fixture, resultados y goleadores.
+              Vuelve más tarde para ver el fixture, resultados y estadísticas.
             </p>
           </div>
         </section>
@@ -180,33 +221,35 @@ export function OrgPublicLanding({ data }: { data: OrgPublicLandingData }) {
             </section>
           ) : null}
 
-          {scorers.length > 0 ? (
+          {scorers.length > 0 || assists.length > 0 ? (
             <section className="border-t border-[#2A3A32] bg-[#121A18]">
               <div className="mx-auto max-w-5xl px-4 py-14">
                 <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
-                  Goleadores
+                  Estadísticas
                 </p>
                 <h2 className="font-display mt-1 text-2xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
                   Últimos 30 días
                 </h2>
-                <ol className="mt-8 space-y-3">
-                  {scorers.map((scorer, index) => (
-                    <li
-                      key={`${scorer.name}-${index}`}
-                      className="card-kelme flex items-center justify-between gap-4 px-5 py-4"
-                    >
-                      <div className="flex items-center gap-4">
-                        <span className="font-data w-6 text-center text-sm font-bold text-[#8A938C]">
-                          {index + 1}
-                        </span>
-                        <span className="font-ui font-semibold text-[#E8E4D8]">{scorer.name}</span>
-                      </div>
-                      <span className="font-data text-lg font-bold text-org-primary">
-                        {scorer.goals}
-                      </span>
-                    </li>
-                  ))}
-                </ol>
+                <div
+                  className={`mt-8 grid gap-10 ${scorers.length > 0 && assists.length > 0 ? 'md:grid-cols-2' : ''}`}
+                >
+                  {scorers.length > 0 ? (
+                    <PlayerRanking
+                      eyebrow="Goleadores"
+                      title="Top 5"
+                      items={scorers}
+                      valueKey="goals"
+                    />
+                  ) : null}
+                  {assists.length > 0 ? (
+                    <PlayerRanking
+                      eyebrow="Asistencias"
+                      title="Top 5"
+                      items={assists}
+                      valueKey="assists"
+                    />
+                  ) : null}
+                </div>
               </div>
             </section>
           ) : null}
