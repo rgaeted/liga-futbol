@@ -5,6 +5,7 @@ import { CallUpForm } from '@/components/coach/CallUpForm'
 import { matchDisplayName } from '@/lib/match-label'
 import { footballFormatLabel } from '@/lib/football-format'
 import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
+import { parseSlotLayout } from '@/lib/match-formations'
 
 function slotsFromCallUps(
   callUps: Array<{ playerId: string; slotKey: string | null }>
@@ -70,6 +71,7 @@ export default async function CoachCallUpPage({
         initialSelected={callUps.map((c) => c.playerId)}
         initialScheme={formation?.scheme ?? '4-3-3'}
         initialSlots={slotsFromCallUps(callUps)}
+        initialSlotLayout={parseSlotLayout(formation?.slotLayout)}
       />
     </div>
   )

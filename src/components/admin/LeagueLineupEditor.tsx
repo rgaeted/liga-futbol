@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import type { FootballFormat } from '@prisma/client'
-import { FormationEditor } from '@/components/lineup/FormationEditor'
+import { FormationEditor, type FormationSavePayload } from '@/components/lineup/FormationEditor'
+import type { SlotLayout } from '@/lib/formation-slot-layout'
 import { normalizeSchemeForFormat } from '@/lib/formations'
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
   label: string
   initialScheme: string
   initialSlots: Record<string, string>
+  initialSlotLayout?: SlotLayout | null
   players: Array<{ id: string; label: string }>
 }
 
@@ -22,15 +24,12 @@ export function LeagueLineupEditor({
   label,
   initialScheme,
   initialSlots,
+  initialSlotLayout = null,
   players,
 }: Props) {
   const router = useRouter()
 
-  async function onSave(payload: {
-    scheme: string
-    slots: Array<{ slotKey: string; playerId: string }>
-    benchPlayerIds: string[]
-  }) {
+  async function onSave(payload: FormationSavePayload) {
     const res = await fetch(`/api/matches/${matchId}/formations`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -39,6 +38,7 @@ export function LeagueLineupEditor({
         scheme: payload.scheme,
         slots: payload.slots.map((s) => ({ slotKey: s.slotKey, playerId: s.playerId })),
         benchPlayerIds: payload.benchPlayerIds,
+        slotLayout: payload.slotLayout,
       }),
     })
     if (!res.ok) {
@@ -62,6 +62,7 @@ export function LeagueLineupEditor({
           footballFormat={footballFormat}
           initialScheme={normalizeSchemeForFormat(initialScheme, footballFormat)}
           initialSlots={initialSlots}
+          initialSlotLayout={initialSlotLayout}
           players={players}
           onSave={onSave}
         />

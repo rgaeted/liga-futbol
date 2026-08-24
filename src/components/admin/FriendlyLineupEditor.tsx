@@ -2,9 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import type { FootballFormat, MatchFormation } from '@prisma/client'
-import { FormationEditor } from '@/components/lineup/FormationEditor'
+import { FormationEditor, type FormationSavePayload } from '@/components/lineup/FormationEditor'
+import type { SlotLayout } from '@/lib/formation-slot-layout'
 import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { normalizeSchemeForFormat, getDefaultScheme } from '@/lib/formations'
+import { parseSlotLayout } from '@/lib/match-formations'
 
 type Participation = {
   id: string
@@ -49,6 +51,7 @@ function SideEditor({
   scheme,
   players,
   initialSlots,
+  initialSlotLayout = null,
   readOnly = false,
 }: {
   matchId: string
@@ -58,15 +61,12 @@ function SideEditor({
   scheme: string
   players: Array<{ id: string; label: string; photoUrl?: string | null }>
   initialSlots: Record<string, string>
+  initialSlotLayout?: SlotLayout | null
   readOnly?: boolean
 }) {
   const router = useRouter()
 
-  async function onSave(payload: {
-    scheme: string
-    slots: Array<{ slotKey: string; playerId: string }>
-    benchPlayerIds: string[]
-  }) {
+  async function onSave(payload: FormationSavePayload) {
     const res = await fetch(`/api/matches/${matchId}/formations`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -75,6 +75,7 @@ function SideEditor({
         scheme: payload.scheme,
         slots: payload.slots,
         benchPlayerIds: payload.benchPlayerIds,
+        slotLayout: payload.slotLayout,
       }),
     })
     if (!res.ok) {
@@ -96,6 +97,7 @@ function SideEditor({
           footballFormat={footballFormat}
           initialScheme={normalizeSchemeForFormat(scheme, footballFormat)}
           initialSlots={initialSlots}
+          initialSlotLayout={initialSlotLayout}
           players={players}
           onSave={onSave}
           readOnly={readOnly}
@@ -151,6 +153,7 @@ export function FriendlyLineupEditor({
           scheme={formationA?.scheme ?? getDefaultScheme(footballFormat)}
           players={playersA}
           initialSlots={slotsForSide(participations, 'A')}
+          initialSlotLayout={parseSlotLayout(formationA?.slotLayout)}
           readOnly={readOnly}
         />
       )}
@@ -163,6 +166,7 @@ export function FriendlyLineupEditor({
           scheme={formationB?.scheme ?? getDefaultScheme(footballFormat)}
           players={playersB}
           initialSlots={slotsForSide(participations, 'B')}
+          initialSlotLayout={parseSlotLayout(formationB?.slotLayout)}
           readOnly={readOnly}
         />
       )}

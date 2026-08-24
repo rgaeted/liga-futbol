@@ -1,8 +1,8 @@
 'use client'
 
+import { useCallback, useRef, useState } from 'react'
 import { TeamCrest } from '@/components/TeamCrest'
 import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
-import { slotTopPercent } from '@/lib/formation-layout'
 import { personInitials } from '@/lib/player-name'
 import type { LineupView } from '@/lib/match-lineup'
 
@@ -21,6 +21,17 @@ type Props = {
   captainPlayerIds?: string[]
   paidByPlayerId?: Record<string, boolean>
   galletaPlayerIds?: string[]
+  layoutMode?: boolean
+  onSlotLayoutChange?: (slotKey: string, pos: { topPct: number; leftPct: number }) => void
+  readOnlyLayout?: boolean
+}
+
+const DRAG_THRESHOLD_PX = 5
+const MIN_PCT = 5
+const MAX_PCT = 95
+
+function clampPct(value: number): number {
+  return Math.min(MAX_PCT, Math.max(MIN_PCT, value))
 }
 
 function PitchSurface() {
@@ -190,6 +201,17 @@ function LivePlayerMarker({
   )
 }
 
+type DragState = {
+  slotKey: string
+  startX: number
+  startY: number
+  startTopPct: number
+  startLeftPct: number
+  currentTopPct: number
+  currentLeftPct: number
+  dragging: boolean
+}
+
 export function FormationPitch({
   lineup,
   onSelectSlot,
@@ -204,13 +226,104 @@ export function FormationPitch({
   captainPlayerIds,
   paidByPlayerId,
   galletaPlayerIds,
+  layoutMode = false,
+  onSlotLayoutChange,
+  readOnlyLayout = false,
 }: Props) {
-  const maxRow = Math.max(...lineup.pitch.map((s) => s.row), 0)
-  const compact = lineup.pitch.length < 11
+  const pitchRef = useRef<HTMLDivElement>(null)
+  const skipNextClickRef = useRef(false)
+  const [dragState, setDragState] = useState<DragState | null>(null)
   const isLive = variant === 'live'
+  const canDragLayout = layoutMode && !readOnlyLayout && !isLive && Boolean(onSlotLayoutChange)
+
+  const clientToPct = useCallback((clientX: number, clientY: number) => {
+    const rect = pitchRef.current?.getBoundingClientRect()
+    if (!rect) return null
+    const topPct = clampPct(((clientY - rect.top) / rect.height) * 100)
+    const leftPct = clampPct(((clientX - rect.left) / rect.width) * 100)
+    return { topPct, leftPct }
+  }, [])
+
+  function handlePointerDown(
+    e: React.PointerEvent<HTMLButtonElement>,
+    slot: LineupView['pitch'][number]
+  ) {
+    if (!canDragLayout || slot.slotKey === 'GK') return
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setDragState({
+      slotKey: slot.slotKey,
+      startX: e.clientX,
+      startY: e.clientY,
+      startTopPct: slot.topPct,
+      startLeftPct: slot.leftPct,
+      currentTopPct: slot.topPct,
+      currentLeftPct: slot.leftPct,
+      dragging: false,
+    })
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!dragState) return
+    const dx = e.clientX - dragState.startX
+    const dy = e.clientY - dragState.startY
+    const dist = Math.hypot(dx, dy)
+    const pct = clientToPct(e.clientX, e.clientY)
+    if (!pct) return
+
+    if (!dragState.dragging && dist >= DRAG_THRESHOLD_PX) {
+      setDragState((prev) =>
+        prev ? { ...prev, dragging: true, currentTopPct: pct.topPct, currentLeftPct: pct.leftPct } : null
+      )
+      return
+    }
+
+    if (dragState.dragging) {
+      setDragState((prev) =>
+        prev ? { ...prev, currentTopPct: pct.topPct, currentLeftPct: pct.leftPct } : null
+      )
+    }
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!dragState) return
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+
+    const dx = e.clientX - dragState.startX
+    const dy = e.clientY - dragState.startY
+    const dist = Math.hypot(dx, dy)
+
+    if (dragState.dragging || dist >= DRAG_THRESHOLD_PX) {
+      skipNextClickRef.current = true
+      onSlotLayoutChange?.(dragState.slotKey, {
+        topPct: dragState.currentTopPct,
+        leftPct: dragState.currentLeftPct,
+      })
+    }
+
+    setDragState(null)
+  }
+
+  function handlePointerCancel(e: React.PointerEvent<HTMLButtonElement>) {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+    setDragState(null)
+  }
+
+  function handleClick(slotKey: string) {
+    if (layoutMode || skipNextClickRef.current) {
+      skipNextClickRef.current = false
+      return
+    }
+    onSelectSlot?.(slotKey)
+  }
 
   const pitch = (
     <div
+      ref={pitchRef}
       className={`relative aspect-[2/3] w-full overflow-visible rounded-xl border border-emerald-900/80 ${
         isLive ? 'shadow-inner' : 'border-emerald-800 bg-gradient-to-b from-emerald-700 to-emerald-900'
       }`}
@@ -226,11 +339,13 @@ export function FormationPitch({
       </p>
 
       {lineup.pitch.map((slot) => {
-        const top = `${slotTopPercent(slot.row, maxRow, variant, compact)}%`
-        const left = `${slot.col * 100}%`
+        const isDragging = dragState?.slotKey === slot.slotKey
+        const top = isDragging ? `${dragState.currentTopPct}%` : `${slot.topPct}%`
+        const left = isDragging ? `${dragState.currentLeftPct}%` : `${slot.leftPct}%`
         const filled = Boolean(slot.playerName)
         const isMvp = Boolean(slot.playerId && mvpPlayerIds?.includes(slot.playerId))
         const isCaptain = Boolean(slot.playerId && captainPlayerIds?.includes(slot.playerId))
+        const draggable = canDragLayout && slot.slotKey !== 'GK'
 
         if (isLive) {
           return (
@@ -251,11 +366,22 @@ export function FormationPitch({
           <button
             key={slot.slotKey}
             type="button"
-            disabled={!onSelectSlot}
-            onClick={() => onSelectSlot?.(slot.slotKey)}
-            style={{ top, left, transform: 'translate(-50%, -50%)' }}
+            disabled={!onSelectSlot && !draggable}
+            onClick={() => handleClick(slot.slotKey)}
+            onPointerDown={draggable ? (e) => handlePointerDown(e, slot) : undefined}
+            onPointerMove={draggable ? handlePointerMove : undefined}
+            onPointerUp={draggable ? handlePointerUp : undefined}
+            onPointerCancel={draggable ? handlePointerCancel : undefined}
+            style={{
+              top,
+              left,
+              transform: 'translate(-50%, -50%)',
+              touchAction: draggable ? 'none' : undefined,
+            }}
             className={`absolute z-10 flex flex-col items-center justify-center text-center leading-tight ${
-              selectedSlotKey === slot.slotKey ? 'scale-105' : ''
+              selectedSlotKey === slot.slotKey && !layoutMode ? 'scale-105' : ''
+            } ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${
+              isDragging && dragState.dragging ? 'z-30' : ''
             }`}
           >
             <PlayerCircle

@@ -8,6 +8,7 @@ import { LeagueLineupEditor } from '@/components/admin/LeagueLineupEditor'
 import Link from 'next/link'
 import { orgPath } from '@/lib/tenant-paths'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
+import { parseSlotLayout } from '@/lib/match-formations'
 
 function slotsFromCallUps(
   callUps: Array<{ playerId: string; slotKey: string | null }>
@@ -93,6 +94,9 @@ export default async function AdminMatchLineupPage({
               initialSlots={slotsFromCallUps(
                 match.callUps.filter((c) => c.player.teamId === match.homeTeamId)
               )}
+              initialSlotLayout={parseSlotLayout(
+                match.formations.find((f) => f.teamId === match.homeTeamId)?.slotLayout
+              )}
               players={match.callUps
                 .filter((c) => c.player.teamId === match.homeTeamId)
                 .map((c) => ({
@@ -113,6 +117,9 @@ export default async function AdminMatchLineupPage({
               }
               initialSlots={slotsFromCallUps(
                 match.callUps.filter((c) => c.player.teamId === match.awayTeamId)
+              )}
+              initialSlotLayout={parseSlotLayout(
+                match.formations.find((f) => f.teamId === match.awayTeamId)?.slotLayout
               )}
               players={match.callUps
                 .filter((c) => c.player.teamId === match.awayTeamId)

@@ -13,7 +13,7 @@ export type FormationSideView = {
   lineup: LineupView | null
 }
 
-function parseSlotLayout(raw: Prisma.JsonValue | null | undefined): SlotLayout | null {
+export function parseSlotLayout(raw: Prisma.JsonValue | null | undefined): SlotLayout | null {
   if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return null
   const layout: SlotLayout = {}
   for (const [key, value] of Object.entries(raw)) {

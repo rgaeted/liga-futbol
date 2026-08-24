@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { FootballFormat } from '@prisma/client'
-import { FormationEditor } from '@/components/lineup/FormationEditor'
+import { FormationEditor, type FormationSavePayload } from '@/components/lineup/FormationEditor'
+import type { SlotLayout } from '@/lib/formation-slot-layout'
 import { minCallUpSize } from '@/lib/football-format'
 import { normalizeSchemeForFormat } from '@/lib/formations'
 import { playerDisplayName, type PlayerNameSource } from '@/lib/person-name'
@@ -22,6 +23,7 @@ export function CallUpForm({
   initialSelected = [],
   initialScheme = '4-3-3',
   initialSlots = {},
+  initialSlotLayout = null,
 }: {
   matchId: string
   teamId: string
@@ -30,6 +32,7 @@ export function CallUpForm({
   initialSelected?: string[]
   initialScheme?: string
   initialSlots?: Record<string, string>
+  initialSlotLayout?: SlotLayout | null
 }) {
   const router = useRouter()
   const [selected, setSelected] = useState<string[]>(initialSelected)
@@ -56,11 +59,7 @@ export function CallUpForm({
     }
   }
 
-  async function handleSave(payload: {
-    scheme: string
-    slots: Array<{ slotKey: string; playerId: string }>
-    benchPlayerIds: string[]
-  }) {
+  async function handleSave(payload: FormationSavePayload) {
     if (selected.length < minPlayers) {
       throw new Error(`Selecciona al menos ${minPlayers} jugadores`)
     }
@@ -73,6 +72,7 @@ export function CallUpForm({
         scheme: payload.scheme,
         slots: payload.slots.map((s) => ({ slotKey: s.slotKey, playerId: s.playerId })),
         benchPlayerIds: payload.benchPlayerIds,
+        slotLayout: payload.slotLayout,
       }),
     })
 
@@ -123,6 +123,7 @@ export function CallUpForm({
           footballFormat={footballFormat}
           initialScheme={normalizeSchemeForFormat(initialScheme, footballFormat)}
           initialSlots={filteredInitialSlots}
+          initialSlotLayout={initialSlotLayout}
           players={selectedPlayers}
           onSave={handleSave}
           saveLabel="Guardar citación y formación"

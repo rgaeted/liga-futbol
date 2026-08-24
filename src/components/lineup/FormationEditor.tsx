@@ -9,6 +9,7 @@ import {
   normalizeSchemeForFormat,
 } from '@/lib/formations'
 import { buildLineupView } from '@/lib/match-lineup'
+import { type SlotLayout } from '@/lib/formation-slot-layout'
 import { footballFormatLabel } from '@/lib/football-format'
 import { calculateFormationFit, playerFitScoreForSlot } from '@/lib/formation-position-fit'
 import { FormationPitch } from './FormationPitch'
@@ -22,16 +23,20 @@ export type EditorPlayer = {
   secondaryPosition?: string | null
 }
 
+export type FormationSavePayload = {
+  scheme: string
+  slots: Array<{ slotKey: string; playerId: string }>
+  benchPlayerIds: string[]
+  slotLayout: SlotLayout | null
+}
+
 type Props = {
   footballFormat: FootballFormat
   initialScheme?: string
   initialSlots?: Record<string, string>
+  initialSlotLayout?: SlotLayout | null
   players: EditorPlayer[]
-  onSave: (payload: {
-    scheme: string
-    slots: Array<{ slotKey: string; playerId: string }>
-    benchPlayerIds: string[]
-  }) => Promise<void>
+  onSave: (payload: FormationSavePayload) => Promise<void>
   saveLabel?: string
   readOnly?: boolean
 }
@@ -40,6 +45,7 @@ export function FormationEditor({
   footballFormat,
   initialScheme,
   initialSlots = {},
+  initialSlotLayout = null,
   players,
   onSave,
   saveLabel = 'Guardar formación',
@@ -51,6 +57,8 @@ export function FormationEditor({
 
   const [scheme, setScheme] = useState(resolvedInitialScheme)
   const [slots, setSlots] = useState<Record<string, string>>(initialSlots)
+  const [slotLayout, setSlotLayout] = useState<SlotLayout>(initialSlotLayout ?? {})
+  const [layoutMode, setLayoutMode] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -60,6 +68,7 @@ export function FormationEditor({
   const lineup = buildLineupView({
     scheme,
     footballFormat,
+    slotLayout,
     assignments: Object.entries(slots).map(([slotKey, playerId]) => {
       const player = players.find((p) => p.id === playerId)
       return {
@@ -86,7 +95,19 @@ export function FormationEditor({
   )
 
   function onSchemeChange(next: string) {
+    if (next === scheme) return
+    const hasCustomLayout = Object.keys(slotLayout).length > 0
+    if (
+      hasCustomLayout &&
+      !window.confirm(
+        'Cambiar el esquema restablecerá las posiciones personalizadas en la cancha. ¿Continuar?'
+      )
+    ) {
+      return
+    }
+
     setScheme(next)
+    setSlotLayout({})
     const valid = new Set(getFormationSlots(next, footballFormat).map((s) => s.key))
     setSlots((prev) => {
       const nextSlots: Record<string, string> = {}
@@ -96,6 +117,14 @@ export function FormationEditor({
       return nextSlots
     })
     setSelectedSlot(null)
+  }
+
+  function handleSlotLayoutChange(slotKey: string, pos: { topPct: number; leftPct: number }) {
+    setSlotLayout((prev) => ({ ...prev, [slotKey]: pos }))
+  }
+
+  function restoreDefaultLayout() {
+    setSlotLayout({})
   }
 
   function assignPlayerToSelected(playerId: string) {
@@ -130,6 +159,7 @@ export function FormationEditor({
           playerId,
         })),
         benchPlayerIds: players.filter((p) => !assignedIds.has(p.id)).map((p) => p.id),
+        slotLayout: Object.keys(slotLayout).length > 0 ? slotLayout : null,
       })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar')
@@ -168,12 +198,47 @@ export function FormationEditor({
           </select>
         </label>
         <FormationFitScore fit={formationFit} />
+        {!readOnly && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setLayoutMode((prev) => !prev)
+                setSelectedSlot(null)
+              }}
+              className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${
+                layoutMode
+                  ? 'border-kelme-red bg-kelme-red/10 text-kelme-red'
+                  : 'border-kelme-border bg-kelme-surface text-kelme-gray-400'
+              }`}
+            >
+              {layoutMode ? 'Modo ajustar posiciones' : 'Ajustar posiciones'}
+            </button>
+            {Object.keys(slotLayout).length > 0 && (
+              <button
+                type="button"
+                onClick={restoreDefaultLayout}
+                className="text-sm text-kelme-gray-400 hover:underline"
+              >
+                Restaurar posiciones
+              </button>
+            )}
+          </div>
+        )}
+        {layoutMode && !readOnly && (
+          <p className="text-xs text-kelme-gray-400">
+            Arrastra los jugadores en la cancha para ajustar su posición. El arquero no se puede mover.
+          </p>
+        )}
         <FormationPitch
           lineup={lineup}
-          selectedSlotKey={readOnly ? null : selectedSlot}
-          onSelectSlot={readOnly ? () => {} : setSelectedSlot}
+          selectedSlotKey={readOnly || layoutMode ? null : selectedSlot}
+          onSelectSlot={readOnly || layoutMode ? undefined : setSelectedSlot}
+          layoutMode={layoutMode}
+          onSlotLayoutChange={readOnly ? undefined : handleSlotLayoutChange}
+          readOnlyLayout={readOnly}
         />
-        {selectedSlot && !readOnly && (
+        {selectedSlot && !readOnly && !layoutMode && (
           <button
             type="button"
             onClick={clearSelectedSlot}
@@ -187,9 +252,11 @@ export function FormationEditor({
         <p className="text-sm text-kelme-gray-400">
           {readOnly
             ? 'Partido finalizado — formación de solo lectura.'
-            : selectedSlot
-              ? `Elige jugador para ${selectedSlot}`
-              : 'Toca un slot en la cancha, luego elige un jugador'}
+            : layoutMode
+              ? 'Modo ajustar posiciones — arrastra los marcadores en la cancha.'
+              : selectedSlot
+                ? `Elige jugador para ${selectedSlot}`
+                : 'Toca un slot en la cancha, luego elige un jugador'}
         </p>
         <ul className="max-h-96 space-y-2 overflow-y-auto">
           {players.map((p) => {
@@ -204,7 +271,7 @@ export function FormationEditor({
               <li key={p.id}>
                 <button
                   type="button"
-                  disabled={readOnly || !selectedSlot}
+                  disabled={readOnly || layoutMode || !selectedSlot}
                   onClick={() => assignPlayerToSelected(p.id)}
                   className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm disabled:opacity-40 ${
                     inPitch
