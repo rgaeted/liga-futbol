@@ -33,7 +33,7 @@ export default async function TenantLayout({
   if (!org) notFound()
   if (org.status === 'PAUSED') {
     return (
-      <main className="flex min-h-screen items-center justify-center p-8">
+      <main className="flex min-h-screen items-center justify-center bg-[#0B1210] p-8 text-[#E8E4D8]">
         <p>{pausedOrganizationPayload().error}</p>
       </main>
     )
