@@ -5,6 +5,7 @@ import { requireOrgRole } from '@/lib/auth'
 import { createUserSchema } from '@/lib/validations/user'
 import { MembershipRole } from '@/lib/membership-role'
 import { resolveUserRoleTags } from '@/lib/user-roles-display'
+import { linkCoachPersonIfNeeded } from '@/lib/friendly-match-coach'
 
 export async function GET() {
   const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
@@ -83,5 +84,10 @@ export async function POST(req: Request) {
     })
     return { ...created, role }
   })
+
+  if (role === MembershipRole.FRIENDLY_COACH) {
+    await linkCoachPersonIfNeeded(user.id, organizationId)
+  }
+
   return NextResponse.json(user, { status: 201 })
 }

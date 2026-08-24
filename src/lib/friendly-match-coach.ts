@@ -1,6 +1,79 @@
 import { db } from '@/lib/db'
+import { MembershipRole } from '@/lib/membership-role'
+import { splitPersonName } from '@/lib/person-name'
 import type { FriendlySide } from '@prisma/client'
 import type { FriendlyRosterEntry } from '@/lib/friendly-match-captain'
+
+const friendlyCoachMatchInclude = {
+  match: {
+    select: {
+      id: true,
+      matchType: true,
+      sideAName: true,
+      sideBName: true,
+      scheduledAt: true,
+      status: true,
+      footballFormat: true,
+      venue: true,
+    },
+  },
+} as const
+
+function unlinkedPersonNameFilter(name: string) {
+  const { firstName, lastName } = splitPersonName(name)
+  return {
+    userId: null as null,
+    firstName: { equals: firstName, mode: 'insensitive' as const },
+    ...(lastName ? { lastName: { equals: lastName, mode: 'insensitive' as const } } : {}),
+  }
+}
+
+/** Player ids in org that represent this user as DT amistoso (linked account or name-matched roster). */
+export async function coachPlayerIdsForUser(
+  userId: string,
+  organizationId: string,
+  options?: { autoLink?: boolean },
+): Promise<string[]> {
+  const linked = await db.player.findMany({
+    where: { organizationId, person: { userId } },
+    select: { id: true },
+  })
+  if (linked.length > 0) return linked.map((p) => p.id)
+
+  const membership = await db.organizationMembership.findUnique({
+    where: { organizationId_userId: { organizationId, userId } },
+    select: { role: true },
+  })
+  if (membership?.role !== MembershipRole.FRIENDLY_COACH) return []
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { name: true, person: { select: { id: true } } },
+  })
+  if (!user) return []
+
+  const candidates = await db.player.findMany({
+    where: {
+      organizationId,
+      person: unlinkedPersonNameFilter(user.name),
+      friendlyParticipations: { some: { isCoach: true } },
+    },
+    select: { id: true, personId: true },
+  })
+
+  if (
+    options?.autoLink &&
+    candidates.length === 1 &&
+    !user.person
+  ) {
+    await db.person.update({
+      where: { id: candidates[0].personId },
+      data: { userId },
+    })
+  }
+
+  return candidates.map((p) => p.id)
+}
 
 export function validateFriendlyCoaches(players: FriendlyRosterEntry[]): string | null {
   for (const side of ['A', 'B'] as const) {
@@ -33,16 +106,13 @@ export async function friendlyCoachSideForUser(
   matchId: string,
   organizationId: string,
 ): Promise<FriendlySide | null> {
-  const profile = await db.player.findFirst({
-    where: { organizationId, person: { userId } },
-    select: { id: true },
-  })
-  if (!profile) return null
+  const playerIds = await coachPlayerIdsForUser(userId, organizationId)
+  if (playerIds.length === 0) return null
 
   const participation = await db.friendlyMatchPlayer.findFirst({
     where: {
       matchId,
-      playerId: profile.id,
+      playerId: { in: playerIds },
       isCoach: true,
     },
     select: { side: true },
@@ -75,32 +145,20 @@ export function resolveFriendlyCoaches(
 }
 
 export async function listFriendlyCoachMatchesForUser(userId: string, organizationId: string) {
-  const profile = await db.player.findFirst({
-    where: { organizationId, person: { userId } },
-    select: { id: true },
-  })
-  if (!profile) return []
+  const playerIds = await coachPlayerIdsForUser(userId, organizationId, { autoLink: true })
+  if (playerIds.length === 0) return []
 
   return db.friendlyMatchPlayer.findMany({
     where: {
-      playerId: profile.id,
+      playerId: { in: playerIds },
       isCoach: true,
       match: { matchType: 'FRIENDLY' },
     },
-    include: {
-      match: {
-        select: {
-          id: true,
-          matchType: true,
-          sideAName: true,
-          sideBName: true,
-          scheduledAt: true,
-          status: true,
-          footballFormat: true,
-          venue: true,
-        },
-      },
-    },
+    include: friendlyCoachMatchInclude,
     orderBy: { match: { scheduledAt: 'desc' } },
   })
+}
+
+export async function linkCoachPersonIfNeeded(userId: string, organizationId: string) {
+  await coachPlayerIdsForUser(userId, organizationId, { autoLink: true })
 }

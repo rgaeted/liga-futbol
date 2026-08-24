@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
 import { updateUserSchema } from '@/lib/validations/user'
 import { MembershipRole } from '@/lib/membership-role'
+import { linkCoachPersonIfNeeded } from '@/lib/friendly-match-coach'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { organizationId, session } = await requireOrgRole([MembershipRole.ORG_ADMIN])
@@ -62,6 +63,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     where: { organizationId_userId: { organizationId, userId: id } },
     select: { role: true },
   })
+
+  if (updatedMembership.role === MembershipRole.FRIENDLY_COACH) {
+    await linkCoachPersonIfNeeded(id, organizationId)
+  }
 
   return NextResponse.json({ ...user, role: updatedMembership.role })
 }
