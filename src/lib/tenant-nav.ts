@@ -18,13 +18,14 @@ export async function loadTenantNavContext(
   const [playerCount, coachPartCount] = await Promise.all([
     db.player.count({
       where: {
+        organizationId,
         person: { userId },
       },
     }),
     db.friendlyMatchPlayer.count({
       where: {
         isCoach: true,
-        player: { person: { userId } },
+        player: { organizationId, person: { userId } },
       },
     }),
   ])
@@ -126,7 +127,12 @@ export function buildTenantNavGroups(
       label: 'Jugador',
       items: [
         { href: base('/player'), label: 'Mi panel', icon: 'IN' },
-        { href: base('/player/matches'), label: 'Mis partidos', icon: 'PA' },
+        {
+          href: base('/player/matches'),
+          label: 'Mis partidos',
+          icon: 'PA',
+          activePrefixes: [base('/player/matches')],
+        },
       ],
     })
   }

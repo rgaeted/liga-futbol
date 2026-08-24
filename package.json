@@ -27,6 +27,7 @@
     "db:generate:liga-kelme-sur-sql": "tsx scripts/generate-liga-kelme-sur-sql.ts",
     "db:migrate:lunes-to-loslunes": "tsx scripts/migrate-lunes-category-to-loslunes.ts",
     "db:ensure:kelme": "tsx scripts/ensure-kelme-organization.ts",
+    "db:backfill:player-memberships": "tsx scripts/backfill-player-memberships.ts",
     "db:clear:demo": "tsx prisma/clear-demo.ts",
     "db:verify:migration": "tsx scripts/verify-database-migration.ts",
     "icons": "node scripts/generate-icons.mjs"

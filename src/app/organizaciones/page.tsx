@@ -1,8 +1,12 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { resolvePrimaryDashboardPath } from '@/lib/membership-role'
+import {
+  resolvePrimaryDashboardPath,
+} from '@/lib/membership-role'
 import { redirect } from 'next/navigation'
 import { OrganizationPicker } from '@/components/plataforma/OrganizationPicker'
+import { syncPlayerDerivedMemberships } from '@/lib/player-memberships'
+import { listAccessibleMemberships } from '@/lib/tenant-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,18 +14,19 @@ export default async function OrganizacionesPage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/login')
 
-  const memberships = await db.organizationMembership.findMany({
-    where: { userId: session.user.id },
-    include: {
-      organization: { select: { id: true, name: true, slug: true, status: true } },
-    },
-    orderBy: { organization: { name: 'asc' } },
-  })
+  await syncPlayerDerivedMemberships(session.user.id)
 
-  const active = memberships.filter((m) => m.organization.status === 'ACTIVE')
+  const accessible = await listAccessibleMemberships(
+    session.user.id,
+    session.user.isPlatformAdmin,
+  )
 
-  if (active.length === 1) {
-    redirect(resolvePrimaryDashboardPath(active[0].organization.slug, active[0].roles))
+  if (accessible.length === 1) {
+    redirect(resolvePrimaryDashboardPath(accessible[0].slug, accessible[0].roles))
+  }
+
+  if (accessible.length === 0) {
+    redirect(session.user.isPlatformAdmin ? '/plataforma' : '/login?error=sin-acceso')
   }
 
   return (
@@ -40,14 +45,7 @@ export default async function OrganizacionesPage() {
           </div>
         </div>
         <div className="card-kelme p-6">
-          <OrganizationPicker
-            memberships={active.map((m) => ({
-              organizationId: m.organizationId,
-              name: m.organization.name,
-              slug: m.organization.slug,
-              roles: m.roles,
-            }))}
-          />
+          <OrganizationPicker memberships={accessible} />
         </div>
       </div>
     </main>

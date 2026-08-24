@@ -25,6 +25,7 @@ type Props = {
   participations: Participation[]
   /** Si se define, solo muestra ese lado (DT amistoso). */
   editableSide?: 'A' | 'B'
+  readOnly?: boolean
 }
 
 function slotsForSide(
@@ -48,6 +49,7 @@ function SideEditor({
   scheme,
   players,
   initialSlots,
+  readOnly = false,
 }: {
   matchId: string
   side: 'A' | 'B'
@@ -56,6 +58,7 @@ function SideEditor({
   scheme: string
   players: Array<{ id: string; label: string; photoUrl?: string | null }>
   initialSlots: Record<string, string>
+  readOnly?: boolean
 }) {
   const router = useRouter()
 
@@ -95,6 +98,7 @@ function SideEditor({
           initialSlots={initialSlots}
           players={players}
           onSave={onSave}
+          readOnly={readOnly}
         />
       )}
     </section>
@@ -109,6 +113,7 @@ export function FriendlyLineupEditor({
   formations,
   participations,
   editableSide,
+  readOnly = false,
 }: Props) {
   const formationA = formations.find((f) => f.side === 'A')
   const formationB = formations.find((f) => f.side === 'B')
@@ -146,6 +151,7 @@ export function FriendlyLineupEditor({
           scheme={formationA?.scheme ?? getDefaultScheme(footballFormat)}
           players={playersA}
           initialSlots={slotsForSide(participations, 'A')}
+          readOnly={readOnly}
         />
       )}
       {showB && (
@@ -157,6 +163,7 @@ export function FriendlyLineupEditor({
           scheme={formationB?.scheme ?? getDefaultScheme(footballFormat)}
           players={playersB}
           initialSlots={slotsForSide(participations, 'B')}
+          readOnly={readOnly}
         />
       )}
     </div>

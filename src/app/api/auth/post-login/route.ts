@@ -6,15 +6,27 @@ import {
   organizationSlugFromPath,
   resolvePostLoginDestination,
 } from '@/lib/post-login-redirect'
+import {
+  friendlyParticipationCountByOrg,
+  syncPlayerDerivedMemberships,
+} from '@/lib/player-memberships'
 
-function organizationIdForDestination(
+async function organizationIdForDestination(
   path: string,
   activeMemberships: Array<{ organizationId: string; organization: { slug: string } }>,
-): string | null {
+  isPlatformAdmin: boolean,
+): Promise<string | null> {
   const slug = organizationSlugFromPath(path)
   if (slug) {
     const match = activeMemberships.find((m) => m.organization.slug === slug)
     if (match) return match.organizationId
+    if (isPlatformAdmin) {
+      const org = await db.organization.findFirst({
+        where: { slug, status: 'ACTIVE' },
+        select: { id: true },
+      })
+      return org?.id ?? null
+    }
   }
   return activeMemberships.length === 1 ? activeMemberships[0].organizationId : null
 }
@@ -30,6 +42,8 @@ export async function GET(req: Request) {
   const wantsRedirect =
     url.searchParams.get('redirect') === '1' || callbackUrl !== null
 
+  await syncPlayerDerivedMemberships(session.user.id)
+
   const memberships = await db.organizationMembership.findMany({
     where: { userId: session.user.id },
     include: {
@@ -38,6 +52,7 @@ export async function GET(req: Request) {
   })
 
   const activeMemberships = memberships.filter((m) => m.organization.status === 'ACTIVE')
+  const friendlyParticipationsBySlug = await friendlyParticipationCountByOrg(session.user.id)
 
   const path = resolvePostLoginDestination({
     isPlatformAdmin: session.user.isPlatformAdmin,
@@ -47,9 +62,14 @@ export async function GET(req: Request) {
       status: m.organization.status,
     })),
     callbackUrl,
+    friendlyParticipationsBySlug,
   })
 
-  const organizationId = organizationIdForDestination(path, activeMemberships)
+  const organizationId = await organizationIdForDestination(
+    path,
+    activeMemberships,
+    session.user.isPlatformAdmin,
+  )
   const cookieOptions =
     organizationId != null ? orgCookieOptions(organizationId) : clearOrgCookieOptions()
 

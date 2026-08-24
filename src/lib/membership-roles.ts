@@ -11,7 +11,22 @@ export async function mergeMembershipRole(
     where: { organizationId_userId: { organizationId, userId } },
     select: { id: true, roles: true },
   })
-  if (!membership) return
+
+  if (!membership) {
+    const hasPlayerProfile = await db.player.findFirst({
+      where: { organizationId, person: { userId } },
+      select: { id: true },
+    })
+    if (!hasPlayerProfile) return
+
+    const roles =
+      role === Role.PLAYER ? [Role.PLAYER] : [Role.PLAYER, role]
+    await db.organizationMembership.create({
+      data: { organizationId, userId, roles },
+    })
+    return
+  }
+
   if (membership.roles.includes(role)) return
 
   await db.organizationMembership.update({

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
 import { primaryMembershipRole } from '@/lib/membership-role'
+import { syncPlayerDerivedMemberships } from '@/lib/player-memberships'
+import { listAccessibleMemberships } from '@/lib/tenant-access'
 
 export async function GET() {
   const session = await auth()
@@ -9,22 +10,18 @@ export async function GET() {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
-  const memberships = await db.organizationMembership.findMany({
-    where: {
-      userId: session.user.id,
-      organization: { status: 'ACTIVE' },
-    },
-    include: {
-      organization: { select: { id: true, slug: true, name: true } },
-    },
-    orderBy: { organization: { name: 'asc' } },
-  })
+  await syncPlayerDerivedMemberships(session.user.id)
+
+  const memberships = await listAccessibleMemberships(
+    session.user.id,
+    session.user.isPlatformAdmin,
+  )
 
   return NextResponse.json(
     memberships.map((m) => ({
       organizationId: m.organizationId,
-      slug: m.organization.slug,
-      name: m.organization.name,
+      slug: m.slug,
+      name: m.name,
       roles: m.roles,
       role: primaryMembershipRole(m.roles),
     })),

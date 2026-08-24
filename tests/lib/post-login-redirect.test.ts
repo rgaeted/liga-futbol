@@ -16,6 +16,15 @@ describe('resolvePostLoginPath', () => {
     ).toBe('/plataforma')
   })
 
+  it('sends platform admin with memberships to /plataforma', () => {
+    expect(
+      resolvePostLoginPath({
+        isPlatformAdmin: true,
+        memberships: [{ slug: 'kelme', roles: [MembershipRole.ORG_ADMIN], status: 'ACTIVE' }],
+      }),
+    ).toBe('/plataforma')
+  })
+
   it('sends a user with one active membership to their dashboard', () => {
     expect(
       resolvePostLoginPath({
@@ -33,6 +42,32 @@ describe('resolvePostLoginPath', () => {
           { slug: 'kelme', roles: [MembershipRole.ORG_ADMIN], status: 'ACTIVE' },
           { slug: 'otra', roles: [MembershipRole.REFEREE], status: 'ACTIVE' },
         ],
+      }),
+    ).toBe('/organizaciones')
+  })
+
+  it('prefers the org with more friendly participations when tied memberships differ', () => {
+    expect(
+      resolvePostLoginPath({
+        isPlatformAdmin: false,
+        memberships: [
+          { slug: 'kelme', roles: [MembershipRole.FRIENDLY_COACH], status: 'ACTIVE' },
+          { slug: 'loslunes', roles: [MembershipRole.PLAYER], status: 'ACTIVE' },
+        ],
+        friendlyParticipationsBySlug: { kelme: 0, loslunes: 5 },
+      }),
+    ).toBe('/loslunes/player')
+  })
+
+  it('falls back to the picker when activity is tied across orgs', () => {
+    expect(
+      resolvePostLoginPath({
+        isPlatformAdmin: false,
+        memberships: [
+          { slug: 'kelme', roles: [MembershipRole.PLAYER], status: 'ACTIVE' },
+          { slug: 'loslunes', roles: [MembershipRole.PLAYER], status: 'ACTIVE' },
+        ],
+        friendlyParticipationsBySlug: { kelme: 2, loslunes: 2 },
       }),
     ).toBe('/organizaciones')
   })

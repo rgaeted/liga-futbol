@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { MatchType } from '@prisma/client'
+import { MatchStatus, MatchType } from '@prisma/client'
 import { db } from '@/lib/db'
 import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { MembershipRole } from '@/lib/membership-role'
@@ -101,6 +101,16 @@ export async function PUT(
     return NextResponse.json({ error: 'Partido no encontrado' }, { status: 404 })
   }
   assertSameOrganization(match.organizationId, organizationId)
+
+  if (
+    match.status === MatchStatus.FINISHED &&
+    role !== MembershipRole.ORG_ADMIN
+  ) {
+    return NextResponse.json(
+      { error: 'No se puede modificar la formación de un partido finalizado' },
+      { status: 403 },
+    )
+  }
 
   if (match.matchType === MatchType.LEAGUE) {
     if (role !== MembershipRole.COACH && role !== MembershipRole.ORG_ADMIN) {

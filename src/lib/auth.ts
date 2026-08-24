@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 import authConfig from '@/lib/auth.config'
 import type { MembershipRole } from '@/lib/membership-role'
-import { hasAnyMembershipRole, primaryMembershipRole } from '@/lib/membership-role'
+import { hasAnyMembershipRole, MembershipRole, primaryMembershipRole } from '@/lib/membership-role'
 import { assertSameOrganization } from '@/lib/org-scope'
 import { ORG_COOKIE, clearOrgCookieOptions } from '@/lib/org-cookie'
 
@@ -94,6 +94,24 @@ export async function requireOrgRole(allowed: MembershipRole[]) {
         role: primaryMembershipRole(membership.roles),
       }
     }
+
+    if (
+      session.user.isPlatformAdmin &&
+      hasAnyMembershipRole(allowed, [MembershipRole.ORG_ADMIN])
+    ) {
+      const org = await db.organization.findUnique({
+        where: { id: orgIdFromCookie, status: 'ACTIVE' },
+        select: { id: true },
+      })
+      if (org) {
+        return {
+          session,
+          organizationId: orgIdFromCookie,
+          roles: [MembershipRole.ORG_ADMIN],
+          role: MembershipRole.ORG_ADMIN,
+        }
+      }
+    }
   }
 
   const roles = session.user.membershipRoles
@@ -125,6 +143,24 @@ export async function requireMatchOrgRole(matchId: string, allowed: MembershipRo
   })
 
   if (!membership || !hasAnyMembershipRole(membership.roles, allowed)) {
+    if (
+      session.user.isPlatformAdmin &&
+      hasAnyMembershipRole(allowed, [MembershipRole.ORG_ADMIN])
+    ) {
+      const org = await db.organization.findUnique({
+        where: { id: match.organizationId, status: 'ACTIVE' },
+        select: { id: true },
+      })
+      if (org) {
+        return {
+          session,
+          organizationId: match.organizationId,
+          roles: [MembershipRole.ORG_ADMIN],
+          role: MembershipRole.ORG_ADMIN,
+          match,
+        }
+      }
+    }
     throw new Error('Unauthorized')
   }
 

@@ -8,6 +8,7 @@ import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { footballFormatLabel } from '@/lib/football-format'
 import { FriendlyLineupEditor } from '@/components/admin/FriendlyLineupEditor'
 import { requireOrganizationId } from '@/lib/tenant-access'
+import { isMatchFormationReadOnly } from '@/lib/match-player-links'
 import { orgPath } from '@/lib/tenant-paths'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
@@ -56,6 +57,7 @@ export default async function PlayerFriendlyLineupPage({
   }
   const sides = matchSideNames(labelInput)
   const teamLabel = coachSide === 'A' ? sides.home : sides.away
+  const readOnly = isMatchFormationReadOnly(match.status)
 
   return (
     <div className="space-y-6">
@@ -72,7 +74,10 @@ export default async function PlayerFriendlyLineupPage({
         </span>
       </div>
       <p className="text-sm text-kelme-gray-600">
-        {matchDisplayName(labelInput)} · Solo puedes modificar la formación de tu equipo.
+        {matchDisplayName(labelInput)} ·{' '}
+        {readOnly
+          ? 'Partido finalizado — puedes revisar la formación, pero no modificarla.'
+          : 'Solo puedes modificar la formación de tu equipo.'}
       </p>
 
       <FriendlyLineupEditor
@@ -82,6 +87,7 @@ export default async function PlayerFriendlyLineupPage({
         awayLabel={sides.away}
         formations={match.formations}
         editableSide={coachSide}
+        readOnly={readOnly}
         participations={match.friendlyPlayers.map((p) => ({
           id: p.playerId,
           side: p.side,

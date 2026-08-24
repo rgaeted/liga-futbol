@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { MembershipRole } from '@/lib/membership-role'
 import { splitPersonName } from '@/lib/person-name'
+import { syncPlayerDerivedMemberships } from '@/lib/player-memberships'
 import type { FriendlySide } from '@prisma/client'
 import type { FriendlyRosterEntry } from '@/lib/friendly-match-captain'
 
@@ -77,6 +78,7 @@ export async function coachPlayerIdsForUser(
       where: { id: candidates[0].personId },
       data: { userId },
     })
+    await syncPlayerDerivedMemberships(userId)
   }
 
   return candidates.map((p) => p.id)

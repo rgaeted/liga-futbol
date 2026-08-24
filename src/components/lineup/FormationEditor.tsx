@@ -33,6 +33,7 @@ type Props = {
     benchPlayerIds: string[]
   }) => Promise<void>
   saveLabel?: string
+  readOnly?: boolean
 }
 
 export function FormationEditor({
@@ -42,6 +43,7 @@ export function FormationEditor({
   players,
   onSave,
   saveLabel = 'Guardar formación',
+  readOnly = false,
 }: Props) {
   const schemes = useMemo(() => getFormationSchemes(footballFormat), [footballFormat])
   const defaultScheme = useMemo(() => getDefaultScheme(footballFormat), [footballFormat])
@@ -155,7 +157,8 @@ export function FormationEditor({
           <select
             value={scheme}
             onChange={(e) => onSchemeChange(e.target.value)}
-            className="mt-1 w-full input-kelme rounded-lg px-3 py-2"
+            disabled={readOnly}
+            className="mt-1 w-full input-kelme rounded-lg px-3 py-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {schemes.map((s) => (
               <option key={s} value={s}>
@@ -167,10 +170,10 @@ export function FormationEditor({
         <FormationFitScore fit={formationFit} />
         <FormationPitch
           lineup={lineup}
-          selectedSlotKey={selectedSlot}
-          onSelectSlot={setSelectedSlot}
+          selectedSlotKey={readOnly ? null : selectedSlot}
+          onSelectSlot={readOnly ? () => {} : setSelectedSlot}
         />
-        {selectedSlot && (
+        {selectedSlot && !readOnly && (
           <button
             type="button"
             onClick={clearSelectedSlot}
@@ -182,9 +185,11 @@ export function FormationEditor({
       </div>
       <div className="space-y-2">
         <p className="text-sm text-kelme-gray-400">
-          {selectedSlot
-            ? `Elige jugador para ${selectedSlot}`
-            : 'Toca un slot en la cancha, luego elige un jugador'}
+          {readOnly
+            ? 'Partido finalizado — formación de solo lectura.'
+            : selectedSlot
+              ? `Elige jugador para ${selectedSlot}`
+              : 'Toca un slot en la cancha, luego elige un jugador'}
         </p>
         <ul className="max-h-96 space-y-2 overflow-y-auto">
           {players.map((p) => {
@@ -199,7 +204,7 @@ export function FormationEditor({
               <li key={p.id}>
                 <button
                   type="button"
-                  disabled={!selectedSlot}
+                  disabled={readOnly || !selectedSlot}
                   onClick={() => assignPlayerToSelected(p.id)}
                   className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm disabled:opacity-40 ${
                     inPitch
@@ -217,14 +222,16 @@ export function FormationEditor({
             )
           })}
         </ul>
-        <button
-          type="button"
-          disabled={loading}
-          onClick={handleSave}
-          className="w-full btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50"
-        >
-          {loading ? 'Guardando…' : saveLabel}
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleSave}
+            className="w-full btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50"
+          >
+            {loading ? 'Guardando…' : saveLabel}
+          </button>
+        )}
         {error && <p className="text-sm text-kelme-red">{error}</p>}
       </div>
     </div>

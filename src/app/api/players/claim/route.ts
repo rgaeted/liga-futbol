@@ -5,6 +5,7 @@ import { claimPlayerSchema } from '@/lib/validations/player'
 import { MembershipRole } from '@/lib/membership-role'
 import { canClaimPerson } from '@/lib/person'
 import { playerDisplayName } from '@/lib/person-name'
+import { syncPlayerDerivedMemberships } from '@/lib/player-memberships'
 
 export async function POST(req: Request) {
   const parsed = claimPlayerSchema.safeParse(await req.json())
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
   const passwordHash = await bcrypt.hash(password, 10)
   const name = playerDisplayName(player)
 
-  await db.$transaction(async (tx) => {
+  const userId = await db.$transaction(async (tx) => {
     const person = await tx.person.findUniqueOrThrow({ where: { id: player.personId } })
     const claimGate = canClaimPerson(person.userId, null, person.id)
     if (!claimGate.ok) {
@@ -63,7 +64,10 @@ export async function POST(req: Request) {
         roles: [MembershipRole.PLAYER],
       },
     })
+    return user.id
   })
+
+  await syncPlayerDerivedMemberships(userId)
 
   return NextResponse.json({ ok: true })
 }

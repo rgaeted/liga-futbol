@@ -7,6 +7,8 @@ import { footballFormatLabel } from '@/lib/football-format'
 import { APP_LOCALE } from '@/lib/locale'
 import { requireOrganizationId } from '@/lib/tenant-access'
 import { orgPath } from '@/lib/tenant-paths'
+import { friendlyLineupLinkLabel } from '@/lib/match-player-links'
+import { MatchLiveLink } from '@/components/player/MatchLiveLink'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,22 +61,31 @@ export default async function PlayerFriendlyCoachMatchesPage({
               awayTeam: null,
             })
             const teamLabel = part.side === 'A' ? sides.home : sides.away
+            const lineupLabel = friendlyLineupLinkLabel(match.status)
             return (
-              <li key={part.id}>
-                <Link
-                  href={orgPath(organizationSlug, `/player/friendly-matches/${match.id}/lineup`)}
-                  className="card-kelme block p-4 transition-colors hover:border-kelme-red/40"
-                >
-                  <p className="font-ui font-semibold text-kelme-gray-900">
-                    {sides.home} vs {sides.away}
-                  </p>
-                  <p className="mt-1 text-sm text-kelme-gray-600">
-                    Tu equipo: {teamLabel} · {footballFormatLabel(match.footballFormat)} ·{' '}
-                    {new Date(match.scheduledAt).toLocaleString(APP_LOCALE)}
-                    {match.venue ? ` · ${match.venue}` : ''}
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-kelme-red">Editar formación →</p>
-                </Link>
+              <li key={part.id} className="card-kelme p-4">
+                <p className="font-ui font-semibold text-kelme-gray-900">
+                  {sides.home} vs {sides.away}
+                </p>
+                <p className="mt-1 text-sm text-kelme-gray-600">
+                  Tu equipo: {teamLabel} · {footballFormatLabel(match.footballFormat)} ·{' '}
+                  {new Date(match.scheduledAt).toLocaleString(APP_LOCALE)}
+                  {match.venue ? ` · ${match.venue}` : ''}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm font-medium">
+                  <Link
+                    href={orgPath(organizationSlug, `/player/friendly-matches/${match.id}/lineup`)}
+                    className="text-kelme-red hover:underline"
+                  >
+                    {lineupLabel} →
+                  </Link>
+                  <MatchLiveLink
+                    organizationSlug={organizationSlug}
+                    matchId={match.id}
+                    status={match.status}
+                    className="text-kelme-gray-600 hover:underline"
+                  />
+                </div>
               </li>
             )
           })}

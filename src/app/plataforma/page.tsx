@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { listOrganizations } from '@/lib/organizations'
 import { OrganizationCreateForm } from '@/components/plataforma/OrganizationCreateForm'
 import { OrganizationStatusButton } from '@/components/plataforma/OrganizationStatusButton'
@@ -43,7 +44,17 @@ export default async function PlataformaPage() {
                         {org._count.memberships} miembros
                       </p>
                     </div>
-                    <OrganizationStatusButton organizationId={org.id} status={org.status} />
+                    <div className="flex flex-wrap items-center gap-2">
+                      {org.status === 'ACTIVE' ? (
+                        <Link
+                          href={`/${org.slug}/admin`}
+                          className="rounded-full bg-org-primary px-4 py-1.5 text-xs font-bold text-[#0B1210] hover:opacity-90"
+                        >
+                          Ingresar
+                        </Link>
+                      ) : null}
+                      <OrganizationStatusButton organizationId={org.id} status={org.status} />
+                    </div>
                   </li>
                 ))}
               </ul>

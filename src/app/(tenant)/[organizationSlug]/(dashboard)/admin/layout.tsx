@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation'
 import { resolvePrimaryDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
-import { findTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
+import { resolveTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { buildTenantNavGroups, loadTenantNavContext, tenantRoleLabel } from '@/lib/tenant-nav'
 import { DashboardShell } from '@/components/kelme/DashboardShell'
 import { SyncOrgCookie } from '@/components/tenant/SyncOrgCookie'
@@ -22,10 +22,14 @@ export default async function AdminLayout({
   const adminPath = orgPath(organizationSlug, '/admin')
   if (!session?.user?.id) redirect(`/login?callbackUrl=${adminPath}`)
 
-  const membership = await findTenantMembership(session.user.id, organizationSlug)
+  const membership = await resolveTenantMembership(
+    session.user.id,
+    organizationSlug,
+    session.user.isPlatformAdmin,
+  )
   if (!membership || !canAccessTenantArea(membership.roles, 'admin')) {
     if (membership) redirect(resolvePrimaryDashboardPath(organizationSlug, membership.roles))
-    redirect('/organizaciones')
+    redirect(session.user.isPlatformAdmin ? '/plataforma' : '/organizaciones')
   }
 
   const navContext = await loadTenantNavContext(

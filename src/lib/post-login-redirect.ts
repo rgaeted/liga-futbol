@@ -10,14 +10,45 @@ export type PostLoginMembership = {
 export function resolvePostLoginPath(input: {
   isPlatformAdmin: boolean
   memberships: PostLoginMembership[]
+  friendlyParticipationsBySlug?: Record<string, number>
 }): string {
+  if (input.isPlatformAdmin) return '/plataforma'
+
   const active = input.memberships.filter((m) => m.status === 'ACTIVE')
   if (active.length === 1) {
     return getDashboardPath(active[0].slug, primaryMembershipRole(active[0].roles))
   }
-  if (active.length > 1) return '/organizaciones'
-  if (input.isPlatformAdmin) return '/plataforma'
+  if (active.length > 1) {
+    const preferred = preferredMembershipByActivity(
+      active,
+      input.friendlyParticipationsBySlug ?? {},
+    )
+    if (preferred) {
+      return getDashboardPath(preferred.slug, primaryMembershipRole(preferred.roles))
+    }
+    return '/organizaciones'
+  }
   return '/login?error=sin-acceso'
+}
+
+function preferredMembershipByActivity(
+  memberships: PostLoginMembership[],
+  participationsBySlug: Record<string, number>,
+): PostLoginMembership | null {
+  const ranked = memberships
+    .map((membership) => ({
+      membership,
+      count: participationsBySlug[membership.slug] ?? 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+
+  const topCount = ranked[0]?.count ?? 0
+  if (topCount <= 0) return null
+
+  const leaders = ranked.filter((entry) => entry.count === topCount)
+  if (leaders.length !== 1) return null
+
+  return leaders[0].membership
 }
 
 export function safePostLoginCallback(raw: string | null | undefined): string | null {
@@ -30,6 +61,7 @@ export function resolvePostLoginDestination(input: {
   isPlatformAdmin: boolean
   memberships: PostLoginMembership[]
   callbackUrl?: string | null
+  friendlyParticipationsBySlug?: Record<string, number>
 }): string {
   const callback = safePostLoginCallback(input.callbackUrl)
   if (callback) return callback
