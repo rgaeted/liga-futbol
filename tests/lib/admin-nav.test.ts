@@ -23,4 +23,13 @@ describe('admin navigation', () => {
     expect(navSource).toContain('activePrefixes: [')
     expect(navSource).toContain("base('/admin/content/articles')")
   })
+
+  it('links Estadísticas in the admin group', () => {
+    const navSource = readFileSync(
+      resolve(process.cwd(), 'src/lib/tenant-nav.ts'),
+      'utf8',
+    )
+    expect(navSource).toContain("base('/admin/estadisticas')")
+    expect(navSource).toContain("label: 'Estadísticas'")
+  })
 })

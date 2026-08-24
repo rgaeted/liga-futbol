@@ -43,7 +43,15 @@ function adminNavGroups(slug: string): DashboardNavGroup[] {
   return [
     {
       label: 'Administración',
-      items: [{ href: base('/admin'), label: 'Resumen', icon: 'IN' }],
+      items: [
+        { href: base('/admin'), label: 'Resumen', icon: 'IN' },
+        {
+          href: base('/admin/estadisticas'),
+          label: 'Estadísticas',
+          icon: 'ES',
+          activePrefixes: [base('/admin/estadisticas')],
+        },
+      ],
     },
     {
       label: 'Competición',

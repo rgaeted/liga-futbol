@@ -33,6 +33,12 @@ export function AdminDashboardHome({ data }: { data: AdminDashboardData }) {
         <div className="flex flex-wrap items-center gap-2.5">
           <AdminSeasonSelect seasons={data.seasons} value={data.seasonId} />
           <Link
+            href={orgPath('/admin/estadisticas')}
+            className="inline-flex h-[42px] items-center rounded-xl border border-[#2A3A32] bg-transparent px-4 font-ui text-sm font-bold text-[#E8E4D8] hover:bg-[#121A18]"
+          >
+            Ver estadísticas
+          </Link>
+          <Link
             href={orgPath('/admin/matches')}
             className="inline-flex h-[42px] items-center rounded-xl border border-[#2A3A32] bg-transparent px-4 font-ui text-sm font-bold text-[#E8E4D8] hover:bg-[#121A18]"
           >
