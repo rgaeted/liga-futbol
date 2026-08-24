@@ -88,7 +88,7 @@ export function TeamCrest({ name, src, color, size = 'md', className = '' }: Pro
 
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-full bg-white/10 font-semibold uppercase text-white/80 ring-2 ring-white/15 ${dimClass} ${className}`}
+      className={`inline-flex items-center justify-center rounded-full bg-kelme-surface/10 font-semibold uppercase text-white/80 ring-2 ring-white/15 ${dimClass} ${className}`}
       aria-hidden
     >
       {teamInitials(name)}

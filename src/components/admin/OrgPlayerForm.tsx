@@ -73,14 +73,14 @@ export function OrgPlayerForm({ teams }: { teams: Team[] }) {
         name="firstName"
         placeholder="Nombre"
         required
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <input
         name="lastName"
         placeholder="Apellido"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
-      <select name="teamId" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2">
+      <select name="teamId" className="input-kelme rounded-lg px-3 py-2">
         <option value="">Sin equipo</option>
         {teams.map((team) => (
           <option key={team.id} value={team.id}>
@@ -94,12 +94,12 @@ export function OrgPlayerForm({ teams }: { teams: Team[] }) {
         min={1}
         max={99}
         placeholder="Dorsal"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <input
         name="position"
         placeholder="Posición"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+        className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
       />
       <p className="text-xs text-kelme-gray-500 md:col-span-3">
         Cuenta de acceso (opcional — puedes asignarla después)
@@ -108,23 +108,23 @@ export function OrgPlayerForm({ teams }: { teams: Team[] }) {
         name="email"
         type="email"
         placeholder="Email (opcional)"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <input
         name="name"
         placeholder="Nombre en la cuenta (opcional)"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <input
         name="password"
         type="password"
         placeholder="Contraseña (opcional)"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50 md:col-span-3"
+        className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50 md:col-span-3"
       >
         {loading ? 'Creando…' : 'Crear jugador'}
       </button>

@@ -28,7 +28,7 @@ export default async function PlataformaAppsPage() {
       <PlatformPanel>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="border-b border-[#e5e5e9] bg-[#fafafa] text-left text-[#999]">
+            <thead className="border-b border-[#2A3A32] bg-[#0B1210] text-left text-[#8A938C]">
               <tr>
                 <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Empresa</th>
                 <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Temporada</th>
@@ -46,14 +46,14 @@ export default async function PlataformaAppsPage() {
                 </tr>
               ) : (
                 rows.map((row) => (
-                  <tr key={row.seasonId} className="hover:bg-[#fafafa]">
-                    <td className="px-5 py-3.5 font-semibold text-[#17171a]">
+                  <tr key={row.seasonId} className="hover:bg-[#0B1210]">
+                    <td className="px-5 py-3.5 font-semibold text-[#E8E4D8]">
                       {row.season.organization.name}
                     </td>
-                    <td className="px-5 py-3.5 text-[#505058]">{row.season.name}</td>
-                    <td className="px-5 py-3.5 font-mono text-xs text-[#777]">{row.slug}</td>
-                    <td className="px-5 py-3.5 text-[#505058]">{row.isPublished ? 'Sí' : 'No'}</td>
-                    <td className="px-5 py-3.5 text-[#999]">Scaffold pendiente</td>
+                    <td className="px-5 py-3.5 text-[#8A938C]">{row.season.name}</td>
+                    <td className="px-5 py-3.5 font-mono text-xs text-[#8A938C]">{row.slug}</td>
+                    <td className="px-5 py-3.5 text-[#8A938C]">{row.isPublished ? 'Sí' : 'No'}</td>
+                    <td className="px-5 py-3.5 text-[#8A938C]">Scaffold pendiente</td>
                   </tr>
                 ))
               )}

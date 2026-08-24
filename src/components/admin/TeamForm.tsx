@@ -37,7 +37,7 @@ export function TeamForm() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50"
+          className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50"
         >
           {loading ? 'Creando…' : 'Crear equipo'}
         </button>

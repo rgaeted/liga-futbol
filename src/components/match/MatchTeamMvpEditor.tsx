@@ -122,14 +122,14 @@ function TeamMvpSidePicker({
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-amber-200/80 bg-white p-4 shadow-sm">
+    <div className="space-y-3 rounded-xl border border-amber-400/30 bg-kelme-surface p-4 shadow-none">
       <div>
         <h3 className="font-display text-base font-semibold">⭐ MVP — {teamLabel}</h3>
         <p className="text-xs text-kelme-gray-400">Un jugador destacado por equipo</p>
       </div>
 
       {mvp.label && (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-3 sm:flex-row sm:items-center">
           {mvp.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -160,7 +160,7 @@ function TeamMvpSidePicker({
               setSuccess('')
               setError('')
             }}
-            className="w-full rounded-lg border border-kelme-border bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-kelme-border bg-kelme-surface px-3 py-2 text-sm"
           >
             <option value="">Sin MVP</option>
             {players.map((p) => (

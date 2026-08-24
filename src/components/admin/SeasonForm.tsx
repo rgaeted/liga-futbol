@@ -33,17 +33,17 @@ export function SeasonForm() {
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-3 rounded-xl border border-kelme-border bg-kelme-surface p-4 md:grid-cols-5">
-      <input name="name" placeholder="Nombre temporada" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
-      <select name="footballFormat" required defaultValue="FUTBOL_11" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2">
+      <input name="name" placeholder="Nombre temporada" required className="input-kelme rounded-lg px-3 py-2" />
+      <select name="footballFormat" required defaultValue="FUTBOL_11" className="input-kelme rounded-lg px-3 py-2">
         {FOOTBALL_FORMATS.map((format) => (
           <option key={format} value={format}>
             {FOOTBALL_FORMAT_LABELS[format]}
           </option>
         ))}
       </select>
-      <input name="startDate" type="date" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
-      <input name="endDate" type="date" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
-      <button type="submit" disabled={loading} className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50">
+      <input name="startDate" type="date" required className="input-kelme rounded-lg px-3 py-2" />
+      <input name="endDate" type="date" required className="input-kelme rounded-lg px-3 py-2" />
+      <button type="submit" disabled={loading} className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50">
         {loading ? 'Creando…' : 'Crear temporada'}
       </button>
       {error && <p className="text-sm text-kelme-red md:col-span-5">{error}</p>}

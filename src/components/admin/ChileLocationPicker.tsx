@@ -81,7 +81,7 @@ export function ChileLocationPicker({
         <select
           value={regionCode}
           onChange={(e) => handleRegionChange(e.target.value)}
-          className="rounded-lg border border-kelme-border bg-white px-3 py-2 text-sm"
+          className="rounded-lg border border-kelme-border bg-kelme-surface px-3 py-2 text-sm"
         >
           <option value="">Región</option>
           {regions.map((region) => (
@@ -94,7 +94,7 @@ export function ChileLocationPicker({
           value={communeCode}
           onChange={(e) => onCommuneChange(e.target.value)}
           disabled={!regionCode || loadingCommunes}
-          className="rounded-lg border border-kelme-border bg-white px-3 py-2 text-sm disabled:opacity-50"
+          className="rounded-lg border border-kelme-border bg-kelme-surface px-3 py-2 text-sm disabled:opacity-50"
         >
           <option value="">
             {loadingCommunes ? 'Cargando comunas…' : 'Comuna'}

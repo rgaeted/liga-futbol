@@ -33,9 +33,12 @@
   --color-kelme-black: var(--night);
   --color-kelme-white: var(--flood);
   --color-kelme-gray-900: var(--flood);
+  --color-kelme-gray-800: var(--flood);
+  --color-kelme-gray-700: var(--mist);
   --color-kelme-gray-600: var(--mist);
   --color-kelme-gray-400: var(--mist);
   --color-kelme-gray-100: var(--turf);
+  --color-kelme-gray-50: var(--night);
   --color-kelme-border: var(--line);
   --color-kelme-surface: var(--turf);
   --color-kelme-bg: var(--night);
@@ -86,10 +89,23 @@ body {
   @apply bg-kelme-surface text-kelme-gray-600;
 }
 
+.table-kelme tbody tr:hover {
+  @apply bg-[#0B1210]/60;
+}
+
 .table-kelme th,
 .table-kelme td {
-  @apply border-t border-kelme-border p-3;
+  @apply border-t border-kelme-border p-3 text-[#E8E4D8];
 }
+
+.panel-kelme {
+  @apply overflow-hidden rounded-[18px] border border-kelme-border bg-kelme-surface;
+}
+
+.dash-btn-outline {
+  @apply rounded-xl border border-kelme-border bg-transparent px-3.5 py-2.5 text-sm font-bold text-[#E8E4D8] transition hover:bg-[#0B1210];
+}
+
 
 .link-nav {
   @apply font-ui text-sm font-medium text-kelme-gray-600 transition-colors hover:text-org-primary;

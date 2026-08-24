@@ -24,8 +24,8 @@ export default async function PlataformaPage() {
         <PlatformPanel>
           <PlatformPanelInner>
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-[22px] font-black text-[#17171a]">Directorio</h2>
-              <span className="text-xs text-[#aaa]">{organizations.length} empresas</span>
+              <h2 className="text-[22px] font-black text-[#E8E4D8]">Directorio</h2>
+              <span className="text-xs text-[#8A938C]">{organizations.length} empresas</span>
             </div>
             {organizations.length === 0 ? (
               <p className="text-sm text-[#8e8e98]">Aún no hay empresas registradas.</p>
@@ -37,8 +37,8 @@ export default async function PlataformaPage() {
                     className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0 last:pb-0"
                   >
                     <div>
-                      <p className="text-sm font-extrabold text-[#17171a]">{org.name}</p>
-                      <p className="text-sm text-[#999]">
+                      <p className="text-sm font-extrabold text-[#E8E4D8]">{org.name}</p>
+                      <p className="text-sm text-[#8A938C]">
                         /{org.slug} · {org.status === 'ACTIVE' ? 'Activa' : 'Pausada'} ·{' '}
                         {org._count.memberships} miembros
                       </p>

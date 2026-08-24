@@ -68,7 +68,7 @@ export function EditorialImageUpload({
         // eslint-disable-next-line @next/next/no-img-element
         <img src={previewUrl} alt="" className="h-32 w-auto rounded-lg border border-kelme-border object-cover" />
       ) : (
-        <p className="text-sm text-zinc-500">Sin imagen</p>
+        <p className="text-sm text-[#8A938C]">Sin imagen</p>
       )}
       <input
         type="file"

@@ -23,14 +23,14 @@ export function matchStatusLabel(status: string): string {
 export function matchStatusBadgeClass(status: string): string {
   switch (status) {
     case 'LIVE':
-      return 'bg-red-100 text-red-700'
+      return 'bg-[#0B1210] text-org-primary ring-1 ring-[color:var(--org-primary)]/35'
     case 'HALFTIME':
-      return 'bg-amber-100 text-amber-800'
+      return 'bg-[#0B1210] text-amber-300 ring-1 ring-amber-400/35'
     case 'FINISHED':
-      return 'bg-emerald-100 text-emerald-800'
+      return 'bg-[#0B1210] text-[#3D8B6E] ring-1 ring-[#3D8B6E]/35'
     case 'CANCELLED':
-      return 'bg-kelme-gray-200 text-kelme-gray-600'
+      return 'bg-[#0B1210] text-[#8A938C] ring-1 ring-[#2A3A32]'
     default:
-      return 'bg-kelme-gray-100 text-kelme-gray-700'
+      return 'bg-[#0B1210] text-[#8A938C] ring-1 ring-[#2A3A32]'
   }
 }

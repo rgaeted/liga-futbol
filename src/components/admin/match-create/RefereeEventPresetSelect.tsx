@@ -39,7 +39,7 @@ export function RefereeEventPresetSelect({
           value={preset}
           disabled={disabled}
           onChange={(e) => handlePresetChange(e.target.value as RefereeEventPreset)}
-          className="mt-1 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="mt-1 w-full input-kelme rounded-lg px-3 py-2"
         >
           {(Object.keys(REFEREE_EVENT_PRESET_LABELS) as RefereeEventPreset[]).map((key) => (
             <option key={key} value={key}>

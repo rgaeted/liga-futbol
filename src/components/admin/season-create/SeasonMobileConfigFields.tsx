@@ -54,7 +54,7 @@ export function SeasonMobileConfigFields({
                   onChange({ slug: e.target.value })
                 }}
                 placeholder="temporada-2026"
-                className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+                className="w-full input-kelme rounded-lg px-3 py-2"
                 required={value.configureMobile}
               />
             </label>
@@ -64,7 +64,7 @@ export function SeasonMobileConfigFields({
                 value={value.displayName}
                 onChange={(e) => onChange({ displayName: e.target.value })}
                 placeholder="Temporada 2026"
-                className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+                className="w-full input-kelme rounded-lg px-3 py-2"
                 required={value.configureMobile}
               />
             </label>
@@ -74,7 +74,7 @@ export function SeasonMobileConfigFields({
                 value={value.shortName}
                 onChange={(e) => onChange({ shortName: e.target.value })}
                 placeholder="2026"
-                className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+                className="w-full input-kelme rounded-lg px-3 py-2"
               />
             </label>
             <label className="space-y-1 text-sm">
@@ -83,7 +83,7 @@ export function SeasonMobileConfigFields({
                 value={value.primaryColor}
                 onChange={(e) => onChange({ primaryColor: e.target.value })}
                 placeholder="#CD212A"
-                className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+                className="w-full input-kelme rounded-lg px-3 py-2"
               />
             </label>
             <label className="space-y-1 text-sm md:col-span-2">
@@ -92,7 +92,7 @@ export function SeasonMobileConfigFields({
                 value={value.secondaryColor}
                 onChange={(e) => onChange({ secondaryColor: e.target.value })}
                 placeholder="#FFFFFF"
-                className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+                className="w-full input-kelme rounded-lg px-3 py-2"
               />
             </label>
           </div>
@@ -106,7 +106,7 @@ export function SeasonMobileConfigFields({
               onChange={(e) => onChange({ description: e.target.value })}
               rows={3}
               placeholder="Breve descripción de la temporada para la app"
-              className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+              className="w-full input-kelme rounded-lg px-3 py-2"
             />
           </label>
         </>

@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
 
-export const dashInputClass =
-  'w-full rounded-xl border border-[#dddde2] bg-white px-3.5 py-3 text-sm font-semibold text-[#34343a] outline-none placeholder:font-normal placeholder:text-[#8d8d96] focus:border-[#c91f26] focus:ring-2 focus:ring-[#c91f2620]'
+export const dashInputClass = 'input-kelme'
 
-export const dashBtnPrimaryClass =
-  'rounded-xl bg-[#c91f26] px-4 py-3 text-sm font-extrabold text-white shadow-[0_6px_14px_#c91f2630] transition hover:bg-[#b01b22] disabled:cursor-not-allowed disabled:opacity-50'
+export const dashBtnPrimaryClass = 'btn-kelme'
 
 export const dashBtnGhostClass =
-  'rounded-xl border border-[#dddde2] bg-white px-3.5 py-2.5 text-sm font-bold text-[#5f5f66] transition hover:bg-[#f7f7f9]'
+  'rounded-xl border border-[#2A3A32] bg-transparent px-3.5 py-2.5 text-sm font-bold text-[#E8E4D8] transition hover:bg-[#0B1210] disabled:cursor-not-allowed disabled:opacity-50'
+
+export const dashSelectClass =
+  'input-kelme h-[38px] min-w-0 max-w-full flex-1 truncate rounded-xl px-2.5 font-ui text-[13px] font-semibold'
 
 /** @deprecated use dashInputClass */
 export const platformInputClass = dashInputClass
@@ -24,9 +25,7 @@ export function DashPanel({
   className?: string
 }) {
   return (
-    <article
-      className={`overflow-hidden rounded-[18px] border border-[#e5e5e9] bg-white ${className}`}
-    >
+    <article className={`card-kelme overflow-hidden ${className}`}>
       {children}
     </article>
   )
@@ -63,18 +62,18 @@ export function DashPageHeader({
   return (
     <section className="mb-6 flex flex-col items-start justify-between gap-6 lg:mb-7 lg:flex-row lg:items-end">
       <div className="min-w-0">
-        <div className="text-[11px] font-black uppercase tracking-[0.13em] text-[#999]">
+        <div className="text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
           {eyebrow}
           {status ? (
-            <span className="ml-2 inline-block rounded-full bg-[#eafaf4] px-2.5 py-1 text-[11px] font-bold normal-case tracking-normal text-[#087d55]">
+            <span className="ml-2 inline-block rounded-full bg-[#0B1210] px-2.5 py-1 text-[11px] font-bold normal-case tracking-normal text-[#3D8B6E]">
               {status}
             </span>
           ) : null}
         </div>
-        <h1 className="mt-1.5 text-[clamp(2rem,4vw,3rem)] font-black leading-none tracking-[-0.04em] text-[#17171a]">
+        <h1 className="font-display mt-1.5 text-[clamp(2rem,4vw,3rem)] font-semibold uppercase leading-none tracking-wide text-[#E8E4D8]">
           {title}
         </h1>
-        {subtitle ? <p className="mt-2 text-sm text-[#777]">{subtitle}</p> : null}
+        {subtitle ? <p className="mt-2 text-sm text-[#8A938C]">{subtitle}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2.5">{actions}</div> : null}
     </section>

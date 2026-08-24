@@ -114,19 +114,19 @@ export function FriendlyPlayerForm({
         name="firstName"
         placeholder="Nombre"
         required
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <input
         name="lastName"
         placeholder="Apellido"
         required
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <FriendlyPlayerProfileFields />
       {teams.length > 0 && (
         <select
           name="teamId"
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         >
           <option value="">Sin equipo</option>
           {teams.map((team) => (
@@ -142,7 +142,7 @@ export function FriendlyPlayerForm({
           ref={photoRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-kelme-red file:px-3 file:py-1 file:text-sm file:font-semibold file:text-white"
+          className="input-kelme rounded-lg px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-kelme-red file:px-3 file:py-1 file:text-sm file:font-semibold file:text-white"
         />
         <span className="text-xs text-kelme-gray-400">JPG, PNG o WebP · máx. 500 KB</span>
       </label>
@@ -150,18 +150,18 @@ export function FriendlyPlayerForm({
         name="email"
         type="email"
         placeholder="Email (opcional)"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <input
         name="password"
         type="password"
         placeholder="Contraseña (opcional)"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+        className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
       />
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50 md:col-span-3"
+        className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50 md:col-span-3"
       >
         {loading ? 'Creando…' : 'Crear jugador'}
       </button>

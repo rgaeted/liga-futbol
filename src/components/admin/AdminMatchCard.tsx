@@ -104,7 +104,7 @@ function SideColumn({
                   participationId={player.participationId}
                   initialIsGalleta={player.isGalleta}
                 />
-                <span className="min-w-0 truncate text-sm text-kelme-gray-800">
+                <span className="min-w-0 truncate text-sm text-kelme-gray-900">
                   {player.label}
                   {suffix ? (
                     <span className="text-kelme-gray-400"> ({suffix})</span>
@@ -153,7 +153,7 @@ export function AdminMatchCard({
   const timeLabel = formatScheduleTimeLabel(when)
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-kelme-border bg-white shadow-sm">
+    <article className="overflow-hidden rounded-2xl border border-kelme-border bg-kelme-surface shadow-none">
       <div className="border-b border-kelme-border px-5 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
@@ -164,14 +164,14 @@ export function AdminMatchCard({
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                 matchType === MatchType.FRIENDLY
-                  ? 'bg-emerald-100 text-emerald-800'
+                  ? 'bg-[#0B1210] text-[#3D8B6E] ring-1 ring-[#3D8B6E]/35'
                   : 'bg-blue-100 text-blue-800'
               }`}
             >
               {typeBadge}
             </span>
             {challengeHint ? (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
+              <span className="rounded-full bg-[#0B1210] px-2.5 py-0.5 text-xs font-semibold text-amber-300 ring-1 ring-amber-400/35">
                 {challengeHint}
               </span>
             ) : null}
@@ -237,8 +237,8 @@ export function AdminMatchCard({
             <div className="hidden h-12 w-px bg-kelme-border sm:block" />
             <div className="flex gap-6 text-sm">
               <div>
-                <p className="flex items-center gap-1.5 font-semibold text-emerald-700">
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-white">
+                <p className="flex items-center gap-1.5 font-semibold text-[#3D8B6E]">
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#0B1210]0 text-[10px] text-white">
                     ✓
                   </span>
                   Pagó
@@ -261,21 +261,21 @@ export function AdminMatchCard({
         <div className="grid grid-cols-3 gap-2">
           <Link
             href={orgPath(`/live/${match.id}`)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#3D8B6E] px-3 py-2.5 text-sm font-semibold text-[#E8E4D8] hover:brightness-110"
           >
             <span aria-hidden>📡</span>
             Ver en vivo
           </Link>
           <Link
             href={orgPath(`/admin/matches/${match.id}/timeline`)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-white px-3 py-2.5 text-sm font-semibold text-kelme-gray-800 hover:bg-kelme-gray-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-kelme-surface px-3 py-2.5 text-sm font-semibold text-kelme-gray-900 hover:bg-[#0B1210]"
           >
             <span aria-hidden>🕐</span>
             Cronología
           </Link>
           <Link
             href={orgPath(`/admin/matches/${match.id}/lineup`)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-white px-3 py-2.5 text-sm font-semibold text-kelme-gray-800 hover:bg-kelme-gray-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-kelme-surface px-3 py-2.5 text-sm font-semibold text-kelme-gray-900 hover:bg-[#0B1210]"
           >
             <span aria-hidden>👥</span>
             Formación
@@ -285,7 +285,7 @@ export function AdminMatchCard({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-white px-3 py-2.5 text-sm font-semibold text-kelme-gray-800 hover:bg-kelme-gray-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-kelme-surface px-3 py-2.5 text-sm font-semibold text-kelme-gray-900 hover:bg-[#0B1210]"
           >
             <span aria-hidden>✏️</span>
             Editar

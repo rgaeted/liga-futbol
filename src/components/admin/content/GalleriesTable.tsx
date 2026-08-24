@@ -101,7 +101,7 @@ export function GalleryForm({
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="w-full input-kelme rounded-lg px-3 py-2"
         />
       </label>
       <label className="block space-y-1 text-sm">
@@ -109,7 +109,7 @@ export function GalleryForm({
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className="min-h-24 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="min-h-24 w-full input-kelme rounded-lg px-3 py-2"
         />
       </label>
       <label className="block space-y-1 text-sm">
@@ -117,7 +117,7 @@ export function GalleryForm({
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value as 'DRAFT' | 'PUBLISHED')}
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         >
           <option value="DRAFT">Borrador</option>
           <option value="PUBLISHED">Publicada</option>

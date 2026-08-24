@@ -239,7 +239,7 @@ export function MatchControlPanel({
         type="button"
         disabled={loading}
         onClick={() => handleEventClick(ev.type)}
-        className={`rounded-xl py-4 text-lg font-bold shadow-sm ${ev.color} disabled:opacity-50 ${
+        className={`rounded-xl py-4 text-lg font-bold shadow-none ${ev.color} disabled:opacity-50 ${
           fullWidth ? 'col-span-2 w-full' : ''
         }`}
       >
@@ -298,7 +298,7 @@ export function MatchControlPanel({
                 type="button"
                 disabled={loading}
                 onClick={() => void handleConfirmSecondHalfKickoff()}
-                className="w-full rounded-xl bg-kelme-red py-3 font-bold text-white hover:bg-kelme-red-dark disabled:opacity-50"
+                className="btn-kelme w-full py-3 font-bold disabled:opacity-50"
               >
                 {loading ? 'Iniciando...' : 'Iniciar 2.º tiempo'}
               </button>
@@ -440,7 +440,7 @@ export function MatchControlPanel({
                 type="button"
                 disabled={loading || !canConfirmDetails()}
                 onClick={() => void handleConfirmDetails(false)}
-                className={`rounded-xl bg-kelme-red py-3 font-bold text-white hover:bg-kelme-red-dark disabled:opacity-50 ${
+                className={`btn-kelme py-3 font-bold disabled:opacity-50 ${
                   detailMode === 'goal' ? 'flex-1' : 'w-full'
                 }`}
               >
@@ -484,7 +484,7 @@ export function MatchControlPanel({
       )}
 
       {actionError ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+        <p className="rounded-xl rounded-xl border border-[#2A3A32] bg-[#0B1210] px-4 py-3 text-sm font-semibold text-org-primary">
           {actionError}
         </p>
       ) : null}

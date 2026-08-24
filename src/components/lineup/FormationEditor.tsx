@@ -155,7 +155,7 @@ export function FormationEditor({
           <select
             value={scheme}
             onChange={(e) => onSchemeChange(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="mt-1 w-full input-kelme rounded-lg px-3 py-2"
           >
             {schemes.map((s) => (
               <option key={s} value={s}>
@@ -221,7 +221,7 @@ export function FormationEditor({
           type="button"
           disabled={loading}
           onClick={handleSave}
-          className="w-full rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50"
+          className="w-full btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50"
         >
           {loading ? 'Guardando…' : saveLabel}
         </button>

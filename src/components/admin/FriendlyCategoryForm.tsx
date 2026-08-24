@@ -38,17 +38,17 @@ export function FriendlyCategoryForm() {
         name="name"
         required
         placeholder="Nombre"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+        className="input-kelme rounded-lg px-3 py-2"
       />
       <input
         name="description"
         placeholder="Descripción (opcional)"
-        className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+        className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
       />
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50 md:col-span-3"
+        className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50 md:col-span-3"
       >
         {loading ? 'Creando…' : 'Crear categoría'}
       </button>

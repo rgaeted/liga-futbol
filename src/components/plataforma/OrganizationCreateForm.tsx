@@ -25,13 +25,13 @@ function ColorField({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-bold text-[#505058]">{label}</label>
+      <label className="text-sm font-bold text-[#8A938C]">{label}</label>
       <div className="flex items-center gap-2">
         <input
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-11 w-14 shrink-0 cursor-pointer rounded-xl border border-[#dddde2] bg-white p-1"
+          className="h-11 w-14 shrink-0 cursor-pointer rounded-xl border border-[#2A3A32] bg-kelme-surface p-1"
           aria-label={`${label} visual`}
         />
         <input
@@ -108,8 +108,8 @@ export function OrganizationCreateForm() {
       <PlatformPanelInner>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <h2 className="text-[22px] font-black text-[#17171a]">Crear empresa</h2>
-            <p className="mt-1 text-sm text-[#777]">
+            <h2 className="text-[22px] font-black text-[#E8E4D8]">Crear empresa</h2>
+            <p className="mt-1 text-sm text-[#8A938C]">
               Registra una nueva liga. Puedes asignar un administrador ahora o hacerlo después en
               Usuarios.
             </p>
@@ -132,19 +132,19 @@ export function OrganizationCreateForm() {
             />
           </div>
 
-          <div className="rounded-[14px] border border-[#e5e5e9] bg-[#fafafa] p-4">
+          <div className="rounded-[14px] border border-[#2A3A32] bg-[#0B1210] p-4">
             <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="checkbox"
                 checked={assignAdmin}
                 onChange={(e) => setAssignAdmin(e.target.checked)}
-                className="mt-0.5 rounded accent-[#c91f26]"
+                className="mt-0.5 rounded accent-[color:var(--org-primary)]"
               />
               <span>
-                <span className="block text-sm font-extrabold text-[#17171a]">
+                <span className="block text-sm font-extrabold text-[#E8E4D8]">
                   Asignar administrador al crear
                 </span>
-                <span className="mt-0.5 block text-xs text-[#999]">
+                <span className="mt-0.5 block text-xs text-[#8A938C]">
                   Si no marcas esto, crea la empresa y luego da acceso desde Plataforma → Usuarios.
                 </span>
               </span>
@@ -173,14 +173,14 @@ export function OrganizationCreateForm() {
                   minLength={6}
                   className={`${platformInputClass} sm:col-span-2`}
                 />
-                <p className="text-xs text-[#999] sm:col-span-2">
+                <p className="text-xs text-[#8A938C] sm:col-span-2">
                   Si el correo ya existe, se reutiliza la cuenta sin cambiar la contraseña.
                 </p>
               </div>
             ) : null}
           </div>
 
-          {error && <p className="text-sm font-semibold text-[#c91f26]">{error}</p>}
+          {error && <p className="text-sm font-semibold text-org-primary">{error}</p>}
           <button type="submit" disabled={loading} className={platformBtnPrimaryClass}>
             {loading ? 'Creando…' : 'Crear empresa'}
           </button>

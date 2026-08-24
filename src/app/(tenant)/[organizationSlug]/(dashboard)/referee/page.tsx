@@ -42,23 +42,23 @@ function MatchRow({
   return (
     <Link
       href={href}
-      className={`block rounded-xl border bg-white transition-colors hover:border-[#c91f26] ${
+      className={`block rounded-xl border bg-kelme-surface transition-colors hover:border-[color:var(--org-primary)] ${
         featured
-          ? 'border-[#c91f26]/40 p-5 shadow-[0_8px_24px_#c91f2614]'
-          : 'border-[#e5e5e9] p-4'
+          ? 'border-[color:var(--org-primary)]/40 p-5 shadow-none'
+          : 'border-[#2A3A32] p-4'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           {featured ? (
-            <p className="mb-1 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#c91f26]">
+            <p className="mb-1 text-[11px] font-extrabold uppercase tracking-[0.12em] text-org-primary">
               Próximo partido
             </p>
           ) : null}
-          <p className={`truncate font-semibold text-[#17171a] ${featured ? 'text-lg' : ''}`}>
+          <p className={`truncate font-semibold text-[#E8E4D8] ${featured ? 'text-lg' : ''}`}>
             {title}
           </p>
-          <p className="mt-1 text-sm text-[#8d8d96]">
+          <p className="mt-1 text-sm text-[#8A938C]">
             {dateLabel} · {timeLabel}
           </p>
         </div>
@@ -69,7 +69,7 @@ function MatchRow({
         </span>
       </div>
       {featured ? (
-        <p className="mt-3 text-sm font-bold text-[#c91f26]">Gestionar partido →</p>
+        <p className="mt-3 text-sm font-bold text-org-primary">Gestionar partido →</p>
       ) : null}
     </Link>
   )
@@ -112,20 +112,20 @@ export default async function RefereeDashboardPage({
   const [featured, ...otherUpcoming] = upcoming
 
   return (
-    <div className="space-y-8 text-[#17171a]">
+    <div className="space-y-8 text-[#E8E4D8]">
       <div>
         <h1 className="font-display text-2xl font-bold">Mis partidos</h1>
-        <p className="mt-1 text-sm text-[#8d8d96]">
+        <p className="mt-1 text-sm text-[#8A938C]">
           El partido activo o programado más próximo aparece primero.
         </p>
       </div>
 
       {matches.length === 0 ? (
-        <p className="text-[#8d8d96]">No tienes partidos asignados en esta liga.</p>
+        <p className="text-[#8A938C]">No tienes partidos asignados en esta liga.</p>
       ) : (
         <>
           <section className="space-y-3">
-            <h2 className="text-sm font-extrabold uppercase tracking-[0.12em] text-[#8d8d96]">
+            <h2 className="text-sm font-extrabold uppercase tracking-[0.12em] text-[#8A938C]">
               Por jugar
             </h2>
             {featured ? (
@@ -137,7 +137,7 @@ export default async function RefereeDashboardPage({
                 status={featured.status}
               />
             ) : (
-              <p className="rounded-xl border border-dashed border-[#e5e5e9] bg-white p-4 text-sm text-[#8d8d96]">
+              <p className="rounded-xl border border-dashed border-[#2A3A32] bg-kelme-surface p-4 text-sm text-[#8A938C]">
                 No tienes partidos programados ni en curso.
               </p>
             )}
@@ -154,20 +154,20 @@ export default async function RefereeDashboardPage({
 
           {finished.length > 0 ? (
             <section className="space-y-3">
-              <h2 className="text-sm font-extrabold uppercase tracking-[0.12em] text-[#8d8d96]">
+              <h2 className="text-sm font-extrabold uppercase tracking-[0.12em] text-[#8A938C]">
                 Finalizados ({finished.length})
               </h2>
-              <div className="space-y-2 rounded-xl border border-[#ececef] bg-[#fafafa] p-3">
+              <div className="space-y-2 rounded-xl border border-[#2A3A32] bg-[#0B1210] p-3">
                 {finished.map((match) => (
                   <Link
                     key={match.id}
                     href={orgPath(organizationSlug, `/referee/match/${match.id}`)}
-                    className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-white"
+                    className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-kelme-surface"
                   >
-                    <span className="min-w-0 truncate font-medium text-[#505058]">
+                    <span className="min-w-0 truncate font-medium text-[#8A938C]">
                       {matchDisplayName(match)}
                     </span>
-                    <span className="shrink-0 text-xs text-[#8d8d96]">
+                    <span className="shrink-0 text-xs text-[#8A938C]">
                       {formatScheduleDateLabel(match.scheduledAt)}
                     </span>
                   </Link>

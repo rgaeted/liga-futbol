@@ -9,7 +9,7 @@ import {
 } from '@/lib/friendly-player-options'
 
 const selectClass =
-  'rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2'
+  'input-kelme rounded-lg px-3 py-2'
 
 type Props = {
   dominantFoot?: string

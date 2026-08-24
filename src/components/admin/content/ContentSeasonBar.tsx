@@ -28,13 +28,13 @@ export function ContentSeasonBar({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-kelme-border bg-white p-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-kelme-border bg-kelme-surface p-4">
       <div className="space-y-1">
-        <p className="text-sm font-medium text-zinc-700">Temporada</p>
+        <p className="text-sm font-medium text-[#E8E4D8]">Temporada</p>
         <select
           value={selectedSeasonId ?? ''}
           onChange={(event) => onSeasonChange(event.target.value)}
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
+          className="input-kelme rounded-lg px-3 py-2 text-sm"
         >
           {seasons.map((season) => (
             <option key={season.id} value={season.id}>
@@ -45,24 +45,24 @@ export function ContentSeasonBar({
       </div>
       {selectedSeasonId ? (
         <div className="flex flex-wrap gap-2 text-sm">
-          <Link href={orgPath(`/admin/content?season=${selectedSeasonId}`)} className="rounded-lg px-3 py-2 hover:bg-zinc-100">
+          <Link href={orgPath(`/admin/content?season=${selectedSeasonId}`)} className="rounded-lg px-3 py-2 hover:bg-[#0B1210]">
             Resumen
           </Link>
           <Link
             href={orgPath(`/admin/content/articles?season=${selectedSeasonId}`)}
-            className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+            className="rounded-lg px-3 py-2 hover:bg-[#0B1210]"
           >
             Noticias
           </Link>
           <Link
             href={orgPath(`/admin/content/galleries?season=${selectedSeasonId}`)}
-            className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+            className="rounded-lg px-3 py-2 hover:bg-[#0B1210]"
           >
             Galerías
           </Link>
           <Link
             href={orgPath(`/admin/content/sponsors?season=${selectedSeasonId}`)}
-            className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+            className="rounded-lg px-3 py-2 hover:bg-[#0B1210]"
           >
             Patrocinadores
           </Link>

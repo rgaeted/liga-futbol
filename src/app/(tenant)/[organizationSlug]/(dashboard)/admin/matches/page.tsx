@@ -119,7 +119,7 @@ export default async function AdminMatchesPage({
           </Link>
           <Link
             href={orgPath(organizationSlug, '/admin/matches/new/friendly')}
-            className="inline-flex items-center justify-center rounded-xl border border-kelme-border bg-white px-4 py-2.5 text-sm font-semibold text-kelme-gray-800 hover:bg-kelme-gray-50"
+            className="inline-flex items-center justify-center rounded-xl border border-kelme-border bg-kelme-surface px-4 py-2.5 text-sm font-semibold text-kelme-gray-900 hover:bg-[#0B1210]"
           >
             Crear amistoso
           </Link>

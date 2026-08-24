@@ -58,7 +58,7 @@ export function OrganizationSwitcher() {
       <label className="flex min-w-0 flex-1 items-center gap-2">
         <span className="sr-only">Cambiar empresa</span>
         <select
-          className="h-[38px] min-w-0 max-w-full flex-1 truncate rounded-xl border border-[#dddde2] bg-white px-2.5 font-ui text-[13px] font-semibold text-[#34343a]"
+          className="h-[38px] min-w-0 max-w-full flex-1 truncate rounded-xl border border-[#2A3A32] bg-kelme-surface px-2.5 font-ui text-[13px] font-semibold text-[#E8E4D8]"
           value={current?.organizationId ?? ''}
           onChange={(e) => void handleChange(e.target.value)}
           aria-label="Empresa activa"
@@ -72,7 +72,7 @@ export function OrganizationSwitcher() {
       </label>
       <Link
         href="/organizaciones"
-        className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-bold text-[#8d8d96] hover:bg-[#f7f7f9] hover:text-[#17171a]"
+        className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-bold text-[#8A938C] hover:bg-[#0B1210] hover:text-[#E8E4D8]"
         title="Ver todas tus empresas"
       >
         Todas

@@ -30,11 +30,11 @@ export function PlatformOrgAdminTable({ users }: { users: OrgAdminUser[] }) {
     <PlatformPanel>
       <PlatformPanelInner>
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-[22px] font-black text-[#17171a]">Administradores</h2>
-          <span className="text-xs text-[#aaa]">{users.length} cuentas</span>
+          <h2 className="text-[22px] font-black text-[#E8E4D8]">Administradores</h2>
+          <span className="text-xs text-[#8A938C]">{users.length} cuentas</span>
         </div>
 
-        {error && <p className="mb-3 text-sm font-semibold text-[#c91f26]">{error}</p>}
+        {error && <p className="mb-3 text-sm font-semibold text-org-primary">{error}</p>}
 
         {users.length === 0 ? (
           <p className="text-sm text-[#8e8e98]">Aún no hay administradores de empresa.</p>
@@ -53,8 +53,8 @@ export function PlatformOrgAdminTable({ users }: { users: OrgAdminUser[] }) {
                       .toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-extrabold text-[#17171a]">{user.name}</p>
-                    <p className="text-xs text-[#999]">{user.email}</p>
+                    <p className="text-sm font-extrabold text-[#E8E4D8]">{user.name}</p>
+                    <p className="text-xs text-[#8A938C]">{user.email}</p>
                   </div>
                 </div>
                 <ul className="flex flex-wrap gap-2 pl-[46px]">
@@ -63,7 +63,7 @@ export function PlatformOrgAdminTable({ users }: { users: OrgAdminUser[] }) {
                     return (
                       <li
                         key={org.id}
-                        className="flex items-center gap-2 rounded-full border border-[#e5e5e9] bg-[#fafafa] px-3 py-1 text-xs font-semibold text-[#505058]"
+                        className="flex items-center gap-2 rounded-full border border-[#2A3A32] bg-[#0B1210] px-3 py-1 text-xs font-semibold text-[#8A938C]"
                       >
                         <span>
                           {org.name}
@@ -73,7 +73,7 @@ export function PlatformOrgAdminTable({ users }: { users: OrgAdminUser[] }) {
                           type="button"
                           disabled={pending === key}
                           onClick={() => revoke(user.id, org.id)}
-                          className="font-bold text-[#999] hover:text-[#c91f26] disabled:opacity-50"
+                          className="font-bold text-[#8A938C] hover:text-org-primary disabled:opacity-50"
                         >
                           Quitar
                         </button>

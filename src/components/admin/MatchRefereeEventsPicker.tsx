@@ -55,7 +55,7 @@ export function MatchRefereeEventsPicker({ value, onChange, disabled = false }: 
         {REFEREE_CONTROL_EVENT_TYPES.map((type) => (
           <span
             key={type}
-            className="inline-flex items-center gap-1.5 rounded-full border border-kelme-border bg-white px-2.5 py-1 text-xs text-kelme-gray-600"
+            className="inline-flex items-center gap-1.5 rounded-full border border-kelme-border bg-kelme-surface px-2.5 py-1 text-xs text-kelme-gray-600"
           >
             <span className="font-semibold text-kelme-gray-400">●</span>
             {refereeEventTypeLabel(type)}
@@ -70,14 +70,14 @@ export function MatchRefereeEventsPicker({ value, onChange, disabled = false }: 
         <button
           type="button"
           onClick={selectAllMeasurable}
-          className="rounded-lg border border-kelme-border bg-white px-2.5 py-1 text-xs hover:border-kelme-red/40"
+          className="rounded-lg border border-kelme-border bg-kelme-surface px-2.5 py-1 text-xs hover:border-kelme-red/40"
         >
           Marcar todos
         </button>
         <button
           type="button"
           onClick={clearMeasurable}
-          className="rounded-lg border border-kelme-border bg-white px-2.5 py-1 text-xs hover:border-kelme-red/40"
+          className="rounded-lg border border-kelme-border bg-kelme-surface px-2.5 py-1 text-xs hover:border-kelme-red/40"
         >
           Solo goles
         </button>
@@ -92,7 +92,7 @@ export function MatchRefereeEventsPicker({ value, onChange, disabled = false }: 
               className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                 checked
                   ? 'border-kelme-red/40 bg-kelme-red/5 text-kelme-gray-900'
-                  : 'border-kelme-border bg-white text-kelme-gray-600'
+                  : 'border-kelme-border bg-kelme-surface text-kelme-gray-600'
               }`}
             >
               <input

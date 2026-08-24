@@ -55,10 +55,10 @@ export function MatchCreateWizardShell({
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl ${
               variant === 'friendly'
-                ? 'bg-emerald-100 text-emerald-700'
+                ? 'bg-emerald-100 text-[#3D8B6E]'
                 : variant === 'season'
                   ? 'bg-sky-100 text-sky-700'
-                  : 'bg-red-100 text-red-700'
+                  : 'bg-[#0B1210] text-org-primary ring-1 ring-[color:var(--org-primary)]/35'
             }`}
           >
             {icon}
@@ -67,7 +67,7 @@ export function MatchCreateWizardShell({
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-display text-2xl font-bold text-kelme-gray-900">{title}</h1>
               {badge ? (
-                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                <span className="rounded-full bg-[#0B1210] px-2.5 py-0.5 text-xs font-semibold text-[#3D8B6E] ring-1 ring-[#3D8B6E]/35">
                   {badge}
                 </span>
               ) : null}
@@ -81,7 +81,7 @@ export function MatchCreateWizardShell({
 
         <div className="relative flex items-center gap-2">
           {savedAtLabel ? (
-            <span className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800">
+            <span className="rounded-lg bg-[#0B1210] px-3 py-1.5 text-xs font-medium text-emerald-800">
               Borrador guardado · {savedAtLabel}
             </span>
           ) : null}
@@ -90,7 +90,7 @@ export function MatchCreateWizardShell({
               <button
                 type="button"
                 onClick={() => setMenuOpen((open) => !open)}
-                className="rounded-lg border border-kelme-border px-2 py-1.5 text-sm text-kelme-gray-600 hover:bg-kelme-gray-50"
+                className="rounded-lg border border-kelme-border px-2 py-1.5 text-sm text-kelme-gray-600 hover:bg-[#0B1210]"
                 aria-label="Opciones de borrador"
               >
                 ···
@@ -103,14 +103,14 @@ export function MatchCreateWizardShell({
                     aria-label="Cerrar menú"
                     onClick={() => setMenuOpen(false)}
                   />
-                  <div className="absolute right-0 z-20 mt-1 w-44 rounded-lg border border-kelme-border bg-white py-1 shadow-lg">
+                  <div className="absolute right-0 z-20 mt-1 w-44 rounded-lg border border-kelme-border bg-kelme-surface py-1 shadow-lg">
                     <button
                       type="button"
                       onClick={() => {
                         setMenuOpen(false)
                         onDiscardDraft()
                       }}
-                      className="block w-full px-3 py-2 text-left text-sm text-kelme-gray-700 hover:bg-kelme-gray-50"
+                      className="block w-full px-3 py-2 text-left text-sm text-kelme-gray-700 hover:bg-[#0B1210]"
                     >
                       Descartar borrador
                     </button>
@@ -127,7 +127,7 @@ export function MatchCreateWizardShell({
         <aside className="lg:sticky lg:top-6 lg:self-start">{summary}</aside>
       </div>
 
-      <div className="rounded-xl border border-kelme-border bg-white p-4">
+      <div className="rounded-xl border border-kelme-border bg-kelme-surface p-4">
         <button
           type="button"
           disabled={loading || disabled}

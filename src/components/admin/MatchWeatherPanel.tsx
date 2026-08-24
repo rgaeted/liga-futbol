@@ -126,7 +126,7 @@ export function MatchWeatherPanel({
             className={
               compact
                 ? 'text-xs text-kelme-red hover:underline disabled:opacity-50'
-                : 'rounded-lg border border-kelme-border bg-white px-3 py-1.5 text-xs hover:border-kelme-red/40 disabled:opacity-50'
+                : 'rounded-lg border border-kelme-border bg-kelme-surface px-3 py-1.5 text-xs hover:border-kelme-red/40 disabled:opacity-50'
             }
           >
             {loading ? 'Consultando clima…' : weatherSummary ? 'Actualizar clima' : 'Consultar clima'}

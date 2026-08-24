@@ -38,10 +38,10 @@ export function PlayerForm({ teams }: { teams: Team[] }) {
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-3 rounded-xl border border-kelme-border bg-kelme-surface p-4 md:grid-cols-3">
-      <input name="name" placeholder="Nombre" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
-      <input name="email" type="email" placeholder="Email" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
-      <input name="password" type="password" placeholder="Contraseña" required className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
-      <select name="teamId" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2">
+      <input name="name" placeholder="Nombre" required className="input-kelme rounded-lg px-3 py-2" />
+      <input name="email" type="email" placeholder="Email" required className="input-kelme rounded-lg px-3 py-2" />
+      <input name="password" type="password" placeholder="Contraseña" required className="input-kelme rounded-lg px-3 py-2" />
+      <select name="teamId" className="input-kelme rounded-lg px-3 py-2">
         <option value="">Sin equipo</option>
         {teams.map((team) => (
           <option key={team.id} value={team.id}>
@@ -49,12 +49,12 @@ export function PlayerForm({ teams }: { teams: Team[] }) {
           </option>
         ))}
       </select>
-      <input name="jerseyNumber" type="number" placeholder="Dorsal" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
-      <input name="position" placeholder="Posición" className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
+      <input name="jerseyNumber" type="number" placeholder="Dorsal" className="input-kelme rounded-lg px-3 py-2" />
+      <input name="position" placeholder="Posición" className="input-kelme rounded-lg px-3 py-2" />
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50 md:col-span-3"
+        className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50 md:col-span-3"
       >
         {loading ? 'Creando…' : 'Crear jugador'}
       </button>

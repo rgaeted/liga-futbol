@@ -113,7 +113,7 @@ export function RefereesDirectory({ referees, pendingReceived }: Props) {
   return (
     <div className="space-y-6">
       {pendingReceived.length > 0 ? (
-        <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <div className="space-y-2 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
           <p className="font-ui text-sm font-medium text-amber-900">
             Tienes invitaciones de árbitros pendientes
           </p>
@@ -129,7 +129,7 @@ export function RefereesDirectory({ referees, pendingReceived }: Props) {
       ) : null}
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <p className="rounded-lg border border-[#2A3A32] bg-[#0B1210] px-4 py-3 text-sm text-org-primary">
           {error}
         </p>
       ) : null}
@@ -142,40 +142,40 @@ export function RefereesDirectory({ referees, pendingReceived }: Props) {
           name="name"
           placeholder="Nombre"
           required
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         />
         <input
           name="email"
           type="email"
           placeholder="Email"
           required
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         />
         <input
           name="password"
           type="password"
           placeholder="Contraseña (usuarios nuevos)"
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         />
         <input
           name="phone"
           placeholder="Teléfono"
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         />
         <input
           name="whatsapp"
           placeholder="WhatsApp"
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         />
         <input
           name="notes"
           placeholder="Notas internas"
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         />
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50 md:col-span-3"
+          className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50 md:col-span-3"
         >
           {loading ? 'Guardando...' : 'Agregar árbitro'}
         </button>
@@ -228,7 +228,7 @@ export function RefereesDirectory({ referees, pendingReceived }: Props) {
                       href={referee.whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-block rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700"
+                      className="mt-2 inline-block rounded-lg bg-[#3D8B6E] px-3 py-1 text-sm font-medium text-[#E8E4D8] hover:brightness-110"
                     >
                       WhatsApp
                     </a>
@@ -255,7 +255,7 @@ export function RefereesDirectory({ referees, pendingReceived }: Props) {
 
       {shareUserId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-xl bg-kelme-surface p-6 shadow-xl">
             <h3 className="font-display text-lg font-bold">Invitar a otra organización</h3>
             <p className="mt-1 font-ui text-sm text-kelme-gray-500">
               Elige la liga que recibirá la invitación para compartir este árbitro.

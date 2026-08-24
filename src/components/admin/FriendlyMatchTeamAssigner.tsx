@@ -26,7 +26,7 @@ function SideToggle({
       className={`min-w-[2.5rem] rounded-md px-2 py-1 text-xs font-semibold transition-colors ${
         active
           ? 'bg-kelme-red text-white'
-          : 'border border-kelme-border bg-kelme-gray-100 text-kelme-gray-700 hover:bg-white'
+          : 'border border-kelme-border bg-kelme-gray-100 text-kelme-gray-700 hover:bg-kelme-surface'
       }`}
       aria-pressed={active}
     >
@@ -80,7 +80,7 @@ export function FriendlyMatchTeamAssigner({
 
   return (
     <div className="space-y-4">
-      <fieldset className="rounded-lg border border-kelme-border bg-white p-3">
+      <fieldset className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
         <legend className="px-1 text-sm font-medium">Equipos</legend>
         {sortedConvoked.length === 0 ? (
           <p className="text-sm text-kelme-gray-400">No hay jugadores convocados.</p>
@@ -120,7 +120,7 @@ export function FriendlyMatchTeamAssigner({
       </fieldset>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <fieldset className="rounded-lg border border-kelme-border bg-white p-3">
+        <fieldset className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
           <legend className="px-1 text-sm font-medium">Lado {sideAName}</legend>
           <label className="mt-1 block text-sm">
             <span className="mb-1 block font-medium text-kelme-gray-700">Capitán</span>
@@ -164,7 +164,7 @@ export function FriendlyMatchTeamAssigner({
           </label>
         </fieldset>
 
-        <fieldset className="rounded-lg border border-kelme-border bg-white p-3">
+        <fieldset className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
           <legend className="px-1 text-sm font-medium">Lado {sideBName}</legend>
           <label className="mt-1 block text-sm">
             <span className="mb-1 block font-medium text-kelme-gray-700">Capitán</span>

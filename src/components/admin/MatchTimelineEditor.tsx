@@ -263,7 +263,7 @@ export function MatchTimelineEditor({
               assistPlayerId: '',
             })
           }}
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         >
           {ALL_EVENT_TYPES.map((type) => (
             <option key={type} value={type}>
@@ -279,7 +279,7 @@ export function MatchTimelineEditor({
           onChange={(e) => setNewEvent({ ...newEvent, minute: Number(e.target.value) })}
           placeholder="Minuto"
           required
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         />
         {matchType === 'FRIENDLY' ? (
           <>
@@ -296,7 +296,7 @@ export function MatchTimelineEditor({
                   })
                 )
               }}
-              className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+              className="input-kelme rounded-lg px-3 py-2"
             >
               <option value="A">{homeLabel}</option>
               <option value="B">{awayLabel}</option>
@@ -319,7 +319,7 @@ export function MatchTimelineEditor({
                     })
                   )
                 }}
-                className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+                className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               >
                 <option value="">Jugador (opcional)</option>
                 {newEventPlayers.map((p) => (
@@ -335,7 +335,7 @@ export function MatchTimelineEditor({
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, assistPlayerId: e.target.value })
                 }
-                className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+                className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               >
                 <option value="">Asistencia (opcional)</option>
                 {assistCandidates(matchType, players, {
@@ -365,7 +365,7 @@ export function MatchTimelineEditor({
                   })
                 )
               }}
-              className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+              className="input-kelme rounded-lg px-3 py-2"
             >
               {homeTeamId && <option value={homeTeamId}>{homeLabel}</option>}
               {awayTeamId && <option value={awayTeamId}>{awayLabel}</option>}
@@ -386,7 +386,7 @@ export function MatchTimelineEditor({
                     })
                   )
                 }}
-                className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+                className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               >
                 <option value="">Jugador (opcional)</option>
                 {playersForTeamSide(matchType, players, {
@@ -403,7 +403,7 @@ export function MatchTimelineEditor({
               <select
                 value={newEvent.assistPlayerId}
                 onChange={(e) => setNewEvent({ ...newEvent, assistPlayerId: e.target.value })}
-                className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+                className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               >
                 <option value="">Asistencia (opcional)</option>
                 {assistCandidates(matchType, players, {
@@ -422,7 +422,7 @@ export function MatchTimelineEditor({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50 md:col-span-3"
+          className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50 md:col-span-3"
         >
           Agregar evento
         </button>

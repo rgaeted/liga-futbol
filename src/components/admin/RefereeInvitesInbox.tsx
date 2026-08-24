@@ -41,7 +41,7 @@ export function RefereeInvitesInbox({ received, sent }: Props) {
   return (
     <div className="space-y-8">
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <p className="rounded-lg border border-[#2A3A32] bg-[#0B1210] px-4 py-3 text-sm text-org-primary">
           {error}
         </p>
       ) : null}

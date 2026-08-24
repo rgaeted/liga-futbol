@@ -118,7 +118,7 @@ export function LandingPage({ liveMatches }: { liveMatches: LiveMatchPreview[] }
                   <Link
                     key={match.id}
                     href={`/live/${match.id}`}
-                    className="card-kelme block p-5 transition-colors hover:border-kelme-red/50 hover:shadow-sm"
+                    className="card-kelme block p-5 transition-colors hover:border-kelme-red/50 hover:shadow-none"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <span className="font-ui text-xs uppercase tracking-wide text-kelme-gray-400">
@@ -126,7 +126,7 @@ export function LandingPage({ liveMatches }: { liveMatches: LiveMatchPreview[] }
                         {match.venue ? ` · ${match.venue}` : ''}
                       </span>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-kelme-red px-2.5 py-0.5 font-ui text-xs font-semibold text-white">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-kelme-surface" />
                         {matchStatusLabel(match.status)}
                       </span>
                     </div>

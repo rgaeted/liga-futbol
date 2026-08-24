@@ -73,7 +73,7 @@ export function PlatformRefereesTable({ referees, organizations }: Props) {
   return (
     <div className="space-y-4">
       {error ? (
-        <p className="rounded-[14px] border border-[#ffd8db] bg-[#fff0f1] px-4 py-3 text-sm font-semibold text-[#c91f26]">
+        <p className="rounded-[14px] border-[#2A3A32] bg-[#0B1210] px-4 py-3 text-sm font-semibold text-org-primary">
           {error}
         </p>
       ) : null}
@@ -81,7 +81,7 @@ export function PlatformRefereesTable({ referees, organizations }: Props) {
       <PlatformPanel>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="border-b border-[#e5e5e9] bg-[#fafafa] text-left text-[#999]">
+            <thead className="border-b border-[#2A3A32] bg-[#0B1210] text-left text-[#8A938C]">
               <tr>
                 <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Árbitro</th>
                 <th className="px-5 py-3 text-[11px] font-black uppercase tracking-wide">Contacto</th>
@@ -95,12 +95,12 @@ export function PlatformRefereesTable({ referees, organizations }: Props) {
             </thead>
             <tbody className="divide-y divide-[#f0f0f2]">
               {referees.map((referee) => (
-                <tr key={referee.userId} className="hover:bg-[#fafafa]">
+                <tr key={referee.userId} className="hover:bg-[#0B1210]">
                   <td className="px-5 py-3.5 align-top">
-                    <p className="font-extrabold text-[#17171a]">{referee.name}</p>
-                    <p className="text-[#999]">{referee.email}</p>
+                    <p className="font-extrabold text-[#E8E4D8]">{referee.name}</p>
+                    <p className="text-[#8A938C]">{referee.email}</p>
                   </td>
-                  <td className="px-5 py-3.5 align-top text-[#505058]">
+                  <td className="px-5 py-3.5 align-top text-[#8A938C]">
                     {referee.phone ?? referee.whatsapp ?? '—'}
                   </td>
                   <td className="px-5 py-3.5 align-top">
@@ -111,7 +111,7 @@ export function PlatformRefereesTable({ referees, organizations }: Props) {
                           return (
                             <li
                               key={org.id}
-                              className="flex items-center gap-2 rounded-full border border-[#e5e5e9] bg-[#fafafa] px-3 py-1 text-xs font-semibold text-[#505058]"
+                              className="flex items-center gap-2 rounded-full border border-[#2A3A32] bg-[#0B1210] px-3 py-1 text-xs font-semibold text-[#8A938C]"
                             >
                               <span>
                                 {org.name}
@@ -121,7 +121,7 @@ export function PlatformRefereesTable({ referees, organizations }: Props) {
                                 type="button"
                                 disabled={revokingKey === key}
                                 onClick={() => void revokeAccess(referee.userId, org.id)}
-                                className="font-bold text-[#999] hover:text-[#c91f26] disabled:opacity-50"
+                                className="font-bold text-[#8A938C] hover:text-org-primary disabled:opacity-50"
                               >
                                 Quitar
                               </button>
@@ -130,7 +130,7 @@ export function PlatformRefereesTable({ referees, organizations }: Props) {
                         })}
                       </ul>
                     ) : (
-                      <span className="text-[#505058]">Sin acceso</span>
+                      <span className="text-[#8A938C]">Sin acceso</span>
                     )}
                   </td>
                   <td className="px-5 py-3.5 align-top">

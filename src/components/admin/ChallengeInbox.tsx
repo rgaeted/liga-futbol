@@ -63,7 +63,7 @@ export function ChallengeInbox({ organizationId, items }: Props) {
   return (
     <div className="space-y-4">
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <p className="rounded-lg border border-[#2A3A32] bg-[#0B1210] px-4 py-3 text-sm text-org-primary">
           {error}
         </p>
       ) : null}
@@ -82,7 +82,7 @@ export function ChallengeInbox({ organizationId, items }: Props) {
         return (
           <article
             key={item.id}
-            className="rounded-xl border border-kelme-border bg-white p-5 shadow-sm"
+            className="rounded-xl border border-kelme-border bg-kelme-surface p-5 shadow-none"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -121,7 +121,7 @@ export function ChallengeInbox({ organizationId, items }: Props) {
                       type="button"
                       disabled={loadingId === item.id}
                       onClick={() => void runAction(item.id, 'decline')}
-                      className="rounded-lg border border-kelme-border px-4 py-2 text-sm font-semibold hover:bg-kelme-gray-50 disabled:opacity-50"
+                      className="rounded-lg border border-kelme-border px-4 py-2 text-sm font-semibold hover:bg-[#0B1210] disabled:opacity-50"
                     >
                       Rechazar
                     </button>
@@ -133,7 +133,7 @@ export function ChallengeInbox({ organizationId, items }: Props) {
                     type="button"
                     disabled={loadingId === item.id}
                     onClick={() => void runAction(item.id, 'cancel')}
-                    className="rounded-lg border border-kelme-border px-4 py-2 text-sm font-semibold hover:bg-kelme-gray-50 disabled:opacity-50"
+                    className="rounded-lg border border-kelme-border px-4 py-2 text-sm font-semibold hover:bg-[#0B1210] disabled:opacity-50"
                   >
                     Cancelar
                   </button>

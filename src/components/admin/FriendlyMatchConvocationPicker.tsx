@@ -121,7 +121,7 @@ export function FriendlyMatchConvocationPicker({
   }
 
   return (
-    <fieldset className="rounded-lg border border-kelme-border bg-white p-3">
+    <fieldset className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
       <legend className="px-1 text-sm font-medium">
         Convocados
         {convokedIds.size > 0 && (
@@ -156,14 +156,14 @@ export function FriendlyMatchConvocationPicker({
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="Nombre"
                   autoFocus
-                  className="rounded-lg border border-kelme-border bg-white px-3 py-1.5 text-sm"
+                  className="rounded-lg border border-kelme-border bg-kelme-surface px-3 py-1.5 text-sm"
                 />
                 <input
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Apellido"
-                  className="rounded-lg border border-kelme-border bg-white px-3 py-1.5 text-sm"
+                  className="rounded-lg border border-kelme-border bg-kelme-surface px-3 py-1.5 text-sm"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -178,7 +178,7 @@ export function FriendlyMatchConvocationPicker({
                   type="button"
                   disabled={creating}
                   onClick={resetCreateForm}
-                  className="rounded-lg border border-kelme-border bg-white px-3 py-1.5 text-sm font-semibold text-kelme-gray-700 hover:bg-kelme-gray-50 disabled:opacity-50"
+                  className="rounded-lg border border-kelme-border bg-kelme-surface px-3 py-1.5 text-sm font-semibold text-kelme-gray-700 hover:bg-[#0B1210] disabled:opacity-50"
                 >
                   Cancelar
                 </button>

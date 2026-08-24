@@ -315,18 +315,18 @@ export function MatchActions({
         type="date"
         value={date}
         onChange={(e) => setDate(e.target.value)}
-        className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+        className="rounded-lg border border-kelme-border bg-kelme-surface px-2 py-1 text-sm"
       />
       <input
         type="time"
         value={time}
         onChange={(e) => setTime(e.target.value)}
-        className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+        className="rounded-lg border border-kelme-border bg-kelme-surface px-2 py-1 text-sm"
       />
       <select
         value={status}
         onChange={(e) => setStatus(e.target.value)}
-        className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+        className="rounded-lg border border-kelme-border bg-kelme-surface px-2 py-1 text-sm"
       >
         {MATCH_STATUSES.map((s) => (
           <option key={s} value={s}>
@@ -337,7 +337,7 @@ export function MatchActions({
       <select
         value={footballFormat}
         onChange={(e) => setFootballFormat(e.target.value as FootballFormat)}
-        className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+        className="rounded-lg border border-kelme-border bg-kelme-surface px-2 py-1 text-sm"
       >
         {FOOTBALL_FORMATS.map((format) => (
           <option key={format} value={format}>
@@ -348,7 +348,7 @@ export function MatchActions({
       <select
         value={refereeId}
         onChange={(e) => setRefereeId(e.target.value)}
-        className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+        className="rounded-lg border border-kelme-border bg-kelme-surface px-2 py-1 text-sm"
       >
         <option value="">Sin árbitro</option>
         {referees.map((r) => (
@@ -359,7 +359,7 @@ export function MatchActions({
         value={venue}
         onChange={(e) => setVenue(e.target.value)}
         placeholder="Cancha"
-        className="rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+        className="rounded-lg border border-kelme-border bg-kelme-surface px-2 py-1 text-sm"
       />
       <ChileLocationPicker
         regionCode={regionCode}

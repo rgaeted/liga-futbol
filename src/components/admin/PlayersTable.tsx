@@ -79,12 +79,12 @@ export function PlayersTable({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nombre, email o equipo"
-          className="min-w-[12rem] flex-1 rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
+          className="min-w-[12rem] flex-1 input-kelme rounded-lg px-3 py-2 text-sm"
         />
         <select
           value={filterTeamId}
           onChange={(e) => setFilterTeamId(e.target.value)}
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
+          className="input-kelme rounded-lg px-3 py-2 text-sm"
         >
           <option value="">Todos los equipos</option>
           {teams.map((t) => (

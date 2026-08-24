@@ -5,7 +5,7 @@ import type { PersonCareer } from '@/lib/person-career'
 
 function StatCell({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-center">
+    <div className="input-kelme rounded-lg px-3 py-2 text-center">
       <p className="text-xs text-kelme-gray-400">{label}</p>
       <p className="font-semibold">{value}</p>
     </div>

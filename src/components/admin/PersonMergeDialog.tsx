@@ -66,7 +66,7 @@ export function PersonMergeDialog({
           <select
             value={destPersonId}
             onChange={(e) => setDestPersonId(e.target.value)}
-            className="w-full rounded-lg border border-kelme-border bg-white px-2 py-1 text-sm"
+            className="w-full rounded-lg border border-kelme-border bg-kelme-surface px-2 py-1 text-sm"
           >
             <option value="">Elige destino…</option>
             {available.map((option) => (

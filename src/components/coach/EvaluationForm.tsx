@@ -30,7 +30,7 @@ export function EvaluationForm({ players }: { players: Player[] }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-kelme-border bg-kelme-surface p-4">
-      <select name="playerId" required className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2">
+      <select name="playerId" required className="w-full input-kelme rounded-lg px-3 py-2">
         <option value="">Seleccionar jugador</option>
         {players.map((p) => (
           <option key={p.id} value={p.id}>{playerDisplayName(p)}</option>
@@ -40,8 +40,8 @@ export function EvaluationForm({ players }: { players: Player[] }) {
         <label className="mb-2 block text-sm text-kelme-gray-400">Nota (1-10)</label>
         <input name="rating" type="range" min={1} max={10} defaultValue={7} className="w-full" />
       </div>
-      <textarea name="notes" placeholder="Notas" rows={3} className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2" />
-      <button type="submit" disabled={loading} className="rounded-lg bg-kelme-red px-4 py-2 font-semibold hover:bg-kelme-red-dark disabled:opacity-50">
+      <textarea name="notes" placeholder="Notas" rows={3} className="w-full input-kelme rounded-lg px-3 py-2" />
+      <button type="submit" disabled={loading} className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50">
         Guardar evaluación
       </button>
     </form>

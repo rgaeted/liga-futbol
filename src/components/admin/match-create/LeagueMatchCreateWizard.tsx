@@ -274,7 +274,7 @@ export function LeagueMatchCreateWizard({ seasons, referees }: Props) {
           <select
             value={data.seasonId}
             onChange={(e) => handleSeasonChange(e.target.value)}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+            className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
             required
           >
             <option value="">Temporada</option>
@@ -288,7 +288,7 @@ export function LeagueMatchCreateWizard({ seasons, referees }: Props) {
           <select
             value={data.seasonCategoryId}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+            className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
             required
             disabled={!selectedSeason}
           >
@@ -303,7 +303,7 @@ export function LeagueMatchCreateWizard({ seasons, referees }: Props) {
           <select
             value={data.homeTeamId}
             onChange={(e) => patch({ homeTeamId: e.target.value })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
             required
             disabled={!data.seasonCategoryId}
           >
@@ -317,7 +317,7 @@ export function LeagueMatchCreateWizard({ seasons, referees }: Props) {
           <select
             value={data.awayTeamId}
             onChange={(e) => patch({ awayTeamId: e.target.value })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
             required
             disabled={!data.seasonCategoryId}
           >
@@ -331,7 +331,7 @@ export function LeagueMatchCreateWizard({ seasons, referees }: Props) {
           <select
             value={data.refereeId}
             onChange={(e) => patch({ refereeId: e.target.value })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
           >
             <option value="">Árbitro</option>
             {referees.map((item) => (
@@ -344,21 +344,21 @@ export function LeagueMatchCreateWizard({ seasons, referees }: Props) {
             type="date"
             value={data.date}
             onChange={(e) => patch({ date: e.target.value })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
             required
           />
           <input
             type="time"
             value={data.time}
             onChange={(e) => patch({ time: e.target.value })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
             required
           />
           <input
             value={data.venue}
             onChange={(e) => patch({ venue: e.target.value })}
             placeholder="Cancha"
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+            className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
           />
           {selectedSeason?.footballFormat ? (
             <p className="text-sm text-kelme-gray-500 md:col-span-2">

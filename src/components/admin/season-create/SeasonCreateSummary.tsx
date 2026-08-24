@@ -70,7 +70,7 @@ export function SeasonCreateSummary({
           </h3>
           <dl className="mt-3 space-y-3 text-sm">
             {enrollmentByCategory.map((block) => (
-              <div key={block.name} className="rounded-lg border border-kelme-border bg-white p-3">
+              <div key={block.name} className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
                 <p className="font-medium text-kelme-gray-900">{block.name}</p>
                 <div className="mt-2 flex justify-between gap-3">
                   <dt className="text-kelme-gray-500">Equipos</dt>

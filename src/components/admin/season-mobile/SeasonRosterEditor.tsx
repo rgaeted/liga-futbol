@@ -159,7 +159,7 @@ export function SeasonMobilePageClient({
             <select
               value={selectedCategoryId}
               onChange={(e) => handleCategoryChange(e.target.value)}
-              className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
+              className="w-full input-kelme rounded-lg px-3 py-2 text-sm"
             >
               {categories.map((category) => (
                 <option key={category.categoryId} value={category.categoryId}>

@@ -5,27 +5,27 @@ import { formationFitTone, type FormationFitResult } from '@/lib/formation-posit
 const TONE_STYLES = {
   great: {
     ring: 'stroke-emerald-500',
-    bg: 'bg-emerald-50 border-emerald-200',
-    text: 'text-emerald-800',
-    badge: 'bg-emerald-100 text-emerald-800',
+    bg: 'bg-[#0B1210] border-emerald-400/30',
+    text: 'text-[#3D8B6E]',
+    badge: 'bg-[#0B1210] text-[#3D8B6E] ring-1 ring-[#3D8B6E]/35',
   },
   good: {
     ring: 'stroke-lime-500',
-    bg: 'bg-lime-50 border-lime-200',
-    text: 'text-lime-900',
-    badge: 'bg-lime-100 text-lime-900',
+    bg: 'bg-[#0B1210] border-lime-400/30',
+    text: 'text-lime-300',
+    badge: 'bg-[#0B1210] text-lime-300 ring-1 ring-lime-400/35',
   },
   fair: {
     ring: 'stroke-amber-500',
-    bg: 'bg-amber-50 border-amber-200',
-    text: 'text-amber-900',
-    badge: 'bg-amber-100 text-amber-900',
+    bg: 'bg-amber-400/10 border-amber-400/30',
+    text: 'text-amber-200',
+    badge: 'bg-[#0B1210] text-amber-300 ring-1 ring-amber-400/35',
   },
   poor: {
     ring: 'stroke-red-500',
-    bg: 'bg-red-50 border-red-200',
-    text: 'text-red-900',
-    badge: 'bg-red-100 text-red-900',
+    bg: 'bg-[#0B1210] border-[#2A3A32]',
+    text: 'text-org-primary',
+    badge: 'bg-[#0B1210] text-org-primary ring-1 ring-[color:var(--org-primary)]/35',
   },
 } as const
 

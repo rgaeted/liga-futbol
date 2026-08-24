@@ -101,7 +101,7 @@ export function ArticleForm({
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="w-full input-kelme rounded-lg px-3 py-2"
         />
       </label>
       <label className="block space-y-1 text-sm">
@@ -109,7 +109,7 @@ export function ArticleForm({
         <textarea
           value={summary}
           onChange={(event) => setSummary(event.target.value)}
-          className="min-h-20 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="min-h-20 w-full input-kelme rounded-lg px-3 py-2"
         />
       </label>
       <label className="block space-y-1 text-sm">
@@ -117,7 +117,7 @@ export function ArticleForm({
         <textarea
           value={body}
           onChange={(event) => setBody(event.target.value)}
-          className="min-h-40 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="min-h-40 w-full input-kelme rounded-lg px-3 py-2"
         />
       </label>
       <label className="block space-y-1 text-sm">
@@ -125,7 +125,7 @@ export function ArticleForm({
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value as 'DRAFT' | 'PUBLISHED')}
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         >
           <option value="DRAFT">Borrador</option>
           <option value="PUBLISHED">Publicado</option>

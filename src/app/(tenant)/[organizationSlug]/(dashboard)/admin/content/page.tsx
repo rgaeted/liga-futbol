@@ -54,23 +54,23 @@ export default async function AdminContentPage({
           <div className="grid gap-4 md:grid-cols-3">
             <Link
               href={orgPath(organizationSlug, `/admin/content/articles?season=${selectedSeasonId}`)}
-              className="rounded-lg border border-kelme-border p-4 hover:bg-kelme-gray-50"
+              className="rounded-lg border border-kelme-border p-4 hover:bg-[#0B1210]"
             >
-              <p className="text-sm text-zinc-500">Noticias</p>
+              <p className="text-sm text-[#8A938C]">Noticias</p>
               <p className="text-2xl font-bold">{articleCount}</p>
             </Link>
             <Link
               href={orgPath(organizationSlug, `/admin/content/galleries?season=${selectedSeasonId}`)}
-              className="rounded-lg border border-kelme-border p-4 hover:bg-kelme-gray-50"
+              className="rounded-lg border border-kelme-border p-4 hover:bg-[#0B1210]"
             >
-              <p className="text-sm text-zinc-500">Galerías</p>
+              <p className="text-sm text-[#8A938C]">Galerías</p>
               <p className="text-2xl font-bold">{galleryCount}</p>
             </Link>
             <Link
               href={orgPath(organizationSlug, `/admin/content/sponsors?season=${selectedSeasonId}`)}
-              className="rounded-lg border border-kelme-border p-4 hover:bg-kelme-gray-50"
+              className="rounded-lg border border-kelme-border p-4 hover:bg-[#0B1210]"
             >
-              <p className="text-sm text-zinc-500">Patrocinadores</p>
+              <p className="text-sm text-[#8A938C]">Patrocinadores</p>
               <p className="text-2xl font-bold">{sponsorCount}</p>
             </Link>
           </div>
@@ -78,7 +78,7 @@ export default async function AdminContentPage({
             <>
               <section className="rounded-lg border border-kelme-border p-4 text-sm">
                 <h2 className="font-display text-lg font-semibold">App de esta edición</h2>
-                <p className="mt-2 text-zinc-600">
+                <p className="mt-2 text-[#8A938C]">
                   Estado: {mobileConfig.isPublished ? 'Publicado' : 'Borrador'} · Slug:{' '}
                   <span className="font-mono text-xs">{mobileConfig.slug}</span>
                 </p>
@@ -89,7 +89,7 @@ export default async function AdminContentPage({
               />
             </>
           ) : (
-            <p className="rounded-lg border border-kelme-border p-4 text-sm text-zinc-600">
+            <p className="rounded-lg border border-kelme-border p-4 text-sm text-[#8A938C]">
               Configura la edición móvil de esta temporada antes de subir el logo.{' '}
               <Link
                 href={orgPath(organizationSlug, `/admin/seasons/${selectedSeasonId}/mobile`)}
@@ -101,7 +101,7 @@ export default async function AdminContentPage({
           )}
         </>
       ) : (
-        <p className="text-sm text-zinc-600">Crea una temporada para gestionar contenido editorial.</p>
+        <p className="text-sm text-[#8A938C]">Crea una temporada para gestionar contenido editorial.</p>
       )}
     </div>
   )

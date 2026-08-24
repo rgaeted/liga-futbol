@@ -479,13 +479,13 @@ export function SeasonCreateWizard({ organizationSlug, categories, teams }: Prop
             value={data.name}
             onChange={(e) => patchName(e.target.value)}
             placeholder="Nombre de la temporada"
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+            className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
             required
           />
           <select
             value={data.footballFormat}
             onChange={(e) => patch({ footballFormat: e.target.value as FootballFormat })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+            className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
             required
           >
             {FOOTBALL_FORMATS.map((format) => (
@@ -500,7 +500,7 @@ export function SeasonCreateWizard({ organizationSlug, categories, teams }: Prop
               type="date"
               value={data.startDate}
               onChange={(e) => patch({ startDate: e.target.value })}
-              className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+              className="w-full input-kelme rounded-lg px-3 py-2"
               required
             />
           </label>
@@ -510,7 +510,7 @@ export function SeasonCreateWizard({ organizationSlug, categories, teams }: Prop
               type="date"
               value={data.endDate}
               onChange={(e) => patch({ endDate: e.target.value })}
-              className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+              className="w-full input-kelme rounded-lg px-3 py-2"
               required
             />
           </label>

@@ -104,7 +104,7 @@ export function MatchCreateSummary({
           Eventos seleccionados
         </h3>
         {eventPreset && eventPreset !== 'personalizado' ? (
-          <p className="mt-2 text-sm font-medium text-kelme-gray-800">
+          <p className="mt-2 text-sm font-medium text-kelme-gray-900">
             {REFEREE_EVENT_PRESET_LABELS[eventPreset]}
           </p>
         ) : null}
@@ -115,7 +115,7 @@ export function MatchCreateSummary({
             {measurable.map((type) => (
               <li
                 key={type}
-                className="rounded-full bg-white px-2 py-0.5 text-xs text-kelme-gray-700 ring-1 ring-kelme-border"
+                className="rounded-full bg-kelme-surface px-2 py-0.5 text-xs text-kelme-gray-700 ring-1 ring-kelme-border"
               >
                 {refereeEventTypeLabel(type)}
               </li>

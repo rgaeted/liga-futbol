@@ -36,7 +36,7 @@ export function DeleteButton({ url, confirmMessage, variant = 'inline' }: Props)
         disabled={loading}
         className={
           variant === 'card'
-            ? 'inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50'
+            ? 'inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#2A3A32] bg-[#0B1210] px-3 py-2.5 text-sm font-semibold text-org-primary hover:bg-[#121A18] disabled:opacity-50'
             : 'rounded-lg border border-kelme-border px-2 py-1 text-xs text-kelme-red hover:border-kelme-red disabled:opacity-50'
         }
       >

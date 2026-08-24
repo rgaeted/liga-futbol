@@ -99,11 +99,11 @@ export function AdminDashboardClient() {
 
   if (error || !data) {
     return (
-      <div className="rounded-[14px] border border-red-200 bg-white p-8 text-center">
-        <h1 className="font-display text-2xl font-bold text-zinc-900">
+      <div className="rounded-[14px] border border-[#2A3A32] bg-kelme-surface p-8 text-center">
+        <h1 className="font-display text-2xl font-bold text-[#E8E4D8]">
           No pudimos cargar el panel
         </h1>
-        <p className="mt-2 text-sm text-zinc-500">
+        <p className="mt-2 text-sm text-[#8A938C]">
           {error ??
             'Hubo un problema al cargar los datos. Intenta de nuevo en unos segundos.'}
         </p>
@@ -111,21 +111,21 @@ export function AdminDashboardClient() {
           <button
             type="button"
             onClick={retry}
-            className="rounded-[10px] bg-[#b91c1c] px-4 py-2 font-ui text-sm font-semibold text-white hover:bg-[#9f1728]"
+            className="btn-kelme rounded-[10px] px-4 py-2 font-ui text-sm font-semibold"
           >
             Reintentar
           </button>
           {error === 'Sesión expirada' ? (
             <Link
               href={`/login?callbackUrl=${encodeURIComponent(orgPath('/admin'))}`}
-              className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
+              className="btn-kelme-outline rounded-[10px] px-4 py-2 font-ui text-sm font-semibold"
             >
               Volver a ingresar
             </Link>
           ) : (
             <Link
               href={orgPath('/admin/matches')}
-              className="rounded-[10px] border border-zinc-200 px-4 py-2 font-ui text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
+              className="btn-kelme-outline rounded-[10px] px-4 py-2 font-ui text-sm font-semibold"
             >
               Ir a partidos
             </Link>

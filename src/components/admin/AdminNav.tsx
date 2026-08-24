@@ -42,8 +42,8 @@ export function AdminNav({
             href={item.href}
             className={
               active
-                ? 'whitespace-nowrap rounded-lg bg-[#fdf2f3] px-3 py-2 text-sm font-semibold text-[#b91c1c]'
-                : 'whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+                ? 'whitespace-nowrap rounded-lg bg-[#0B1210] px-3 py-2 text-sm font-semibold text-org-primary'
+                : 'whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-[#8A938C] hover:bg-[#0B1210] hover:text-[#E8E4D8]'
             }
           >
             {item.label}

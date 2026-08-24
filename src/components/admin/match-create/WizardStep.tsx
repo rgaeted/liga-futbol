@@ -13,11 +13,11 @@ type Props = {
 
 export function WizardStep({ step, title, subtitle, isOpen, onToggle, children }: Props) {
   return (
-    <section className="overflow-hidden rounded-xl border border-kelme-border bg-white">
+    <section className="overflow-hidden rounded-xl border border-kelme-border bg-kelme-surface">
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-start gap-3 px-4 py-4 text-left hover:bg-kelme-gray-50"
+        className="flex w-full items-start gap-3 px-4 py-4 text-left hover:bg-[#0B1210]"
       >
         <span
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${

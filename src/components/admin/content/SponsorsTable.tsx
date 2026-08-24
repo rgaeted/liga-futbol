@@ -121,7 +121,7 @@ export function SponsorForm({
         <input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="w-full input-kelme rounded-lg px-3 py-2"
         />
       </label>
       <label className="block space-y-1 text-sm">
@@ -129,7 +129,7 @@ export function SponsorForm({
         <input
           value={websiteUrl}
           onChange={(event) => setWebsiteUrl(event.target.value)}
-          className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="w-full input-kelme rounded-lg px-3 py-2"
         />
       </label>
       <label className="block space-y-1 text-sm">
@@ -139,7 +139,7 @@ export function SponsorForm({
           onChange={(event) =>
             setPlacement(event.target.value as 'HOME' | 'SPONSORS_PAGE' | 'FOOTER')
           }
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="input-kelme rounded-lg px-3 py-2"
         >
           <option value="HOME">Home</option>
           <option value="SPONSORS_PAGE">Página de patrocinadores</option>
@@ -153,7 +153,7 @@ export function SponsorForm({
             type="datetime-local"
             value={startsAt}
             onChange={(event) => setStartsAt(event.target.value)}
-            className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="w-full input-kelme rounded-lg px-3 py-2"
           />
         </label>
         <label className="block space-y-1 text-sm">
@@ -162,7 +162,7 @@ export function SponsorForm({
             type="datetime-local"
             value={endsAt}
             onChange={(event) => setEndsAt(event.target.value)}
-            className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="w-full input-kelme rounded-lg px-3 py-2"
           />
         </label>
       </div>

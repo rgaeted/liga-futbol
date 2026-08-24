@@ -582,7 +582,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
       >
         <div className="grid gap-3 md:grid-cols-2">
           <fieldset className="md:col-span-2 space-y-2">
-            <legend className="text-sm font-semibold text-kelme-gray-800">Tipo de amistoso</legend>
+            <legend className="text-sm font-semibold text-kelme-gray-900">Tipo de amistoso</legend>
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="radio"
@@ -606,7 +606,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             <select
               value={data.guestOrganizationSlug}
               onChange={(event) => patch({ guestOrganizationSlug: event.target.value })}
-              className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+              className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               required
             >
               <option value="">
@@ -622,7 +622,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
           <select
             value={data.categoryId}
             onChange={(e) => onCategoryChange(e.target.value)}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+            className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
             required
           >
             {activeCategories.map((item) => (
@@ -635,7 +635,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             value={data.sideAName}
             onChange={(e) => patch({ sideAName: e.target.value })}
             placeholder="Nombre lado A (local)"
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
             required
           />
           {data.friendlyMode === 'intra' ? (
@@ -643,7 +643,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
               value={data.sideBName}
               onChange={(e) => patch({ sideBName: e.target.value })}
               placeholder="Nombre lado B (visitante)"
-              className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+              className="input-kelme rounded-lg px-3 py-2"
               required
             />
           ) : (
@@ -654,7 +654,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
           <select
             value={data.refereeId}
             onChange={(e) => patch({ refereeId: e.target.value })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
           >
             <option value="">Árbitro</option>
             {referees.map((item) => (
@@ -667,21 +667,21 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             type="date"
             value={data.date}
             onChange={(e) => patch({ date: e.target.value })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
             required
           />
           <input
             type="time"
             value={data.time}
             onChange={(e) => patch({ time: e.target.value })}
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="input-kelme rounded-lg px-3 py-2"
             required
           />
           <input
             value={data.venue}
             onChange={(e) => patch({ venue: e.target.value })}
             placeholder="Cancha"
-            className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 md:col-span-2"
+            className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
           />
         </div>
       </WizardStep>
@@ -712,7 +712,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
           <select
             value={data.footballFormat}
             onChange={(e) => patch({ footballFormat: e.target.value })}
-            className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+            className="w-full input-kelme rounded-lg px-3 py-2"
             required
           >
             {FOOTBALL_FORMATS.map((format) => (
@@ -790,7 +790,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             <button
               type="button"
               onClick={() => patch({ rosterPhase: 'convocation' })}
-              className="rounded-lg border border-kelme-border px-4 py-2 font-semibold hover:bg-kelme-gray-50"
+              className="rounded-lg border border-kelme-border px-4 py-2 font-semibold hover:bg-[#0B1210]"
             >
               Volver a convocatoria
             </button>
@@ -816,7 +816,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             <button
               type="button"
               onClick={() => patch({ rosterPhase: 'convocation' })}
-              className="rounded-lg border border-kelme-border px-4 py-2 font-semibold hover:bg-kelme-gray-50"
+              className="rounded-lg border border-kelme-border px-4 py-2 font-semibold hover:bg-[#0B1210]"
             >
               Volver a convocatoria
             </button>

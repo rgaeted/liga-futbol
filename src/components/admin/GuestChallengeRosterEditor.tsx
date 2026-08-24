@@ -155,12 +155,12 @@ export function GuestChallengeRosterEditor({
       </div>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <p className="rounded-lg border border-[#2A3A32] bg-[#0B1210] px-4 py-3 text-sm text-org-primary">
           {error}
         </p>
       ) : null}
 
-      <div className="rounded-xl border border-kelme-border bg-white p-5">
+      <div className="rounded-xl border border-kelme-border bg-kelme-surface p-5">
         <FriendlyTeamBulkAdd
           teams={teams}
           roster={friendlyPlayers}
@@ -171,11 +171,11 @@ export function GuestChallengeRosterEditor({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar jugador…"
-          className="mb-4 w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2"
+          className="mb-4 w-full input-kelme rounded-lg px-3 py-2"
         />
         <ul className="mb-4 max-h-48 space-y-2 overflow-y-auto">
           {filteredRoster.length === 0 ? (
-            <li className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <li className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
               No tienes jugadores en tu organización.{' '}
               <Link href={orgPath('/admin/players')} className="font-semibold underline">
                 Crea jugadores

@@ -4,7 +4,7 @@ import { KelmeLogo } from '@/components/kelme/KelmeLogo'
 export default function MaintenancePage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-kelme-gray-100 px-4">
-      <section className="w-full max-w-lg rounded-2xl border border-kelme-border bg-white p-8 text-center shadow-sm">
+      <section className="w-full max-w-lg rounded-2xl border border-kelme-border bg-kelme-surface p-8 text-center shadow-none">
         <div className="mb-6 flex justify-center">
           <KelmeLogo size="md" />
         </div>

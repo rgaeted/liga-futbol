@@ -104,7 +104,7 @@ function PlayerCircle({
     <div className={`relative shrink-0 ${isMvp || isCaptain || isGalleta ? 'z-20' : ''}`}>
       <div
         className={`flex ${dim} items-center justify-center overflow-hidden rounded-full border-2 ${textSize} font-bold shadow-lg ${mvpRing} ${captainRing} ${borderClass} ${
-          filled ? 'bg-white text-emerald-900' : 'bg-black/25 text-white/60'
+          filled ? 'bg-kelme-surface text-emerald-900' : 'bg-black/25 text-white/60'
         }`}
       >
         {filled && photoUrl ? (
@@ -182,7 +182,7 @@ function LivePlayerMarker({
         paidByPlayerId={paidByPlayerId}
       />
       {filled && (
-        <span className="mt-1 max-w-[4.75rem] truncate text-center text-[9px] font-medium leading-tight text-white drop-shadow-sm">
+        <span className="mt-1 max-w-[4.75rem] truncate text-center text-[9px] font-medium leading-tight text-white drop-shadow-none">
           {slot.playerName}
         </span>
       )}

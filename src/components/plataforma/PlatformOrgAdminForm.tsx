@@ -126,27 +126,27 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
       <PlatformPanelInner>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <h2 className="text-[22px] font-black text-[#17171a]">Dar acceso</h2>
-            <p className="mt-1 text-sm text-[#777]">
+            <h2 className="text-[22px] font-black text-[#E8E4D8]">Dar acceso</h2>
+            <p className="mt-1 text-sm text-[#8A938C]">
               Busca un usuario inscrito o ingresa los datos de una cuenta nueva.
             </p>
           </div>
 
           {selectedUser ? (
-            <div className="rounded-[14px] border border-[#e5e5e9] bg-[#fafafa] px-4 py-3">
+            <div className="rounded-[14px] border border-[#2A3A32] bg-[#0B1210] px-4 py-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-extrabold text-[#17171a]">{selectedUser.name}</p>
-                  <p className="text-sm text-[#777]">{selectedUser.email}</p>
+                  <p className="text-sm font-extrabold text-[#E8E4D8]">{selectedUser.name}</p>
+                  <p className="text-sm text-[#8A938C]">{selectedUser.email}</p>
                   {selectedUser.memberships.length > 0 ? (
-                    <p className="mt-1 text-xs text-[#999]">
+                    <p className="mt-1 text-xs text-[#8A938C]">
                       Ya participa en:{' '}
                       {selectedUser.memberships
                         .map((m) => `${m.organization.name} (${m.role})`)
                         .join(', ')}
                     </p>
                   ) : (
-                    <p className="mt-1 text-xs text-[#999]">Sin membresías en empresas.</p>
+                    <p className="mt-1 text-xs text-[#8A938C]">Sin membresías en empresas.</p>
                   )}
                 </div>
                 <button type="button" onClick={clearSelectedUser} className={platformBtnGhostClass}>
@@ -156,7 +156,7 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
             </div>
           ) : (
             <div ref={searchRef} className="relative">
-              <label htmlFor="user-search" className="text-sm font-bold text-[#505058]">
+              <label htmlFor="user-search" className="text-sm font-bold text-[#8A938C]">
                 Buscar usuario inscrito
               </label>
               <input
@@ -169,20 +169,20 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
                 autoComplete="off"
                 className={`${platformInputClass} mt-1`}
               />
-              {searchLoading ? <p className="mt-1 text-xs text-[#999]">Buscando…</p> : null}
+              {searchLoading ? <p className="mt-1 text-xs text-[#8A938C]">Buscando…</p> : null}
               {searchOpen && searchResults.length > 0 ? (
-                <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-[14px] border border-[#e5e5e9] bg-white shadow-lg">
+                <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-[14px] border border-[#2A3A32] bg-kelme-surface shadow-lg">
                   {searchResults.map((user) => (
                     <li key={user.id}>
                       <button
                         type="button"
                         onClick={() => selectUser(user)}
-                        className="flex w-full flex-col items-start px-4 py-3 text-left hover:bg-[#f7f7f9]"
+                        className="flex w-full flex-col items-start px-4 py-3 text-left hover:bg-[#0B1210]"
                       >
-                        <span className="text-sm font-extrabold text-[#17171a]">{user.name}</span>
-                        <span className="text-sm text-[#777]">{user.email}</span>
+                        <span className="text-sm font-extrabold text-[#E8E4D8]">{user.name}</span>
+                        <span className="text-sm text-[#8A938C]">{user.email}</span>
                         {user.memberships.length > 0 ? (
-                          <span className="mt-0.5 text-xs text-[#999]">
+                          <span className="mt-0.5 text-xs text-[#8A938C]">
                             {user.memberships.map((m) => m.organization.name).join(', ')}
                           </span>
                         ) : null}
@@ -192,7 +192,7 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
                 </ul>
               ) : null}
               {searchOpen && !searchLoading && searchQuery.trim().length >= 2 && searchResults.length === 0 ? (
-                <p className="mt-1 text-xs text-[#999]">No encontramos usuarios con ese criterio.</p>
+                <p className="mt-1 text-xs text-[#8A938C]">No encontramos usuarios con ese criterio.</p>
               ) : null}
             </div>
           )}
@@ -206,7 +206,7 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
               readOnly={Boolean(selectedUser)}
               defaultValue={selectedUser?.email ?? ''}
               key={selectedUser?.id ?? 'new-email'}
-              className={`${platformInputClass} read-only:bg-[#f7f7f9] read-only:text-[#505058]`}
+              className={`${platformInputClass} read-only:bg-[#0B1210] read-only:text-[#8A938C]`}
             />
             <input
               name="name"
@@ -216,7 +216,7 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
               readOnly={Boolean(selectedUser)}
               defaultValue={selectedUser?.name ?? ''}
               key={selectedUser?.id ?? 'new-name'}
-              className={`${platformInputClass} read-only:bg-[#f7f7f9] read-only:text-[#505058]`}
+              className={`${platformInputClass} read-only:bg-[#0B1210] read-only:text-[#8A938C]`}
             />
             {!selectedUser ? (
               <input
@@ -230,30 +230,30 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
           </div>
 
           {!selectedUser ? (
-            <p className="text-xs text-[#999]">
+            <p className="text-xs text-[#8A938C]">
               Si no encuentras al usuario, completa email, nombre y contraseña para crear una cuenta
               nueva.
             </p>
           ) : null}
 
           <fieldset className="space-y-2">
-            <legend className="text-sm font-bold text-[#505058]">Empresas</legend>
+            <legend className="text-sm font-bold text-[#8A938C]">Empresas</legend>
             {organizations.length === 0 ? (
-              <p className="text-sm text-[#999]">No hay empresas activas.</p>
+              <p className="text-sm text-[#8A938C]">No hay empresas activas.</p>
             ) : (
               <ul className="grid gap-2 sm:grid-cols-2">
                 {organizations.map((org) => (
                   <li key={org.id}>
-                    <label className="flex items-center gap-2 rounded-[14px] border border-[#e5e5e9] px-3 py-2.5 text-sm font-semibold text-[#34343a] hover:bg-[#fafafa]">
+                    <label className="flex items-center gap-2 rounded-[14px] border border-[#2A3A32] px-3 py-2.5 text-sm font-semibold text-[#E8E4D8] hover:bg-[#0B1210]">
                       <input
                         type="checkbox"
                         name="organizationIds"
                         value={org.id}
-                        className="rounded accent-[#c91f26]"
+                        className="rounded accent-[color:var(--org-primary)]"
                       />
                       <span>
                         {org.name}{' '}
-                        <span className="text-[#999]">/{org.slug}</span>
+                        <span className="text-[#8A938C]">/{org.slug}</span>
                       </span>
                     </label>
                   </li>
@@ -261,7 +261,7 @@ export function PlatformOrgAdminForm({ organizations }: { organizations: OrgOpti
               </ul>
             )}
           </fieldset>
-          {error && <p className="text-sm font-semibold text-[#c91f26]">{error}</p>}
+          {error && <p className="text-sm font-semibold text-org-primary">{error}</p>}
           <button type="submit" disabled={loading} className={platformBtnPrimaryClass}>
             {loading ? 'Guardando…' : 'Dar acceso'}
           </button>

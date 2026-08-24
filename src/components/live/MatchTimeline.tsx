@@ -95,7 +95,7 @@ function TimelineIcon({ type }: { type: string }) {
     case 'FULLTIME':
       return (
         <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
-          <span className="h-3 w-3 rounded-sm bg-white/90" />
+          <span className="h-3 w-3 rounded-sm bg-kelme-surface/90" />
         </span>
       )
     case 'YELLOW_CARD':
@@ -119,7 +119,7 @@ function TimelineIcon({ type }: { type: string }) {
     default:
       return (
         <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
-          <span className="h-1.5 w-1.5 rounded-full bg-white/50" />
+          <span className="h-1.5 w-1.5 rounded-full bg-kelme-surface/50" />
         </span>
       )
   }

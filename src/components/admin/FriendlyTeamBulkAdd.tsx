@@ -34,7 +34,7 @@ export function FriendlyTeamBulkAdd({ teams, roster, onAddToSide, sideOnly }: Pr
         <select
           value={teamId}
           onChange={(e) => setTeamId(e.target.value)}
-          className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-3 py-2 text-sm"
+          className="input-kelme rounded-lg px-3 py-2 text-sm"
         >
           <option value="">Selecciona equipo</option>
           {teams.map((team) => (

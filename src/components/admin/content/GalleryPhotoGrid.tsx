@@ -90,7 +90,7 @@ export function GalleryPhotoGrid({
               alt={photo.altText ?? ''}
               className="h-40 w-full rounded-lg object-cover"
             />
-            <p className="text-sm text-zinc-600">{photo.caption ?? 'Sin pie de foto'}</p>
+            <p className="text-sm text-[#8A938C]">{photo.caption ?? 'Sin pie de foto'}</p>
             <div className="flex gap-2">
               <button
                 type="button"
