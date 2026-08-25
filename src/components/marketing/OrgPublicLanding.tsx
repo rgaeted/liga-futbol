@@ -185,16 +185,43 @@ export function OrgPublicLanding({
               ) : nextMatch ? (
                 <Link
                   href={`/${slug}/live/${nextMatch.id}`}
-                  className="card-kelme mt-8 block p-6 transition-colors hover:border-[color:var(--org-primary)]/40"
+                  className="card-kelme group mt-8 block overflow-hidden transition-colors hover:border-[color:var(--org-primary)]/40"
                 >
-                  <p className="font-ui text-xs uppercase tracking-wide text-[#8A938C]">
-                    {nextMatch.when}
-                  </p>
-                  <p className="mt-2 font-ui text-lg font-semibold text-[#E8E4D8]">{nextMatch.label}</p>
-                  <p className="mt-1 text-sm text-[#8A938C]">{nextMatch.venue}</p>
-                  <p className="mt-4 font-ui text-sm font-semibold text-org-primary">
-                    Ver detalle →
-                  </p>
+                  <div className="p-6">
+                    <span className="inline-flex items-center rounded-full bg-[#0B1210] px-3 py-1 font-ui text-[11px] font-bold uppercase tracking-[0.08em] text-[#8A938C] ring-1 ring-[#2A3A32]">
+                      {nextMatch.when}
+                    </span>
+                    <p className="mt-4 font-display text-[clamp(1.25rem,3vw,1.75rem)] font-semibold uppercase leading-tight tracking-wide text-[#E8E4D8]">
+                      {nextMatch.label}
+                    </p>
+                    {nextMatch.venue ? (
+                      <p className="mt-2 text-sm text-[#8A938C]">{nextMatch.venue}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center justify-between gap-3 border-t border-[#2A3A32] bg-[#0B1210]/40 px-6 py-3.5 transition group-hover:bg-[#0B1210]/70">
+                    <span className="font-ui text-xs font-semibold uppercase tracking-[0.1em] text-[#8A938C]">
+                      Próximo encuentro
+                    </span>
+                    <span className="inline-flex items-center gap-2.5 font-ui text-sm font-bold text-org-primary">
+                      Ver detalle
+                      <span
+                        aria-hidden
+                        className="grid h-7 w-7 place-items-center rounded-full border border-[color:var(--org-primary)]/35 bg-[color:var(--org-primary)]/10 text-org-primary transition group-hover:border-[color:var(--org-primary)]/60 group-hover:bg-org-primary group-hover:text-[#E8E4D8] motion-safe:group-hover:translate-x-0.5"
+                      >
+                        <svg
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          className="h-3.5 w-3.5"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M6 4l4 4-4 4" />
+                        </svg>
+                      </span>
+                    </span>
+                  </div>
                 </Link>
               ) : (
                 <div className="card-kelme mt-8 p-8 text-center">
