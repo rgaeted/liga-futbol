@@ -186,3 +186,175 @@ export function scheduleCupMatches(
     ),
   }))
 }
+
+export type StandingRow = {
+  teamKey: CupTeamKey
+  pts: number
+  gf: number
+  ga: number
+}
+
+export type KnockoutKind = 'semifinal' | 'tercer-puesto' | 'final'
+
+export type KnockoutMatch = {
+  round: number
+  slot: 0 | 1
+  homeKey: CupTeamKey
+  awayKey: CupTeamKey
+  kind: KnockoutKind
+  categoryKey: 'finales'
+}
+
+type KnockoutResult =
+  | { ok: true; matches: KnockoutMatch[] }
+  | { ok: false; error: string }
+
+export type CupResult = {
+  homeKey: CupTeamKey
+  awayKey: CupTeamKey
+  homeGoals: number
+  awayGoals: number
+}
+
+export function tableFromResults(
+  teamKeys: CupTeamKey[],
+  results: CupResult[],
+): StandingRow[] {
+  const table = new Map<CupTeamKey, StandingRow>()
+  for (const key of teamKeys) {
+    table.set(key, { teamKey: key, pts: 0, gf: 0, ga: 0 })
+  }
+  for (const result of results) {
+    const home = table.get(result.homeKey)
+    const away = table.get(result.awayKey)
+    if (!home || !away) continue
+    home.gf += result.homeGoals
+    home.ga += result.awayGoals
+    away.gf += result.awayGoals
+    away.ga += result.homeGoals
+    if (result.homeGoals > result.awayGoals) home.pts += 3
+    else if (result.homeGoals < result.awayGoals) away.pts += 3
+    else {
+      home.pts += 1
+      away.pts += 1
+    }
+  }
+  return [...table.values()].sort(
+    (a, b) =>
+      b.pts - a.pts ||
+      b.gf - b.ga - (a.gf - a.ga) ||
+      b.gf - a.gf ||
+      CUP_TEAMS[a.teamKey].name.localeCompare(CUP_TEAMS[b.teamKey].name, 'es-CL'),
+  )
+}
+
+export function buildFourTeamFinals(table: StandingRow[]): KnockoutResult {
+  if (table.length < 4) {
+    return {
+      ok: false,
+      error: 'La tabla Infantil necesita 4 equipos para armar las finales.',
+    }
+  }
+  const [first, second, third, fourth] = table
+  return {
+    ok: true,
+    matches: [
+      {
+        round: 1,
+        slot: 0,
+        homeKey: third.teamKey,
+        awayKey: fourth.teamKey,
+        kind: 'tercer-puesto',
+        categoryKey: 'finales',
+      },
+      {
+        round: 1,
+        slot: 1,
+        homeKey: first.teamKey,
+        awayKey: second.teamKey,
+        kind: 'final',
+        categoryKey: 'finales',
+      },
+    ],
+  }
+}
+
+export function buildSixTeamSemis(
+  tableA: StandingRow[],
+  tableB: StandingRow[],
+): KnockoutResult {
+  if (tableA.length < 2 || tableB.length < 2) {
+    return {
+      ok: false,
+      error: 'Cada grupo necesita al menos 2 equipos en la tabla para armar semis.',
+    }
+  }
+  return {
+    ok: true,
+    matches: [
+      {
+        round: 1,
+        slot: 0,
+        homeKey: tableA[0].teamKey,
+        awayKey: tableB[1].teamKey,
+        kind: 'semifinal',
+        categoryKey: 'finales',
+      },
+      {
+        round: 1,
+        slot: 1,
+        homeKey: tableB[0].teamKey,
+        awayKey: tableA[1].teamKey,
+        kind: 'semifinal',
+        categoryKey: 'finales',
+      },
+    ],
+  }
+}
+
+function winnerLoser(result: CupResult): {
+  winner: CupTeamKey
+  loser: CupTeamKey
+} | null {
+  if (result.homeGoals === result.awayGoals) return null
+  if (result.homeGoals > result.awayGoals) {
+    return { winner: result.homeKey, loser: result.awayKey }
+  }
+  return { winner: result.awayKey, loser: result.homeKey }
+}
+
+export function buildSixTeamCierre(
+  semi1: CupResult,
+  semi2: CupResult,
+): KnockoutResult {
+  const one = winnerLoser(semi1)
+  const two = winnerLoser(semi2)
+  if (!one || !two) {
+    return {
+      ok: false,
+      error:
+        'Las semifinales no pueden ir a finales empatadas. Define un ganador en el marcador.',
+    }
+  }
+  return {
+    ok: true,
+    matches: [
+      {
+        round: 1,
+        slot: 0,
+        homeKey: one.loser,
+        awayKey: two.loser,
+        kind: 'tercer-puesto',
+        categoryKey: 'finales',
+      },
+      {
+        round: 1,
+        slot: 1,
+        homeKey: one.winner,
+        awayKey: two.winner,
+        kind: 'final',
+        categoryKey: 'finales',
+      },
+    ],
+  }
+}

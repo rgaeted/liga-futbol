@@ -2,9 +2,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   addDaysIso,
+  buildFourTeamFinals,
   buildGroupFixture,
+  buildSixTeamCierre,
+  buildSixTeamSemis,
   parseCupSeedArgs,
   scheduleCupMatches,
+  tableFromResults,
 } from '@/lib/copa-kelme-los-lagos'
 
 describe('buildGroupFixture', () => {
@@ -104,5 +108,142 @@ describe('scheduleCupMatches', () => {
 describe('addDaysIso', () => {
   it('adds 7 days without shifting the calendar day', () => {
     expect(addDaysIso('2026-09-05', 7)).toBe('2026-09-12')
+  })
+})
+
+describe('tableFromResults', () => {
+  it('ranks by points, then goal difference, then goals for', () => {
+    const table = tableFromResults(['colo-colo', 'catolica', 'union', 'fv'], [
+      { homeKey: 'colo-colo', awayKey: 'catolica', homeGoals: 2, awayGoals: 0 },
+      { homeKey: 'union', awayKey: 'fv', homeGoals: 1, awayGoals: 1 },
+      { homeKey: 'colo-colo', awayKey: 'union', homeGoals: 0, awayGoals: 0 },
+      { homeKey: 'catolica', awayKey: 'fv', homeGoals: 3, awayGoals: 0 },
+    ])
+    expect(table.map((row) => row.teamKey)).toEqual([
+      'colo-colo',
+      'catolica',
+      'union',
+      'fv',
+    ])
+    expect(table[0]).toMatchObject({ pts: 4, gf: 2, ga: 0 })
+    expect(table[1]).toMatchObject({ pts: 3, gf: 3, ga: 2 })
+  })
+})
+
+describe('buildFourTeamFinals', () => {
+  it('pairs 1st vs 2nd in the final and 3rd vs 4th for third place', () => {
+    const table = [
+      { teamKey: 'colo-colo' as const, pts: 9, gf: 6, ga: 1 },
+      { teamKey: 'catolica' as const, pts: 6, gf: 4, ga: 3 },
+      { teamKey: 'union' as const, pts: 3, gf: 2, ga: 4 },
+      { teamKey: 'fv' as const, pts: 0, gf: 1, ga: 5 },
+    ]
+    expect(buildFourTeamFinals(table)).toEqual({
+      ok: true,
+      matches: [
+        {
+          round: 1,
+          slot: 0,
+          homeKey: 'union',
+          awayKey: 'fv',
+          kind: 'tercer-puesto',
+          categoryKey: 'finales',
+        },
+        {
+          round: 1,
+          slot: 1,
+          homeKey: 'colo-colo',
+          awayKey: 'catolica',
+          kind: 'final',
+          categoryKey: 'finales',
+        },
+      ],
+    })
+  })
+
+  it('rejects a short table', () => {
+    expect(buildFourTeamFinals([{ teamKey: 'colo-colo', pts: 3, gf: 1, ga: 0 }])).toEqual({
+      ok: false,
+      error: 'La tabla Infantil necesita 4 equipos para armar las finales.',
+    })
+  })
+})
+
+describe('buildSixTeamSemis', () => {
+  it('pairs 1st A vs 2nd B and 1st B vs 2nd A', () => {
+    const tableA = [
+      { teamKey: 'colo-colo' as const, pts: 6, gf: 4, ga: 1 },
+      { teamKey: 'catolica' as const, pts: 3, gf: 2, ga: 2 },
+      { teamKey: 'union' as const, pts: 0, gf: 0, ga: 3 },
+    ]
+    const tableB = [
+      { teamKey: 'fv' as const, pts: 6, gf: 5, ga: 1 },
+      { teamKey: 'austral' as const, pts: 3, gf: 2, ga: 3 },
+      { teamKey: 'club-6' as const, pts: 0, gf: 1, ga: 4 },
+    ]
+    expect(buildSixTeamSemis(tableA, tableB)).toEqual({
+      ok: true,
+      matches: [
+        {
+          round: 1,
+          slot: 0,
+          homeKey: 'colo-colo',
+          awayKey: 'austral',
+          kind: 'semifinal',
+          categoryKey: 'finales',
+        },
+        {
+          round: 1,
+          slot: 1,
+          homeKey: 'fv',
+          awayKey: 'catolica',
+          kind: 'semifinal',
+          categoryKey: 'finales',
+        },
+      ],
+    })
+  })
+})
+
+describe('buildSixTeamCierre', () => {
+  it('sends losers to third place and winners to the final', () => {
+    expect(
+      buildSixTeamCierre(
+        { homeKey: 'colo-colo', awayKey: 'austral', homeGoals: 2, awayGoals: 1 },
+        { homeKey: 'fv', awayKey: 'catolica', homeGoals: 0, awayGoals: 3 },
+      ),
+    ).toEqual({
+      ok: true,
+      matches: [
+        {
+          round: 1,
+          slot: 0,
+          homeKey: 'austral',
+          awayKey: 'fv',
+          kind: 'tercer-puesto',
+          categoryKey: 'finales',
+        },
+        {
+          round: 1,
+          slot: 1,
+          homeKey: 'colo-colo',
+          awayKey: 'catolica',
+          kind: 'final',
+          categoryKey: 'finales',
+        },
+      ],
+    })
+  })
+
+  it('rejects a drawn semi', () => {
+    expect(
+      buildSixTeamCierre(
+        { homeKey: 'colo-colo', awayKey: 'austral', homeGoals: 1, awayGoals: 1 },
+        { homeKey: 'fv', awayKey: 'catolica', homeGoals: 2, awayGoals: 0 },
+      ),
+    ).toEqual({
+      ok: false,
+      error: 'Las semifinales no pueden ir a finales empatadas. Define un ganador en el marcador.',
+    })
   })
 })
