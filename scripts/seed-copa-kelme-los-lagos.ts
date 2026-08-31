@@ -36,6 +36,19 @@ import { deriveTeamColor } from '../src/lib/team-color'
 let prisma: PrismaClient
 let pool: Pool
 
+function printAdminNextSteps(variant: '4' | '6') {
+  console.log('')
+  console.log('Siguiente:')
+  console.log('1. /kelme/admin/teams — renombra placeholders y sube escudos')
+  console.log('2. /kelme/admin/players — alta de niños + categoría de copa')
+  console.log('3. Inscripción de plantel en la temporada')
+  console.log('4. Ajusta fecha/hora/cancha y árbitro en partidos')
+  console.log(
+    `5. Cuando termine la fase: npm run db:seed:copa-kelme-los-lagos -- --variant=${variant} --phase=finales --start=YYYY-MM-DD`,
+  )
+  console.log('(PowerShell: el `--` extra es obligatorio para pasar flags al script.)')
+}
+
 function getDb() {
   if (!prisma) {
     const mod = require('../prisma/lib/db-client') as typeof import('../prisma/lib/db-client')
@@ -293,6 +306,7 @@ async function seedGrupos(args: {
   console.log(`   Temporada: ${CUP_SEASON_NAME}`)
   console.log(`   Partidos creados: ${created} · omitidos: ${skipped}`)
   console.log(`   Admin: /kelme/admin/matches?season=${season.id}`)
+  printAdminNextSteps(args.variant)
 }
 
 function cupTeamKeyFromTeamId(
@@ -549,6 +563,7 @@ async function seedFinales(args: {
   console.log(`   Temporada: ${CUP_SEASON_NAME}`)
   console.log(`   Partidos creados: ${created} · omitidos: ${skipped}`)
   console.log(`   Admin: /kelme/admin/matches?season=${season.id}`)
+  printAdminNextSteps(args.variant)
 }
 
 async function main() {
