@@ -358,3 +358,26 @@ export function buildSixTeamCierre(
     ],
   }
 }
+
+export function detectCupVariantFromCategoryKeys(
+  keys: string[],
+): CupVariant | null {
+  const set = new Set(keys)
+  const is4 = set.has('infantil') && set.has('finales') && !set.has('grupo-a')
+  const is6 = set.has('grupo-a') && set.has('grupo-b') && set.has('finales')
+  if (is4 && !is6) return '4'
+  if (is6 && !is4) return '6'
+  return null
+}
+
+export function requireStartDate(
+  args: CupSeedArgs,
+): { ok: true; startDate: string } | { ok: false; error: string } {
+  if (args.dryRun && !args.startDate) {
+    return { ok: true, startDate: '2026-09-05' }
+  }
+  if (!args.startDate) {
+    return { ok: false, error: 'Usa --start=YYYY-MM-DD' }
+  }
+  return { ok: true, startDate: args.startDate }
+}

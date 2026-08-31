@@ -24,6 +24,7 @@
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:seed:liga-le-park": "tsx scripts/seed-liga-le-park.ts",
     "db:seed:liga-kelme-sur": "tsx scripts/seed-liga-kelme-sur.ts",
+    "db:seed:copa-kelme-los-lagos": "tsx scripts/seed-copa-kelme-los-lagos.ts",
     "db:generate:liga-kelme-sur-sql": "tsx scripts/generate-liga-kelme-sur-sql.ts",
     "db:migrate:lunes-to-loslunes": "tsx scripts/migrate-lunes-category-to-loslunes.ts",
     "db:ensure:kelme": "tsx scripts/ensure-kelme-organization.ts",

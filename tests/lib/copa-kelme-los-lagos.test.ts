@@ -6,6 +6,7 @@ import {
   buildGroupFixture,
   buildSixTeamCierre,
   buildSixTeamSemis,
+  detectCupVariantFromCategoryKeys,
   parseCupSeedArgs,
   scheduleCupMatches,
   tableFromResults,
@@ -202,6 +203,14 @@ describe('buildSixTeamSemis', () => {
         },
       ],
     })
+  })
+})
+
+describe('detectCupVariantFromCategoryKeys', () => {
+  it('detects 4 and 6 from category keys', () => {
+    expect(detectCupVariantFromCategoryKeys(['infantil', 'finales'])).toBe('4')
+    expect(detectCupVariantFromCategoryKeys(['grupo-a', 'grupo-b', 'finales'])).toBe('6')
+    expect(detectCupVariantFromCategoryKeys(['infantil', 'grupo-a', 'finales'])).toBeNull()
   })
 })
 
