@@ -381,3 +381,44 @@ export function requireStartDate(
   }
   return { ok: true, startDate: args.startDate }
 }
+
+export type FinalesAction =
+  | 'wait-groups'
+  | 'four-finals'
+  | 'six-semis'
+  | 'six-cierre'
+  | 'done'
+
+export function nextFinalesAction(input: {
+  variant: CupVariant
+  groupFinished: boolean
+  finalesFinishedCount: number
+  finalesTotalCount: number
+}): FinalesAction {
+  if (!input.groupFinished) return 'wait-groups'
+  if (input.variant === '4') {
+    if (input.finalesTotalCount === 0) return 'four-finals'
+    return 'done'
+  }
+  if (input.finalesTotalCount === 0) return 'six-semis'
+  if (input.finalesTotalCount === 2 && input.finalesFinishedCount === 2) {
+    return 'six-cierre'
+  }
+  if (input.finalesTotalCount >= 4) return 'done'
+  return 'wait-groups'
+}
+
+export type ScheduledKnockoutMatch = KnockoutMatch & { scheduledAt: string }
+
+export function scheduleKnockoutMatches(
+  matches: KnockoutMatch[],
+  firstDate: string,
+): ScheduledKnockoutMatch[] {
+  return matches.map((match) => ({
+    ...match,
+    scheduledAt: scheduleInputToIso(
+      addDaysIso(firstDate, (match.round - 1) * 7),
+      CUP_KICKOFF_SLOTS[match.slot],
+    ),
+  }))
+}

@@ -7,8 +7,10 @@ import {
   buildSixTeamCierre,
   buildSixTeamSemis,
   detectCupVariantFromCategoryKeys,
+  nextFinalesAction,
   parseCupSeedArgs,
   scheduleCupMatches,
+  scheduleKnockoutMatches,
   tableFromResults,
 } from '@/lib/copa-kelme-los-lagos'
 
@@ -211,6 +213,68 @@ describe('detectCupVariantFromCategoryKeys', () => {
     expect(detectCupVariantFromCategoryKeys(['infantil', 'finales'])).toBe('4')
     expect(detectCupVariantFromCategoryKeys(['grupo-a', 'grupo-b', 'finales'])).toBe('6')
     expect(detectCupVariantFromCategoryKeys(['infantil', 'grupo-a', 'finales'])).toBeNull()
+  })
+})
+
+describe('nextFinalesAction', () => {
+  it('asks for 4-team finals when all group matches are finished and none in finales', () => {
+    expect(
+      nextFinalesAction({
+        variant: '4',
+        groupFinished: true,
+        finalesFinishedCount: 0,
+        finalesTotalCount: 0,
+      }),
+    ).toBe('four-finals')
+  })
+
+  it('asks for 6-team semis when groups are done and finales empty', () => {
+    expect(
+      nextFinalesAction({
+        variant: '6',
+        groupFinished: true,
+        finalesFinishedCount: 0,
+        finalesTotalCount: 0,
+      }),
+    ).toBe('six-semis')
+  })
+
+  it('asks for 6-team cierre when two semis are finished', () => {
+    expect(
+      nextFinalesAction({
+        variant: '6',
+        groupFinished: true,
+        finalesFinishedCount: 2,
+        finalesTotalCount: 2,
+      }),
+    ).toBe('six-cierre')
+  })
+
+  it('waits if groups are not finished', () => {
+    expect(
+      nextFinalesAction({
+        variant: '4',
+        groupFinished: false,
+        finalesFinishedCount: 0,
+        finalesTotalCount: 0,
+      }),
+    ).toBe('wait-groups')
+  })
+})
+
+describe('scheduleKnockoutMatches', () => {
+  it('schedules knockout matches on the start date at kickoff slots', () => {
+    const table = [
+      { teamKey: 'colo-colo' as const, pts: 9, gf: 6, ga: 1 },
+      { teamKey: 'catolica' as const, pts: 6, gf: 4, ga: 3 },
+      { teamKey: 'union' as const, pts: 3, gf: 2, ga: 4 },
+      { teamKey: 'fv' as const, pts: 0, gf: 1, ga: 5 },
+    ]
+    const built = buildFourTeamFinals(table)
+    if (!built.ok) throw new Error('expected finals')
+    const scheduled = scheduleKnockoutMatches(built.matches, '2026-09-26')
+    expect(scheduled[0]?.scheduledAt).toBe('2026-09-26T13:00:00.000Z')
+    expect(scheduled[1]?.scheduledAt).toBe('2026-09-26T14:15:00.000Z')
   })
 })
 
