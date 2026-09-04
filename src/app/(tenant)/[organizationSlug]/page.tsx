@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import { MarketingShell } from '@/components/kelme/MarketingShell'
 import { OrgPublicLanding } from '@/components/marketing/OrgPublicLanding'
 import { getOrgPublicLanding } from '@/lib/org-public-landing'
 import { resolveOrgLandingPanelHref } from '@/lib/org-landing-panel-href'
@@ -18,18 +17,5 @@ export default async function OrgLandingPage({
   ])
   if (!data) notFound()
 
-  const orgPath = `/${data.organization.slug}`
-
-  return (
-    <MarketingShell
-      productName={data.organization.name}
-      homeHref={orgPath}
-      ayudaHref={`${orgPath}/ayuda`}
-      loginCallback={orgPath}
-      panelHref={panelHref}
-      active="home"
-    >
-      <OrgPublicLanding data={data} panelHref={panelHref} />
-    </MarketingShell>
-  )
+  return <OrgPublicLanding data={data} panelHref={panelHref} />
 }

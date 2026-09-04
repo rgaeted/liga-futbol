@@ -1,109 +1,59 @@
 import Link from 'next/link'
-import { ShareOrgLink } from '@/components/marketing/ShareOrgLink'
-import { matchStatusBadgeClass, matchStatusLabel } from '@/lib/match-status-ui'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
 
-function orgMonogram(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean)
-  if (words.length >= 2) {
-    return (words[0][0] + words[1][0]).toUpperCase()
-  }
-  return name.slice(0, 2).toUpperCase()
-}
-
-function PlayerRanking({
-  eyebrow,
-  title,
-  items,
-  valueKey,
-}: {
-  eyebrow: string
-  title: string
-  items: Array<{ name: string; goals?: number; assists?: number }>
-  valueKey: 'goals' | 'assists'
-}) {
+function TeamOrb({ tone, logoUrl }: { tone: 'white' | 'black'; logoUrl?: string | null }) {
   return (
-    <div>
-      <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
-        {eyebrow}
-      </p>
-      <h2 className="font-display mt-1 text-2xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
-        {title}
-      </h2>
-      <ol className="mt-8 space-y-3">
-        {items.map((player, index) => (
-          <li
-            key={`${player.name}-${index}`}
-            className="card-kelme flex items-center justify-between gap-4 px-5 py-4"
-          >
-            <div className="flex items-center gap-4">
-              <span className="font-data w-6 text-center text-sm font-bold text-[#8A938C]">
-                {index + 1}
-              </span>
-              <span className="font-ui font-semibold text-[#E8E4D8]">{player.name}</span>
-            </div>
-            <span className="font-data text-lg font-bold text-org-primary">
-              {player[valueKey] ?? 0}
-            </span>
-          </li>
-        ))}
-      </ol>
+    <div
+      className={`mx-auto mb-3.5 grid h-[76px] w-[76px] place-items-center overflow-hidden rounded-full border border-[#39403c] max-sm:h-[50px] max-sm:w-[50px] ${
+        tone === 'white'
+          ? 'bg-[#f1f1eb] shadow-[inset_0_0_0_7px_#d8dad4]'
+          : 'bg-[#232725] shadow-[inset_0_0_0_7px_#171a18]'
+      }`}
+    >
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+      ) : null}
     </div>
   )
 }
 
-function AwardsStatsGrid({
-  awards,
+function RankingCard({
+  title,
+  rows,
 }: {
-  awards: OrgPublicLandingData['awards']
+  title: string
+  rows: Array<{ name: string; value: number }>
 }) {
+  if (rows.length === 0) return null
   return (
-    <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-      {awards.map((award) => (
-        <li
-          key={`${award.name}-${award.shortLabel}`}
-          className="card-kelme p-4"
-          style={
-            award.accentColor
-              ? {
-                  borderColor: `${award.accentColor}55`,
-                  boxShadow: `inset 0 0 0 1px ${award.accentColor}22`,
-                }
-              : undefined
-          }
-        >
-          <div className="flex items-start gap-3">
+    <div className="overflow-hidden rounded-[18px] border border-[#2a302d] bg-[#131615]">
+      <div className="flex items-center justify-between border-b border-[#2a302d] px-[18px] py-4">
+        <h3 className="m-0 font-display text-[17px] font-semibold uppercase tracking-wide">{title}</h3>
+        <span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#9ca59f]">
+          Top 5
+        </span>
+      </div>
+      <ol className="py-1.5">
+        {rows.map((row, index) => (
+          <li
+            key={`${row.name}-${index}`}
+            className="grid grid-cols-[34px_1fr_auto] items-center gap-3 px-[18px] py-2.5 [&+li]:border-t [&+li]:border-white/[0.045]"
+          >
             <span
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#0B1210] text-xl ring-1 ring-[#2A3A32]"
-              style={
-                award.accentColor
-                  ? {
-                      backgroundColor: `${award.accentColor}22`,
-                      color: award.accentColor,
-                    }
-                  : undefined
-              }
-              aria-hidden
+              className={`grid h-[26px] w-[26px] place-items-center rounded-lg text-[11px] font-extrabold ${
+                index === 0 ? 'bg-org-primary text-[#0a0c0b]' : 'bg-[#1b1f1d] text-[#879089]'
+              }`}
             >
-              {award.emoji}
+              {index + 1}
             </span>
-            <div className="min-w-0">
-              <p className="font-ui text-xs font-bold uppercase tracking-wide text-org-primary">
-                {award.shortLabel}
-              </p>
-              <p className="font-ui text-sm font-semibold text-[#E8E4D8]">{award.name}</p>
-              {award.recipients.length > 0 ? (
-                <p className="mt-2 text-xs text-[#8A938C]">
-                  {award.recipients.map((recipient) => recipient.name).join(' · ')}
-                </p>
-              ) : (
-                <p className="mt-2 text-xs text-[#8A938C]">Sin ganadores aún</p>
-              )}
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
+            <span className="font-ui text-sm font-bold">{row.name}</span>
+            <span className="font-data text-lg font-black tabular-nums">{row.value}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }
 
@@ -114,276 +64,407 @@ export function OrgPublicLanding({
   data: OrgPublicLandingData
   panelHref?: string | null
 }) {
-  const { organization, live, nextMatch, results, scorers, assists, awards, awardLeaders } = data
+  const { organization, featured, nextMatch, results, form, scorers, assists, awards } = data
   const slug = organization.slug
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/${slug}`)}`
-  const firstLive = live[0]
-  const hasMatchContent = live.length > 0 || nextMatch != null || results.length > 0
-  const hasStatsContent =
-    scorers.length > 0 || assists.length > 0 || awards.length > 0 || awardLeaders.length > 0
-  const isEmpty = !hasMatchContent && !hasStatsContent
+  const year = new Date().getFullYear()
+  const hasStats = scorers.length > 0 || assists.length > 0
+  const isEmpty = !featured && !nextMatch && results.length === 0 && !hasStats && awards.length === 0
 
   return (
-    <main className="flex-1">
-      <section className="border-b border-[#2A3A32] bg-[#0B1210]">
-        <div className="mx-auto max-w-5xl px-4 py-16 md:py-20">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+    <div className="min-h-screen bg-[#0b0d0c] text-[#f4f5f2] [background:radial-gradient(circle_at_50%_-10%,color-mix(in_srgb,var(--org-primary)_7%,transparent),transparent_28%),#0b0d0c]">
+      <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-[#0b0d0c]/86 backdrop-blur-[18px]">
+        <div className="mx-auto flex min-h-[72px] w-[min(1180px,calc(100%-32px))] items-center justify-between gap-6 max-sm:min-h-16">
+          <Link href={`/${slug}`} className="flex items-center gap-[13px] no-underline">
             {organization.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={organization.logoUrl}
                 alt=""
-                className="h-20 w-20 shrink-0 rounded-2xl border border-[#2A3A32] object-cover"
+                className="h-[38px] w-[38px] rounded-[11px] object-cover"
               />
             ) : (
-              <div className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl bg-org-primary font-display text-2xl font-black text-[#E8E4D8]">
-                {orgMonogram(organization.name)}
+              <div className="grid h-[38px] w-[38px] place-items-center rounded-[11px] bg-org-primary font-display text-sm font-black tracking-tight text-[#0b0d0c]">
+                {organization.monogram}
               </div>
             )}
-            <div className="min-w-0 flex-1">
-              <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
-                Marcador en vivo
-              </p>
-              <h1 className="font-display mt-2 text-[clamp(2rem,4vw,3rem)] font-semibold uppercase leading-none tracking-wide text-[#E8E4D8]">
-                {organization.name}
-              </h1>
-              <p className="mt-3 max-w-xl text-lg text-[#8A938C]">
-                Partidos, marcador, goleadores, asistencias y premios
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            {firstLive ? (
-              <Link href={`/${slug}/live/${firstLive.id}`} className="btn-kelme">
-                Ver en vivo
-              </Link>
-            ) : null}
+            <span className="flex flex-col leading-none">
+              <strong className="font-ui text-sm font-extrabold tracking-[0.02em]">
+                {organization.name.toUpperCase()}
+              </strong>
+              <span className="mt-1 hidden text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#9ca59f] sm:block">
+                Gestión deportiva
+              </span>
+            </span>
+          </Link>
+          <nav className="flex items-center gap-2">
+            <a
+              href="#resultados"
+              className="hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline"
+            >
+              Partidos
+            </a>
+            <a
+              href="#estadisticas"
+              className="hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline"
+            >
+              Estadísticas
+            </a>
+            <a
+              href="#premios"
+              className="hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline"
+            >
+              Premios
+            </a>
             {panelHref ? (
-              <Link href={panelHref} className="btn-kelme">
+              <Link
+                href={panelHref}
+                className="rounded-[10px] border border-[#2a302d] bg-[#161917] px-[15px] py-2.5 text-sm font-bold"
+              >
                 Ir al panel
               </Link>
             ) : (
-              <>
-                <Link href={loginHref} className="btn-kelme">
-                  Ingresar
-                </Link>
-                <Link href="/register" className="btn-kelme-outline">
-                  Registrarse
-                </Link>
-              </>
+              <Link
+                href={loginHref}
+                className="rounded-[10px] border border-[#2a302d] bg-[#161917] px-[15px] py-2.5 text-sm font-bold"
+              >
+                Ingresar
+              </Link>
             )}
-            <ShareOrgLink orgName={organization.name} slug={slug} />
-          </div>
+          </nav>
         </div>
-      </section>
+      </header>
 
-      {isEmpty ? (
-        <section className="mx-auto max-w-5xl px-4 py-16">
-          <div className="card-kelme p-10 text-center">
-            <p className="font-ui text-lg font-semibold text-[#E8E4D8]">
-              Aún no hay partidos publicados
-            </p>
-            <p className="mt-2 text-sm text-[#8A938C]">
-              Vuelve más tarde para ver el fixture, resultados y estadísticas.
-            </p>
-          </div>
-        </section>
-      ) : null}
+      <main>
+        <section className="pb-7 pt-[54px] max-sm:pt-8">
+          <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
+            <div className="mb-[18px] flex items-end justify-between gap-6 max-md:flex-col max-md:items-start">
+              <div>
+                <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.16em] text-org-primary">
+                  <span className="h-2 w-2 rounded-full bg-org-primary shadow-[0_0_0_5px_color-mix(in_srgb,var(--org-primary)_9%,transparent)]" />
+                  Marcador en vivo
+                </p>
+                <h1 className="mt-2.5 font-display text-[clamp(34px,6vw,66px)] font-semibold uppercase leading-[0.96] tracking-[-0.055em]">
+                  {organization.headline.first}
+                  {organization.headline.rest ? (
+                    <>
+                      <br />
+                      {organization.headline.rest}
+                    </>
+                  ) : null}
+                </h1>
+              </div>
+              <p className="max-w-[380px] text-[15px] text-[#9ca59f] max-sm:text-sm">
+                Resultados, goleadores, asistencias y premios de {organization.name}.
+              </p>
+            </div>
 
-      {hasMatchContent ? (
-        <>
-          <section className="border-b border-[#2A3A32] bg-[#121A18]">
-            <div className="mx-auto max-w-5xl px-4 py-14">
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
-                    Ahora
-                  </p>
-                  <h2 className="font-display mt-1 text-2xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
-                    {live.length > 0 ? 'En vivo' : 'Próximo partido'}
-                  </h2>
-                </div>
-                {live.length > 0 ? (
-                  <span className="live-pulse inline-flex items-center gap-2 rounded-full bg-[#0B1210] px-3 py-1 font-ui text-xs font-bold text-org-primary ring-1 ring-[color:var(--org-primary)]/35">
-                    {live.length} en curso
+            {featured ? (
+              <article className="relative overflow-hidden rounded-3xl border border-[#2a302d] bg-[#131615] shadow-[0_18px_50px_rgba(0,0,0,.22)] before:absolute before:inset-x-0 before:top-0 before:h-[3px] before:bg-[linear-gradient(90deg,var(--org-primary),transparent_70%)]">
+                <div className="flex items-center justify-between gap-3.5 border-b border-[#2a302d] px-[22px] py-[18px] max-sm:px-[15px] max-sm:py-3.5">
+                  <div className="flex items-center gap-2.5 text-[13px] font-bold text-[#d8dcd9]">
+                    <span>{featured.dateLine}</span>
+                    <span className="max-sm:hidden">·</span>
+                    <span className="max-sm:hidden">{featured.venue}</span>
+                  </div>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2.5 py-1.5 text-[11px] uppercase tracking-[0.08em] ${
+                      featured.status === 'FINISHED'
+                        ? 'border-[#3d5126] bg-[color-mix(in_srgb,var(--org-primary)_16%,#131615)] text-org-primary'
+                        : 'border-[#303632] bg-[#202421] text-[#cbd0cc]'
+                    }`}
+                  >
+                    {matchStatusLabel(featured.status)}
                   </span>
+                </div>
+
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-7 px-10 py-[38px] max-md:gap-3.5 max-md:px-5 max-md:py-[30px] max-sm:px-2.5 max-sm:py-7">
+                  <div className="text-center">
+                    <TeamOrb tone={featured.home.tone} />
+                    <div className="text-[17px] font-extrabold tracking-[0.01em] max-sm:text-[13px]">
+                      {featured.home.name.toUpperCase()}
+                    </div>
+                    <div className="mt-1 text-xs text-[#9ca59f] max-sm:hidden">Local</div>
+                  </div>
+                  <div className="min-w-[220px] text-center max-md:min-w-[160px] max-sm:min-w-[110px]">
+                    <div className="font-display text-[clamp(68px,10vw,126px)] font-black leading-[0.8] tracking-[-0.08em] tabular-nums max-sm:text-[64px]">
+                      {featured.homeScore} <span className="px-[0.13em] text-[#4a514d]">—</span>{' '}
+                      {featured.awayScore}
+                    </div>
+                    <div className="mt-[18px] text-xs uppercase tracking-[0.13em] text-[#9ca59f]">
+                      {featured.scoreCaption}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <TeamOrb tone={featured.away.tone} />
+                    <div className="text-[17px] font-extrabold tracking-[0.01em] max-sm:text-[13px]">
+                      {featured.away.name.toUpperCase()}
+                    </div>
+                    <div className="mt-1 text-xs text-[#9ca59f] max-sm:hidden">Visita</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-5 border-t border-[#2a302d] px-[22px] py-5 max-sm:flex-col max-sm:items-stretch max-sm:px-[15px]">
+                  {featured.mvp ? (
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-full border border-[#333a36] bg-[#232824] font-display text-sm font-black text-org-primary">
+                        {featured.mvp.initials}
+                      </div>
+                      <div>
+                        <small className="block text-[11px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                          Figura del partido
+                        </small>
+                        <strong className="text-sm">{featured.mvp.name}</strong>
+                      </div>
+                    </div>
+                  ) : (
+                    <div />
+                  )}
+                  <Link
+                    href={`/${slug}/live/${featured.id}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-[11px] bg-org-primary px-4 py-3 text-[13px] font-black text-[#0a0c0b] max-sm:w-full"
+                  >
+                    {featured.status === 'FINISHED'
+                      ? 'Ver resumen del partido →'
+                      : 'Ver en vivo →'}
+                  </Link>
+                </div>
+              </article>
+            ) : null}
+
+            {scorers[0] || assists[0] || form ? (
+              <div className="mb-8 mt-3.5 grid grid-cols-3 gap-3 max-sm:grid-cols-1">
+                {scorers[0] ? (
+                  <div className="rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4">
+                    <div className="text-[11px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                      Goleador · 30 días
+                    </div>
+                    <div className="mt-1.5 text-base font-extrabold">{scorers[0].name}</div>
+                    <div className="mt-0.5 text-xs text-org-primary">
+                      {scorers[0].goals} {scorers[0].goals === 1 ? 'gol' : 'goles'}
+                    </div>
+                  </div>
+                ) : null}
+                {assists[0] ? (
+                  <div className="rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4">
+                    <div className="text-[11px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                      Asistencias · 30 días
+                    </div>
+                    <div className="mt-1.5 text-base font-extrabold">{assists[0].name}</div>
+                    <div className="mt-0.5 text-xs text-org-primary">
+                      {assists[0].assists} {assists[0].assists === 1 ? 'asistencia' : 'asistencias'}
+                    </div>
+                  </div>
+                ) : null}
+                {form ? (
+                  <div className="rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4">
+                    <div className="text-[11px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                      Últimos {form.marks.length} · {form.teamName}
+                    </div>
+                    <div className="mt-1.5 text-base font-extrabold">
+                      {form.wins} {form.wins === 1 ? 'victoria' : 'victorias'}
+                    </div>
+                    <div className="mt-0.5 text-xs text-org-primary" aria-hidden>
+                      {form.marks.map((mark) => (mark === 'W' ? '●' : '○')).join(' ')}
+                    </div>
+                  </div>
                 ) : null}
               </div>
+            ) : null}
 
-              {live.length > 0 ? (
-                <ul className="mt-8 grid gap-4">
-                  {live.map((match) => (
-                    <li key={match.id}>
-                      <Link
-                        href={`/${slug}/live/${match.id}`}
-                        className="card-kelme block p-5 transition-colors hover:border-[color:var(--org-primary)]/40"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <span className="font-ui text-xs uppercase tracking-wide text-[#8A938C]">
-                            {match.label}
-                          </span>
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-ui text-xs font-semibold ${matchStatusBadgeClass(match.status)}`}
-                          >
-                            {match.status === 'LIVE' ? (
-                              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-org-primary" />
-                            ) : null}
-                            {matchStatusLabel(match.status)}
-                          </span>
-                        </div>
-                        <p className="font-data mt-4 text-center text-3xl font-bold tracking-tight text-[#E8E4D8] sm:text-left">
-                          {match.score}
-                        </p>
-                        <p className="mt-3 text-right font-ui text-sm font-semibold text-org-primary">
-                          Ver marcador →
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : nextMatch ? (
-                <Link
-                  href={`/${slug}/live/${nextMatch.id}`}
-                  className="card-kelme group mt-8 block overflow-hidden transition-colors hover:border-[color:var(--org-primary)]/40"
-                >
-                  <div className="p-6">
-                    <span className="inline-flex items-center rounded-full bg-[#0B1210] px-3 py-1 font-ui text-[11px] font-bold uppercase tracking-[0.08em] text-[#8A938C] ring-1 ring-[#2A3A32]">
-                      {nextMatch.when}
-                    </span>
-                    <p className="mt-4 font-display text-[clamp(1.25rem,3vw,1.75rem)] font-semibold uppercase leading-tight tracking-wide text-[#E8E4D8]">
-                      {nextMatch.label}
-                    </p>
-                    {nextMatch.venue ? (
-                      <p className="mt-2 text-sm text-[#8A938C]">{nextMatch.venue}</p>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center justify-between gap-3 border-t border-[#2A3A32] bg-[#0B1210]/40 px-6 py-3.5 transition group-hover:bg-[#0B1210]/70">
-                    <span className="font-ui text-xs font-semibold uppercase tracking-[0.1em] text-[#8A938C]">
-                      Próximo encuentro
-                    </span>
-                    <span className="inline-flex items-center gap-2.5 font-ui text-sm font-bold text-org-primary">
-                      Ver detalle
-                      <span
-                        aria-hidden
-                        className="grid h-7 w-7 place-items-center rounded-full border border-[color:var(--org-primary)]/35 bg-[color:var(--org-primary)]/10 text-org-primary transition group-hover:border-[color:var(--org-primary)]/60 group-hover:bg-org-primary group-hover:text-[#E8E4D8] motion-safe:group-hover:translate-x-0.5"
-                      >
-                        <svg
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          className="h-3.5 w-3.5"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M6 4l4 4-4 4" />
-                        </svg>
-                      </span>
-                    </span>
-                  </div>
-                </Link>
-              ) : (
-                <div className="card-kelme mt-8 p-8 text-center">
-                  <p className="font-ui font-semibold text-[#E8E4D8]">
-                    No hay partidos en curso ni programados próximos
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {results.length > 0 ? (
-            <section className="mx-auto max-w-5xl px-4 py-14">
-              <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
-                Resultados
-              </p>
-              <h2 className="font-display mt-1 text-2xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
-                Últimos partidos
-              </h2>
-              <ul className="mt-8 grid gap-3">
-                {results.map((match) => (
-                  <li key={match.id}>
-                    <Link
-                      href={`/${slug}/live/${match.id}`}
-                      className="card-kelme flex flex-wrap items-center justify-between gap-4 p-4 transition-colors hover:border-[color:var(--org-primary)]/40"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-ui text-sm font-semibold text-[#E8E4D8]">{match.label}</p>
-                        <p className="mt-1 text-xs text-[#8A938C]">{match.when}</p>
-                      </div>
-                      <p className="font-data shrink-0 text-xl font-bold text-[#E8E4D8]">
-                        {match.score}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-        </>
-      ) : null}
-
-      {hasStatsContent ? (
-        <section className="border-t border-[#2A3A32] bg-[#121A18]">
-          <div className="mx-auto max-w-5xl px-4 py-14">
-            <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
-              Estadísticas
-            </p>
-            <h2 className="font-display mt-1 text-2xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
-              Últimos 30 días
-            </h2>
-            <div className="mt-8 grid gap-10 lg:grid-cols-2">
-              {scorers.length > 0 ? (
-                <PlayerRanking
-                  eyebrow="Goleadores"
-                  title="Top 5"
-                  items={scorers}
-                  valueKey="goals"
-                />
-              ) : null}
-              {assists.length > 0 ? (
-                <PlayerRanking
-                  eyebrow="Asistencias"
-                  title="Top 5"
-                  items={assists}
-                  valueKey="assists"
-                />
-              ) : null}
-              {awardLeaders.length > 0 ? (
-                <PlayerRanking
-                  eyebrow="Premios"
-                  title="Top 5"
-                  items={awardLeaders.map((row) => ({ name: row.name, goals: row.awards }))}
-                  valueKey="goals"
-                />
-              ) : null}
-            </div>
-            {awards.length > 0 ? (
-              <div className="mt-10 border-t border-[#2A3A32] pt-10">
-                <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
-                  Catálogo
+            {isEmpty ? (
+              <div className="rounded-[18px] border border-[#2a302d] bg-[#131615] p-10 text-center">
+                <p className="font-ui text-lg font-semibold">Aún no hay partidos publicados</p>
+                <p className="mt-2 text-sm text-[#9ca59f]">
+                  Vuelve más tarde para ver el fixture, resultados y estadísticas.
                 </p>
-                <h3 className="font-display mt-1 text-xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
-                  Premios de la liga
-                </h3>
-                <AwardsStatsGrid awards={awards} />
               </div>
             ) : null}
           </div>
         </section>
-      ) : null}
 
-      <section className="border-t border-[#2A3A32] py-8">
-        <div className="mx-auto max-w-5xl px-4 text-center">
-          <Link
-            href="/"
-            className="font-ui text-xs font-bold uppercase tracking-[0.12em] text-[#8A938C] hover:text-[#E8E4D8]"
-          >
-            Powered by LigaLab
-          </Link>
+        {nextMatch ? (
+          <section className="py-[26px]">
+            <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
+              <div className="mb-4">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                  Ahora
+                </p>
+                <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
+                  Próximo partido
+                </h2>
+              </div>
+              <div className="grid grid-cols-[1.25fr_.75fr] gap-5 rounded-[18px] border border-[#2a302d] bg-[#131615] p-6 max-md:grid-cols-1 max-sm:p-[18px]">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-org-primary">
+                    {nextMatch.dateLine}
+                    {nextMatch.sidesReady ? '' : ' · Fecha en preparación'}
+                  </p>
+                  <h3 className="mt-2 font-display text-[31px] font-semibold uppercase leading-none tracking-[-0.04em]">
+                    {nextMatch.sidesReady
+                      ? `${nextMatch.home} vs ${nextMatch.away}`
+                      : 'El próximo partido se juega.'}
+                  </h3>
+                  <p className="mt-2 max-w-[560px] text-[#9ca59f]">
+                    {nextMatch.sidesReady
+                      ? `${nextMatch.venue} · ${nextMatch.time}`
+                      : 'Los equipos todavía no están publicados. Cuando queden confirmados, este bloque muestra los lados y la sede.'}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 content-start gap-2.5 max-[420px]:grid-cols-1">
+                  <div className="rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5">
+                    <small className="block text-[10px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                      Hora
+                    </small>
+                    <strong className="mt-1.5 block text-sm">{nextMatch.time}</strong>
+                  </div>
+                  <div className="rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5">
+                    <small className="block text-[10px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                      Estado
+                    </small>
+                    <strong className="mt-1.5 block text-sm">
+                      {nextMatch.sidesReady ? 'Programado' : 'Por confirmar'}
+                    </strong>
+                  </div>
+                  <div className="rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5">
+                    <small className="block text-[10px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                      Cancha
+                    </small>
+                    <strong className="mt-1.5 block text-sm">{nextMatch.venue}</strong>
+                  </div>
+                  <div className="rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5">
+                    <small className="block text-[10px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                      Equipos
+                    </small>
+                    <strong className="mt-1.5 block text-sm">
+                      {nextMatch.sidesReady ? nextMatch.label : 'En preparación'}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {results.length > 0 ? (
+          <section id="resultados" className="scroll-mt-24 py-[26px]">
+            <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
+              <div className="mb-4">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                  Resultados
+                </p>
+                <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
+                  Últimos partidos
+                </h2>
+              </div>
+              <div className="grid grid-cols-5 gap-2.5 max-md:grid-cols-2 max-[420px]:grid-cols-1">
+                {results.map((match) => (
+                  <Link
+                    key={match.id}
+                    href={`/${slug}/live/${match.id}`}
+                    className="rounded-[14px] border border-[#2a302d] bg-[#131615] p-4 transition duration-150 hover:-translate-y-0.5 hover:border-[#414943]"
+                  >
+                    <div className="mb-3 text-[11px] text-[#9ca59f]">{match.dateLine}</div>
+                    <div className="flex items-center justify-between gap-2.5 text-[13px]">
+                      <span>{match.home}</span>
+                      <strong className="text-lg">{match.homeScore}</strong>
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between gap-2.5 text-[13px]">
+                      <span>{match.away}</span>
+                      <strong className="text-lg">{match.awayScore}</strong>
+                    </div>
+                    <div className="mt-[15px] border-t border-[#252a27] pt-[11px] text-[10px] uppercase tracking-[0.12em] text-[#777f7a]">
+                      Finalizado
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {hasStats ? (
+          <section id="estadisticas" className="scroll-mt-24 py-[26px]">
+            <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
+              <div className="mb-4">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                  Estadísticas · Últimos 30 días
+                </p>
+                <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
+                  Los que están on fire
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
+                <RankingCard
+                  title="⚽ Goleadores"
+                  rows={scorers.map((row) => ({ name: row.name, value: row.goals }))}
+                />
+                <RankingCard
+                  title="🎯 Asistencias"
+                  rows={assists.map((row) => ({ name: row.name, value: row.assists }))}
+                />
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {awards.length > 0 ? (
+          <section id="premios" className="scroll-mt-24 py-[26px]">
+            <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
+              <div className="mb-4">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                  Reconocimientos
+                </p>
+                <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
+                  Premios del camarín
+                </h2>
+              </div>
+              <div className="grid grid-cols-4 gap-3 max-md:grid-cols-2 max-[420px]:grid-cols-1">
+                {awards.map((award) => (
+                  <article
+                    key={`${award.name}-${award.shortLabel}`}
+                    className="relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-[18px] border border-[#2a302d] bg-[#131615] p-5 after:absolute after:-right-[55px] after:-top-[50px] after:h-[130px] after:w-[130px] after:rounded-full after:bg-[color-mix(in_srgb,var(--org-primary)_5%,transparent)] max-sm:min-h-[210px] max-sm:p-4"
+                  >
+                    <div className="relative z-10">
+                      <div className="text-[30px]">{award.emoji}</div>
+                      <div className="mt-[22px] text-[10px] font-black uppercase tracking-[0.12em] text-org-primary">
+                        {award.shortLabel}
+                      </div>
+                      <h3 className="mb-2 mt-1.5 font-display text-[19px] font-semibold leading-[1.05] tracking-[-0.025em]">
+                        {award.name}
+                      </h3>
+                      {award.description ? (
+                        <p className="m-0 text-xs text-[#9ca59f]">{award.description}</p>
+                      ) : null}
+                    </div>
+                    <div className="relative z-10 mt-[18px] border-t border-[#282e2a] pt-[15px]">
+                      <small className="block text-[10px] uppercase tracking-[0.1em] text-[#717a74]">
+                        {award.recipients.length === 1 ? 'Ganador' : 'Ganadores'}
+                      </small>
+                      <strong className="mt-1 block text-[13px]">
+                        {award.recipients.length > 0
+                          ? award.recipients.map((row) => row.name).join(' · ')
+                          : 'Aún sin ganadores'}
+                      </strong>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+      </main>
+
+      <footer className="mt-[42px] border-t border-[#212622] py-7 text-xs text-[#7f8882]">
+        <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] items-center justify-between gap-5 max-sm:flex-col max-sm:items-start">
+          <div>
+            © {year} {organization.name}
+          </div>
+          <div>
+            Powered by <strong className="text-[#dfe3df]">LigaLab</strong>
+          </div>
         </div>
-      </section>
-    </main>
+      </footer>
+    </div>
   )
 }

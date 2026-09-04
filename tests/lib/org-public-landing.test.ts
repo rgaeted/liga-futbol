@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { tallyRecentAssists, tallyRecentScorers } from '@/lib/org-public-landing'
+import {
+  formLastFive,
+  orgMonogram,
+  sidesAreReady,
+  splitOrgHeadline,
+  tallyRecentAssists,
+  tallyRecentScorers,
+  teamToneFromName,
+} from '@/lib/org-public-landing'
 
 describe('tallyRecentScorers', () => {
   it('counts GOAL only and ignores OWN_GOAL', () => {
@@ -59,13 +67,60 @@ describe('tallyRecentAssists', () => {
   })
 })
 
+describe('landing presentation helpers', () => {
+  it('splits org headlines and monograms', () => {
+    expect(splitOrgHeadline('Partidos Los Lunes')).toEqual({
+      first: 'Partidos',
+      rest: 'Los Lunes',
+    })
+    expect(orgMonogram('Partidos Los Lunes')).toBe('PL')
+  })
+
+  it('detects Blancos/Negros tones', () => {
+    expect(teamToneFromName('Blancos', 'away')).toBe('white')
+    expect(teamToneFromName('Negros', 'home')).toBe('black')
+    expect(teamToneFromName('Colo Colo', 'home')).toBe('white')
+    expect(teamToneFromName('Católica', 'away')).toBe('black')
+  })
+
+  it('treats placeholder sides as not ready', () => {
+    expect(sidesAreReady('Blancos', 'Negros')).toBe(true)
+    expect(sidesAreReady('Lado A', 'Lado B')).toBe(false)
+  })
+
+  it('counts last-five form for one side', () => {
+    const form = formLastFive(
+      [
+        { home: 'Blancos', away: 'Negros', homeScore: 6, awayScore: 2 },
+        { home: 'Blancos', away: 'Negros', homeScore: 6, awayScore: 0 },
+        { home: 'Blancos', away: 'Negros', homeScore: 4, awayScore: 6 },
+      ],
+      'Blancos',
+    )
+    expect(form).toEqual({
+      teamName: 'Blancos',
+      wins: 2,
+      marks: ['W', 'W', 'L'],
+    })
+  })
+})
+
 describe('public landing payload keys', () => {
   it('fixture JSON does not include paid or email', () => {
     const fixture = {
-      organization: { name: 'X', slug: 'x', primaryColor: '#fff', logoUrl: null },
+      organization: {
+        name: 'X',
+        slug: 'x',
+        primaryColor: '#fff',
+        logoUrl: null,
+        monogram: 'X',
+        headline: { first: 'X', rest: null },
+      },
+      featured: null,
       live: [],
       nextMatch: null,
       results: [],
+      form: null,
       scorers: [{ name: 'Ana', goals: 1 }],
       assists: [{ name: 'Ben', assists: 2 }],
       awards: [
