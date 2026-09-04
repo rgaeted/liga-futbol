@@ -59,11 +59,11 @@ export function OrgPublicLanding({
   data: OrgPublicLandingData
   panelHref?: string | null
 }) {
-  const { organization, live, nextMatch, results, scorers, assists } = data
+  const { organization, live, nextMatch, results, scorers, assists, awards } = data
   const slug = organization.slug
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/${slug}`)}`
   const firstLive = live[0]
-  const isEmpty = live.length === 0 && !nextMatch && results.length === 0
+  const isEmpty = live.length === 0 && !nextMatch && results.length === 0 && awards.length === 0
 
   return (
     <main className="flex-1">
@@ -90,7 +90,7 @@ export function OrgPublicLanding({
                 {organization.name}
               </h1>
               <p className="mt-3 max-w-xl text-lg text-[#8A938C]">
-                Partidos, marcador, goleadores y asistencias
+                Partidos, marcador, goleadores, asistencias y premios
               </p>
             </div>
           </div>
@@ -131,7 +131,88 @@ export function OrgPublicLanding({
             </p>
           </div>
         </section>
-      ) : (
+      ) : null}
+
+      {awards.length > 0 ? (
+        <section className="border-b border-[#2A3A32] bg-[#121A18]">
+          <div className="mx-auto max-w-5xl px-4 py-14">
+            <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
+              Reconocimientos
+            </p>
+            <h2 className="font-display mt-1 text-2xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
+              Premios de la liga
+            </h2>
+            <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+              {awards.map((award) => (
+                <li
+                  key={`${award.name}-${award.shortLabel}`}
+                  className="card-kelme p-5"
+                  style={
+                    award.accentColor
+                      ? {
+                          borderColor: `${award.accentColor}55`,
+                          boxShadow: `inset 0 0 0 1px ${award.accentColor}22`,
+                        }
+                      : undefined
+                  }
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#0B1210] text-2xl ring-1 ring-[#2A3A32]"
+                      style={
+                        award.accentColor
+                          ? {
+                              backgroundColor: `${award.accentColor}22`,
+                              color: award.accentColor,
+                              borderColor: `${award.accentColor}44`,
+                            }
+                          : undefined
+                      }
+                      aria-hidden
+                    >
+                      {award.emoji}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-ui text-sm font-bold uppercase tracking-wide text-org-primary">
+                        {award.shortLabel}
+                      </p>
+                      <h3 className="font-display mt-1 text-lg font-semibold uppercase tracking-wide text-[#E8E4D8]">
+                        {award.name}
+                      </h3>
+                      {award.description ? (
+                        <p className="mt-2 text-sm text-[#8A938C]">{award.description}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                  {award.recipients.length > 0 ? (
+                    <div className="mt-4 border-t border-[#2A3A32] pt-4">
+                      <p className="font-ui text-[11px] font-bold uppercase tracking-[0.1em] text-[#8A938C]">
+                        {award.recipientCount === 1
+                          ? 'Ganador'
+                          : `Ganadores${award.recipientCount > award.recipients.length ? ` (${award.recipientCount})` : ''}`}
+                      </p>
+                      <ul className="mt-2 flex flex-wrap gap-2">
+                        {award.recipients.map((recipient, index) => (
+                          <li
+                            key={`${recipient.name}-${index}`}
+                            className="rounded-full bg-[#0B1210] px-3 py-1 font-ui text-xs font-semibold text-[#E8E4D8] ring-1 ring-[#2A3A32]"
+                          >
+                            {recipient.name}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-xs text-[#8A938C]">Aún sin ganadores publicados.</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+      {!isEmpty ? (
         <>
           <section className="border-b border-[#2A3A32] bg-[#121A18]">
             <div className="mx-auto max-w-5xl px-4 py-14">
@@ -295,7 +376,7 @@ export function OrgPublicLanding({
             </section>
           ) : null}
         </>
-      )}
+      ) : null}
 
       <section className="border-t border-[#2A3A32] py-8">
         <div className="mx-auto max-w-5xl px-4 text-center">

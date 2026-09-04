@@ -68,6 +68,17 @@ describe('public landing payload keys', () => {
       results: [],
       scorers: [{ name: 'Ana', goals: 1 }],
       assists: [{ name: 'Ben', assists: 2 }],
+      awards: [
+        {
+          name: 'Premio al 7 pulmones',
+          shortLabel: '7 pulmones',
+          emoji: '🫁',
+          description: null,
+          accentColor: '#16A34A',
+          recipientCount: 1,
+          recipients: [{ name: 'Ana' }],
+        },
+      ],
     }
     const raw = JSON.stringify(fixture)
     expect(raw).not.toMatch(/paid/i)

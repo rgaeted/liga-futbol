@@ -2,12 +2,14 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { EmojiPickerField } from '@/components/ui/EmojiPickerField'
 import { submitJson } from './submit'
 
 export function OrgAwardForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [emoji, setEmoji] = useState('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -19,7 +21,7 @@ export function OrgAwardForm() {
     const body = {
       name: String(fd.get('name') ?? ''),
       shortLabel: String(fd.get('shortLabel') ?? ''),
-      emoji: String(fd.get('emoji') ?? ''),
+      emoji,
       description: String(fd.get('description') ?? '') || undefined,
       accentColor: accentRaw || undefined,
       sortOrder: sortOrderRaw ? Number(sortOrderRaw) : undefined,
@@ -31,6 +33,7 @@ export function OrgAwardForm() {
       return
     }
     e.currentTarget.reset()
+    setEmoji('')
     router.refresh()
   }
 
@@ -52,13 +55,7 @@ export function OrgAwardForm() {
         placeholder="Etiqueta corta"
         className="input-kelme rounded-lg px-3 py-2"
       />
-      <input
-        name="emoji"
-        required
-        maxLength={8}
-        placeholder="Emoji"
-        className="input-kelme rounded-lg px-3 py-2"
-      />
+      <EmojiPickerField value={emoji} onChange={setEmoji} required />
       <input
         name="description"
         placeholder="Descripción (opcional)"
@@ -80,7 +77,7 @@ export function OrgAwardForm() {
       />
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !emoji.trim()}
         className="btn-kelme rounded-lg px-4 py-2 font-semibold disabled:opacity-50 md:col-span-3"
       >
         {loading ? 'Creando…' : 'Crear premio'}

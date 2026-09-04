@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { EmojiPickerField } from '@/components/ui/EmojiPickerField'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
 
@@ -165,13 +166,14 @@ export function OrgAwardsTable({ awards }: { awards: OrgAwardRow[] }) {
                           placeholder="Etiqueta"
                           className="w-24 rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
                         />
-                        <input
-                          value={emoji}
-                          onChange={(e) => setEmoji(e.target.value)}
-                          maxLength={8}
-                          placeholder="Emoji"
-                          className="w-16 rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
-                        />
+                        <div className="w-40">
+                          <EmojiPickerField
+                            value={emoji}
+                            onChange={setEmoji}
+                            compact
+                            inputClassName="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                          />
+                        </div>
                         <input
                           value={accentColor}
                           onChange={(e) => setAccentColor(e.target.value)}

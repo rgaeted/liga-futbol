@@ -41,6 +41,15 @@ export type OrgPublicLanding = {
     name: string
     assists: number
   }>
+  awards: Array<{
+    name: string
+    shortLabel: string
+    emoji: string
+    description: string | null
+    accentColor: string | null
+    recipientCount: number
+    recipients: Array<{ name: string }>
+  }>
 }
 
 const matchPublicSelect = {
@@ -128,7 +137,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
   const now = new Date()
   const scorersFrom = new Date(now.getTime() - 30 * 86_400_000)
 
-  const [liveMatches, nextMatch, results, scorerMatches] = await Promise.all([
+  const [liveMatches, nextMatch, results, scorerMatches, orgAwards] = await Promise.all([
     db.match.findMany({
       where: {
         organizationId: org.id,
@@ -173,6 +182,20 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
         },
       },
     }),
+    db.orgAward.findMany({
+      where: { organizationId: org.id, isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      include: {
+        _count: { select: { playerAwards: true } },
+        playerAwards: {
+          orderBy: { awardedAt: 'desc' },
+          take: 6,
+          include: {
+            player: { include: PLAYER_PERSON_NAME_INCLUDE },
+          },
+        },
+      },
+    }),
   ])
 
   const goalEvents = scorerMatches.flatMap((match) =>
@@ -197,6 +220,17 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     results: results.map(toResultMatch),
     scorers: tallyRecentScorers(goalEvents),
     assists: tallyRecentAssists(goalEvents),
+    awards: orgAwards.map((award) => ({
+      name: award.name,
+      shortLabel: award.shortLabel,
+      emoji: award.emoji,
+      description: award.description,
+      accentColor: award.accentColor,
+      recipientCount: award._count.playerAwards,
+      recipients: award.playerAwards.map((grant) => ({
+        name: playerDisplayName(grant.player),
+      })),
+    })),
   }
 }
 
