@@ -40,12 +40,6 @@ export function AdminDashboardHome({ data }: { data: AdminDashboardData }) {
           </Link>
           <Link
             href={orgPath('/admin/matches')}
-            className="inline-flex h-[42px] items-center rounded-xl border border-[#2A3A32] bg-transparent px-4 font-ui text-sm font-bold text-[#E8E4D8] hover:bg-[#121A18]"
-          >
-            Exportar
-          </Link>
-          <Link
-            href={orgPath('/admin/matches')}
             className="btn-kelme inline-flex h-[42px] items-center px-[18px]"
           >
             + Programar partido

@@ -8,9 +8,10 @@ type Props = {
   url: string
   confirmMessage: string
   variant?: 'inline' | 'card'
+  onSuccess?: () => void | Promise<void>
 }
 
-export function DeleteButton({ url, confirmMessage, variant = 'inline' }: Props) {
+export function DeleteButton({ url, confirmMessage, variant = 'inline', onSuccess }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -25,6 +26,7 @@ export function DeleteButton({ url, confirmMessage, variant = 'inline' }: Props)
       setError(result.message)
       return
     }
+    await onSuccess?.()
     router.refresh()
   }
 

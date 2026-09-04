@@ -22,6 +22,6 @@ export async function revalidateOrgAwardPages(organizationId: string) {
     select: { slug: true },
   })
   if (!org) return
-  revalidatePath(`/${org.slug}/admin/awards`)
-  revalidatePath(`/${org.slug}`)
+  revalidatePath(`/${org.slug}/admin/awards`, 'page')
+  revalidatePath(`/${org.slug}`, 'page')
 }

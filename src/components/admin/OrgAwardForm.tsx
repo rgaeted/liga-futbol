@@ -1,12 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { EmojiPickerField } from '@/components/ui/EmojiPickerField'
 import { submitJson } from './submit'
 
-export function OrgAwardForm() {
-  const router = useRouter()
+export function OrgAwardForm({ onCreated }: { onCreated?: () => void | Promise<void> }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [emoji, setEmoji] = useState('')
@@ -33,9 +31,9 @@ export function OrgAwardForm() {
       setError(result.message)
       return
     }
-    router.refresh()
     form.reset()
     setEmoji('')
+    await onCreated?.()
   }
 
   return (

@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { EmojiPickerField } from '@/components/ui/EmojiPickerField'
 import { submitJson } from './submit'
@@ -46,8 +45,13 @@ function AwardPreviewChip({
   )
 }
 
-export function OrgAwardsTable({ awards }: { awards: OrgAwardRow[] }) {
-  const router = useRouter()
+export function OrgAwardsTable({
+  awards,
+  onChanged,
+}: {
+  awards: OrgAwardRow[]
+  onChanged?: () => void | Promise<void>
+}) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [shortLabel, setShortLabel] = useState('')
@@ -89,7 +93,7 @@ export function OrgAwardsTable({ awards }: { awards: OrgAwardRow[] }) {
       return
     }
     setEditingId(null)
-    router.refresh()
+    await onChanged?.()
   }
 
   if (awards.length === 0) {
@@ -229,6 +233,7 @@ export function OrgAwardsTable({ awards }: { awards: OrgAwardRow[] }) {
                         <DeleteButton
                           url={`/api/org-awards/${award.id}`}
                           confirmMessage={`¿Eliminar el premio ${award.name}?`}
+                          onSuccess={onChanged}
                         />
                       )}
                     </span>

@@ -3,9 +3,7 @@ import { db } from '@/lib/db'
 import { requireOrganizationId } from '@/lib/tenant-access'
 import { listOrgAwardsWithCounts } from '@/lib/org-awards'
 import { playerDisplayName } from '@/lib/person-name'
-import { OrgAwardForm } from '@/components/admin/OrgAwardForm'
-import { OrgAwardsTable } from '@/components/admin/OrgAwardsTable'
-import { AwardsGrantSection } from '@/components/admin/AwardsGrantSection'
+import { AwardsAdminSection } from '@/components/admin/AwardsAdminSection'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,8 +37,6 @@ export default async function AdminAwardsPage({
     }),
   ])
 
-  const activeAwards = awards.filter((a) => a.isActive)
-
   return (
     <div className="space-y-6">
       <div>
@@ -49,9 +45,8 @@ export default async function AdminAwardsPage({
           Define premios de la liga y otórgalos a jugadores. Se verán como badges en su panel.
         </p>
       </div>
-      <OrgAwardForm />
-      <OrgAwardsTable
-        awards={awards.map((a) => ({
+      <AwardsAdminSection
+        initialAwards={awards.map((a) => ({
           id: a.id,
           name: a.name,
           shortLabel: a.shortLabel,
@@ -62,18 +57,10 @@ export default async function AdminAwardsPage({
           isActive: a.isActive,
           playerCount: a._count.playerAwards,
         }))}
-      />
-      <AwardsGrantSection
         players={players.map((p) => ({
           id: p.id,
           name: playerDisplayName(p),
           teamName: p.team?.name ?? null,
-        }))}
-        awards={activeAwards.map((a) => ({
-          id: a.id,
-          name: a.name,
-          emoji: a.emoji,
-          shortLabel: a.shortLabel,
         }))}
         seasons={seasons}
       />
