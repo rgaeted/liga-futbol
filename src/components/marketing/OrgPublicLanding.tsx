@@ -3,6 +3,7 @@ import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { AwardRevealGrid } from '@/components/marketing/AwardRevealCard'
 import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
 import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
+import { LosLunesResults } from '@/components/marketing/LosLunesResults'
 import { TeamCrest } from '@/components/TeamCrest'
 import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
 import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
@@ -443,6 +444,9 @@ export function OrgPublicLanding({
         ) : null}
 
         {results.length > 0 ? (
+          isLosLunes ? (
+            <LosLunesResults results={results} slug={slug} />
+          ) : (
           <section id="resultados" className="scroll-mt-24 py-[26px]">
             <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
               <div className="mb-4">
@@ -477,6 +481,7 @@ export function OrgPublicLanding({
               </div>
             </div>
           </section>
+          )
         ) : null}
 
         {hasStats ? (
