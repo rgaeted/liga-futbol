@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { AwardRevealGrid } from '@/components/marketing/AwardRevealCard'
+import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
+import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { TeamCrest } from '@/components/TeamCrest'
+import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
+import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
 
@@ -79,10 +83,20 @@ export function OrgPublicLanding({
   const year = new Date().getFullYear()
   const hasStats = scorers.length > 0 || assists.length > 0
   const isEmpty = !featured && !nextMatch && results.length === 0 && !hasStats && awards.length === 0
+  const isLosLunes = slug === LOSLUNES_SLUG
 
   return (
-    <div className="min-h-screen bg-[#0b0d0c] text-[#f4f5f2] [background:radial-gradient(circle_at_50%_-10%,color-mix(in_srgb,var(--org-primary)_7%,transparent),transparent_28%),#0b0d0c]">
-      <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-[#0b0d0c]/86 backdrop-blur-[18px]">
+    <div
+      className={
+        isLosLunes
+          ? 'min-h-screen bg-black text-[#f4f5f2]'
+          : 'min-h-screen bg-[#0b0d0c] text-[#f4f5f2] [background:radial-gradient(circle_at_50%_-10%,color-mix(in_srgb,var(--org-primary)_7%,transparent),transparent_28%),#0b0d0c]'
+      }
+    >
+      {isLosLunes ? null : (
+      <header
+        className="sticky top-0 z-20 border-b border-white/[0.06] bg-[#0b0d0c]/86 backdrop-blur-[18px]"
+      >
         <div className="mx-auto flex min-h-[72px] w-[min(1180px,calc(100%-32px))] items-center justify-between gap-6 max-sm:min-h-16">
           <Link href={`/${slug}`} className="flex items-center gap-[13px] no-underline">
             {organization.logoUrl ? (
@@ -90,52 +104,74 @@ export function OrgPublicLanding({
               <img
                 src={organization.logoUrl}
                 alt=""
-                className="h-[42px] w-[42px] object-contain"
+                className={isLosLunes ? 'h-[52px] w-[52px] object-contain' : 'h-[42px] w-[42px] object-contain'}
               />
             ) : (
               <div className="grid h-[38px] w-[38px] place-items-center rounded-[11px] bg-org-primary font-display text-sm font-black tracking-tight text-[#0b0d0c]">
                 {organization.monogram}
               </div>
             )}
-            <span className="flex flex-col leading-none">
-              <strong className="font-ui text-sm font-extrabold tracking-[0.02em]">
-                {organization.name.toUpperCase()}
-              </strong>
-              <span className="mt-1 hidden text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#9ca59f] sm:block">
-                Gestión deportiva
+            {isLosLunes ? null : (
+              <span className="flex flex-col leading-none">
+                <strong className="font-ui text-sm font-extrabold tracking-[0.02em]">
+                  {organization.name.toUpperCase()}
+                </strong>
+                <span className="mt-1 hidden text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#9ca59f] sm:block">
+                  Gestión deportiva
+                </span>
               </span>
-            </span>
+            )}
           </Link>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1 sm:gap-2">
             <a
               href="#resultados"
-              className="hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline"
+              className={
+                isLosLunes
+                  ? 'hidden px-3 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-white hover:text-org-primary md:inline'
+                  : 'hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline'
+              }
             >
               Partidos
             </a>
             <a
               href="#estadisticas"
-              className="hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline"
+              className={
+                isLosLunes
+                  ? 'hidden px-3 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-white hover:text-org-primary md:inline'
+                  : 'hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline'
+              }
             >
               Estadísticas
             </a>
             <a
               href="#premios"
-              className="hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline"
+              className={
+                isLosLunes
+                  ? 'hidden px-3 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-white hover:text-org-primary md:inline'
+                  : 'hidden rounded-[10px] px-3 py-2.5 text-sm text-[#cbd0cc] hover:bg-[#171a18] hover:text-white md:inline'
+              }
             >
               Premios
             </a>
             {panelHref ? (
               <Link
                 href={panelHref}
-                className="rounded-[10px] border border-[#2a302d] bg-[#161917] px-[15px] py-2.5 text-sm font-bold"
+                className={
+                  isLosLunes
+                    ? 'bg-org-primary px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-white'
+                    : 'rounded-[10px] border border-[#2a302d] bg-[#161917] px-[15px] py-2.5 text-sm font-bold'
+                }
               >
                 Ir al panel
               </Link>
             ) : (
               <Link
                 href={loginHref}
-                className="rounded-[10px] border border-[#2a302d] bg-[#161917] px-[15px] py-2.5 text-sm font-bold"
+                className={
+                  isLosLunes
+                    ? 'bg-org-primary px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-white'
+                    : 'rounded-[10px] border border-[#2a302d] bg-[#161917] px-[15px] py-2.5 text-sm font-bold'
+                }
               >
                 Ingresar
               </Link>
@@ -143,10 +179,16 @@ export function OrgPublicLanding({
           </nav>
         </div>
       </header>
+      )}
+
+      {isLosLunes ? (
+        <LosLunesHomeHero homeHref={`/${slug}`} panelHref={panelHref} loginHref={loginHref} />
+      ) : null}
 
       <main>
-        <section className="pb-7 pt-[54px] max-sm:pt-8">
+        <section className={isLosLunes ? 'pb-7 pt-8' : 'pb-7 pt-[54px] max-sm:pt-8'}>
           <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
+            {isLosLunes ? null : (
             <div className="mb-[18px] flex items-end justify-between gap-6 max-md:flex-col max-md:items-start">
               <div className="flex items-center gap-5 max-sm:gap-3.5">
                 {organization.logoUrl ? (
@@ -177,8 +219,12 @@ export function OrgPublicLanding({
                 Resultados, goleadores, asistencias y premios de {organization.name}.
               </p>
             </div>
+            )}
 
             {featured ? (
+              isLosLunes ? (
+                <LosLunesMatchBoard featured={featured} slug={slug} />
+              ) : (
               <article className="relative overflow-hidden rounded-3xl border border-[#2a302d] bg-[#131615] shadow-[0_18px_50px_rgba(0,0,0,.22)] before:absolute before:inset-x-0 before:top-0 before:h-[3px] before:bg-[linear-gradient(90deg,var(--org-primary),transparent_70%)]">
                 <div className="flex items-center justify-between gap-3.5 border-b border-[#2a302d] px-[22px] py-[18px] max-sm:px-[15px] max-sm:py-3.5">
                   <div className="flex items-center gap-2.5 text-[13px] font-bold text-[#d8dcd9]">
@@ -279,6 +325,7 @@ export function OrgPublicLanding({
                   </Link>
                 </div>
               </article>
+              )
             ) : null}
 
             {scorers[0] || assists[0] || form ? (
@@ -460,14 +507,45 @@ export function OrgPublicLanding({
         {awards.length > 0 ? (
           <section id="premios" className="scroll-mt-24 py-[26px]">
             <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
-              <div className="mb-4">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
-                  Reconocimientos
-                </p>
-                <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
-                  Premios del camarín
-                </h2>
-              </div>
+              {isLosLunes ? (
+                <div className="relative mb-6 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={AWARDS_LOCKER_BG}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover opacity-35"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/40" />
+                  <div className="relative flex items-end justify-between gap-6 px-1 py-6 max-md:flex-col max-md:items-start">
+                    <div className="min-w-0 max-w-[640px]">
+                      <p className="font-display text-[12px] font-bold uppercase tracking-[0.2em] text-org-primary">
+                        Premios
+                      </p>
+                      <h2 className="mt-2 font-display text-[clamp(32px,6vw,58px)] font-bold uppercase leading-[0.88] tracking-[-0.04em]">
+                        Premios del camarín
+                      </h2>
+                      <p className="mt-3 max-w-[460px] text-[14px] leading-relaxed text-white/75">
+                        Reconocimientos que se ganan en la cancha y se celebran en el tercer tiempo.
+                      </p>
+                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={LOSLUNES_LOGO_PATH}
+                      alt=""
+                      className="w-[min(150px,28vw)] shrink-0 drop-shadow-[0_12px_28px_rgba(0,0,0,.55)] max-sm:w-24"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                    Reconocimientos
+                  </p>
+                  <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
+                    Premios del camarín
+                  </h2>
+                </div>
+              )}
               <AwardRevealGrid awards={awards} />
             </div>
           </section>

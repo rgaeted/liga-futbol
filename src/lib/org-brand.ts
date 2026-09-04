@@ -1,5 +1,6 @@
 export const LOSLUNES_SLUG = 'loslunes'
-export const LOSLUNES_LOGO_PATH = '/branding/loslunes-logo.jpg'
+export const LOSLUNES_LOGO_PATH = '/branding/loslunes-logo.png'
+export const LOSLUNES_HERO_PATH = '/branding/loslunes-hero.jpg'
 export const LOSLUNES_PRIMARY = '#F57F20'
 export const LOSLUNES_SECONDARY = '#111111'
 
