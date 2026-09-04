@@ -1,4 +1,5 @@
 import { db } from '@/lib/db'
+import { revalidatePath } from 'next/cache'
 
 export async function listActiveOrgAwards(organizationId: string) {
   return db.orgAward.findMany({
@@ -13,4 +14,14 @@ export async function listOrgAwardsWithCounts(organizationId: string) {
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     include: { _count: { select: { playerAwards: true } } },
   })
+}
+
+export async function revalidateOrgAwardPages(organizationId: string) {
+  const org = await db.organization.findUnique({
+    where: { id: organizationId },
+    select: { slug: true },
+  })
+  if (!org) return
+  revalidatePath(`/${org.slug}/admin/awards`)
+  revalidatePath(`/${org.slug}`)
 }

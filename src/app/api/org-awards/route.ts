@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
+import { revalidateOrgAwardPages } from '@/lib/org-awards'
 import { createOrgAwardSchema } from '@/lib/validations/org-award'
 import { MembershipRole } from '@/lib/membership-role'
 
@@ -32,5 +33,6 @@ export async function POST(req: Request) {
       isActive: parsed.data.isActive ?? true,
     },
   })
+  await revalidateOrgAwardPages(organizationId)
   return NextResponse.json(award, { status: 201 })
 }

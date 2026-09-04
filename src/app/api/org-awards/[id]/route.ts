@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { revalidateOrgAwardPages } from '@/lib/org-awards'
 import { updateOrgAwardSchema } from '@/lib/validations/org-award'
 import { MembershipRole } from '@/lib/membership-role'
 
@@ -50,6 +51,7 @@ export async function PUT(
       ...(parsed.data.isActive !== undefined ? { isActive: parsed.data.isActive } : {}),
     },
   })
+  await revalidateOrgAwardPages(organizationId)
   return NextResponse.json(award)
 }
 
@@ -80,5 +82,6 @@ export async function DELETE(
   }
 
   await db.orgAward.delete({ where: { id } })
+  await revalidateOrgAwardPages(organizationId)
   return NextResponse.json({ ok: true })
 }

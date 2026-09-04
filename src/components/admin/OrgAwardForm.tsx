@@ -13,9 +13,10 @@ export function OrgAwardForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const form = e.currentTarget
     setError('')
     setLoading(true)
-    const fd = new FormData(e.currentTarget)
+    const fd = new FormData(form)
     const accentRaw = String(fd.get('accentColor') ?? '').trim()
     const sortOrderRaw = String(fd.get('sortOrder') ?? '').trim()
     const body = {
@@ -32,9 +33,9 @@ export function OrgAwardForm() {
       setError(result.message)
       return
     }
-    e.currentTarget.reset()
-    setEmoji('')
     router.refresh()
+    form.reset()
+    setEmoji('')
   }
 
   return (
