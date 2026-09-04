@@ -80,19 +80,26 @@ function AwardRevealCard({
   const showShortLabel = shouldShowShortLabel(award.shortLabel, award.name)
 
   return (
-    <div className="[perspective:1100px]">
+    <div className="md:[perspective:1100px]">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={`premio-${key}`}
         onClick={onToggle}
-        className={`relative block min-h-[280px] w-full text-center transition-[transform,box-shadow] duration-500 [transform-style:preserve-3d] motion-reduce:transition-none max-sm:min-h-[260px] ${
-          open ? '[transform:rotateY(180deg)]' : ''
-        }`}
+        className="relative block min-h-[280px] w-full overflow-hidden rounded-[18px] text-center max-sm:min-h-[260px] md:overflow-visible"
       >
         <div
+          className={`relative min-h-[280px] duration-500 motion-reduce:transition-none max-sm:min-h-[260px] md:transition-transform md:[transform-style:preserve-3d] md:[-webkit-transform-style:preserve-3d] ${
+            open
+              ? 'md:[transform:rotateY(180deg)] md:[-webkit-transform:rotateY(180deg)]'
+              : 'md:[transform:rotateY(0deg)]'
+          }`}
+        >
+        <div
           aria-hidden={open}
-          className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-[18px] border border-[#2a302d] bg-[#131615] px-5 py-6 [backface-visibility:hidden] after:absolute after:-right-[55px] after:-top-[50px] after:h-[130px] after:w-[130px] after:rounded-full after:bg-[color-mix(in_srgb,var(--org-primary)_5%,transparent)]"
+          className={`absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-[18px] border border-[#2a302d] bg-[#131615] px-5 py-6 transition-opacity duration-300 after:absolute after:-right-[55px] after:-top-[50px] after:h-[130px] after:w-[130px] after:rounded-full after:bg-[color-mix(in_srgb,var(--org-primary)_5%,transparent)] md:[backface-visibility:hidden] md:[-webkit-backface-visibility:hidden] ${
+            open ? 'pointer-events-none opacity-0' : 'opacity-100'
+          }`}
         >
           <span className="relative z-10 text-[42px] leading-none drop-shadow-[0_6px_18px_rgba(0,0,0,.35)]">
             {award.emoji}
@@ -104,7 +111,9 @@ function AwardRevealCard({
 
         <div
           id={`premio-${key}`}
-          className="absolute inset-0 flex flex-col overflow-hidden rounded-[18px] border border-[color-mix(in_srgb,var(--org-primary)_38%,#2a302d)] bg-[#131615] px-5 py-5 [backface-visibility:hidden] [transform:rotateY(180deg)] max-sm:px-4 max-sm:py-4"
+          className={`absolute inset-0 flex flex-col overflow-hidden rounded-[18px] border border-[color-mix(in_srgb,var(--org-primary)_38%,#2a302d)] bg-[#131615] px-5 py-5 transition-opacity duration-300 max-sm:px-4 max-sm:py-4 md:[backface-visibility:hidden] md:[-webkit-backface-visibility:hidden] md:[transform:rotateY(180deg)] md:[-webkit-transform:rotateY(180deg)] ${
+            open ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
           aria-hidden={!open}
         >
           <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
@@ -151,6 +160,7 @@ function AwardRevealCard({
               </p>
             ) : null}
           </div>
+        </div>
         </div>
       </button>
     </div>
