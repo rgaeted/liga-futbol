@@ -14,6 +14,21 @@ type Award = {
   }>
 }
 
+function foldAwardLabel(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+}
+
+function shouldShowShortLabel(shortLabel: string, name: string): boolean {
+  const shortFold = foldAwardLabel(shortLabel)
+  const nameFold = foldAwardLabel(name)
+  if (!shortFold || shortFold === nameFold) return false
+  return !nameFold.includes(shortFold)
+}
+
 function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean)
   if (words.length >= 2) {
@@ -62,6 +77,7 @@ function AwardRevealCard({
 }) {
   const winners = award.recipients
   const key = `${award.shortLabel}-${award.name}`
+  const showShortLabel = shouldShowShortLabel(award.shortLabel, award.name)
 
   return (
     <div className="[perspective:1100px]">
@@ -70,7 +86,7 @@ function AwardRevealCard({
         aria-expanded={open}
         aria-controls={`premio-${key}`}
         onClick={onToggle}
-        className={`relative block min-h-[250px] w-full text-left transition-[transform,box-shadow] duration-500 [transform-style:preserve-3d] motion-reduce:transition-none max-sm:min-h-[230px] ${
+        className={`relative block min-h-[280px] w-full text-center transition-[transform,box-shadow] duration-500 [transform-style:preserve-3d] motion-reduce:transition-none max-sm:min-h-[260px] ${
           open ? '[transform:rotateY(180deg)]' : ''
         }`}
       >
@@ -91,9 +107,9 @@ function AwardRevealCard({
           className="absolute inset-0 flex flex-col overflow-hidden rounded-[18px] border border-[color-mix(in_srgb,var(--org-primary)_38%,#2a302d)] bg-[#131615] px-5 py-5 [backface-visibility:hidden] [transform:rotateY(180deg)] max-sm:px-4 max-sm:py-4"
           aria-hidden={!open}
         >
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-center">
+          <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
             {winners.length > 0 ? (
-              <div className="mb-3 flex items-center justify-center">
+              <div className="mb-2.5 flex items-center justify-center">
                 {winners.slice(0, 3).map((row, index) => (
                   <div
                     key={row.playerId}
@@ -109,25 +125,31 @@ function AwardRevealCard({
                 ))}
               </div>
             ) : null}
-            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-org-primary">
-              {award.shortLabel}
-            </p>
-            <h3 className="mt-1.5 font-display text-[19px] font-semibold leading-[1.05] tracking-[-0.025em]">
-              {award.name}
-            </h3>
-            {award.description ? (
-              <p className="mt-2 text-xs text-[#9ca59f]">{award.description}</p>
-            ) : null}
-          </div>
-          <div className="relative z-10 mt-3 border-t border-[#282e2a] pt-3 text-center">
-            <small className="block text-[10px] uppercase tracking-[0.1em] text-[#717a74]">
+            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#717a74]">
               {winners.length === 1 ? 'Ganador' : winners.length > 1 ? 'Ganadores' : 'Premio'}
-            </small>
-            <strong className="mt-1 block text-[13px]">
+            </p>
+            <strong className="mt-1 block max-w-full px-1 text-[13px] leading-snug">
               {winners.length > 0
                 ? winners.map((row) => row.name).join(' · ')
                 : 'Aún sin ganadores'}
             </strong>
+            {showShortLabel ? (
+              <p className="mt-3 w-full text-center text-[10px] font-black uppercase tracking-[0.08em] text-org-primary">
+                {award.shortLabel}
+              </p>
+            ) : null}
+            <h3
+              className={`w-full font-display text-[18px] font-semibold leading-[1.1] tracking-[-0.025em] ${
+                showShortLabel ? 'mt-1.5' : 'mt-3'
+              }`}
+            >
+              {award.name}
+            </h3>
+            {award.description ? (
+              <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-[#9ca59f]">
+                {award.description}
+              </p>
+            ) : null}
           </div>
         </div>
       </button>
