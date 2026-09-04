@@ -60,3 +60,43 @@ export function groupPlayerAwardsBySeason<
   }))
   return { general, bySeason }
 }
+
+export type AwardLeaderRow = {
+  playerId: string
+  name: string
+  value: number
+  meta: string
+}
+
+export function tallyPlayerAwardRankings(
+  grants: Array<{
+    playerId: string
+    playerName: string
+    awardEmoji: string
+    awardShortLabel: string
+  }>,
+  take = 8,
+): AwardLeaderRow[] {
+  const map = new Map<string, { name: string; value: number; labels: Set<string> }>()
+  for (const grant of grants) {
+    const current = map.get(grant.playerId) ?? {
+      name: grant.playerName,
+      value: 0,
+      labels: new Set<string>(),
+    }
+    current.value += 1
+    current.labels.add(`${grant.awardEmoji} ${grant.awardShortLabel}`)
+    if (grant.playerName) current.name = grant.playerName
+    map.set(grant.playerId, current)
+  }
+  return [...map.entries()]
+    .map(([playerId, row]) => ({
+      playerId,
+      name: row.name,
+      value: row.value,
+      meta: [...row.labels].slice(0, 3).join(', '),
+    }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, 'es'))
+    .slice(0, take)
+}

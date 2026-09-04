@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { serializePlayerAwardBadge, groupPlayerAwardsBySeason } from '@/lib/player-awards'
+import {
+  serializePlayerAwardBadge,
+  groupPlayerAwardsBySeason,
+  tallyPlayerAwardRankings,
+} from '@/lib/player-awards'
 
 describe('player awards', () => {
   it('serializes badge fields for UI', () => {
@@ -40,5 +44,30 @@ describe('player awards', () => {
     expect(grouped.general).toHaveLength(1)
     expect(grouped.bySeason).toHaveLength(1)
     expect(grouped.bySeason[0]?.seasonName).toBe('Copa')
+  })
+
+  it('ranks players by award count with meta labels', () => {
+    const rows = tallyPlayerAwardRankings([
+      {
+        playerId: 'p1',
+        playerName: 'Ana',
+        awardEmoji: '🫁',
+        awardShortLabel: '7 pulmones',
+      },
+      {
+        playerId: 'p1',
+        playerName: 'Ana',
+        awardEmoji: '🏆',
+        awardShortLabel: 'MVP',
+      },
+      {
+        playerId: 'p2',
+        playerName: 'Ben',
+        awardEmoji: '🫁',
+        awardShortLabel: '7 pulmones',
+      },
+    ])
+    expect(rows[0]).toMatchObject({ playerId: 'p1', name: 'Ana', value: 2 })
+    expect(rows[0]?.meta).toContain('7 pulmones')
   })
 })

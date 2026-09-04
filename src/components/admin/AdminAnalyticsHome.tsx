@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { DashPageHeader } from '@/components/dashboard/dashboard-ui'
 import { useOrgPath } from '@/hooks/useOrgPath'
 import type {
+  AnalyticsAwardCatalogItem,
   AnalyticsPersonStat,
   AnalyticsPeriod,
   OrgAnalyticsDashboard,
@@ -54,6 +55,35 @@ function RankingTable({ title, rows }: { title: string; rows: AnalyticsPersonSta
   )
 }
 
+function AwardsCatalogTable({ items }: { items: AnalyticsAwardCatalogItem[] }) {
+  if (!showBlock(items)) return null
+
+  return (
+    <div className="rounded-[18px] border border-[#2A3A32] bg-[#121A18]">
+      <div className="border-b border-[#2A3A32] px-5 py-3">
+        <h3 className="font-ui text-sm font-bold text-[#E8E4D8]">Premios de la liga</h3>
+      </div>
+      <ul className="divide-y divide-[#2A3A32]">
+        {items.map((item) => (
+          <li
+            key={`${item.name}-${item.shortLabel}`}
+            className="flex items-center justify-between gap-3 px-5 py-3"
+          >
+            <span className="min-w-0 font-ui text-sm font-semibold text-[#E8E4D8]">
+              <span aria-hidden>{item.emoji}</span> {item.name}
+            </span>
+            <span className="shrink-0 text-right text-sm text-[#8A938C]">
+              {item.grantCount > 0
+                ? `${item.grantCount} otorgado${item.grantCount === 1 ? '' : 's'}`
+                : 'Sin otorgar'}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 export function AdminAnalyticsHome({ data }: { data: OrgAnalyticsDashboard }) {
   const orgPath = useOrgPath()
   const router = useRouter()
@@ -70,7 +100,12 @@ export function AdminAnalyticsHome({ data }: { data: OrgAnalyticsDashboard }) {
     data.organizationName,
     data.periodLabel,
     `${data.matchCount} partido${data.matchCount === 1 ? '' : 's'}`,
+    `${data.awardGrantCount} premio${data.awardGrantCount === 1 ? '' : 's'}`,
   ]
+
+  const hasMatchAnalytics = data.matchCount > 0
+  const hasAwardAnalytics =
+    data.awardGrantCount > 0 || showBlock(data.awardsCatalog) || showBlock(data.rankings.awards)
 
   return (
     <div className="space-y-6">
@@ -102,10 +137,10 @@ export function AdminAnalyticsHome({ data }: { data: OrgAnalyticsDashboard }) {
         <p className="text-sm text-[#8A938C]">Mostrando los 200 partidos más recientes.</p>
       ) : null}
 
-      {data.matchCount === 0 ? (
+      {data.matchCount === 0 && !hasAwardAnalytics ? (
         <div className="rounded-[18px] border border-[#2A3A32] bg-[#121A18] p-10 text-center">
           <p className="font-ui text-sm text-[#8A938C]">
-            No hay partidos en {data.periodLabel}.
+            No hay partidos ni premios en {data.periodLabel}.
           </p>
           <Link
             href={orgPath('/admin/matches')}
@@ -116,6 +151,8 @@ export function AdminAnalyticsHome({ data }: { data: OrgAnalyticsDashboard }) {
         </div>
       ) : (
         <>
+          {hasMatchAnalytics ? (
+            <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {data.kpis.map((k) => (
               <div
@@ -316,6 +353,15 @@ export function AdminAnalyticsHome({ data }: { data: OrgAnalyticsDashboard }) {
               <div className="mt-4">
                 <RankingTable title="Goleadores liga" rows={data.league.scorers} />
               </div>
+            </div>
+          ) : null}
+            </>
+          ) : null}
+
+          {hasAwardAnalytics ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              <RankingTable title="Premios otorgados" rows={data.rankings.awards} />
+              <AwardsCatalogTable items={data.awardsCatalog} />
             </div>
           ) : null}
         </>

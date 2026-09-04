@@ -79,6 +79,7 @@ describe('public landing payload keys', () => {
           recipients: [{ name: 'Ana' }],
         },
       ],
+      awardLeaders: [{ name: 'Ana', awards: 1 }],
     }
     const raw = JSON.stringify(fixture)
     expect(raw).not.toMatch(/paid/i)

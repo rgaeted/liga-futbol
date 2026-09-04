@@ -9,6 +9,7 @@ import { APP_TIMEZONE } from '@/lib/locale'
 import { matchDisplayName } from '@/lib/match-label'
 import { formatMatchWeather } from '@/lib/match-weather'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
+import { tallyPlayerAwardRankings } from '@/lib/player-awards'
 import { EventType, FriendlySide, MatchStatus, MatchType } from '@prisma/client'
 
 export type AnalyticsPeriod = '7' | '30' | '90' | 'all'
@@ -173,11 +174,19 @@ export type AnalyticsWeekBucket = {
   goals: number
 }
 
+export type AnalyticsAwardCatalogItem = {
+  name: string
+  shortLabel: string
+  emoji: string
+  grantCount: number
+}
+
 export type OrgAnalyticsDashboard = {
   organizationName: string
   period: AnalyticsPeriod
   periodLabel: string
   matchCount: number
+  awardGrantCount: number
   truncated: boolean
   kpis: AnalyticsKpi[]
   nextMatch: AnalyticsNextMatch | null
@@ -193,7 +202,9 @@ export type OrgAnalyticsDashboard = {
     mvp: AnalyticsPersonStat[]
     coaches: AnalyticsPersonStat[]
     cards: AnalyticsPersonStat[]
+    awards: AnalyticsPersonStat[]
   }
+  awardsCatalog: AnalyticsAwardCatalogItem[]
   league: {
     visible: boolean
     standingsPreview: Array<{ team: string; pts: number; gf: number; gc: number }>
@@ -406,7 +417,12 @@ export async function getOrgAnalyticsDashboard(
     ...(from ? { scheduledAt: { gte: from } } : {}),
   }
 
-  const [rawMatches, nextRaw] = await Promise.all([
+  const awardWhere = {
+    organizationId,
+    ...(from ? { awardedAt: { gte: from } } : {}),
+  }
+
+  const [rawMatches, nextRaw, recentAwardGrants, activeAwards] = await Promise.all([
     db.match.findMany({
       where: matchWhere,
       orderBy: { scheduledAt: 'desc' },
@@ -463,6 +479,22 @@ export async function getOrgAnalyticsDashboard(
         events: MATCH_ANALYTICS_INCLUDE.events,
         teamMvps: MATCH_ANALYTICS_INCLUDE.teamMvps,
       },
+    }),
+    db.playerAward.findMany({
+      where: {
+        ...awardWhere,
+        orgAward: { isActive: true },
+      },
+      include: {
+        player: { include: PLAYER_PERSON_NAME_INCLUDE },
+        orgAward: { select: { name: true, shortLabel: true, emoji: true } },
+      },
+      orderBy: { awardedAt: 'desc' },
+    }),
+    db.orgAward.findMany({
+      where: { organizationId, isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      select: { id: true, name: true, shortLabel: true, emoji: true },
     }),
   ])
 
@@ -656,11 +688,33 @@ export async function getOrgAnalyticsDashboard(
     })),
   )
 
+  const awardRankings = tallyPlayerAwardRankings(
+    recentAwardGrants.map((grant) => ({
+      playerId: grant.playerId,
+      playerName: playerDisplayName(grant.player),
+      awardEmoji: grant.orgAward.emoji,
+      awardShortLabel: grant.orgAward.shortLabel,
+    })),
+  )
+
+  const grantsByAwardId = new Map<string, number>()
+  for (const grant of recentAwardGrants) {
+    grantsByAwardId.set(grant.orgAwardId, (grantsByAwardId.get(grant.orgAwardId) ?? 0) + 1)
+  }
+
+  const awardsCatalog = activeAwards.map((award) => ({
+    name: award.name,
+    shortLabel: award.shortLabel,
+    emoji: award.emoji,
+    grantCount: grantsByAwardId.get(award.id) ?? 0,
+  }))
+
   return {
     organizationName: organization.name,
     period,
     periodLabel,
     matchCount: matches.length,
+    awardGrantCount: recentAwardGrants.length,
     truncated,
     kpis,
     nextMatch: buildNextMatch(nextRaw as AnalyticsMatchRow | null),
@@ -676,7 +730,9 @@ export async function getOrgAnalyticsDashboard(
       mvp: rankByCount(mvp),
       coaches: rankByCount(coaches),
       cards: rankByCount(cards),
+      awards: awardRankings,
     },
+    awardsCatalog,
     league: {
       visible: leagueMatches.length > 0,
       standingsPreview: buildLeagueStandings(leagueFinished),

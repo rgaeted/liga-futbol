@@ -7,6 +7,7 @@ import {
   formatScheduleDateLabel,
   formatScheduleTimeLabel,
 } from '@/lib/schedule-datetime'
+import { tallyPlayerAwardRankings } from '@/lib/player-awards'
 
 export type OrgPublicLanding = {
   organization: {
@@ -49,6 +50,10 @@ export type OrgPublicLanding = {
     accentColor: string | null
     recipientCount: number
     recipients: Array<{ name: string }>
+  }>
+  awardLeaders: Array<{
+    name: string
+    awards: number
   }>
 }
 
@@ -137,7 +142,8 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
   const now = new Date()
   const scorersFrom = new Date(now.getTime() - 30 * 86_400_000)
 
-  const [liveMatches, nextMatch, results, scorerMatches, orgAwards] = await Promise.all([
+  const [liveMatches, nextMatch, results, scorerMatches, orgAwards, recentAwardGrants] =
+    await Promise.all([
     db.match.findMany({
       where: {
         organizationId: org.id,
@@ -196,6 +202,17 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
         },
       },
     }),
+    db.playerAward.findMany({
+      where: {
+        organizationId: org.id,
+        awardedAt: { gte: scorersFrom },
+        orgAward: { isActive: true },
+      },
+      include: {
+        player: { include: PLAYER_PERSON_NAME_INCLUDE },
+        orgAward: { select: { emoji: true, shortLabel: true, isActive: true } },
+      },
+    }),
   ])
 
   const goalEvents = scorerMatches.flatMap((match) =>
@@ -231,6 +248,15 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
         name: playerDisplayName(grant.player),
       })),
     })),
+    awardLeaders: tallyPlayerAwardRankings(
+      recentAwardGrants.map((grant) => ({
+        playerId: grant.playerId,
+        playerName: playerDisplayName(grant.player),
+        awardEmoji: grant.orgAward.emoji,
+        awardShortLabel: grant.orgAward.shortLabel,
+      })),
+      5,
+    ).map((row) => ({ name: row.name, awards: row.value })),
   }
 }
 
