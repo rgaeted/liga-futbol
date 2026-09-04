@@ -1,20 +1,28 @@
 import Link from 'next/link'
+import { FormationPitch } from '@/components/lineup/FormationPitch'
+import { TeamCrest } from '@/components/TeamCrest'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
 
-function TeamOrb({ tone, logoUrl }: { tone: 'white' | 'black'; logoUrl?: string | null }) {
+function FeaturedCrest({
+  name,
+  src,
+  color,
+}: {
+  name: string
+  src: string | null
+  color: string
+}) {
   return (
-    <div
-      className={`mx-auto mb-3.5 grid h-[76px] w-[76px] place-items-center overflow-hidden rounded-full border border-[#39403c] max-sm:h-[50px] max-sm:w-[50px] ${
-        tone === 'white'
-          ? 'bg-[#f1f1eb] shadow-[inset_0_0_0_7px_#d8dad4]'
-          : 'bg-[#232725] shadow-[inset_0_0_0_7px_#171a18]'
-      }`}
-    >
-      {logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt="" className="h-full w-full object-cover" />
-      ) : null}
+    <div className="mx-auto mb-3.5 flex h-[76px] w-[76px] items-center justify-center max-sm:h-[50px] max-sm:w-[50px]">
+      <TeamCrest
+        name={name}
+        src={src}
+        color={color}
+        size="lg"
+        fit="contain"
+        className="!h-full !w-full"
+      />
     </div>
   )
 }
@@ -81,7 +89,7 @@ export function OrgPublicLanding({
               <img
                 src={organization.logoUrl}
                 alt=""
-                className="h-[38px] w-[38px] rounded-[11px] object-cover"
+                className="h-[42px] w-[42px] object-contain"
               />
             ) : (
               <div className="grid h-[38px] w-[38px] place-items-center rounded-[11px] bg-org-primary font-display text-sm font-black tracking-tight text-[#0b0d0c]">
@@ -139,20 +147,30 @@ export function OrgPublicLanding({
         <section className="pb-7 pt-[54px] max-sm:pt-8">
           <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
             <div className="mb-[18px] flex items-end justify-between gap-6 max-md:flex-col max-md:items-start">
-              <div>
-                <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.16em] text-org-primary">
-                  <span className="h-2 w-2 rounded-full bg-org-primary shadow-[0_0_0_5px_color-mix(in_srgb,var(--org-primary)_9%,transparent)]" />
-                  Marcador en vivo
-                </p>
-                <h1 className="mt-2.5 font-display text-[clamp(34px,6vw,66px)] font-semibold uppercase leading-[0.96] tracking-[-0.055em]">
-                  {organization.headline.first}
-                  {organization.headline.rest ? (
-                    <>
-                      <br />
-                      {organization.headline.rest}
-                    </>
-                  ) : null}
-                </h1>
+              <div className="flex items-center gap-5 max-sm:gap-3.5">
+                {organization.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={organization.logoUrl}
+                    alt=""
+                    className="h-[clamp(72px,11vw,118px)] w-auto shrink-0 object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,.35)]"
+                  />
+                ) : null}
+                <div>
+                  <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.16em] text-org-primary">
+                    <span className="h-2 w-2 rounded-full bg-org-primary shadow-[0_0_0_5px_color-mix(in_srgb,var(--org-primary)_9%,transparent)]" />
+                    Marcador en vivo
+                  </p>
+                  <h1 className="mt-2.5 font-display text-[clamp(34px,6vw,66px)] font-semibold uppercase leading-[0.96] tracking-[-0.055em]">
+                    {organization.headline.first}
+                    {organization.headline.rest ? (
+                      <>
+                        <br />
+                        {organization.headline.rest}
+                      </>
+                    ) : null}
+                  </h1>
+                </div>
               </div>
               <p className="max-w-[380px] text-[15px] text-[#9ca59f] max-sm:text-sm">
                 Resultados, goleadores, asistencias y premios de {organization.name}.
@@ -170,7 +188,7 @@ export function OrgPublicLanding({
                   <span
                     className={`inline-flex items-center rounded-full border px-2.5 py-1.5 text-[11px] uppercase tracking-[0.08em] ${
                       featured.status === 'FINISHED'
-                        ? 'border-[#3d5126] bg-[color-mix(in_srgb,var(--org-primary)_16%,#131615)] text-org-primary'
+                        ? 'border-[color-mix(in_srgb,var(--org-primary)_42%,#2a302d)] bg-[color-mix(in_srgb,var(--org-primary)_16%,#131615)] text-org-primary'
                         : 'border-[#303632] bg-[#202421] text-[#cbd0cc]'
                     }`}
                   >
@@ -180,7 +198,11 @@ export function OrgPublicLanding({
 
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-7 px-10 py-[38px] max-md:gap-3.5 max-md:px-5 max-md:py-[30px] max-sm:px-2.5 max-sm:py-7">
                   <div className="text-center">
-                    <TeamOrb tone={featured.home.tone} />
+                    <FeaturedCrest
+                      name={featured.home.name}
+                      src={featured.home.crestSrc}
+                      color={featured.home.color}
+                    />
                     <div className="text-[17px] font-extrabold tracking-[0.01em] max-sm:text-[13px]">
                       {featured.home.name.toUpperCase()}
                     </div>
@@ -196,13 +218,39 @@ export function OrgPublicLanding({
                     </div>
                   </div>
                   <div className="text-center">
-                    <TeamOrb tone={featured.away.tone} />
+                    <FeaturedCrest
+                      name={featured.away.name}
+                      src={featured.away.crestSrc}
+                      color={featured.away.color}
+                    />
                     <div className="text-[17px] font-extrabold tracking-[0.01em] max-sm:text-[13px]">
                       {featured.away.name.toUpperCase()}
                     </div>
                     <div className="mt-1 text-xs text-[#9ca59f] max-sm:hidden">Visita</div>
                   </div>
                 </div>
+
+                {featured.formations.some((side) => side.lineup) ? (
+                  <div className="border-t border-[#2a302d] px-[22px] py-6 max-sm:px-[15px]">
+                    <p className="mb-4 text-center text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                      Formaciones
+                    </p>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {featured.formations.map((side) =>
+                        side.lineup ? (
+                          <FormationPitch
+                            key={side.label}
+                            variant="live"
+                            lineup={side.lineup}
+                            teamName={side.label}
+                            crestSrc={side.crestSrc}
+                            color={side.color}
+                          />
+                        ) : null,
+                      )}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="flex items-center justify-between gap-5 border-t border-[#2a302d] px-[22px] py-5 max-sm:flex-col max-sm:items-stretch max-sm:px-[15px]">
                   {featured.mvp ? (

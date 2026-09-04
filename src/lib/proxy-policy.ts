@@ -16,6 +16,13 @@ function isTenantOrgLandingGet(method: string, pathname: string): boolean {
   return parseOrganizationSlug(match[1]).ok
 }
 
+function isTenantIconGet(method: string, pathname: string): boolean {
+  if (method !== 'GET' && method !== 'HEAD') return false
+  const match = /^\/([^/]+)\/(icon|apple-icon)(?:\/.*)?$/.exec(pathname)
+  if (!match) return false
+  return parseOrganizationSlug(match[1]).ok
+}
+
 export function isPublicRequest(method: string, pathname: string): boolean {
   const isPhotoGet =
     method === 'GET' && /^\/api\/players\/[^/]+\/photo$/.test(pathname)
@@ -54,6 +61,7 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     pathname.startsWith('/privacidad/app') ||
     pathname.startsWith('/live') ||
     pathname.startsWith('/mantenimiento') ||
+    pathname.startsWith('/branding/') ||
     pathname.startsWith('/api/auth') ||
     isTenantPublicGet ||
     isPhotoGet ||
@@ -67,7 +75,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isMobileInstallationSubscriptionsPut ||
     isMobileInstallationDelete ||
     isPlayersClaimPost ||
-    isTenantOrgLandingGet(method, pathname)
+    isTenantOrgLandingGet(method, pathname) ||
+    isTenantIconGet(method, pathname)
   )
 }
 

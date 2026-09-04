@@ -1,14 +1,23 @@
-import { EventType, MatchStatus, MatchType } from '@prisma/client'
+import { EventType, MatchStatus, MatchType, type FootballFormat, type MatchFormation } from '@prisma/client'
 import { db } from '@/lib/db'
 import { editorialPublicUrl } from '@/lib/editorial/urls'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
+import { buildMatchFormationSides } from '@/lib/match-formations'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
-import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
+import type { LineupView } from '@/lib/match-lineup'
+import { matchSideCrestUrl } from '@/lib/match-side-crest'
+import {
+  resolveOrgBrandColors,
+  resolveOrgLandingLogo,
+} from '@/lib/org-brand'
+import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE, type PlayerNameSource } from '@/lib/person-name'
+import { tallyPlayerAwardRankings } from '@/lib/player-awards'
 import {
   formatScheduleDateLabel,
   formatScheduleTimeLabel,
 } from '@/lib/schedule-datetime'
-import { tallyPlayerAwardRankings } from '@/lib/player-awards'
+import { teamCrestUrl } from '@/lib/team-crest'
+import { resolveMatchSideColor, resolveTeamColor } from '@/lib/team-color'
 
 export type TeamTone = 'white' | 'black'
 
@@ -28,12 +37,18 @@ export type OrgPublicLanding = {
     status: 'LIVE' | 'HALFTIME' | 'FINISHED'
     dateLine: string
     venue: string
-    home: { name: string; tone: TeamTone }
-    away: { name: string; tone: TeamTone }
+    home: { name: string; tone: TeamTone; crestSrc: string | null; color: string }
+    away: { name: string; tone: TeamTone; crestSrc: string | null; color: string }
     homeScore: number
     awayScore: number
     scoreCaption: string
     mvp: { name: string; initials: string } | null
+    formations: Array<{
+      label: string
+      crestSrc: string | null
+      color: string
+      lineup: LineupView | null
+    }>
   } | null
   live: Array<{
     id: string
@@ -185,6 +200,13 @@ export function teamToneFromName(name: string, side: 'home' | 'away'): TeamTone 
   return side === 'home' ? 'white' : 'black'
 }
 
+export function teamKitColorFromName(name: string): string | null {
+  const normalized = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  if (/(blanco|white)/.test(normalized)) return '#F5F5F5'
+  if (/(negro|black)/.test(normalized)) return '#1A1A1A'
+  return null
+}
+
 export function sidesAreReady(home: string, away: string): boolean {
   return !PLACEHOLDER_SIDES.has(home) && !PLACEHOLDER_SIDES.has(away)
 }
@@ -261,23 +283,99 @@ function toResultMatch(match: MatchPublicRow): OrgPublicLanding['results'][numbe
   }
 }
 
-function toFeatured(
-  match: MatchPublicRow & {
-    teamMvps?: Array<{ player: Parameters<typeof playerDisplayName>[0] | null }>
-  },
-): OrgPublicLanding['featured'] {
+type FeaturedMatchRow = MatchPublicRow & {
+  footballFormat: FootballFormat
+  sideAColor: string | null
+  sideBColor: string | null
+  sideACrestMimeType: string | null
+  sideBCrestMimeType: string | null
+  homeTeamId: string | null
+  awayTeamId: string | null
+  homeTeam: { id: string; name: string; color: string | null; crestMimeType: string | null } | null
+  awayTeam: { id: string; name: string; color: string | null; crestMimeType: string | null } | null
+  formations: MatchFormation[]
+  callUps: Array<{
+    playerId: string
+    slotKey: string | null
+    player: PlayerNameSource & { teamId: string | null }
+  }>
+  friendlyPlayers: Array<{
+    playerId: string
+    side: 'A' | 'B'
+    slotKey: string | null
+    player: PlayerNameSource & { person: { photoMimeType: string | null } }
+  }>
+  teamMvps?: Array<{ player: Parameters<typeof playerDisplayName>[0] | null }>
+}
+
+function landingSideCrest(match: FeaturedMatchRow, side: 'home' | 'away'): string | null {
+  if (match.matchType === MatchType.FRIENDLY) {
+    const mime = side === 'home' ? match.sideACrestMimeType : match.sideBCrestMimeType
+    return mime ? matchSideCrestUrl(match.id, side === 'home' ? 'A' : 'B') : null
+  }
+  const team = side === 'home' ? match.homeTeam : match.awayTeam
+  return team?.crestMimeType ? teamCrestUrl(team.id) : null
+}
+
+function landingSideColor(match: FeaturedMatchRow, side: 'home' | 'away', name: string): string {
+  const stored =
+    match.matchType === MatchType.FRIENDLY
+      ? side === 'home'
+        ? match.sideAColor
+        : match.sideBColor
+      : side === 'home'
+        ? match.homeTeam?.color
+        : match.awayTeam?.color
+  if (stored) return resolveTeamColor(stored, name)
+  return teamKitColorFromName(name) ?? resolveTeamColor(null, name)
+}
+
+function toFeatured(match: FeaturedMatchRow): OrgPublicLanding['featured'] {
   const sides = matchSideNames(match)
+  const homeCrestSrc = landingSideCrest(match, 'home')
+  const awayCrestSrc = landingSideCrest(match, 'away')
+  const homeColor = landingSideColor(match, 'home', sides.home)
+  const awayColor = landingSideColor(match, 'away', sides.away)
   const mvpName = match.teamMvps
     ?.map((row) => (row.player ? playerDisplayName(row.player) : null))
     .find((name): name is string => Boolean(name))
   const live = match.status === MatchStatus.LIVE || match.status === MatchStatus.HALFTIME
+  const formations = buildMatchFormationSides({
+    matchType: match.matchType,
+    footballFormat: match.footballFormat,
+    sideAName: match.sideAName,
+    sideBName: match.sideBName,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    homeTeamId: match.homeTeamId,
+    awayTeamId: match.awayTeamId,
+    formations: match.formations,
+    callUps: match.callUps,
+    friendlyPlayers: match.friendlyPlayers,
+  }).map((side) => ({
+    label: side.label,
+    lineup: side.lineup,
+    crestSrc:
+      side.label === sides.home ? homeCrestSrc : side.label === sides.away ? awayCrestSrc : null,
+    color: side.label === sides.home ? homeColor : side.label === sides.away ? awayColor : homeColor,
+  }))
   return {
     id: match.id,
     status: match.status === MatchStatus.HALFTIME ? 'HALFTIME' : live ? 'LIVE' : 'FINISHED',
     dateLine: formatLandingHeroDate(match.scheduledAt),
     venue: matchVenueLabel(match),
-    home: { name: sides.home, tone: teamToneFromName(sides.home, 'home') },
-    away: { name: sides.away, tone: teamToneFromName(sides.away, 'away') },
+    home: {
+      name: sides.home,
+      tone: teamToneFromName(sides.home, 'home'),
+      crestSrc: homeCrestSrc,
+      color: homeColor,
+    },
+    away: {
+      name: sides.away,
+      tone: teamToneFromName(sides.away, 'away'),
+      crestSrc: awayCrestSrc,
+      color: awayColor,
+    },
     homeScore: match.homeScore,
     awayScore: match.awayScore,
     scoreCaption: live
@@ -286,6 +384,7 @@ function toFeatured(
         : 'En juego'
       : 'Resultado final',
     mvp: mvpName ? { name: mvpName, initials: personInitials(mvpName) } : null,
+    formations,
   }
 }
 
@@ -297,15 +396,47 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       name: true,
       slug: true,
       primaryColor: true,
+      secondaryColor: true,
       logoStoragePath: true,
     },
   })
   if (!org) return null
 
+  const brand = resolveOrgBrandColors(org.slug, org.primaryColor, org.secondaryColor)
   const now = new Date()
   const scorersFrom = new Date(now.getTime() - 30 * 86_400_000)
-  const featuredInclude = {
+  const listInclude = {
     ...matchPublicSelect,
+    teamMvps: {
+      where: { playerId: { not: null } },
+      take: 2,
+      include: {
+        player: { include: PLAYER_PERSON_NAME_INCLUDE },
+      },
+    },
+  } as const
+  const featuredDetailSelect = {
+    ...matchPublicSelect,
+    footballFormat: true,
+    sideAColor: true,
+    sideBColor: true,
+    sideACrestMimeType: true,
+    sideBCrestMimeType: true,
+    homeTeamId: true,
+    awayTeamId: true,
+    homeTeam: { select: { id: true, name: true, color: true, crestMimeType: true } },
+    awayTeam: { select: { id: true, name: true, color: true, crestMimeType: true } },
+    formations: true,
+    callUps: {
+      include: {
+        player: { include: PLAYER_PERSON_NAME_INCLUDE },
+      },
+    },
+    friendlyPlayers: {
+      include: {
+        player: { include: PLAYER_PERSON_NAME_INCLUDE },
+      },
+    },
     teamMvps: {
       where: { playerId: { not: null } },
       take: 2,
@@ -323,7 +454,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
         OR: [{ status: MatchStatus.LIVE }, { status: MatchStatus.HALFTIME }],
       },
       orderBy: { scheduledAt: 'asc' },
-      select: featuredInclude,
+      select: listInclude,
     }),
     db.match.findFirst({
       where: {
@@ -338,7 +469,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       where: { organizationId: org.id, status: MatchStatus.FINISHED },
       orderBy: { scheduledAt: 'desc' },
       take: 5,
-      select: featuredInclude,
+      select: listInclude,
     }),
     db.match.findMany({
       where: {
@@ -399,14 +530,20 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
   )
 
   const resultCards = results.map(toResultMatch)
-  const featuredSource = liveMatches[0] ?? results[0] ?? null
+  const featuredId = liveMatches[0]?.id ?? results[0]?.id ?? null
+  const featuredSource = featuredId
+    ? await db.match.findUnique({
+        where: { id: featuredId },
+        select: featuredDetailSelect,
+      })
+    : null
 
   return {
     organization: {
       name: org.name,
       slug: org.slug,
-      primaryColor: org.primaryColor,
-      logoUrl: editorialPublicUrl(org.logoStoragePath),
+      primaryColor: brand.primaryColor,
+      logoUrl: resolveOrgLandingLogo(org.slug, editorialPublicUrl(org.logoStoragePath)),
       monogram: orgMonogram(org.name),
       headline: splitOrgHeadline(org.name),
     },

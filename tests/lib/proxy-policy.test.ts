@@ -133,6 +133,13 @@ describe('proxy policy', () => {
     expect(isPublicRequest('POST', '/loslunes')).toBe(false)
   })
 
+  it('treats org branding assets and tab icons as public', () => {
+    expect(isPublicRequest('GET', '/branding/loslunes-logo.jpg')).toBe(true)
+    expect(isPublicRequest('GET', '/loslunes/icon')).toBe(true)
+    expect(isPublicRequest('HEAD', '/kelme/apple-icon')).toBe(true)
+    expect(isPublicRequest('POST', '/loslunes/icon')).toBe(false)
+  })
+
   it('does not treat reserved single segments as org landings', () => {
     expect(isPublicRequest('GET', '/plataforma')).toBe(false)
     expect(isPublicRequest('GET', '/organizaciones')).toBe(false)

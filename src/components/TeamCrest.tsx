@@ -7,6 +7,7 @@ type Props = {
   color?: string | null
   size?: 'sm' | 'md' | 'lg'
   className?: string
+  fit?: 'cover' | 'contain'
 }
 
 const SIZE = {
@@ -65,16 +66,20 @@ function GeneratedShield({
   )
 }
 
-export function TeamCrest({ name, src, color, size = 'md', className = '' }: Props) {
+export function TeamCrest({ name, src, color, size = 'md', className = '', fit = 'cover' }: Props) {
   if (src) {
     const dimClass =
       size === 'lg' ? 'h-16 w-16' : size === 'md' ? 'h-12 w-12' : 'h-9 w-9'
+    const imageFit =
+      fit === 'contain'
+        ? 'object-contain'
+        : 'rounded-full object-cover ring-2 ring-white/15'
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={`Escudo ${name}`}
-        className={`${dimClass} rounded-full object-cover ring-2 ring-white/15 ${className}`}
+        className={`${dimClass} ${imageFit} ${className}`}
       />
     )
   }

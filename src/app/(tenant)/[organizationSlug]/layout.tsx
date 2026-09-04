@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { db } from '@/lib/db'
+import { editorialPublicUrl } from '@/lib/editorial/urls'
+import { resolveOrgBrandColors, resolveOrgLandingLogo } from '@/lib/org-brand'
 import { pausedOrganizationPayload } from '@/lib/organization-status'
 
 export async function generateMetadata({
@@ -11,13 +13,21 @@ export async function generateMetadata({
   const { organizationSlug } = await params
   const org = await db.organization.findUnique({
     where: { slug: organizationSlug },
-    select: { name: true },
+    select: { name: true, slug: true, logoStoragePath: true },
   })
   if (!org) return {}
+
+  const logo = resolveOrgLandingLogo(org.slug, editorialPublicUrl(org.logoStoragePath))
 
   return {
     title: org.name,
     description: `Torneos y marcador en vivo de ${org.name}`,
+    icons: logo
+      ? {
+          icon: [{ url: logo }],
+          apple: [{ url: logo }],
+        }
+      : undefined,
   }
 }
 
@@ -39,12 +49,14 @@ export default async function TenantLayout({
     )
   }
 
+  const brand = resolveOrgBrandColors(org.slug, org.primaryColor, org.secondaryColor)
+
   return (
     <div
       style={
         {
-          ['--org-primary' as string]: org.primaryColor,
-          ['--org-secondary' as string]: org.secondaryColor,
+          ['--org-primary' as string]: brand.primaryColor,
+          ['--org-secondary' as string]: brand.secondaryColor,
         } as React.CSSProperties
       }
     >

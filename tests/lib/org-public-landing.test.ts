@@ -6,6 +6,7 @@ import {
   splitOrgHeadline,
   tallyRecentAssists,
   tallyRecentScorers,
+  teamKitColorFromName,
   teamToneFromName,
 } from '@/lib/org-public-landing'
 
@@ -81,6 +82,12 @@ describe('landing presentation helpers', () => {
     expect(teamToneFromName('Negros', 'home')).toBe('black')
     expect(teamToneFromName('Colo Colo', 'home')).toBe('white')
     expect(teamToneFromName('Católica', 'away')).toBe('black')
+  })
+
+  it('maps Blancos/Negros to kit colors for generated crests', () => {
+    expect(teamKitColorFromName('Blancos')).toBe('#F5F5F5')
+    expect(teamKitColorFromName('Negros')).toBe('#1A1A1A')
+    expect(teamKitColorFromName('Colo Colo')).toBeNull()
   })
 
   it('treats placeholder sides as not ready', () => {
