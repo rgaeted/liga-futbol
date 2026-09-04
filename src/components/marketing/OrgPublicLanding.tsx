@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
+import { AwardRevealGrid } from '@/components/marketing/AwardRevealCard'
 import { TeamCrest } from '@/components/TeamCrest'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
@@ -467,37 +468,7 @@ export function OrgPublicLanding({
                   Premios del camarín
                 </h2>
               </div>
-              <div className="grid grid-cols-4 gap-3 max-md:grid-cols-2 max-[420px]:grid-cols-1">
-                {awards.map((award) => (
-                  <article
-                    key={`${award.name}-${award.shortLabel}`}
-                    className="relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-[18px] border border-[#2a302d] bg-[#131615] p-5 after:absolute after:-right-[55px] after:-top-[50px] after:h-[130px] after:w-[130px] after:rounded-full after:bg-[color-mix(in_srgb,var(--org-primary)_5%,transparent)] max-sm:min-h-[210px] max-sm:p-4"
-                  >
-                    <div className="relative z-10">
-                      <div className="text-[30px]">{award.emoji}</div>
-                      <div className="mt-[22px] text-[10px] font-black uppercase tracking-[0.12em] text-org-primary">
-                        {award.shortLabel}
-                      </div>
-                      <h3 className="mb-2 mt-1.5 font-display text-[19px] font-semibold leading-[1.05] tracking-[-0.025em]">
-                        {award.name}
-                      </h3>
-                      {award.description ? (
-                        <p className="m-0 text-xs text-[#9ca59f]">{award.description}</p>
-                      ) : null}
-                    </div>
-                    <div className="relative z-10 mt-[18px] border-t border-[#282e2a] pt-[15px]">
-                      <small className="block text-[10px] uppercase tracking-[0.1em] text-[#717a74]">
-                        {award.recipients.length === 1 ? 'Ganador' : 'Ganadores'}
-                      </small>
-                      <strong className="mt-1 block text-[13px]">
-                        {award.recipients.length > 0
-                          ? award.recipients.map((row) => row.name).join(' · ')
-                          : 'Aún sin ganadores'}
-                      </strong>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <AwardRevealGrid awards={awards} />
             </div>
           </section>
         ) : null}

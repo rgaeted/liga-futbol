@@ -3,6 +3,7 @@ import {
   formLastFive,
   orgMonogram,
   sidesAreReady,
+  landingAwardRecipient,
   splitOrgHeadline,
   tallyRecentAssists,
   tallyRecentScorers,
@@ -84,6 +85,27 @@ describe('landing presentation helpers', () => {
     expect(teamToneFromName('Católica', 'away')).toBe('black')
   })
 
+  it('builds public award recipients with photo urls and no email', () => {
+    expect(
+      landingAwardRecipient({
+        playerId: 'p1',
+        name: 'Ana Díaz',
+        photoMimeType: 'image/jpeg',
+      }),
+    ).toEqual({
+      playerId: 'p1',
+      name: 'Ana Díaz',
+      photoUrl: '/api/players/p1/photo',
+    })
+    expect(
+      landingAwardRecipient({
+        playerId: 'p2',
+        name: 'Ben',
+        photoMimeType: null,
+      }).photoUrl,
+    ).toBeNull()
+  })
+
   it('maps Blancos/Negros to kit colors for generated crests', () => {
     expect(teamKitColorFromName('Blancos')).toBe('#F5F5F5')
     expect(teamKitColorFromName('Negros')).toBe('#1A1A1A')
@@ -138,7 +160,7 @@ describe('public landing payload keys', () => {
           description: null,
           accentColor: '#16A34A',
           recipientCount: 1,
-          recipients: [{ name: 'Ana' }],
+          recipients: [{ name: 'Ana', playerId: 'p1', photoUrl: '/api/players/p1/photo' }],
         },
       ],
       awardLeaders: [{ name: 'Ana', awards: 1 }],

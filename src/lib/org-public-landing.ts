@@ -5,6 +5,7 @@ import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 import { buildMatchFormationSides } from '@/lib/match-formations'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import type { LineupView } from '@/lib/match-lineup'
+import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { matchSideCrestUrl } from '@/lib/match-side-crest'
 import {
   resolveOrgBrandColors,
@@ -95,7 +96,11 @@ export type OrgPublicLanding = {
     description: string | null
     accentColor: string | null
     recipientCount: number
-    recipients: Array<{ name: string }>
+    recipients: Array<{
+      name: string
+      playerId: string
+      photoUrl: string | null
+    }>
   }>
   awardLeaders: Array<{
     name: string
@@ -198,6 +203,18 @@ export function teamToneFromName(name: string, side: 'home' | 'away'): TeamTone 
   if (/(blanco|white)/.test(normalized)) return 'white'
   if (/(negro|black)/.test(normalized)) return 'black'
   return side === 'home' ? 'white' : 'black'
+}
+
+export function landingAwardRecipient(input: {
+  playerId: string
+  name: string
+  photoMimeType: string | null | undefined
+}): { name: string; playerId: string; photoUrl: string | null } {
+  return {
+    playerId: input.playerId,
+    name: input.name,
+    photoUrl: input.photoMimeType ? friendlyPlayerPhotoUrl(input.playerId) : null,
+  }
 }
 
 export function teamKitColorFromName(name: string): string | null {
@@ -563,9 +580,13 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       description: award.description,
       accentColor: award.accentColor,
       recipientCount: award._count.playerAwards,
-      recipients: award.playerAwards.map((grant) => ({
-        name: playerDisplayName(grant.player),
-      })),
+      recipients: award.playerAwards.map((grant) =>
+        landingAwardRecipient({
+          playerId: grant.playerId,
+          name: playerDisplayName(grant.player),
+          photoMimeType: grant.player.person.photoMimeType,
+        }),
+      ),
     })),
     awardLeaders: tallyPlayerAwardRankings(
       recentAwardGrants.map((grant) => ({
