@@ -11,6 +11,11 @@ import { friendlyLineupLinkLabel } from '@/lib/match-player-links'
 import { requireOrganizationId } from '@/lib/tenant-access'
 import { orgPath } from '@/lib/tenant-paths'
 import { MatchLiveLink } from '@/components/player/MatchLiveLink'
+import { PlayerAwardBadges } from '@/components/player/PlayerAwardBadges'
+import {
+  groupPlayerAwardsBySeason,
+  serializePlayerAwardBadge,
+} from '@/lib/player-awards'
 
 export default async function PlayerDashboardPage({
   params,
@@ -38,7 +43,7 @@ export default async function PlayerDashboardPage({
     )
   }
 
-  const [callUps, friendlyParticipations, mvpCount] = await Promise.all([
+  const [callUps, friendlyParticipations, mvpCount, playerAwards] = await Promise.all([
     db.callUp.findMany({
       where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
       include: {
@@ -56,6 +61,14 @@ export default async function PlayerDashboardPage({
     db.matchTeamMvp.count({
       where: { playerId: player.id, match: { status: MatchStatus.FINISHED } },
     }),
+    db.playerAward.findMany({
+      where: { playerId: player.id, organizationId },
+      include: {
+        orgAward: true,
+        season: { select: { id: true, name: true } },
+      },
+      orderBy: { awardedAt: 'desc' },
+    }),
   ])
 
   const playerWithTeam = await db.player.findUniqueOrThrow({
@@ -71,6 +84,13 @@ export default async function PlayerDashboardPage({
     (p) => p.match.status === 'SCHEDULED' || p.match.status === 'LIVE',
   )
   const playedFriendly = friendlyParticipations.filter((p) => p.match.status === 'FINISHED')
+
+  const badgeItems = playerAwards.map((row) => ({
+    seasonId: row.seasonId,
+    seasonName: row.season?.name ?? null,
+    badge: serializePlayerAwardBadge(row),
+  }))
+  const grouped = groupPlayerAwardsBySeason(badgeItems)
 
   return (
     <div className="space-y-6 text-kelme-gray-900">
@@ -88,6 +108,17 @@ export default async function PlayerDashboardPage({
         <StatCard label="MVPs" value={mvpCount} />
         <StatCard label="Amarillas" value={playerWithTeam.yellowCards} />
         <StatCard label="Rojas" value={playerWithTeam.redCards} />
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-semibold">Mis premios</h2>
+        <PlayerAwardBadges
+          general={grouped.general.map((g) => g.badge)}
+          bySeason={grouped.bySeason.map((s) => ({
+            seasonName: s.seasonName,
+            awards: s.awards.map((a) => a.badge),
+          }))}
+        />
       </section>
 
       <section>

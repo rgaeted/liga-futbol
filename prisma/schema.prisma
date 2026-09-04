@@ -152,6 +152,7 @@ model User {
   refereeShareInvites    RefereeShareInvite[] @relation("RefereeShareReferee")
   refereeShareInvitesSent RefereeShareInvite[] @relation("RefereeShareInvitedBy")
   formationTemplates     UserFormationTemplate[]
+  playerAwardsGranted    PlayerAward[] @relation("PlayerAwardGrantedBy")
 }
 
 model UserFormationTemplate {
@@ -204,6 +205,8 @@ model Organization {
   sponsors         Sponsor[]
   refereeSharesFrom RefereeShareInvite[] @relation("RefereeShareFrom")
   refereeSharesTo   RefereeShareInvite[] @relation("RefereeShareTo")
+  orgAwards         OrgAward[]
+  playerAwards      PlayerAward[]
 }
 
 model RefereeProfile {
@@ -293,6 +296,7 @@ model Player {
   seasonRosterEntries SeasonRosterEntry[]
   categories          PlayerCategory[]
   friendlyParticipations FriendlyMatchPlayer[]
+  playerAwards           PlayerAward[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -318,6 +322,7 @@ model Season {
   sponsors              Sponsor[]
   mobileInstallations   MobileInstallation[]
   notificationOutbox    NotificationOutbox[]
+  playerAwards          PlayerAward[]
   createdAt             DateTime       @default(now())
 }
 
@@ -348,6 +353,45 @@ model FriendlyCategory {
   matches     Match[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model OrgAward {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  shortLabel     String
+  emoji          String
+  description    String?
+  accentColor    String?
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  playerAwards   PlayerAward[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, sortOrder])
+}
+
+model PlayerAward {
+  id              String   @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  playerId        String
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  orgAwardId      String
+  orgAward        OrgAward @relation(fields: [orgAwardId], references: [id], onDelete: Restrict)
+  seasonId        String?
+  season          Season?  @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  note            String?
+  awardedAt       DateTime @default(now())
+  awardedByUserId String?
+  awardedBy       User?    @relation("PlayerAwardGrantedBy", fields: [awardedByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+
+  @@unique([playerId, orgAwardId, seasonId])
+  @@index([playerId, awardedAt])
+  @@index([organizationId, orgAwardId])
 }
 
 model Match {
