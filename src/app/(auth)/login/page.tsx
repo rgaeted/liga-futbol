@@ -2,6 +2,8 @@
 import { AuthPanel } from '@/app/(auth)/login/AuthPanel'
 import { db } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LoginPage() {
   const available = await db.player.findMany({
     where: { person: { userId: null } },
