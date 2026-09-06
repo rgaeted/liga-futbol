@@ -4,11 +4,13 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { submitJson } from './submit'
 import { DeleteButton } from './DeleteButton'
+import { CopyRegisterLinkButton } from './CopyRegisterLinkButton'
 
 export type PlayerRow = {
   id: string
   name: string
   email: string
+  hasAccount: boolean
   teamId: string | null
   teamName: string | null
   jerseyNumber: number | null
@@ -20,9 +22,11 @@ type TeamOption = { id: string; name: string }
 export function PlayersTable({
   players,
   teams,
+  orgSlug,
 }: {
   players: PlayerRow[]
   teams: TeamOption[]
+  orgSlug: string
 }) {
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -168,6 +172,9 @@ export function PlayersTable({
                     <td className="p-3">{player.position ?? '—'}</td>
                     <td className="p-3">
                       <span className="inline-flex items-center gap-2">
+                        {!player.hasAccount ? (
+                          <CopyRegisterLinkButton playerId={player.id} orgSlug={orgSlug} />
+                        ) : null}
                         <button
                           type="button"
                           onClick={() => startEdit(player)}

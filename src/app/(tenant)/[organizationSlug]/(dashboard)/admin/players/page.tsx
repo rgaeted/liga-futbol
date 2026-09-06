@@ -42,16 +42,18 @@ export default async function AdminPlayersPage({
       <div>
         <h1 className="font-display text-2xl font-bold">Jugadores</h1>
         <p className="mt-1 text-sm text-kelme-gray-500">
-          Plantel de tu liga: jugadores y equipos de esta organización. Las categorías amistosas se
-          gestionan aparte, al crear o editar partidos amistosos.
+          Plantel de tu liga: jugadores y equipos de esta organización. Si un jugador no tiene
+          cuenta, copia su link de registro y envíaselo.
         </p>
       </div>
       <OrgPlayerForm teams={teamOptions} />
       <PlayersTable
+        orgSlug={organizationSlug}
         players={players.map((p) => ({
           id: p.id,
           name: playerDisplayName(p),
           email: p.person.user?.email ?? '',
+          hasAccount: Boolean(p.person.user),
           teamId: p.team?.id ?? null,
           teamName: p.team?.name ?? null,
           jerseyNumber: p.jerseyNumber,
