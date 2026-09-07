@@ -9,6 +9,7 @@ type Props = {
   firstName: string
   lastName: string
   hasPhoto: boolean
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export function FriendlyPlayerPhotoUpload({
@@ -16,6 +17,7 @@ export function FriendlyPlayerPhotoUpload({
   firstName,
   lastName,
   hasPhoto,
+  size = 'md',
 }: Props) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -59,7 +61,7 @@ export function FriendlyPlayerPhotoUpload({
         firstName={firstName}
         lastName={lastName}
         hasPhoto={hasPhoto}
-        size="md"
+        size={size}
       />
       <input
         ref={inputRef}

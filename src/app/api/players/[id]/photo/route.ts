@@ -33,19 +33,11 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { requireOrgRole, assertSameOrganization } = await import('@/lib/auth')
-  const { MembershipRole } = await import('@/lib/membership-role')
-  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
-
+  const { requirePlayerPhotoMutation } = await import('@/lib/player-photo-access')
   const { id } = await params
-  const exists = await db.player.findUnique({
-    where: { id },
-    select: { id: true, organizationId: true, personId: true },
-  })
-  if (!exists) {
-    return NextResponse.json({ error: 'Jugador no encontrado' }, { status: 404 })
-  }
-  assertSameOrganization(exists.organizationId, organizationId)
+  const access = await requirePlayerPhotoMutation(id)
+  if ('error' in access) return access.error
+  const exists = access.player
 
   const form = await req.formData()
   const file = form.get('photo')
@@ -72,19 +64,11 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { requireOrgRole, assertSameOrganization } = await import('@/lib/auth')
-  const { MembershipRole } = await import('@/lib/membership-role')
-  const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
-
+  const { requirePlayerPhotoMutation } = await import('@/lib/player-photo-access')
   const { id } = await params
-  const exists = await db.player.findUnique({
-    where: { id },
-    select: { organizationId: true, personId: true },
-  })
-  if (!exists) {
-    return NextResponse.json({ error: 'Jugador no encontrado' }, { status: 404 })
-  }
-  assertSameOrganization(exists.organizationId, organizationId)
+  const access = await requirePlayerPhotoMutation(id)
+  if ('error' in access) return access.error
+  const exists = access.player
   await db.person.update({
     where: { id: exists.personId },
     data: { photoMimeType: null, photoData: null },

@@ -12,6 +12,8 @@ import { requireOrganizationId } from '@/lib/tenant-access'
 import { orgPath } from '@/lib/tenant-paths'
 import { MatchLiveLink } from '@/components/player/MatchLiveLink'
 import { PlayerAwardBadges } from '@/components/player/PlayerAwardBadges'
+import { FriendlyPlayerPhotoUpload } from '@/components/admin/FriendlyPlayerPhotoUpload'
+import { personHasPhoto } from '@/lib/friendly-player-photo'
 import {
   findScheduledFriendlyAttendanceWhere,
   friendlyMatchPublicPath,
@@ -84,7 +86,10 @@ export default async function PlayerDashboardPage({
 
   const playerWithTeam = await db.player.findUniqueOrThrow({
     where: { id: player.id },
-    include: { team: true },
+    include: {
+      team: true,
+      person: { select: { firstName: true, lastName: true, photoMimeType: true, photoData: true } },
+    },
   })
 
   const upcomingLeague = callUps.filter(
@@ -105,12 +110,21 @@ export default async function PlayerDashboardPage({
 
   return (
     <div className="space-y-6 text-kelme-gray-900">
-      <header>
-        <h1 className="font-display text-2xl font-bold">{session.user.name}</h1>
-        <p className="text-kelme-gray-400">
-          {playerWithTeam.team?.name ?? 'Sin equipo'} · #{playerWithTeam.jerseyNumber ?? '—'} ·{' '}
-          {playerWithTeam.position ?? '—'}
-        </p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+        <FriendlyPlayerPhotoUpload
+          playerId={player.id}
+          firstName={playerWithTeam.person.firstName}
+          lastName={playerWithTeam.person.lastName}
+          hasPhoto={personHasPhoto(playerWithTeam.person)}
+          size="lg"
+        />
+        <div className="min-w-0 pt-1">
+          <h1 className="font-display text-2xl font-bold">{session.user.name}</h1>
+          <p className="text-kelme-gray-400">
+            {playerWithTeam.team?.name ?? 'Sin equipo'} · #{playerWithTeam.jerseyNumber ?? '—'} ·{' '}
+            {playerWithTeam.position ?? '—'}
+          </p>
+        </div>
       </header>
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-5">

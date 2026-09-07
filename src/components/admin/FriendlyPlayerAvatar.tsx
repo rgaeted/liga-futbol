@@ -5,7 +5,7 @@ type Props = {
   firstName: string
   lastName: string
   hasPhoto: boolean
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 function initials(firstName: string, lastName: string) {
@@ -19,8 +19,8 @@ export function FriendlyPlayerAvatar({
   hasPhoto,
   size = 'sm',
 }: Props) {
-  const dim = size === 'md' ? 48 : 36
-  const textClass = size === 'md' ? 'text-sm' : 'text-xs'
+  const dim = size === 'lg' ? 80 : size === 'md' ? 48 : 36
+  const textClass = size === 'lg' ? 'text-xl' : size === 'md' ? 'text-sm' : 'text-xs'
 
   if (hasPhoto) {
     return (
