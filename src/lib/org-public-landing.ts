@@ -12,7 +12,7 @@ import {
   resolveOrgLandingLogo,
 } from '@/lib/org-brand'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE, type PlayerNameSource } from '@/lib/person-name'
-import { tallyPlayerAwardRankings } from '@/lib/player-awards'
+import { isScoringGoalEvent, SCORING_GOAL_EVENT_TYPES } from '@/lib/event-labels'
 import {
   formatScheduleDateLabel,
   formatScheduleTimeLabel,
@@ -520,7 +520,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       take: 40,
       select: {
         events: {
-          where: { type: EventType.GOAL },
+          where: { type: { in: [...SCORING_GOAL_EVENT_TYPES] } },
           select: {
             type: true,
             playerId: true,
@@ -629,7 +629,7 @@ export function tallyRecentScorers(
 ): Array<{ name: string; goals: number }> {
   const map = new Map<string, { name: string; goals: number }>()
   for (const e of events) {
-    if (e.type !== 'GOAL' || !e.playerId) continue
+    if (!isScoringGoalEvent(e.type as EventType) || !e.playerId) continue
     const row = map.get(e.playerId) ?? { name: e.playerName ?? 'Jugador', goals: 0 }
     row.goals += 1
     if (e.playerName) row.name = e.playerName

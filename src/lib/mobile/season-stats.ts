@@ -1,5 +1,6 @@
 import type { MobileStatsResponse, MobileStatRow } from '@liga/mobile-contracts'
 import { EventType } from '@prisma/client'
+import { isScoringGoalEvent } from '@/lib/event-labels'
 
 type MatchEventRow = {
   type: EventType
@@ -57,7 +58,7 @@ export function aggregateSeasonPlayerStats(
     if (event.match.seasonId !== seasonId || !event.playerId) continue
     if (!stats.has(event.playerId)) continue
     const row = stats.get(event.playerId)!
-    if (event.type === EventType.GOAL) row.goals += 1
+    if (isScoringGoalEvent(event.type)) row.goals += 1
     if (event.type === EventType.YELLOW_CARD) row.yellowCards += 1
     if (event.type === EventType.RED_CARD) row.redCards += 1
     if (event.assistPlayerId && stats.has(event.assistPlayerId)) {

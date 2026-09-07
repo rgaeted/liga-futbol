@@ -29,6 +29,8 @@ enum MatchStatus {
 
 enum EventType {
   GOAL
+  PENALTY_GOAL
+  MISSED_PENALTY
   OWN_GOAL
   YELLOW_CARD
   RED_CARD

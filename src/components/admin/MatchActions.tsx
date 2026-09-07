@@ -252,34 +252,38 @@ export function MatchActions({
     if (match.matchType === 'FRIENDLY') {
       payload.sideAColor = normalizeSideColor(sideAColor)
       payload.sideBColor = normalizeSideColor(sideBColor)
-      if (convokedIds.size < 2) {
-        setSaving(false)
-        setError('Selecciona al menos dos jugadores convocados.')
-        return
+
+      const shouldSaveRoster = match.playerSides.length > 0 || convokedIds.size > 0
+      if (shouldSaveRoster) {
+        if (convokedIds.size < 2) {
+          setSaving(false)
+          setError('Selecciona al menos dos jugadores convocados.')
+          return
+        }
+        if (sideAIds.size < 1 || sideBIds.size < 1) {
+          setSaving(false)
+          setError('Selecciona al menos un jugador por lado.')
+          return
+        }
+        if (!sideACaptainId || !sideBCaptainId) {
+          setSaving(false)
+          setError('Debes elegir un capitán por equipo.')
+          return
+        }
+        if (!sideACoachId || !sideBCoachId) {
+          setSaving(false)
+          setError('Debes elegir un DT por equipo.')
+          return
+        }
+        payload.players = rosterEntriesFromSets(
+          sideAIds,
+          sideBIds,
+          sideACaptainId,
+          sideBCaptainId,
+          sideACoachId,
+          sideBCoachId
+        )
       }
-      if (sideAIds.size < 1 || sideBIds.size < 1) {
-        setSaving(false)
-        setError('Selecciona al menos un jugador por lado.')
-        return
-      }
-      if (!sideACaptainId || !sideBCaptainId) {
-        setSaving(false)
-        setError('Debes elegir un capitán por equipo.')
-        return
-      }
-      if (!sideACoachId || !sideBCoachId) {
-        setSaving(false)
-        setError('Debes elegir un DT por equipo.')
-        return
-      }
-      payload.players = rosterEntriesFromSets(
-        sideAIds,
-        sideBIds,
-        sideACaptainId,
-        sideBCaptainId,
-        sideACoachId,
-        sideBCoachId
-      )
     }
 
     const result = await submitJson(`/api/matches/${match.id}`, 'PUT', payload)

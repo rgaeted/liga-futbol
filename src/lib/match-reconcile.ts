@@ -1,5 +1,6 @@
 import { EventType, MatchType, type MatchEvent } from '@prisma/client'
 import { db } from '@/lib/db'
+import { isScoringGoalEvent, SCORING_GOAL_EVENT_TYPES } from '@/lib/event-labels'
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 
 export function computeScoresFromEvents(
@@ -13,13 +14,13 @@ export function computeScoresFromEvents(
 
   for (const e of events) {
     if (matchType === MatchType.FRIENDLY) {
-      if (e.type === EventType.GOAL && e.side === 'A') homeScore += 1
-      if (e.type === EventType.GOAL && e.side === 'B') awayScore += 1
+      if (isScoringGoalEvent(e.type) && e.side === 'A') homeScore += 1
+      if (isScoringGoalEvent(e.type) && e.side === 'B') awayScore += 1
       if (e.type === EventType.OWN_GOAL && e.side === 'A') awayScore += 1
       if (e.type === EventType.OWN_GOAL && e.side === 'B') homeScore += 1
     } else {
-      if (e.type === EventType.GOAL && e.teamId === homeTeamId) homeScore += 1
-      if (e.type === EventType.GOAL && e.teamId === awayTeamId) awayScore += 1
+      if (isScoringGoalEvent(e.type) && e.teamId === homeTeamId) homeScore += 1
+      if (isScoringGoalEvent(e.type) && e.teamId === awayTeamId) awayScore += 1
       if (e.type === EventType.OWN_GOAL && e.teamId === homeTeamId) awayScore += 1
       if (e.type === EventType.OWN_GOAL && e.teamId === awayTeamId) homeScore += 1
     }
@@ -33,7 +34,7 @@ export async function syncLeaguePlayerStats(playerId: string) {
     db.matchEvent.count({
       where: {
         playerId,
-        type: EventType.GOAL,
+        type: { in: [...SCORING_GOAL_EVENT_TYPES] },
         match: { matchType: MatchType.LEAGUE },
       },
     }),

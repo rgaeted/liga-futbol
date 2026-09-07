@@ -8,20 +8,7 @@ import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigge
 import { EventType, MatchStatus, MatchType } from '@prisma/client'
 import { MembershipRole } from '@/lib/membership-role'
 import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
-
-const PLAYER_EVENT_TYPES: EventType[] = [
-  EventType.GOAL,
-  EventType.OWN_GOAL,
-  EventType.YELLOW_CARD,
-  EventType.RED_CARD,
-  EventType.SHOT_ON_TARGET,
-  EventType.SHOT_OFF_TARGET,
-  EventType.SUBSTITUTION,
-]
-
-function eventNeedsPlayer(type: EventType) {
-  return PLAYER_EVENT_TYPES.includes(type)
-}
+import { eventNeedsPlayer } from '@/lib/event-labels'
 
 function isGameEvent(type: EventType) {
   return GAME_EVENT_TYPES.includes(type)

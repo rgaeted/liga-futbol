@@ -13,11 +13,13 @@ export type TimelineEvent = {
 }
 
 function isGoalType(type: string) {
-  return type === 'GOAL' || type === 'OWN_GOAL'
+  return type === 'GOAL' || type === 'PENALTY_GOAL' || type === 'OWN_GOAL'
 }
 
 const EVENT_LABELS: Record<string, string> = {
   GOAL: 'Gol',
+  PENALTY_GOAL: 'Gol de penal',
+  MISSED_PENALTY: 'Penal perdido',
   OWN_GOAL: 'Gol en contra',
   YELLOW_CARD: 'Tarjeta amarilla',
   RED_CARD: 'Tarjeta roja',
@@ -72,6 +74,7 @@ function TimelineIcon({ type }: { type: string }) {
         </span>
       )
     case 'GOAL':
+    case 'PENALTY_GOAL':
     case 'OWN_GOAL':
       return (
         <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
@@ -108,6 +111,12 @@ function TimelineIcon({ type }: { type: string }) {
       return (
         <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
           <span className="h-4 w-2.5 rounded-sm bg-red-500" />
+        </span>
+      )
+    case 'MISSED_PENALTY':
+      return (
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center text-xs font-bold text-rose-400" aria-hidden>
+          ✕
         </span>
       )
     case 'SUBSTITUTION':

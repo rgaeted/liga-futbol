@@ -54,7 +54,7 @@ type EditState = {
 }
 
 function isGoalEvent(type: EventType) {
-  return type === EventType.GOAL || type === EventType.OWN_GOAL
+  return type === EventType.GOAL || type === EventType.PENALTY_GOAL || type === EventType.OWN_GOAL
 }
 
 function clearAssistIfInvalid<T extends {

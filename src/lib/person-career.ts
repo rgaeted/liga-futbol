@@ -1,4 +1,5 @@
 import { EventType, MatchType } from '@prisma/client'
+import { isScoringGoalEvent } from '@/lib/event-labels'
 
 export type CareerBucket = {
   matches: number
@@ -57,7 +58,7 @@ export function buildPersonCareer(input: {
       bucket.assists += 1
       continue
     }
-    if (event.type === EventType.GOAL) bucket.goals += 1
+    if (isScoringGoalEvent(event.type)) bucket.goals += 1
     if (event.type === EventType.YELLOW_CARD) bucket.yellowCards += 1
     if (event.type === EventType.RED_CARD) bucket.redCards += 1
   }

@@ -11,6 +11,7 @@ import { formatMatchWeather } from '@/lib/match-weather'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 import { tallyPlayerAwardRankings } from '@/lib/player-awards'
 import { EventType, FriendlySide, MatchStatus, MatchType } from '@prisma/client'
+import { isScoringGoalEvent } from '@/lib/event-labels'
 
 export type AnalyticsPeriod = '7' | '30' | '90' | 'all'
 
@@ -133,7 +134,7 @@ export function tallyGoalEvents(
   const goals = new Map<string, { name: string; value: number; meta?: string }>()
   const assists = new Map<string, { name: string; value: number; meta?: string }>()
   for (const event of events) {
-    if (event.type !== 'GOAL') continue
+    if (!isScoringGoalEvent(event.type as EventType)) continue
     bump(goals, event.playerId, event.playerName)
     bump(assists, event.assistPlayerId, event.assistName)
   }

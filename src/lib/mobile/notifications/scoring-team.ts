@@ -12,7 +12,7 @@ export function resolveScoringTeamId(
     return null
   }
 
-  if (event.type === 'GOAL') {
+  if (event.type === 'GOAL' || event.type === 'PENALTY_GOAL') {
     if (event.teamId === match.homeTeamId) return match.homeSeasonTeamId
     if (event.teamId === match.awayTeamId) return match.awaySeasonTeamId
     return null

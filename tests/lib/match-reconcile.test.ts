@@ -21,4 +21,18 @@ describe('computeScoresFromEvents', () => {
     ])
     expect(scores).toEqual({ homeScore: 1, awayScore: 2 })
   })
+
+  it('counts penalty goals in league and friendly matches', () => {
+    expect(
+      computeScoresFromEvents(MatchType.LEAGUE, 'home', 'away', [
+        { type: EventType.PENALTY_GOAL, teamId: 'home', side: null },
+      ]),
+    ).toEqual({ homeScore: 1, awayScore: 0 })
+
+    expect(
+      computeScoresFromEvents(MatchType.FRIENDLY, null, null, [
+        { type: EventType.PENALTY_GOAL, teamId: null, side: 'B' },
+      ]),
+    ).toEqual({ homeScore: 0, awayScore: 1 })
+  })
 })

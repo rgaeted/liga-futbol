@@ -3,6 +3,7 @@ import { EventType, MatchStatus, MatchType, NotificationKind } from '@prisma/cli
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 import type { CreateMatchEventInput } from '@/lib/validations/match-event'
 import { getMatchMinute } from '@/lib/match-clock'
+import { isScoringGoalEvent } from '@/lib/event-labels'
 import { syncLeaguePlayerStats } from '@/lib/match-reconcile'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
@@ -21,6 +22,8 @@ const eventInclude = {
 
 const GAME_EVENT_TYPES: EventType[] = [
   EventType.GOAL,
+  EventType.PENALTY_GOAL,
+  EventType.MISSED_PENALTY,
   EventType.OWN_GOAL,
   EventType.YELLOW_CARD,
   EventType.RED_CARD,
@@ -58,7 +61,7 @@ export async function registerMatchEvent(
   let status = match.status
 
   if (match.matchType === MatchType.FRIENDLY) {
-    if (input.type === EventType.GOAL && input.side) {
+    if (isScoringGoalEvent(input.type) && input.side) {
       if (input.side === 'A') homeScore += 1
       if (input.side === 'B') awayScore += 1
     }
@@ -67,7 +70,7 @@ export async function registerMatchEvent(
       if (input.side === 'B') homeScore += 1
     }
   } else {
-    if (input.type === EventType.GOAL && input.teamId) {
+    if (isScoringGoalEvent(input.type) && input.teamId) {
       if (input.teamId === match.homeTeamId) homeScore += 1
       if (input.teamId === match.awayTeamId) awayScore += 1
     }
@@ -120,7 +123,7 @@ export async function registerMatchEvent(
         kind: NotificationKind.MATCH_START,
         match: updatedMatch,
       })
-    } else if (input.type === EventType.GOAL || input.type === EventType.OWN_GOAL) {
+    } else if (isScoringGoalEvent(input.type) || input.type === EventType.OWN_GOAL) {
       await safeEnqueueMatchNotification({
         kind: NotificationKind.GOAL,
         match: updatedMatch,

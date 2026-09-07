@@ -1,7 +1,15 @@
 import { EventType } from '@prisma/client'
 
+export const SCORING_GOAL_EVENT_TYPES = [EventType.GOAL, EventType.PENALTY_GOAL] as const
+
+export function isScoringGoalEvent(type: EventType): boolean {
+  return (SCORING_GOAL_EVENT_TYPES as readonly EventType[]).includes(type)
+}
+
 export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   GOAL: 'Gol',
+  PENALTY_GOAL: 'Gol de penal',
+  MISSED_PENALTY: 'Penal perdido',
   OWN_GOAL: 'Gol en contra',
   YELLOW_CARD: 'Tarjeta amarilla',
   RED_CARD: 'Tarjeta roja',
@@ -18,6 +26,8 @@ export const ALL_EVENT_TYPES = Object.keys(EVENT_TYPE_LABELS) as EventType[]
 
 export const PLAYER_EVENT_TYPES: EventType[] = [
   EventType.GOAL,
+  EventType.PENALTY_GOAL,
+  EventType.MISSED_PENALTY,
   EventType.OWN_GOAL,
   EventType.YELLOW_CARD,
   EventType.RED_CARD,

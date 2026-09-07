@@ -11,6 +11,8 @@ export const REFEREE_CONTROL_EVENT_TYPES = [
 /** Eventos que el admin puede activar o desactivar por partido. */
 export const REFEREE_MEASURABLE_EVENT_TYPES = [
   EventType.GOAL,
+  EventType.PENALTY_GOAL,
+  EventType.MISSED_PENALTY,
   EventType.OWN_GOAL,
   EventType.YELLOW_CARD,
   EventType.RED_CARD,
@@ -23,6 +25,8 @@ export const REFEREE_MEASURABLE_EVENT_TYPES = [
 export const DEFAULT_REFEREE_EVENT_TYPES: EventType[] = [
   ...REFEREE_CONTROL_EVENT_TYPES,
   EventType.GOAL,
+  EventType.PENALTY_GOAL,
+  EventType.MISSED_PENALTY,
   EventType.YELLOW_CARD,
   EventType.RED_CARD,
   EventType.SHOT_ON_TARGET,
@@ -40,6 +44,8 @@ export type RefereePanelEventConfig = {
 export const REFEREE_PANEL_EVENT_CONFIG: RefereePanelEventConfig[] = [
   { type: EventType.KICKOFF, label: '▶ Inicio', color: 'bg-kelme-red text-white' },
   { type: EventType.GOAL, label: '⚽ Gol', color: 'bg-green-600 text-white' },
+  { type: EventType.PENALTY_GOAL, label: '⚽ Gol de penal', color: 'bg-green-700 text-white' },
+  { type: EventType.MISSED_PENALTY, label: '❌ Penal perdido', color: 'bg-rose-700 text-white' },
   { type: EventType.OWN_GOAL, label: '⚽ Autogol', color: 'bg-orange-700 text-white' },
   { type: EventType.YELLOW_CARD, label: '🟨 Amarilla', color: 'bg-yellow-500 text-black' },
   { type: EventType.RED_CARD, label: '🟥 Roja', color: 'bg-red-600 text-white' },
