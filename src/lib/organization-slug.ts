@@ -25,3 +25,10 @@ export function parseOrganizationSlug(raw: string): ParseSlugResult {
   if (RESERVED_ORGANIZATION_SLUGS.has(raw)) return { ok: false, error: 'reserved' }
   return { ok: true, slug: raw }
 }
+
+export function organizationSlugFromPath(path: string | null | undefined): string | null {
+  if (!path || !path.startsWith('/') || path.startsWith('//')) return null
+  const segment = path.split('/').filter(Boolean)[0]
+  if (!segment) return null
+  return parseOrganizationSlug(segment).ok ? segment : null
+}

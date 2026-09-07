@@ -14,9 +14,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { email, password, playerId, token } = parsed.data
+  const { email, password, playerId, token, organizationSlug } = parsed.data
 
-  if (!verifyPlayerClaimToken(playerId, token)) {
+  if (token && !verifyPlayerClaimToken(playerId, token)) {
     return NextResponse.json({ error: 'Link de registro inválido o expirado' }, { status: 403 })
   }
 
@@ -36,6 +36,16 @@ export async function POST(req: Request) {
   })
   if (!player) {
     return NextResponse.json({ error: 'Perfil no encontrado' }, { status: 404 })
+  }
+
+  if (!token && organizationSlug) {
+    const org = await db.organization.findFirst({
+      where: { slug: organizationSlug, status: 'ACTIVE' },
+      select: { id: true },
+    })
+    if (!org || player.organizationId !== org.id) {
+      return NextResponse.json({ error: 'El perfil no pertenece a esa liga' }, { status: 403 })
+    }
   }
 
   const gate = canClaimPerson(player.person.userId, null, player.person.id)

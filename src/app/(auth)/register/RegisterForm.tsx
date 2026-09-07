@@ -13,6 +13,9 @@ export type AvailablePlayer = {
 }
 
 type Props = {
+  available?: AvailablePlayer[]
+  organizationSlug?: string | null
+  organizationName?: string | null
   lockedPlayer?: AvailablePlayer | null
   claimToken?: string | null
   inviteInvalid?: boolean
@@ -20,6 +23,9 @@ type Props = {
 }
 
 export function RegisterForm({
+  available = [],
+  organizationSlug = null,
+  organizationName = null,
   lockedPlayer = null,
   claimToken = null,
   inviteInvalid = false,
@@ -27,12 +33,10 @@ export function RegisterForm({
 }: Props) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const canRegister = Boolean(lockedPlayer && claimToken)
+  const isPersonalInvite = Boolean(lockedPlayer && claimToken)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!lockedPlayer || !claimToken) return
-
     setLoading(true)
     setError('')
 
@@ -45,11 +49,21 @@ export function RegisterForm({
       return
     }
 
+    const playerId = isPersonalInvite
+      ? lockedPlayer!.id
+      : String(form.get('playerId') ?? '')
+    if (!playerId) {
+      setLoading(false)
+      setError('Selecciona tu perfil en la lista.')
+      return
+    }
+
     const result = await submitJson('/api/players/claim', 'POST', {
       email: String(form.get('email') ?? '').trim(),
       password,
-      playerId: lockedPlayer.id,
-      token: claimToken,
+      playerId,
+      ...(isPersonalInvite && claimToken ? { token: claimToken } : {}),
+      ...(!isPersonalInvite && organizationSlug ? { organizationSlug } : {}),
     })
 
     setLoading(false)
@@ -62,27 +76,44 @@ export function RegisterForm({
     onSuccess?.()
   }
 
-  if (inviteInvalid) {
+  if (isPersonalInvite) {
     return (
-      <div className="space-y-4 text-center">
-        <h1 className="font-display text-xl font-black text-[#E8E4D8]">Link no válido</h1>
-        <p className="font-ui text-sm text-[#8A938C]">
-          Este link de registro ya no sirve o no corresponde a un perfil disponible. Pide uno nuevo al
-          administrador o ingresa si ya tienes cuenta.
-        </p>
-      </div>
-    )
-  }
-
-  if (!canRegister) {
-    return (
-      <div className="space-y-4 text-center">
-        <h1 className="font-display text-xl font-black text-[#E8E4D8]">Crear cuenta</h1>
-        <p className="font-ui text-sm text-[#8A938C]">
-          Para registrarte necesitas el link personal que te envió el administrador de tu liga. Con
-          ese link solo podrás reclamar tu propio perfil.
-        </p>
-      </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="text-center">
+          <h1 className="font-display text-xl font-black text-[#E8E4D8]">Crear cuenta</h1>
+          <p className="mt-1 font-ui text-sm text-[#8A938C]">Reclama tu perfil de jugador</p>
+        </div>
+        <input name="email" type="email" placeholder="Email" required className="input-kelme" />
+        <input
+          name="password"
+          type="password"
+          placeholder="Contraseña"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          className="input-kelme"
+        />
+        <input
+          name="passwordConfirm"
+          type="password"
+          placeholder="Repite la contraseña"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          className="input-kelme"
+        />
+        <div className="space-y-1">
+          <p className="font-ui text-sm font-bold text-[#8A938C]">Tu perfil</p>
+          <p className="rounded-xl border border-kelme-border bg-[#0B1210] px-3.5 py-3 font-ui text-sm font-semibold text-[#E8E4D8]">
+            {formatFriendlyPlayerLabel(lockedPlayer!)}
+            {lockedPlayer!.categoryName ? ` — ${lockedPlayer!.categoryName}` : ''}
+          </p>
+        </div>
+        {error ? <p className="font-ui text-sm font-semibold text-org-primary">{error}</p> : null}
+        <button type="submit" disabled={loading} className="btn-kelme w-full">
+          {loading ? 'Creando cuenta…' : 'Crear cuenta'}
+        </button>
+      </form>
     )
   }
 
@@ -90,8 +121,18 @@ export function RegisterForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="text-center">
         <h1 className="font-display text-xl font-black text-[#E8E4D8]">Crear cuenta</h1>
-        <p className="mt-1 font-ui text-sm text-[#8A938C]">Reclama tu perfil de jugador</p>
+        <p className="mt-1 font-ui text-sm text-[#8A938C]">
+          {organizationName
+            ? `Elige tu nombre en ${organizationName} y crea tu acceso.`
+            : 'Elige tu perfil en la lista y crea tu acceso.'}
+        </p>
       </div>
+      {inviteInvalid ? (
+        <p className="rounded-xl border border-kelme-border bg-[#0B1210] px-3.5 py-3 font-ui text-sm text-[#8A938C]">
+          El link personal que abriste ya no sirve. Puedes registrarte eligiendo tu nombre abajo o
+          pedir un link nuevo al administrador.
+        </p>
+      ) : null}
       <input name="email" type="email" placeholder="Email" required className="input-kelme" />
       <input
         name="password"
@@ -112,14 +153,34 @@ export function RegisterForm({
         className="input-kelme"
       />
       <div className="space-y-1">
-        <p className="font-ui text-sm font-bold text-[#8A938C]">Tu perfil</p>
-        <p className="rounded-xl border border-kelme-border bg-[#0B1210] px-3.5 py-3 font-ui text-sm font-semibold text-[#E8E4D8]">
-          {formatFriendlyPlayerLabel(lockedPlayer!)}
-          {lockedPlayer!.categoryName ? ` — ${lockedPlayer!.categoryName}` : ''}
-        </p>
+        <label htmlFor="playerId" className="font-ui text-sm font-bold text-[#8A938C]">
+          Elige tu perfil
+        </label>
+        <select
+          id="playerId"
+          name="playerId"
+          required
+          disabled={available.length === 0}
+          className="input-kelme w-full"
+          defaultValue=""
+        >
+          <option value="" disabled>
+            {available.length === 0 ? 'No hay perfiles disponibles' : 'Selecciona…'}
+          </option>
+          {available.map((p) => (
+            <option key={p.id} value={p.id}>
+              {formatFriendlyPlayerLabel(p)}
+              {p.categoryName ? ` — ${p.categoryName}` : ''}
+            </option>
+          ))}
+        </select>
       </div>
       {error ? <p className="font-ui text-sm font-semibold text-org-primary">{error}</p> : null}
-      <button type="submit" disabled={loading} className="btn-kelme w-full">
+      <button
+        type="submit"
+        disabled={loading || available.length === 0}
+        className="btn-kelme w-full"
+      >
         {loading ? 'Creando cuenta…' : 'Crear cuenta'}
       </button>
     </form>

@@ -64,12 +64,22 @@ function LoginForm({
 }
 
 type Props = {
+  available?: AvailablePlayer[]
+  organizationSlug?: string | null
+  organizationName?: string | null
   lockedPlayer?: AvailablePlayer | null
   claimToken?: string | null
   inviteInvalid?: boolean
 }
 
-export function AuthPanel({ lockedPlayer = null, claimToken = null, inviteInvalid = false }: Props) {
+export function AuthPanel({
+  available = [],
+  organizationSlug = null,
+  organizationName = null,
+  lockedPlayer = null,
+  claimToken = null,
+  inviteInvalid = false,
+}: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = safeCallbackUrl(searchParams.get('callbackUrl'))
@@ -116,6 +126,9 @@ export function AuthPanel({ lockedPlayer = null, claimToken = null, inviteInvali
 
       {mode === 'register' ? (
         <RegisterForm
+          available={available}
+          organizationSlug={organizationSlug}
+          organizationName={organizationName}
           lockedPlayer={lockedPlayer}
           claimToken={claimToken}
           inviteInvalid={inviteInvalid}

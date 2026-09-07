@@ -114,7 +114,16 @@ describe('friendly player validations', () => {
     expect(result.success).toBe(false)
   })
 
-  it('claim requires email password playerId and token', () => {
+  it('claim accepts email password and playerId without token', () => {
+    const result = claimPlayerSchema.safeParse({
+      email: 'nuevo@demo.cl',
+      password: 'password123',
+      playerId: 'p-1',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('claim accepts a signed personal link token', () => {
     const result = claimPlayerSchema.safeParse({
       email: 'nuevo@demo.cl',
       password: 'password123',

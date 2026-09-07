@@ -44,5 +44,6 @@ export const claimPlayerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   playerId: id,
-  token: z.string().min(1),
+  token: z.string().min(1).optional(),
+  organizationSlug: z.string().min(1).optional(),
 })
