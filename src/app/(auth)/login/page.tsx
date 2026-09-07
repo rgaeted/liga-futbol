@@ -1,22 +1,64 @@
 ﻿import { Suspense } from 'react'
 import { AuthPanel } from '@/app/(auth)/login/AuthPanel'
+import type { AvailablePlayer } from '@/app/(auth)/register/RegisterForm'
 import { db } from '@/lib/db'
+import { verifyPlayerClaimToken } from '@/lib/player-claim-token'
 
 export const dynamic = 'force-dynamic'
 
-export default async function LoginPage() {
-  const available = await db.player.findMany({
-    where: { person: { userId: null } },
-    orderBy: [{ person: { lastName: 'asc' } }, { person: { firstName: 'asc' } }],
-    select: {
-      id: true,
-      primaryPosition: true,
-      person: { select: { firstName: true, lastName: true } },
-      categories: {
-        include: { friendlyCategory: { select: { name: true } } },
-      },
-    },
-  })
+const playerSelect = {
+  id: true,
+  primaryPosition: true,
+  person: { select: { firstName: true, lastName: true, userId: true } },
+  categories: {
+    include: { friendlyCategory: { select: { name: true } } },
+  },
+} as const
+
+function mapPlayer(row: {
+  id: string
+  primaryPosition: string | null
+  person: { firstName: string; lastName: string }
+  categories: Array<{ friendlyCategory: { name: string } }>
+}): AvailablePlayer {
+  return {
+    id: row.id,
+    firstName: row.person.firstName,
+    lastName: row.person.lastName,
+    primaryPosition: row.primaryPosition,
+    categoryName: row.categories.map((c) => c.friendlyCategory.name).join(', '),
+  }
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string; player?: string; token?: string }>
+}) {
+  const params = await searchParams
+  const playerId = params.player ?? null
+  const token = params.token ?? null
+
+  let lockedPlayer: AvailablePlayer | null = null
+  let claimToken: string | null = null
+  let inviteInvalid = false
+
+  if (playerId && token) {
+    if (verifyPlayerClaimToken(playerId, token)) {
+      const player = await db.player.findUnique({
+        where: { id: playerId },
+        select: playerSelect,
+      })
+      if (player && player.person.userId === null) {
+        lockedPlayer = mapPlayer(player)
+        claimToken = token
+      } else {
+        inviteInvalid = true
+      }
+    } else {
+      inviteInvalid = true
+    }
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0B1210] px-4">
@@ -42,13 +84,9 @@ export default async function LoginPage() {
           }
         >
           <AuthPanel
-            available={available.map((p) => ({
-              id: p.id,
-              firstName: p.person.firstName,
-              lastName: p.person.lastName,
-              primaryPosition: p.primaryPosition,
-              categoryName: p.categories.map((c) => c.friendlyCategory.name).join(', '),
-            }))}
+            lockedPlayer={lockedPlayer}
+            claimToken={claimToken}
+            inviteInvalid={inviteInvalid}
           />
         </Suspense>
       </div>

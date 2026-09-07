@@ -63,12 +63,21 @@ function LoginForm({
   )
 }
 
-export function AuthPanel({ available }: { available: AvailablePlayer[] }) {
+type Props = {
+  lockedPlayer?: AvailablePlayer | null
+  claimToken?: string | null
+  inviteInvalid?: boolean
+}
+
+export function AuthPanel({ lockedPlayer = null, claimToken = null, inviteInvalid = false }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = safeCallbackUrl(searchParams.get('callbackUrl'))
-  const playerId = searchParams.get('player')
-  const mode = searchParams.get('mode') === 'register' || playerId ? 'register' : 'login'
+  const hasPersonalInvite = Boolean(lockedPlayer && claimToken)
+  const mode =
+    searchParams.get('mode') === 'register' || searchParams.get('player') || inviteInvalid
+      ? 'register'
+      : 'login'
   const [notice, setNotice] = useState('')
 
   function goTo(next: 'login' | 'register') {
@@ -77,7 +86,6 @@ export function AuthPanel({ available }: { available: AvailablePlayer[] }) {
       params.set('mode', 'register')
     } else {
       params.delete('mode')
-      params.delete('player')
     }
     const query = params.toString()
     router.replace(query ? `/login?${query}` : '/login', { scroll: false })
@@ -108,16 +116,31 @@ export function AuthPanel({ available }: { available: AvailablePlayer[] }) {
 
       {mode === 'register' ? (
         <RegisterForm
-          available={available}
-          lockedPlayerId={playerId}
+          lockedPlayer={lockedPlayer}
+          claimToken={claimToken}
+          inviteInvalid={inviteInvalid}
           onSuccess={() => {
             setNotice('Cuenta creada. Ingresa con tu email.')
-            goTo('login')
+            const params = new URLSearchParams(searchParams.toString())
+            params.delete('mode')
+            params.delete('player')
+            params.delete('token')
+            const query = params.toString()
+            router.replace(query ? `/login?${query}` : '/login', { scroll: false })
           }}
         />
       ) : (
         <LoginForm callbackUrl={callbackUrl} notice={notice} />
       )}
+      {hasPersonalInvite && mode === 'register' ? (
+        <p className="mt-4 text-center font-ui text-xs text-[#8A938C]">
+          Este link es personal: solo puedes crear la cuenta de{' '}
+          <span className="font-semibold text-[#E8E4D8]">
+            {lockedPlayer!.firstName} {lockedPlayer!.lastName}
+          </span>
+          .
+        </p>
+      ) : null}
     </div>
   )
 }

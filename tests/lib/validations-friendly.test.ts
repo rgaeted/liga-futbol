@@ -114,11 +114,12 @@ describe('friendly player validations', () => {
     expect(result.success).toBe(false)
   })
 
-  it('claim requires email password and playerId', () => {
+  it('claim requires email password playerId and token', () => {
     const result = claimPlayerSchema.safeParse({
       email: 'nuevo@demo.cl',
       password: 'password123',
       playerId: 'p-1',
+      token: 'signed-token',
     })
     expect(result.success).toBe(true)
   })

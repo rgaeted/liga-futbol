@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { claimPlayerSchema } from '@/lib/validations/player'
+import { verifyPlayerClaimToken } from '@/lib/player-claim-token'
 import { MembershipRole } from '@/lib/membership-role'
 import { canClaimPerson } from '@/lib/person'
 import { playerDisplayName } from '@/lib/person-name'
@@ -13,7 +14,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { email, password, playerId } = parsed.data
+  const { email, password, playerId, token } = parsed.data
+
+  if (!verifyPlayerClaimToken(playerId, token)) {
+    return NextResponse.json({ error: 'Link de registro inválido o expirado' }, { status: 403 })
+  }
 
   const player = await db.player.findUnique({
     where: { id: playerId },
