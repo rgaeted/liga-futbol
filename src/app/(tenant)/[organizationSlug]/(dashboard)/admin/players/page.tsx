@@ -30,7 +30,7 @@ export default async function AdminPlayersPage({
       where: { organizationId },
       include: {
         person: {
-          include: { user: { select: { email: true } } },
+          include: { user: { select: { name: true, email: true } } },
         },
         categories: { select: { friendlyCategoryId: true } },
       },
