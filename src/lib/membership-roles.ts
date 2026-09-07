@@ -1,19 +1,26 @@
+import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import type { MembershipRole } from '@/lib/membership-role'
 import { MembershipRole as Role } from '@/lib/membership-role'
+
+type MembershipDbClient = Pick<
+  Prisma.TransactionClient,
+  'organizationMembership' | 'player'
+>
 
 export async function mergeMembershipRole(
   userId: string,
   organizationId: string,
   role: MembershipRole,
+  client: MembershipDbClient = db,
 ): Promise<void> {
-  const membership = await db.organizationMembership.findUnique({
+  const membership = await client.organizationMembership.findUnique({
     where: { organizationId_userId: { organizationId, userId } },
     select: { id: true, roles: true },
   })
 
   if (!membership) {
-    const hasPlayerProfile = await db.player.findFirst({
+    const hasPlayerProfile = await client.player.findFirst({
       where: { organizationId, person: { userId } },
       select: { id: true },
     })
@@ -21,7 +28,7 @@ export async function mergeMembershipRole(
 
     const roles =
       role === Role.PLAYER ? [Role.PLAYER] : [Role.PLAYER, role]
-    await db.organizationMembership.create({
+    await client.organizationMembership.create({
       data: { organizationId, userId, roles },
     })
     return
@@ -29,7 +36,7 @@ export async function mergeMembershipRole(
 
   if (membership.roles.includes(role)) return
 
-  await db.organizationMembership.update({
+  await client.organizationMembership.update({
     where: { id: membership.id },
     data: { roles: [...membership.roles, role] },
   })

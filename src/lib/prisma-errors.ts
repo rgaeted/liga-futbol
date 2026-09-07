@@ -14,6 +14,12 @@ export function mapPrismaError(error: unknown): { status: number; message: strin
     if (error.code === 'P2025') {
       return { status: 404, message: 'Registro no encontrado.' }
     }
+    if (error.code === 'P2028') {
+      return { status: 503, message: 'Error de transacción. Intenta de nuevo.' }
+    }
+    if (error.code === 'P2034') {
+      return { status: 409, message: 'Conflicto al guardar. Intenta de nuevo.' }
+    }
   }
 
   if (error instanceof Error && error.message === 'Unauthorized') {

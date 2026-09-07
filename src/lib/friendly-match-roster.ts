@@ -114,7 +114,12 @@ export async function syncFriendlyMatchRoster(
     })
     const coachUserId = player?.person.userId
     if (coachUserId) {
-      await mergeMembershipRole(coachUserId, player.organizationId, MembershipRole.FRIENDLY_COACH)
+      await mergeMembershipRole(
+        coachUserId,
+        player.organizationId,
+        MembershipRole.FRIENDLY_COACH,
+        tx,
+      )
     }
   }
 }
