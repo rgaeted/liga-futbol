@@ -109,23 +109,26 @@ async function createFriendlyMatch(
     return NextResponse.json({ error: 'Categoría no válida para esta organización' }, { status: 400 })
   }
 
-  const playerIds = data.players.map((player) => player.playerId)
-  const rosterPlayers = await db.player.findMany({
-    where: { id: { in: playerIds } },
-    select: {
-      id: true,
-      organizationId: true,
-    },
-  })
-  if (rosterPlayers.length !== playerIds.length) {
-    return NextResponse.json({ error: 'Uno o más jugadores no existen' }, { status: 400 })
-  }
+  const players = data.players ?? []
+  const playerIds = players.map((player) => player.playerId)
+  if (playerIds.length > 0) {
+    const rosterPlayers = await db.player.findMany({
+      where: { id: { in: playerIds } },
+      select: {
+        id: true,
+        organizationId: true,
+      },
+    })
+    if (rosterPlayers.length !== playerIds.length) {
+      return NextResponse.json({ error: 'Uno o más jugadores no existen' }, { status: 400 })
+    }
 
-  if (rosterPlayers.some((player) => player.organizationId !== organizationId)) {
-    return NextResponse.json(
-      { error: 'Los jugadores deben pertenecer a tu organización' },
-      { status: 400 }
-    )
+    if (rosterPlayers.some((player) => player.organizationId !== organizationId)) {
+      return NextResponse.json(
+        { error: 'Los jugadores deben pertenecer a tu organización' },
+        { status: 400 }
+      )
+    }
   }
 
   const match = await db.$transaction(async (tx) => {
@@ -148,15 +151,17 @@ async function createFriendlyMatch(
         ...locationFields,
       },
     })
-    await tx.friendlyMatchPlayer.createMany({
-      data: data.players.map((player) => ({
-        matchId: created.id,
-        playerId: player.playerId,
-        side: player.side,
-        isCaptain: player.isCaptain ?? false,
-        isCoach: player.isCoach ?? false,
-      })),
-    })
+    if (players.length > 0) {
+      await tx.friendlyMatchPlayer.createMany({
+        data: players.map((player) => ({
+          matchId: created.id,
+          playerId: player.playerId,
+          side: player.side,
+          isCaptain: player.isCaptain ?? false,
+          isCoach: player.isCoach ?? false,
+        })),
+      })
+    }
     return tx.match.findUniqueOrThrow({
       where: { id: created.id },
       include: {

@@ -162,10 +162,12 @@ export const createFriendlyMatchSchema = z
     refereeEventTypes: refereeEventTypesSchema,
     scheduledAt: z.string().datetime(),
     venue: z.string().optional(),
-    players: z.array(rosterPlayerEntry).min(2),
+    players: z.array(rosterPlayerEntry).optional().default([]),
   })
   .merge(locationFieldsSchema)
-  .superRefine(refineFriendlyPlayers)
+  .superRefine((data, ctx) => {
+    if (data.players.length > 0) refineFriendlyPlayers({ players: data.players }, ctx)
+  })
   .superRefine(refineChileLocation)
 
 export const createFriendlyChallengeSchema = z
