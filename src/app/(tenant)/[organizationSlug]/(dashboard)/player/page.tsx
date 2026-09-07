@@ -14,11 +14,11 @@ import { MatchLiveLink } from '@/components/player/MatchLiveLink'
 import { PlayerAwardBadges } from '@/components/player/PlayerAwardBadges'
 import { MatchAttendanceBoard } from '@/components/match-attendance/MatchAttendanceBoard'
 import {
+  attendanceSectionId,
   attendanceViewerFromPlayer,
-  canOpenMatchAttendance,
-  findNextFriendlyAttendanceWhere,
-  MATCH_ATTENDANCE_INCLUDE,
-  serializeMatchAttendance,
+  findScheduledFriendlyAttendanceWhere,
+  MATCH_ATTENDANCE_BOARD_SELECT,
+  toMatchAttendanceBoard,
 } from '@/lib/match-attendance'
 import {
   groupPlayerAwardsBySeason,
@@ -51,7 +51,7 @@ export default async function PlayerDashboardPage({
     )
   }
 
-  const [callUps, friendlyParticipations, mvpCount, playerAwards, nextFriendly] = await Promise.all([
+  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies] = await Promise.all([
     db.callUp.findMany({
       where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
       include: {
@@ -77,19 +77,10 @@ export default async function PlayerDashboardPage({
       },
       orderBy: { awardedAt: 'desc' },
     }),
-    db.match.findFirst({
-      where: findNextFriendlyAttendanceWhere(organizationId, new Date()),
+    db.match.findMany({
+      where: findScheduledFriendlyAttendanceWhere(organizationId, new Date()),
       orderBy: { scheduledAt: 'asc' },
-      select: {
-        id: true,
-        matchType: true,
-        status: true,
-        scheduledAt: true,
-        attendances: {
-          orderBy: { createdAt: 'asc' },
-          include: MATCH_ATTENDANCE_INCLUDE,
-        },
-      },
+      select: MATCH_ATTENDANCE_BOARD_SELECT,
     }),
   ])
 
@@ -143,18 +134,27 @@ export default async function PlayerDashboardPage({
         />
       </section>
 
-      {nextFriendly ? (
-        <div className="mb-8">
-          <MatchAttendanceBoard
-            matchId={nextFriendly.id}
-            open={canOpenMatchAttendance(nextFriendly)}
-            attendees={serializeMatchAttendance(nextFriendly.attendances)}
-            viewer={attendanceViewerFromPlayer({
-              signedIn: true,
-              playerId: player.id,
-              loginHref: `/login?callbackUrl=/${organizationSlug}/player`,
-            })}
-          />
+      {scheduledFriendlies.length > 0 ? (
+        <div className="mb-8 space-y-10">
+          {scheduledFriendlies.map((match, index) => {
+            const board = toMatchAttendanceBoard(match)
+            return (
+              <MatchAttendanceBoard
+                key={board.matchId}
+                matchId={board.matchId}
+                open={board.open}
+                attendees={board.attendees}
+                matchLabel={board.matchLabel}
+                dateLine={board.dateLine}
+                sectionId={attendanceSectionId(board.matchId, index)}
+                viewer={attendanceViewerFromPlayer({
+                  signedIn: true,
+                  playerId: player.id,
+                  loginHref: `/login?callbackUrl=/${organizationSlug}/player`,
+                })}
+              />
+            )
+          })}
         </div>
       ) : null}
 

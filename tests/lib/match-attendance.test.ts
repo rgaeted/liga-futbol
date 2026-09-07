@@ -4,10 +4,12 @@ import {
   attendanceClosedMessage,
   attendanceCountLabel,
   attendanceViewerFromPlayer,
+  attendanceSectionId,
   canOpenMatchAttendance,
-  findNextFriendlyAttendanceWhere,
+  findScheduledFriendlyAttendanceWhere,
   isViewerGoing,
   serializeMatchAttendance,
+  toMatchAttendanceBoard,
 } from '@/lib/match-attendance'
 
 describe('canOpenMatchAttendance', () => {
@@ -79,15 +81,45 @@ describe('attendanceClosedMessage', () => {
   })
 })
 
-describe('findNextFriendlyAttendanceWhere', () => {
+describe('findScheduledFriendlyAttendanceWhere', () => {
   it('filters scheduled friendlies from now', () => {
     const now = new Date('2026-09-08T12:00:00.000Z')
-    expect(findNextFriendlyAttendanceWhere('org_1', now)).toEqual({
+    expect(findScheduledFriendlyAttendanceWhere('org_1', now)).toEqual({
       organizationId: 'org_1',
       matchType: MatchType.FRIENDLY,
       status: MatchStatus.SCHEDULED,
       scheduledAt: { gte: now },
     })
+  })
+})
+
+describe('attendanceSectionId', () => {
+  it('keeps the first board on #asistencia', () => {
+    expect(attendanceSectionId('m1', 0)).toBe('asistencia')
+    expect(attendanceSectionId('m2', 1)).toBe('asistencia-m2')
+  })
+})
+
+describe('toMatchAttendanceBoard', () => {
+  it('builds one board payload per match', () => {
+    const board = toMatchAttendanceBoard({
+      id: 'm1',
+      matchType: MatchType.FRIENDLY,
+      status: MatchStatus.SCHEDULED,
+      scheduledAt: new Date('2026-09-14T21:00:00.000Z'),
+      sideAName: 'Blancos',
+      sideBName: 'Negros',
+      homeTeam: null,
+      awayTeam: null,
+      attendances: [],
+    })
+    expect(board).toMatchObject({
+      matchId: 'm1',
+      open: true,
+      attendees: [],
+      matchLabel: 'Blancos vs Negros',
+    })
+    expect(board.dateLine).toContain('·')
   })
 })
 

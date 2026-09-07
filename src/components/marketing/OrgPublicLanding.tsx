@@ -8,6 +8,7 @@ import {
   MatchAttendanceBoard,
   type AttendanceViewer,
 } from '@/components/match-attendance/MatchAttendanceBoard'
+import { attendanceSectionId } from '@/lib/match-attendance'
 import { TeamCrest } from '@/components/TeamCrest'
 import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
 import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
@@ -89,7 +90,13 @@ export function OrgPublicLanding({
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/${slug}`)}`
   const year = new Date().getFullYear()
   const hasStats = scorers.length > 0 || assists.length > 0
-  const isEmpty = !featured && !nextMatch && results.length === 0 && !hasStats && awards.length === 0
+  const isEmpty =
+    !featured &&
+    !nextMatch &&
+    results.length === 0 &&
+    !hasStats &&
+    awards.length === 0 &&
+    data.attendances.length === 0
   const isLosLunes = slug === LOSLUNES_SLUG
 
   return (
@@ -449,15 +456,21 @@ export function OrgPublicLanding({
           </section>
         ) : null}
 
-        {data.attendance ? (
+        {data.attendances.length > 0 ? (
           <section className="py-[26px]">
-            <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
-              <MatchAttendanceBoard
-                matchId={data.attendance.matchId}
-                open={data.attendance.open}
-                attendees={data.attendance.attendees}
-                viewer={attendanceViewer}
-              />
+            <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] flex-col gap-10">
+              {data.attendances.map((board, index) => (
+                <MatchAttendanceBoard
+                  key={board.matchId}
+                  matchId={board.matchId}
+                  open={board.open}
+                  attendees={board.attendees}
+                  viewer={attendanceViewer}
+                  matchLabel={board.matchLabel}
+                  dateLine={board.dateLine}
+                  sectionId={attendanceSectionId(board.matchId, index)}
+                />
+              ))}
             </div>
           </section>
         ) : null}

@@ -18,9 +18,20 @@ type Props = {
   open: boolean
   attendees: MatchAttendanceEntry[]
   viewer: AttendanceViewer
+  matchLabel?: string
+  dateLine?: string
+  sectionId?: string
 }
 
-export function MatchAttendanceBoard({ matchId, open, attendees, viewer }: Props) {
+export function MatchAttendanceBoard({
+  matchId,
+  open,
+  attendees,
+  viewer,
+  matchLabel,
+  dateLine,
+  sectionId = 'asistencia',
+}: Props) {
   const router = useRouter()
   const [rows, setRows] = useState(attendees)
   const [pending, setPending] = useState(false)
@@ -50,15 +61,18 @@ export function MatchAttendanceBoard({ matchId, open, attendees, viewer }: Props
   }
 
   return (
-    <section id="asistencia" className="scroll-mt-24">
+    <section id={sectionId} className="scroll-mt-24">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
           <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-org-primary">
-            Lista del grupo
+            {dateLine ?? 'Lista del grupo'}
           </p>
           <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
             ¿Quién va?
           </h2>
+          {matchLabel ? (
+            <p className="mt-1 text-sm text-[#9ca59f]">{matchLabel}</p>
+          ) : null}
         </div>
         <p className="text-sm text-[#9ca59f]">{countLabel}</p>
       </div>

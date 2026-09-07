@@ -20,10 +20,9 @@ import {
 import { teamCrestUrl } from '@/lib/team-crest'
 import { resolveMatchSideColor, resolveTeamColor } from '@/lib/team-color'
 import {
-  canOpenMatchAttendance,
-  findNextFriendlyAttendanceWhere,
-  MATCH_ATTENDANCE_INCLUDE,
-  serializeMatchAttendance,
+  findScheduledFriendlyAttendanceWhere,
+  MATCH_ATTENDANCE_BOARD_SELECT,
+  toMatchAttendanceBoard,
 } from '@/lib/match-attendance'
 
 export type TeamTone = 'white' | 'black'
@@ -74,16 +73,18 @@ export type OrgPublicLanding = {
     away: string
     sidesReady: boolean
   } | null
-  attendance: {
+  attendances: Array<{
     matchId: string
     open: boolean
+    matchLabel: string
+    dateLine: string
     attendees: Array<{
       playerId: string
       name: string
       photoUrl: string | null
       createdAt: string
     }>
-  } | null
+  }>
   results: Array<{
     id: string
     dateLine: string
@@ -479,7 +480,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     },
   } as const
 
-  const [liveMatches, nextMatch, nextFriendly, results, scorerMatches, orgAwards, recentAwardGrants] =
+  const [liveMatches, nextMatch, scheduledFriendlies, results, scorerMatches, orgAwards, recentAwardGrants] =
     await Promise.all([
     db.match.findMany({
       where: {
@@ -498,18 +499,10 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       orderBy: { scheduledAt: 'asc' },
       select: matchPublicSelect,
     }),
-    db.match.findFirst({
-      where: findNextFriendlyAttendanceWhere(org.id, now),
+    db.match.findMany({
+      where: findScheduledFriendlyAttendanceWhere(org.id, now),
       orderBy: { scheduledAt: 'asc' },
-      select: {
-        id: true,
-        matchType: true,
-        status: true,
-        attendances: {
-          orderBy: { createdAt: 'asc' },
-          include: MATCH_ATTENDANCE_INCLUDE,
-        },
-      },
+      select: MATCH_ATTENDANCE_BOARD_SELECT,
     }),
     db.match.findMany({
       where: { organizationId: org.id, status: MatchStatus.FINISHED },
@@ -596,13 +589,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     featured: featuredSource ? toFeatured(featuredSource) : null,
     live: liveMatches.map(toLiveMatch),
     nextMatch: nextMatch ? toNextMatch(nextMatch) : null,
-    attendance: nextFriendly
-      ? {
-          matchId: nextFriendly.id,
-          open: canOpenMatchAttendance(nextFriendly),
-          attendees: serializeMatchAttendance(nextFriendly.attendances),
-        }
-      : null,
+    attendances: scheduledFriendlies.map(toMatchAttendanceBoard),
     results: resultCards,
     form: resultCards[0]
       ? formLastFive(resultCards, resultCards[0].home)

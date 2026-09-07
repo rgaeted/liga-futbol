@@ -1,6 +1,8 @@
 import { MatchStatus, MatchType } from '@prisma/client'
 import { friendlyPlayerPhotoUrl, personHasPhoto } from '@/lib/friendly-player-photo'
+import { matchDisplayName } from '@/lib/match-label'
 import { playerDisplayName } from '@/lib/person-name'
+import { formatScheduleDateLabel, formatScheduleTimeLabel } from '@/lib/schedule-datetime'
 
 export type MatchAttendancePerson = {
   firstName: string
@@ -44,6 +46,21 @@ export const MATCH_ATTENDANCE_INCLUDE = {
   },
 } as const
 
+export const MATCH_ATTENDANCE_BOARD_SELECT = {
+  id: true,
+  matchType: true,
+  status: true,
+  scheduledAt: true,
+  sideAName: true,
+  sideBName: true,
+  homeTeam: { select: { name: true } },
+  awayTeam: { select: { name: true } },
+  attendances: {
+    orderBy: { createdAt: 'asc' as const },
+    include: MATCH_ATTENDANCE_INCLUDE,
+  },
+} as const
+
 export function canOpenMatchAttendance(match: {
   matchType: string
   status: string
@@ -66,12 +83,55 @@ export function serializeMatchAttendance(rows: MatchAttendanceRow[]): MatchAtten
   }))
 }
 
-export function findNextFriendlyAttendanceWhere(organizationId: string, now: Date) {
+export function findScheduledFriendlyAttendanceWhere(organizationId: string, now: Date) {
   return {
     organizationId,
     matchType: MatchType.FRIENDLY,
     status: MatchStatus.SCHEDULED,
     scheduledAt: { gte: now },
+  }
+}
+
+/** @deprecated Use findScheduledFriendlyAttendanceWhere — attendance is per match. */
+export function findNextFriendlyAttendanceWhere(organizationId: string, now: Date) {
+  return findScheduledFriendlyAttendanceWhere(organizationId, now)
+}
+
+export type MatchAttendanceBoardData = {
+  matchId: string
+  open: boolean
+  attendees: MatchAttendanceEntry[]
+  matchLabel: string
+  dateLine: string
+}
+
+export function attendanceSectionId(matchId: string, index: number): string {
+  return index === 0 ? 'asistencia' : `asistencia-${matchId}`
+}
+
+export function toMatchAttendanceBoard(match: {
+  id: string
+  matchType: string
+  status: string
+  scheduledAt: Date
+  sideAName: string | null
+  sideBName: string | null
+  homeTeam: { name: string } | null
+  awayTeam: { name: string } | null
+  attendances: MatchAttendanceRow[]
+}): MatchAttendanceBoardData {
+  return {
+    matchId: match.id,
+    open: canOpenMatchAttendance(match),
+    attendees: serializeMatchAttendance(match.attendances),
+    matchLabel: matchDisplayName({
+      matchType: match.matchType === MatchType.FRIENDLY ? MatchType.FRIENDLY : MatchType.LEAGUE,
+      sideAName: match.sideAName,
+      sideBName: match.sideBName,
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+    }),
+    dateLine: `${formatScheduleDateLabel(match.scheduledAt)} · ${formatScheduleTimeLabel(match.scheduledAt)}`,
   }
 }
 
