@@ -80,7 +80,7 @@ export function FriendlyPlayersTable({
     const payload: Record<string, unknown> = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      friendlyCategoryIds: categoryIds,
+      categoryIds,
       ...friendlyPlayerProfilePayload(dominantFoot, primaryPosition, secondaryPosition),
     }
     if (!player.email && email) {

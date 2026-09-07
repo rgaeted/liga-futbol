@@ -4,6 +4,7 @@ import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { updatePlayerSchema } from '@/lib/validations/player'
 import { MembershipRole } from '@/lib/membership-role'
 import { setPlayerCategories } from '@/lib/player-categories'
+import { revalidateOrgAdminRosterPages } from '@/lib/revalidate-org-admin-pages'
 
 const playerInclude = {
   person: { include: { user: { select: { name: true, email: true } } } },
@@ -65,6 +66,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
     return updated
   })
+
+  await revalidateOrgAdminRosterPages(organizationId)
 
   return NextResponse.json(mapPlayer(player))
 }

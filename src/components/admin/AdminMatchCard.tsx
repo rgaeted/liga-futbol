@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { MatchType } from '@prisma/client'
 import { footballFormatLabel } from '@/lib/football-format'
@@ -20,6 +21,7 @@ import { attendanceCountLabel } from '@/lib/match-attendance'
 
 type FriendlyPlayerRow = {
   participationId: string
+  playerId: string
   side: 'A' | 'B'
   label: string
   paid: boolean
@@ -58,19 +60,21 @@ function SideColumn({
   colorClass,
   players,
   matchId,
+  resolvePlayerName,
 }: {
   label: string
   colorClass: string
   players: FriendlyPlayerRow[]
   matchId: string
+  resolvePlayerName: (player: FriendlyPlayerRow) => string
 }) {
   const sorted = useMemo(
     () =>
       [...players].sort((a, b) => {
         if (a.paid !== b.paid) return a.paid ? -1 : 1
-        return a.label.localeCompare(b.label, APP_LOCALE)
+        return resolvePlayerName(a).localeCompare(resolvePlayerName(b), APP_LOCALE)
       }),
-    [players]
+    [players, resolvePlayerName]
   )
 
   const splitIndex = sorted.findIndex((player) => !player.paid)
@@ -109,7 +113,7 @@ function SideColumn({
                   initialIsGalleta={player.isGalleta}
                 />
                 <span className="min-w-0 truncate text-sm text-kelme-gray-900">
-                  {player.label}
+                  {resolvePlayerName(player)}
                   {suffix ? (
                     <span className="text-kelme-gray-400"> ({suffix})</span>
                   ) : null}
@@ -149,7 +153,30 @@ export function AdminMatchCard({
   organizationSlug,
 }: Props) {
   const orgPath = useOrgPath()
+  const router = useRouter()
   const [editing, setEditing] = useState(false)
+
+  const playerNameById = useMemo(
+    () =>
+      new Map(
+        rosterPlayers.map((player) => [
+          player.id,
+          `${player.firstName} ${player.lastName}`.trim(),
+        ])
+      ),
+    [rosterPlayers]
+  )
+
+  const resolvePlayerName = useMemo(
+    () => (player: FriendlyPlayerRow) =>
+      playerNameById.get(player.playerId) ?? player.label,
+    [playerNameById]
+  )
+
+  function openEdit() {
+    router.refresh()
+    setEditing(true)
+  }
 
   const sideA = friendlyPlayers.filter((player) => player.side === 'A')
   const sideB = friendlyPlayers.filter((player) => player.side === 'B')
@@ -228,12 +255,14 @@ export function AdminMatchCard({
             colorClass="text-kelme-red"
             players={sideA}
             matchId={match.id}
+            resolvePlayerName={resolvePlayerName}
           />
           <SideColumn
             label={`Lado B · ${sideBName}`}
             colorClass="text-blue-600"
             players={sideB}
             matchId={match.id}
+            resolvePlayerName={resolvePlayerName}
           />
         </div>
       )}
@@ -305,7 +334,7 @@ export function AdminMatchCard({
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => setEditing(true)}
+            onClick={openEdit}
             className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-kelme-border bg-kelme-surface px-3 py-2.5 text-sm font-semibold text-kelme-gray-900 hover:bg-[#0B1210]"
           >
             <span aria-hidden>✏️</span>

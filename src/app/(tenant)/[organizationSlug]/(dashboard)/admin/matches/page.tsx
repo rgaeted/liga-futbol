@@ -11,6 +11,8 @@ import { ChallengeStatus, MatchType } from '@prisma/client'
 import { matchSideHasCrest } from '@/lib/match-side-crest'
 import { MATCH_ATTENDANCE_INCLUDE, serializeMatchAttendance } from '@/lib/match-attendance'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminMatchesPage({
   params,
 }: {
@@ -145,6 +147,7 @@ export default async function AdminMatchesPage({
                   const player = part.player
                   return {
                     participationId: part.id,
+                    playerId: part.playerId,
                     side: part.side,
                     label: `${player.person.firstName} ${player.person.lastName}`.trim(),
                     paid: part.paid,
