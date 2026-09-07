@@ -45,6 +45,7 @@ export default async function PlayerLayout({
       organizationName={membership.organization.name}
       organizationSlug={organizationSlug}
       userName={session.user.name ?? 'Jugador'}
+      userPhotoUrl={navContext.userAvatarUrl}
       roleLabel={tenantRoleLabel(navContext)}
       helpHref={orgPath(organizationSlug, '/ayuda')}
       signOutAction={handleSignOut}

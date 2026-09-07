@@ -45,6 +45,7 @@ export default async function RefereeLayout({
       organizationName={membership.organization.name}
       organizationSlug={organizationSlug}
       userName={session.user.name ?? 'Árbitro'}
+      userPhotoUrl={navContext.userAvatarUrl}
       roleLabel={tenantRoleLabel(navContext)}
       helpHref={orgPath(organizationSlug, '/ayuda')}
       signOutAction={handleSignOut}

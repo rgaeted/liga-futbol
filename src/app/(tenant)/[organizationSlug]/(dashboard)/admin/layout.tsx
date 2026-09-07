@@ -50,6 +50,7 @@ export default async function AdminLayout({
       organizationName={membership.organization.name}
       organizationSlug={organizationSlug}
       userName={session.user.name ?? 'Admin'}
+      userPhotoUrl={navContext.userAvatarUrl}
       roleLabel={tenantRoleLabel(navContext)}
       helpHref={orgPath(organizationSlug, '/ayuda')}
       showPlatformLink={session.user.isPlatformAdmin}

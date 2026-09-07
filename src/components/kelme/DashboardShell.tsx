@@ -17,6 +17,7 @@ type Props = {
   organizationName: string
   organizationSlug?: string
   userName: string
+  userPhotoUrl?: string | null
   roleLabel: string
   helpHref?: string
   showPlatformLink?: boolean
@@ -31,6 +32,7 @@ export function DashboardShell({
   organizationName,
   organizationSlug,
   userName,
+  userPhotoUrl,
   roleLabel,
   helpHref,
   showPlatformLink = false,
@@ -46,6 +48,7 @@ export function DashboardShell({
       brandTitle={organizationName}
       brandSubtitle={`LigaLab · ${roleLabel}`}
       userName={userName}
+      userPhotoUrl={userPhotoUrl}
       roleLabel={roleLabel}
       navGroups={resolvedNavGroups}
       signOutAction={signOutAction}

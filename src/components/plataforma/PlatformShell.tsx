@@ -21,17 +21,19 @@ const NAV_GROUPS: DashboardNavGroup[] = [
 
 type Props = {
   userName: string
+  userPhotoUrl?: string | null
   signOutAction: () => Promise<void>
   children: React.ReactNode
 }
 
-export function PlatformShell({ userName, signOutAction, children }: Props) {
+export function PlatformShell({ userName, userPhotoUrl, signOutAction, children }: Props) {
   return (
     <DashboardAppShell
       brandMark="LL"
       brandTitle="LIGALAB"
       brandSubtitle="CONSOLA DE PLATAFORMA"
       userName={userName}
+      userPhotoUrl={userPhotoUrl}
       roleLabel="Super admin"
       navGroups={NAV_GROUPS}
       signOutAction={signOutAction}

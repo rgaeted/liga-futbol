@@ -3,11 +3,13 @@ import type { MembershipRole } from '@/lib/membership-role'
 import { MembershipRole as Role, hasMembershipRole } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
 import type { DashboardNavGroup } from '@/components/dashboard/dashboard-ui'
+import { resolveUserNavAvatarUrl } from '@/lib/user-nav-avatar'
 
 export type TenantNavContext = {
   roles: MembershipRole[]
   hasPlayerProfile: boolean
   hasFriendlyCoachParticipations: boolean
+  userAvatarUrl: string | null
 }
 
 export async function loadTenantNavContext(
@@ -15,7 +17,7 @@ export async function loadTenantNavContext(
   organizationId: string,
   roles: MembershipRole[],
 ): Promise<TenantNavContext> {
-  const [playerCount, coachPartCount] = await Promise.all([
+  const [playerCount, coachPartCount, userAvatarUrl] = await Promise.all([
     db.player.count({
       where: {
         organizationId,
@@ -28,6 +30,7 @@ export async function loadTenantNavContext(
         player: { organizationId, person: { userId } },
       },
     }),
+    resolveUserNavAvatarUrl(userId),
   ])
 
   return {
@@ -35,6 +38,7 @@ export async function loadTenantNavContext(
     hasPlayerProfile: playerCount > 0 || hasMembershipRole(roles, Role.PLAYER),
     hasFriendlyCoachParticipations:
       coachPartCount > 0 || hasMembershipRole(roles, Role.FRIENDLY_COACH),
+    userAvatarUrl,
   }
 }
 

@@ -45,6 +45,7 @@ export default async function CoachLayout({
       organizationName={membership.organization.name}
       organizationSlug={organizationSlug}
       userName={session.user.name ?? 'DT'}
+      userPhotoUrl={navContext.userAvatarUrl}
       roleLabel={tenantRoleLabel(navContext)}
       helpHref={orgPath(organizationSlug, '/ayuda')}
       signOutAction={handleSignOut}

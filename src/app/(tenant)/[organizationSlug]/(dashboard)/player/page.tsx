@@ -24,6 +24,7 @@ import {
   groupPlayerAwardsBySeason,
   serializePlayerAwardBadge,
 } from '@/lib/player-awards'
+import { computePlayerMatchResults } from '@/lib/player-match-results'
 
 export default async function PlayerDashboardPage({
   params,
@@ -107,6 +108,11 @@ export default async function PlayerDashboardPage({
     badge: serializePlayerAwardBadge(row),
   }))
   const grouped = groupPlayerAwardsBySeason(badgeItems)
+  const matchResults = computePlayerMatchResults({
+    leagueCallUps: callUps,
+    friendlyParticipations,
+    playerTeamId: playerWithTeam.teamId,
+  })
 
   return (
     <div className="space-y-6 text-kelme-gray-900">
@@ -127,9 +133,12 @@ export default async function PlayerDashboardPage({
         </div>
       </header>
 
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-5">
+      <section className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
         <StatCard label="Goles" value={playerWithTeam.goals} />
         <StatCard label="Asistencias" value={playerWithTeam.assists} />
+        <StatCard label="Ganados" value={matchResults.won} />
+        <StatCard label="Empatados" value={matchResults.drawn} />
+        <StatCard label="Perdidos" value={matchResults.lost} />
         <StatCard label="MVPs" value={mvpCount} />
         <StatCard label="Amarillas" value={playerWithTeam.yellowCards} />
         <StatCard label="Rojas" value={playerWithTeam.redCards} />
