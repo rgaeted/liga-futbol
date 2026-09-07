@@ -23,6 +23,13 @@ function isTenantIconGet(method: string, pathname: string): boolean {
   return parseOrganizationSlug(match[1]).ok
 }
 
+function isTenantFriendlyMatchPageGet(method: string, pathname: string): boolean {
+  if (method !== 'GET' && method !== 'HEAD') return false
+  const match = /^\/([^/]+)\/partidos\/[^/]+$/.exec(pathname)
+  if (!match) return false
+  return parseOrganizationSlug(match[1]).ok
+}
+
 export function isPublicRequest(method: string, pathname: string): boolean {
   const isPhotoGet =
     method === 'GET' && /^\/api\/players\/[^/]+\/photo$/.test(pathname)
@@ -80,7 +87,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isMobileInstallationDelete ||
     isPlayersClaimPost ||
     isTenantOrgLandingGet(method, pathname) ||
-    isTenantIconGet(method, pathname)
+    isTenantIconGet(method, pathname) ||
+    isTenantFriendlyMatchPageGet(method, pathname)
   )
 }
 

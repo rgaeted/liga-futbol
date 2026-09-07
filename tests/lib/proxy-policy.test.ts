@@ -152,4 +152,11 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/organizaciones')).toBe(false)
     expect(isPublicRequest('GET', '/api')).toBe(false)
   })
+
+  it('treats friendly match pages as public GET only', () => {
+    expect(isPublicRequest('GET', '/loslunes/partidos/match-1')).toBe(true)
+    expect(isPublicRequest('HEAD', '/loslunes/partidos/match-1')).toBe(true)
+    expect(isPublicRequest('POST', '/loslunes/partidos/match-1')).toBe(false)
+    expect(isPublicRequest('GET', '/plataforma/partidos/match-1')).toBe(false)
+  })
 })
