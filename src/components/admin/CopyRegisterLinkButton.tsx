@@ -1,19 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { playerRegisterPath } from '@/lib/player-register-link'
 
-export function CopyRegisterLinkButton({
-  playerId,
-  orgSlug,
-}: {
-  playerId: string
-  orgSlug: string
-}) {
+export function CopyRegisterLinkButton({ registerPath }: { registerPath: string }) {
   const [copied, setCopied] = useState(false)
 
   async function copy() {
-    const url = `${window.location.origin}${playerRegisterPath(playerId, orgSlug)}`
+    const url = `${window.location.origin}${registerPath}`
     await navigator.clipboard.writeText(url)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 2000)

@@ -4,6 +4,7 @@ import { requireOrganizationId } from '@/lib/tenant-access'
 import { OrgPlayerForm } from '@/components/admin/OrgPlayerForm'
 import { PlayersTable } from '@/components/admin/PlayersTable'
 import { playerDisplayName } from '@/lib/person-name'
+import { playerRegisterPath } from '@/lib/player-register-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,12 +49,12 @@ export default async function AdminPlayersPage({
       </div>
       <OrgPlayerForm teams={teamOptions} />
       <PlayersTable
-        orgSlug={organizationSlug}
         players={players.map((p) => ({
           id: p.id,
           name: playerDisplayName(p),
           email: p.person.user?.email ?? '',
           hasAccount: Boolean(p.person.user),
+          registerPath: p.person.user ? null : playerRegisterPath(p.id, organizationSlug),
           teamId: p.team?.id ?? null,
           teamName: p.team?.name ?? null,
           jerseyNumber: p.jerseyNumber,

@@ -8,7 +8,11 @@ function claimSecret(): string {
   return secret
 }
 
+/** Server-only: do not import from client components. */
 export function createPlayerClaimToken(playerId: string): string {
+  if (typeof window !== 'undefined') {
+    throw new Error('createPlayerClaimToken must run on the server')
+  }
   return createHmac('sha256', claimSecret()).update(playerId).digest('base64url')
 }
 
