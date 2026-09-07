@@ -3,6 +3,10 @@ import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { AwardRevealGrid } from '@/components/marketing/AwardRevealCard'
 import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
 import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
+import {
+  MatchAttendanceBoard,
+  type AttendanceViewer,
+} from '@/components/match-attendance/MatchAttendanceBoard'
 import { TeamCrest } from '@/components/TeamCrest'
 import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
 import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
@@ -73,9 +77,11 @@ function RankingCard({
 export function OrgPublicLanding({
   data,
   panelHref = null,
+  attendanceViewer,
 }: {
   data: OrgPublicLandingData
   panelHref?: string | null
+  attendanceViewer: AttendanceViewer
 }) {
   const { organization, featured, nextMatch, results, form, scorers, assists, awards } = data
   const slug = organization.slug
@@ -438,6 +444,19 @@ export function OrgPublicLanding({
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+        ) : null}
+
+        {data.attendance ? (
+          <section className="py-[26px]">
+            <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
+              <MatchAttendanceBoard
+                matchId={data.attendance.matchId}
+                open={data.attendance.open}
+                attendees={data.attendance.attendees}
+                viewer={attendanceViewer}
+              />
             </div>
           </section>
         ) : null}

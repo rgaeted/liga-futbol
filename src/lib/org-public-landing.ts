@@ -19,6 +19,12 @@ import {
 } from '@/lib/schedule-datetime'
 import { teamCrestUrl } from '@/lib/team-crest'
 import { resolveMatchSideColor, resolveTeamColor } from '@/lib/team-color'
+import {
+  canOpenMatchAttendance,
+  findNextFriendlyAttendanceWhere,
+  MATCH_ATTENDANCE_INCLUDE,
+  serializeMatchAttendance,
+} from '@/lib/match-attendance'
 
 export type TeamTone = 'white' | 'black'
 
@@ -67,6 +73,16 @@ export type OrgPublicLanding = {
     home: string
     away: string
     sidesReady: boolean
+  } | null
+  attendance: {
+    matchId: string
+    open: boolean
+    attendees: Array<{
+      playerId: string
+      name: string
+      photoUrl: string | null
+      createdAt: string
+    }>
   } | null
   results: Array<{
     id: string
@@ -463,7 +479,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     },
   } as const
 
-  const [liveMatches, nextMatch, results, scorerMatches, orgAwards, recentAwardGrants] =
+  const [liveMatches, nextMatch, nextFriendly, results, scorerMatches, orgAwards, recentAwardGrants] =
     await Promise.all([
     db.match.findMany({
       where: {
@@ -481,6 +497,19 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       },
       orderBy: { scheduledAt: 'asc' },
       select: matchPublicSelect,
+    }),
+    db.match.findFirst({
+      where: findNextFriendlyAttendanceWhere(org.id, now),
+      orderBy: { scheduledAt: 'asc' },
+      select: {
+        id: true,
+        matchType: true,
+        status: true,
+        attendances: {
+          orderBy: { createdAt: 'asc' },
+          include: MATCH_ATTENDANCE_INCLUDE,
+        },
+      },
     }),
     db.match.findMany({
       where: { organizationId: org.id, status: MatchStatus.FINISHED },
@@ -567,6 +596,13 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     featured: featuredSource ? toFeatured(featuredSource) : null,
     live: liveMatches.map(toLiveMatch),
     nextMatch: nextMatch ? toNextMatch(nextMatch) : null,
+    attendance: nextFriendly
+      ? {
+          matchId: nextFriendly.id,
+          open: canOpenMatchAttendance(nextFriendly),
+          attendees: serializeMatchAttendance(nextFriendly.attendances),
+        }
+      : null,
     results: resultCards,
     form: resultCards[0]
       ? formLastFive(resultCards, resultCards[0].home)

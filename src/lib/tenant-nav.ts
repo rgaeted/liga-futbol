@@ -137,6 +137,11 @@ export function buildTenantNavGroups(
       items: [
         { href: base('/player'), label: 'Mi panel', icon: 'IN' },
         {
+          href: `/${slug}#asistencia`,
+          label: '¿Quién va?',
+          icon: 'VA',
+        },
+        {
           href: base('/player/matches'),
           label: 'Mis partidos',
           icon: 'PA',
