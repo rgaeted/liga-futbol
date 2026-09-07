@@ -1,6 +1,7 @@
 'use client'
 
 import type { FriendlySide } from '@/lib/friendly-match-roster-ui'
+import { orderRosterByAttendance } from '@/lib/match-attendance'
 import { FriendlyPlayerAvatar } from './FriendlyPlayerAvatar'
 import type { FriendlyRosterPlayer } from './FriendlyMatchConvocationPicker'
 
@@ -50,6 +51,7 @@ type Props = {
   onSideBCaptainChange: (playerId: string | null) => void
   onSideACoachChange: (playerId: string | null) => void
   onSideBCoachChange: (playerId: string | null) => void
+  attendingPlayerIds?: string[]
 }
 
 export function FriendlyMatchTeamAssigner({
@@ -67,10 +69,11 @@ export function FriendlyMatchTeamAssigner({
   onSideBCaptainChange,
   onSideACoachChange,
   onSideBCoachChange,
+  attendingPlayerIds,
 }: Props) {
-  const sortedConvoked = [...convoked].sort((a, b) =>
-    `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`, 'es')
-  )
+  const attending = attendingPlayerIds ?? []
+  const attendingSet = new Set(attending)
+  const sortedConvoked = orderRosterByAttendance(convoked, attending)
 
   function currentSide(playerId: string): FriendlySide | null {
     if (sideBIds.has(playerId)) return 'B'
@@ -100,6 +103,11 @@ export function FriendlyMatchTeamAssigner({
                     size="sm"
                   />
                   <span className="truncate">{playerLabel(p)}</span>
+                  {attendingSet.has(p.id) ? (
+                    <span className="rounded-full bg-[#0B1210] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#3D8B6E] ring-1 ring-[#3D8B6E]/35">
+                      Va
+                    </span>
+                  ) : null}
                 </div>
                 <div className="flex gap-1" role="group" aria-label={`Equipo de ${playerLabel(p)}`}>
                   <SideToggle

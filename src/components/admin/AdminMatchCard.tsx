@@ -49,6 +49,8 @@ type Props = {
   rosterPlayers: FriendlyRosterPlayer[]
   teams?: Array<{ id: string; name: string }>
   attendanceNames?: string[]
+  attendancePlayerIds?: string[]
+  organizationSlug: string
 }
 
 function SideColumn({
@@ -143,6 +145,8 @@ export function AdminMatchCard({
   rosterPlayers,
   teams = [],
   attendanceNames = [],
+  attendancePlayerIds = [],
+  organizationSlug,
 }: Props) {
   const orgPath = useOrgPath()
   const [editing, setEditing] = useState(false)
@@ -181,10 +185,17 @@ export function AdminMatchCard({
           </div>
         </div>
 
-        {matchType === MatchType.FRIENDLY && status === 'SCHEDULED' ? (
+        {matchType === MatchType.FRIENDLY ? (
           <p className="mt-2 text-xs text-kelme-gray-600">
             {attendanceCountLabel(attendanceNames.length)}
             {attendanceNames.length > 0 ? `: ${attendanceNames.join(', ')}` : ''}
+            {' · '}
+            <Link
+              href={`/${organizationSlug}/partidos/${match.id}`}
+              className="font-semibold text-kelme-red hover:underline"
+            >
+              Ver lista
+            </Link>
           </p>
         ) : null}
 
@@ -314,6 +325,7 @@ export function AdminMatchCard({
           referees={referees}
           friendlyPlayers={rosterPlayers}
           teams={teams}
+          attendingPlayerIds={attendancePlayerIds}
           editing={editing}
           onEditingChange={setEditing}
           hideIdleToolbar

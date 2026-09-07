@@ -221,6 +221,12 @@ export default async function AdminMatchesPage({
                   ? serializeMatchAttendance(match.attendances).map((row) => row.name)
                   : []
               }
+              attendancePlayerIds={
+                match.matchType === MatchType.FRIENDLY
+                  ? match.attendances.map((row) => row.playerId)
+                  : []
+              }
+              organizationSlug={organizationSlug}
             />
           )
         })}

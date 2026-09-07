@@ -69,6 +69,7 @@ export function MatchActions({
   referees,
   friendlyPlayers = [],
   teams = [],
+  attendingPlayerIds = [],
   editing: controlledEditing,
   onEditingChange,
   hideIdleToolbar = false,
@@ -77,6 +78,7 @@ export function MatchActions({
   referees: RefereeOption[]
   friendlyPlayers?: FriendlyRosterPlayer[]
   teams?: Array<{ id: string; name: string }>
+  attendingPlayerIds?: string[]
   editing?: boolean
   onEditingChange?: (editing: boolean) => void
   hideIdleToolbar?: boolean
@@ -435,6 +437,7 @@ export function MatchActions({
               onSideBCaptainChange={setSideBCaptainId}
               onSideACoachChange={setSideACoachId}
               onSideBCoachChange={setSideBCoachId}
+              attendingPlayerIds={attendingPlayerIds}
             />
           </div>
           <div className="md:col-span-3">
