@@ -66,6 +66,13 @@ describe('proxy policy', () => {
     expect(isPublicRequest('POST', '/api/matches/match-1/live')).toBe(false)
   })
 
+  it('treats match attendance list as public GET only', () => {
+    expect(isPublicRequest('GET', '/api/matches/match-1/attendance')).toBe(true)
+    expect(isPublicRequest('HEAD', '/api/matches/match-1/attendance')).toBe(true)
+    expect(isPublicRequest('POST', '/api/matches/match-1/attendance')).toBe(false)
+    expect(isPublicRequest('DELETE', '/api/matches/match-1/attendance')).toBe(false)
+  })
+
   it('makes the maintenance page public', () => {
     expect(isPublicRequest('GET', '/mantenimiento')).toBe(true)
   })
