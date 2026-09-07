@@ -32,10 +32,18 @@ export function RegisterForm({ available, lockedPlayerId, onSuccess }: Props) {
     setError('')
 
     const form = new FormData(e.currentTarget)
+    const password = String(form.get('password') ?? '')
+    const passwordConfirm = String(form.get('passwordConfirm') ?? '')
+    if (password !== passwordConfirm) {
+      setLoading(false)
+      setError('Las contraseñas no coinciden.')
+      return
+    }
+
     const playerId = lockedPlayer?.id ?? String(form.get('playerId') ?? '')
     const result = await submitJson('/api/players/claim', 'POST', {
       email: String(form.get('email') ?? '').trim(),
-      password: String(form.get('password') ?? ''),
+      password,
       playerId,
     })
 
@@ -62,6 +70,16 @@ export function RegisterForm({ available, lockedPlayerId, onSuccess }: Props) {
         placeholder="Contraseña"
         required
         minLength={6}
+        autoComplete="new-password"
+        className="input-kelme"
+      />
+      <input
+        name="passwordConfirm"
+        type="password"
+        placeholder="Repite la contraseña"
+        required
+        minLength={6}
+        autoComplete="new-password"
         className="input-kelme"
       />
       {lockedMissing ? (
