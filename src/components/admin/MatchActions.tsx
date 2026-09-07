@@ -29,7 +29,7 @@ import { FriendlyTeamBulkAdd } from './FriendlyTeamBulkAdd'
 import { MatchRefereeEventsPicker } from './MatchRefereeEventsPicker'
 import { ChileLocationPicker } from './ChileLocationPicker'
 import { MatchWeatherPanel } from './MatchWeatherPanel'
-import { resolveTeamColor } from '@/lib/team-color'
+import { resolveTeamColor, teamColorSchema } from '@/lib/team-color'
 
 export type MatchRow = {
   id: string
@@ -215,20 +215,41 @@ export function MatchActions({
     setSaving(true)
     setError('')
 
+    const initialRegionCode = match.regionCode ?? ''
+    const initialCommuneCode = match.communeCode ?? ''
+    const locationChanged =
+      regionCode !== initialRegionCode || communeCode !== initialCommuneCode
+
+    if (locationChanged) {
+      if (Boolean(regionCode) !== Boolean(communeCode)) {
+        setSaving(false)
+        setError('Selecciona región y comuna, o deja ambos vacíos.')
+        return
+      }
+    }
+
+    function normalizeSideColor(value: string | null): string | null {
+      if (!value) return null
+      return teamColorSchema.safeParse(value).success ? value : null
+    }
+
     const payload: Record<string, unknown> = {
       refereeId: refereeId || null,
       venue: venue || null,
-      regionCode: regionCode || null,
-      communeCode: communeCode || null,
       status,
       footballFormat,
       refereeEventTypes,
       scheduledAt: scheduleInputToIso(date, time),
     }
 
+    if (locationChanged) {
+      payload.regionCode = regionCode || null
+      payload.communeCode = communeCode || null
+    }
+
     if (match.matchType === 'FRIENDLY') {
-      payload.sideAColor = sideAColor
-      payload.sideBColor = sideBColor
+      payload.sideAColor = normalizeSideColor(sideAColor)
+      payload.sideBColor = normalizeSideColor(sideBColor)
       if (convokedIds.size < 2) {
         setSaving(false)
         setError('Selecciona al menos dos jugadores convocados.')

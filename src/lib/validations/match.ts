@@ -27,7 +27,9 @@ function refineChileLocation(
 const refereeEventTypesSchema = z
   .array(z.nativeEnum(EventType))
   .optional()
-  .transform((types) => (types ? normalizeRefereeEventTypes(types) : undefined))
+  .transform((types) =>
+    types && types.length > 0 ? normalizeRefereeEventTypes(types) : undefined
+  )
   .superRefine((types, ctx) => {
     if (!types) return
     const message = validateRefereeEventTypes(types)

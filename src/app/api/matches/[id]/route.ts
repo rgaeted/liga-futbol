@@ -4,6 +4,7 @@ import { requireOrgRole } from '@/lib/auth'
 import { updateMatchSchema, updateGuestChallengeRosterSchema } from '@/lib/validations/match'
 import { syncFriendlyMatchRoster } from '@/lib/friendly-match-roster'
 import { buildMatchLocationFields, clearMatchWeatherFields } from '@/lib/match-location'
+import { mapPrismaError } from '@/lib/prisma-errors'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
 import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigger-process'
 import { MatchStatus, MatchType, NotificationKind } from '@prisma/client'
@@ -257,8 +258,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     return NextResponse.json(match)
   } catch (error) {
+    const mapped = mapPrismaError(error)
+    if (mapped) {
+      return NextResponse.json({ error: mapped.message }, { status: mapped.status })
+    }
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+    if (error instanceof Error && error.message === 'Forbidden') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
     console.error('PUT /api/matches/[id] failed', error)
     return NextResponse.json({ error: 'Error al guardar el partido' }, { status: 500 })
