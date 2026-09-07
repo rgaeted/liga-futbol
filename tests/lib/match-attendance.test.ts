@@ -2,6 +2,8 @@ import { MatchStatus, MatchType } from '@prisma/client'
 import { describe, expect, it } from 'vitest'
 import {
   attendanceClosedMessage,
+  attendanceCountLabel,
+  attendanceViewerFromPlayer,
   canOpenMatchAttendance,
   findNextFriendlyAttendanceWhere,
   isViewerGoing,
@@ -38,6 +40,7 @@ describe('serializeMatchAttendance', () => {
             lastName: 'Soto',
             photoMimeType: null,
             photoData: null,
+            user: null,
           },
         },
       },
@@ -51,6 +54,7 @@ describe('serializeMatchAttendance', () => {
             lastName: 'Pérez',
             photoMimeType: 'image/jpeg',
             photoData: new Uint8Array([1, 2, 3]),
+            user: null,
           },
         },
       },
@@ -92,5 +96,45 @@ describe('isViewerGoing', () => {
     expect(isViewerGoing('p1', [{ playerId: 'p1' }, { playerId: 'p2' }])).toBe(true)
     expect(isViewerGoing('p3', [{ playerId: 'p1' }])).toBe(false)
     expect(isViewerGoing(null, [{ playerId: 'p1' }])).toBe(false)
+  })
+})
+
+describe('attendanceViewerFromPlayer', () => {
+  it('builds a signer viewer', () => {
+    expect(
+      attendanceViewerFromPlayer({
+        signedIn: true,
+        playerId: 'p1',
+        loginHref: '/login',
+      })
+    ).toEqual({
+      signedIn: true,
+      canSign: true,
+      myPlayerId: 'p1',
+      loginHref: '/login',
+    })
+  })
+
+  it('builds a logged-in viewer without ficha', () => {
+    expect(
+      attendanceViewerFromPlayer({
+        signedIn: true,
+        playerId: null,
+        loginHref: '/login',
+      })
+    ).toEqual({
+      signedIn: true,
+      canSign: false,
+      myPlayerId: null,
+      loginHref: '/login',
+    })
+  })
+})
+
+describe('attendanceCountLabel', () => {
+  it('uses singular and plural Chilean copy', () => {
+    expect(attendanceCountLabel(0)).toBe('0 anotados')
+    expect(attendanceCountLabel(1)).toBe('1 anotado')
+    expect(attendanceCountLabel(8)).toBe('8 anotados')
   })
 })

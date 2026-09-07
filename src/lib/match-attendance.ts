@@ -7,6 +7,7 @@ export type MatchAttendancePerson = {
   lastName: string
   photoMimeType: string | null
   photoData: Uint8Array | Buffer | null
+  user: { name: string } | null
 }
 
 export type MatchAttendancePlayer = {
@@ -36,6 +37,7 @@ export const MATCH_ATTENDANCE_INCLUDE = {
           lastName: true,
           photoMimeType: true,
           photoData: true,
+          user: { select: { name: true } },
         },
       },
     },
@@ -78,4 +80,21 @@ export function isViewerGoing(
   attendees: Array<{ playerId: string }>
 ): boolean {
   return Boolean(myPlayerId && attendees.some((row) => row.playerId === myPlayerId))
+}
+
+export function attendanceViewerFromPlayer(input: {
+  signedIn: boolean
+  playerId: string | null
+  loginHref: string
+}) {
+  return {
+    signedIn: input.signedIn,
+    canSign: Boolean(input.signedIn && input.playerId),
+    myPlayerId: input.playerId,
+    loginHref: input.loginHref,
+  }
+}
+
+export function attendanceCountLabel(count: number): string {
+  return count === 1 ? '1 anotado' : `${count} anotados`
 }
