@@ -408,7 +408,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
       return
     }
 
-    const rosterError = validateRoster(data)
+    const rosterError = data.friendlyMode === 'challenge' ? validateRoster(data) : null
     if (rosterError) {
       setError(rosterError)
       setOpenStep(4)
@@ -467,14 +467,6 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             regionCode: data.regionCode || undefined,
             communeCode: data.communeCode || undefined,
             scheduledAt,
-            players: rosterEntriesFromSets(
-              sideAIds,
-              sideBIds,
-              data.sideACaptainId,
-              data.sideBCaptainId,
-              data.sideACoachId,
-              data.sideBCoachId
-            ),
           }
 
     const result = await submitJson('/api/matches', 'POST', payload)
@@ -509,16 +501,18 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
   }
 
   const rosterReady =
-    data.friendlyMode === 'challenge'
-      ? sideAIds.size >= 1 &&
-        Boolean(data.sideACaptainId) &&
-        Boolean(data.sideACoachId)
-      : sideAIds.size >= 1 &&
-        sideBIds.size >= 1 &&
-        Boolean(data.sideACaptainId) &&
-        Boolean(data.sideBCaptainId) &&
-        Boolean(data.sideACoachId) &&
-        Boolean(data.sideBCoachId)
+    data.friendlyMode === 'intra'
+      ? true
+      : data.friendlyMode === 'challenge'
+        ? sideAIds.size >= 1 &&
+          Boolean(data.sideACaptainId) &&
+          Boolean(data.sideACoachId)
+        : sideAIds.size >= 1 &&
+          sideBIds.size >= 1 &&
+          Boolean(data.sideACaptainId) &&
+          Boolean(data.sideBCaptainId) &&
+          Boolean(data.sideACoachId) &&
+          Boolean(data.sideBCoachId)
 
   const matchTitle =
     data.sideAName.trim() &&
@@ -733,6 +727,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
         </div>
       </WizardStep>
 
+      {data.friendlyMode === 'challenge' ? (
       <WizardStep
         step={4}
         title="Convocatoria y equipos"
@@ -823,6 +818,11 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
           </div>
         )}
       </WizardStep>
+      ) : (
+        <p className="rounded-lg border border-kelme-border bg-kelme-surface px-4 py-3 text-sm text-kelme-gray-600">
+          Después de crear el partido, comparte el link de asistencia. Los equipos se arman al editar, con los que anotaron.
+        </p>
+      )}
 
       <WizardStep
         step={5}
