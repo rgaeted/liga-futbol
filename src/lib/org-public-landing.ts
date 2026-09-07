@@ -13,6 +13,7 @@ import {
 } from '@/lib/org-brand'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE, type PlayerNameSource } from '@/lib/person-name'
 import { isScoringGoalEvent, SCORING_GOAL_EVENT_TYPES } from '@/lib/event-labels'
+import { tallyPlayerAwardRankings } from '@/lib/player-awards'
 import {
   formatScheduleDateLabel,
   formatScheduleTimeLabel,

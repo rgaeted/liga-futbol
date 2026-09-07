@@ -129,7 +129,7 @@ export async function registerMatchEvent(
         match: updatedMatch,
         matchEvent: {
           id: event.id,
-          type: input.type,
+          type: input.type === EventType.OWN_GOAL ? 'OWN_GOAL' : 'GOAL',
           teamId: input.teamId ?? null,
           playerName: event.player ? playerDisplayName(event.player) : null,
         },
