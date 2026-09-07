@@ -158,3 +158,20 @@ export function attendanceViewerFromPlayer(input: {
 export function attendanceCountLabel(count: number): string {
   return count === 1 ? '1 anotado' : `${count} anotados`
 }
+
+export function friendlyMatchPublicPath(slug: string, matchId: string): string {
+  return `/${slug}/partidos/${matchId}`
+}
+
+export function orderRosterByAttendance<T extends { id: string }>(
+  players: T[],
+  attendingPlayerIds: string[]
+): T[] {
+  const rank = new Map(attendingPlayerIds.map((id, index) => [id, index]))
+  return [...players].sort((left, right) => {
+    const leftRank = rank.get(left.id) ?? Number.POSITIVE_INFINITY
+    const rightRank = rank.get(right.id) ?? Number.POSITIVE_INFINITY
+    if (leftRank !== rightRank) return leftRank - rightRank
+    return 0
+  })
+}

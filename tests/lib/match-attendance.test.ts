@@ -7,7 +7,9 @@ import {
   attendanceSectionId,
   canOpenMatchAttendance,
   findScheduledFriendlyAttendanceWhere,
+  friendlyMatchPublicPath,
   isViewerGoing,
+  orderRosterByAttendance,
   serializeMatchAttendance,
   toMatchAttendanceBoard,
 } from '@/lib/match-attendance'
@@ -168,5 +170,23 @@ describe('attendanceCountLabel', () => {
     expect(attendanceCountLabel(0)).toBe('0 anotados')
     expect(attendanceCountLabel(1)).toBe('1 anotado')
     expect(attendanceCountLabel(8)).toBe('8 anotados')
+  })
+})
+
+describe('friendlyMatchPublicPath', () => {
+  it('builds the public match page path', () => {
+    expect(friendlyMatchPublicPath('loslunes', 'm1')).toBe('/loslunes/partidos/m1')
+  })
+})
+
+describe('orderRosterByAttendance', () => {
+  it('puts attendees first in createdAt order, then the rest', () => {
+    const players = [{ id: 'c' }, { id: 'a' }, { id: 'b' }, { id: 'd' }]
+    expect(orderRosterByAttendance(players, ['a', 'b']).map((row) => row.id)).toEqual([
+      'a',
+      'b',
+      'c',
+      'd',
+    ])
   })
 })
