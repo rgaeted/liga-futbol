@@ -6,6 +6,7 @@ type Props = {
   lastName: string
   hasPhoto: boolean
   size?: 'sm' | 'md' | 'lg'
+  photoCacheKey?: string | number | null
 }
 
 function initials(firstName: string, lastName: string) {
@@ -18,6 +19,7 @@ export function FriendlyPlayerAvatar({
   lastName,
   hasPhoto,
   size = 'sm',
+  photoCacheKey,
 }: Props) {
   const dim = size === 'lg' ? 80 : size === 'md' ? 48 : 36
   const textClass = size === 'lg' ? 'text-xl' : size === 'md' ? 'text-sm' : 'text-xs'
@@ -26,7 +28,7 @@ export function FriendlyPlayerAvatar({
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={friendlyPlayerPhotoUrl(id)}
+        src={friendlyPlayerPhotoUrl(id, photoCacheKey ?? undefined)}
         alt={`${firstName} ${lastName}`}
         width={dim}
         height={dim}

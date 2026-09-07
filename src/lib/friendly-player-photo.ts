@@ -1,14 +1,16 @@
-import { validateImageUpload } from '@/lib/image-upload'
+import { MAX_PLAYER_PHOTO_BYTES, validateImageUpload } from '@/lib/image-upload'
 
 export function validateFriendlyPlayerPhoto(
   buffer: Buffer,
   mimeType: string
 ): { ok: true } | { ok: false; error: string } {
-  return validateImageUpload(buffer, mimeType)
+  return validateImageUpload(buffer, mimeType, MAX_PLAYER_PHOTO_BYTES)
 }
 
-export function friendlyPlayerPhotoUrl(id: string): string {
-  return `/api/players/${id}/photo`
+export function friendlyPlayerPhotoUrl(id: string, cacheKey?: string | number): string {
+  const base = `/api/players/${id}/photo`
+  if (cacheKey == null) return base
+  return `${base}?v=${encodeURIComponent(String(cacheKey))}`
 }
 
 export function friendlyPlayerHasPhoto(player: {

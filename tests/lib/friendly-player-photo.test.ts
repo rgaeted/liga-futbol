@@ -12,8 +12,13 @@ describe('validateFriendlyPlayerPhoto', () => {
     expect(result.ok).toBe(false)
   })
 
-  it('rejects files over 500 KB', () => {
-    const result = validateFriendlyPlayerPhoto(Buffer.alloc(500 * 1024 + 1), 'image/png')
+  it('accepts files up to 2 MB', () => {
+    const result = validateFriendlyPlayerPhoto(Buffer.alloc(2 * 1024 * 1024), 'image/png')
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('rejects files over 2 MB', () => {
+    const result = validateFriendlyPlayerPhoto(Buffer.alloc(2 * 1024 * 1024 + 1), 'image/png')
     expect(result.ok).toBe(false)
   })
 })

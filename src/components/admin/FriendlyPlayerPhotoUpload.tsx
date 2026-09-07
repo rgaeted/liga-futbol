@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FriendlyPlayerAvatar } from './FriendlyPlayerAvatar'
 
 type Props = {
@@ -23,6 +23,12 @@ export function FriendlyPlayerPhotoUpload({
   const inputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [displayHasPhoto, setDisplayHasPhoto] = useState(hasPhoto)
+  const [photoCacheKey, setPhotoCacheKey] = useState<number | null>(null)
+
+  useEffect(() => {
+    setDisplayHasPhoto(hasPhoto)
+  }, [hasPhoto])
 
   async function upload(file: File) {
     setLoading(true)
@@ -39,6 +45,8 @@ export function FriendlyPlayerPhotoUpload({
       setError(typeof data.error === 'string' ? data.error : 'No se pudo subir la foto')
       return
     }
+    setDisplayHasPhoto(true)
+    setPhotoCacheKey(Date.now())
     router.refresh()
   }
 
@@ -51,6 +59,8 @@ export function FriendlyPlayerPhotoUpload({
       setError('No se pudo eliminar la foto')
       return
     }
+    setDisplayHasPhoto(false)
+    setPhotoCacheKey(null)
     router.refresh()
   }
 
@@ -60,7 +70,8 @@ export function FriendlyPlayerPhotoUpload({
         id={playerId}
         firstName={firstName}
         lastName={lastName}
-        hasPhoto={hasPhoto}
+        hasPhoto={displayHasPhoto}
+        photoCacheKey={photoCacheKey}
         size={size}
       />
       <input
@@ -81,9 +92,9 @@ export function FriendlyPlayerPhotoUpload({
           onClick={() => inputRef.current?.click()}
           className="rounded-lg border border-kelme-border px-2 py-1 text-xs hover:border-kelme-red disabled:opacity-50"
         >
-          {loading ? 'Subiendo…' : hasPhoto ? 'Cambiar foto' : 'Subir foto'}
+          {loading ? 'Subiendo…' : displayHasPhoto ? 'Cambiar foto' : 'Subir foto'}
         </button>
-        {hasPhoto && (
+        {displayHasPhoto && (
           <button
             type="button"
             disabled={loading}
@@ -96,7 +107,7 @@ export function FriendlyPlayerPhotoUpload({
       </span>
       {error && <p className="text-xs text-kelme-red">{error}</p>}
       <p className="max-w-[10rem] text-center text-[10px] text-kelme-gray-400">
-        JPG, PNG o WebP · máx. 500 KB
+        JPG, PNG o WebP · máx. 2 MB
       </p>
     </div>
   )

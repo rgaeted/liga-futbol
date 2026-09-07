@@ -144,7 +144,7 @@ export function FriendlyPlayerForm({
           accept="image/jpeg,image/png,image/webp"
           className="input-kelme rounded-lg px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-kelme-red file:px-3 file:py-1 file:text-sm file:font-semibold file:text-white"
         />
-        <span className="text-xs text-kelme-gray-400">JPG, PNG o WebP · máx. 500 KB</span>
+        <span className="text-xs text-kelme-gray-400">JPG, PNG o WebP · máx. 2 MB</span>
       </label>
       <input
         name="email"
