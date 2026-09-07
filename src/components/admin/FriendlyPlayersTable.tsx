@@ -66,7 +66,7 @@ export function FriendlyPlayersTable({
   }
 
   async function save(player: FriendlyPlayerRow) {
-    if (categoryIds.length === 0) {
+    if (categories.length > 0 && categoryIds.length === 0) {
       setError('Selecciona al menos una categoría.')
       return
     }
@@ -152,12 +152,14 @@ export function FriendlyPlayersTable({
                   </td>
                   <td className="p-3 align-top" colSpan={4}>
                     <div className="space-y-3">
-                      <FriendlyCategoryCheckboxes
-                        categories={categories}
-                        selectedIds={categoryIds}
-                        onChange={setCategoryIds}
-                        namePrefix={`edit-${player.id}`}
-                      />
+                      {categories.length > 0 && (
+                        <FriendlyCategoryCheckboxes
+                          categories={categories}
+                          selectedIds={categoryIds}
+                          onChange={setCategoryIds}
+                          namePrefix={`edit-${player.id}`}
+                        />
+                      )}
                       <div className="grid gap-2 md:grid-cols-3">
                         <FriendlyPlayerProfileFields
                           compact

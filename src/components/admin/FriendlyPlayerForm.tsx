@@ -48,7 +48,7 @@ export function FriendlyPlayerForm({
     const photoFile = photoRef.current?.files?.[0]
     const password = String(form.get('password') ?? '').trim()
 
-    if (categoryIds.length === 0) {
+    if (categories.length > 0 && categoryIds.length === 0) {
       setLoading(false)
       setError('Selecciona al menos una categoría.')
       return
@@ -103,13 +103,15 @@ export function FriendlyPlayerForm({
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-3 rounded-xl border border-kelme-border bg-kelme-surface p-4 md:grid-cols-3">
-      <div className="md:col-span-3">
-        <FriendlyCategoryCheckboxes
-          categories={categories}
-          selectedIds={categoryIds}
-          onChange={setCategoryIds}
-        />
-      </div>
+      {categories.length > 0 && (
+        <div className="md:col-span-3">
+          <FriendlyCategoryCheckboxes
+            categories={categories}
+            selectedIds={categoryIds}
+            onChange={setCategoryIds}
+          />
+        </div>
+      )}
       <input
         name="firstName"
         placeholder="Nombre"

@@ -4,6 +4,7 @@ import {
   personHasPhoto,
   validateFriendlyPlayerPhoto,
 } from '@/lib/friendly-player-photo'
+import { revalidateOrgAdminRosterPages } from '@/lib/revalidate-org-admin-pages'
 
 export async function GET(
   _req: Request,
@@ -57,6 +58,8 @@ export async function POST(
     data: { photoMimeType: mimeType, photoData: buffer },
   })
 
+  await revalidateOrgAdminRosterPages(exists.organizationId)
+
   return NextResponse.json({ ok: true })
 }
 
@@ -73,5 +76,6 @@ export async function DELETE(
     where: { id: exists.personId },
     data: { photoMimeType: null, photoData: null },
   })
+  await revalidateOrgAdminRosterPages(exists.organizationId)
   return NextResponse.json({ ok: true })
 }

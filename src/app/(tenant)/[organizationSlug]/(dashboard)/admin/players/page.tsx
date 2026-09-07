@@ -1,19 +1,23 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
+import { orgPath } from '@/lib/tenant-paths'
 import { requireOrganizationId } from '@/lib/tenant-access'
-import { OrgPlayerForm } from '@/components/admin/OrgPlayerForm'
-import { PlayersTable } from '@/components/admin/PlayersTable'
+import { FriendlyPlayerForm } from '@/components/admin/FriendlyPlayerForm'
+import { FriendlyPlayersTable } from '@/components/admin/FriendlyPlayersTable'
 import { playerDisplayName } from '@/lib/person-name'
-import { playerRegisterPath } from '@/lib/player-register-link'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPlayersPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ organizationSlug: string }>
+  searchParams: Promise<{ categoryId?: string }>
 }) {
   const { organizationSlug } = await params
+  const { categoryId } = await searchParams
   let organizationId: string
   try {
     organizationId = await requireOrganizationId(organizationSlug)
@@ -21,14 +25,20 @@ export default async function AdminPlayersPage({
     notFound()
   }
 
-  const [players, teams] = await Promise.all([
+  const [players, categories, teams] = await Promise.all([
     db.player.findMany({
       where: { organizationId },
       include: {
-        person: { include: { user: { select: { name: true, email: true } } } },
-        team: { select: { id: true, name: true } },
+        person: {
+          include: { user: { select: { email: true } } },
+        },
+        categories: { select: { friendlyCategoryId: true } },
       },
-      orderBy: { person: { firstName: 'asc' } },
+      orderBy: [{ person: { lastName: 'asc' } }, { person: { firstName: 'asc' } }],
+    }),
+    db.friendlyCategory.findMany({
+      where: { organizationId },
+      orderBy: { name: 'asc' },
     }),
     db.team.findMany({
       where: { organizationId },
@@ -36,31 +46,77 @@ export default async function AdminPlayersPage({
     }),
   ])
 
-  const teamOptions = teams.map((t) => ({ id: t.id, name: t.name }))
+  const categoryOptions = categories.map((category) => ({
+    id: category.id,
+    name: category.name,
+  }))
+  const teamOptions = teams.map((team) => ({ id: team.id, name: team.name }))
+  const defaultCategoryIds =
+    categoryId && categories.some((category) => category.id === categoryId)
+      ? [categoryId]
+      : []
+
+  const mergeOptions = players.map((player) => ({
+    personId: player.personId,
+    label: playerDisplayName(player.person),
+  }))
+
+  const rows = players.map((player) => ({
+    id: player.id,
+    personId: player.personId,
+    firstName: player.person.firstName,
+    lastName: player.person.lastName,
+    email: player.person.user?.email ?? null,
+    hasPhoto: Boolean(player.person.photoMimeType),
+    dominantFoot: player.dominantFoot,
+    primaryPosition: player.primaryPosition,
+    secondaryPosition: player.secondaryPosition,
+    categoryIds: player.categories.map((link) => link.friendlyCategoryId),
+  }))
+
+  const filteredRows = categoryId
+    ? rows.filter((row) => row.categoryIds.includes(categoryId))
+    : rows
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold">Jugadores</h1>
         <p className="mt-1 text-sm text-kelme-gray-500">
-          Plantel de tu liga: jugadores y equipos de esta organización. Si un jugador no tiene
-          cuenta, copia su link de registro y envíaselo.
+          Fichas de jugadores de tu organización: categorías, equipo, foto de perfil y cuenta de
+          acceso opcional.
         </p>
+        {categoryOptions.length > 0 && (
+          <p className="mt-2 text-sm">
+            <Link
+              href={orgPath(organizationSlug, '/admin/friendly-categories')}
+              className="font-semibold text-kelme-red hover:underline"
+            >
+              Gestionar categorías amistosas
+            </Link>
+          </p>
+        )}
       </div>
-      <OrgPlayerForm teams={teamOptions} />
-      <PlayersTable
-        players={players.map((p) => ({
-          id: p.id,
-          name: playerDisplayName(p),
-          email: p.person.user?.email ?? '',
-          hasAccount: Boolean(p.person.user),
-          registerPath: p.person.user ? null : playerRegisterPath(p.id, organizationSlug),
-          teamId: p.team?.id ?? null,
-          teamName: p.team?.name ?? null,
-          jerseyNumber: p.jerseyNumber,
-          position: p.position ?? p.primaryPosition,
-        }))}
+      <FriendlyPlayerForm
+        categories={categoryOptions}
         teams={teamOptions}
+        defaultCategoryIds={defaultCategoryIds}
+      />
+      {categoryId && (
+        <p className="text-sm text-kelme-gray-500">
+          Filtrando por categoría.{' '}
+          <Link
+            href={orgPath(organizationSlug, '/admin/players')}
+            className="font-semibold text-kelme-red hover:underline"
+          >
+            Ver todos
+          </Link>
+        </p>
+      )}
+      <FriendlyPlayersTable
+        players={filteredRows}
+        categories={categoryOptions}
+        mergeOptions={mergeOptions}
       />
     </div>
   )
