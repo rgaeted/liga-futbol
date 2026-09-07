@@ -4,11 +4,7 @@ import { AwardRevealGrid } from '@/components/marketing/AwardRevealCard'
 import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
 import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { LosLunesResults } from '@/components/marketing/LosLunesResults'
-import {
-  MatchAttendanceBoard,
-  type AttendanceViewer,
-} from '@/components/match-attendance/MatchAttendanceBoard'
-import { attendanceSectionId } from '@/lib/match-attendance'
+import { FriendlyAttendanceCards } from '@/components/marketing/FriendlyAttendanceCards'
 import { TeamCrest } from '@/components/TeamCrest'
 import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
 import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
@@ -79,11 +75,9 @@ function RankingCard({
 export function OrgPublicLanding({
   data,
   panelHref = null,
-  attendanceViewer,
 }: {
   data: OrgPublicLandingData
   panelHref?: string | null
-  attendanceViewer: AttendanceViewer
 }) {
   const { organization, featured, nextMatch, results, form, scorers, assists, awards } = data
   const slug = organization.slug
@@ -456,24 +450,7 @@ export function OrgPublicLanding({
           </section>
         ) : null}
 
-        {data.attendances.length > 0 ? (
-          <section className="py-[26px]">
-            <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] flex-col gap-10">
-              {data.attendances.map((board, index) => (
-                <MatchAttendanceBoard
-                  key={board.matchId}
-                  matchId={board.matchId}
-                  open={board.open}
-                  attendees={board.attendees}
-                  viewer={attendanceViewer}
-                  matchLabel={board.matchLabel}
-                  dateLine={board.dateLine}
-                  sectionId={attendanceSectionId(board.matchId, index)}
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
+        <FriendlyAttendanceCards slug={slug} boards={data.attendances} />
 
         {results.length > 0 ? (
           isLosLunes ? (

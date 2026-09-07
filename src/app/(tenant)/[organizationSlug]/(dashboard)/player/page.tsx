@@ -12,11 +12,9 @@ import { requireOrganizationId } from '@/lib/tenant-access'
 import { orgPath } from '@/lib/tenant-paths'
 import { MatchLiveLink } from '@/components/player/MatchLiveLink'
 import { PlayerAwardBadges } from '@/components/player/PlayerAwardBadges'
-import { MatchAttendanceBoard } from '@/components/match-attendance/MatchAttendanceBoard'
 import {
-  attendanceSectionId,
-  attendanceViewerFromPlayer,
   findScheduledFriendlyAttendanceWhere,
+  friendlyMatchPublicPath,
   MATCH_ATTENDANCE_BOARD_SELECT,
   toMatchAttendanceBoard,
 } from '@/lib/match-attendance'
@@ -135,24 +133,19 @@ export default async function PlayerDashboardPage({
       </section>
 
       {scheduledFriendlies.length > 0 ? (
-        <div className="mb-8 space-y-10">
-          {scheduledFriendlies.map((match, index) => {
+        <div className="mb-8 space-y-3">
+          <h2 className="text-lg font-semibold">¿Quién va?</h2>
+          {scheduledFriendlies.map((match) => {
             const board = toMatchAttendanceBoard(match)
             return (
-              <MatchAttendanceBoard
+              <Link
                 key={board.matchId}
-                matchId={board.matchId}
-                open={board.open}
-                attendees={board.attendees}
-                matchLabel={board.matchLabel}
-                dateLine={board.dateLine}
-                sectionId={attendanceSectionId(board.matchId, index)}
-                viewer={attendanceViewerFromPlayer({
-                  signedIn: true,
-                  playerId: player.id,
-                  loginHref: `/login?callbackUrl=/${organizationSlug}/player`,
-                })}
-              />
+                href={friendlyMatchPublicPath(organizationSlug, board.matchId)}
+                className="block rounded-xl border border-kelme-border bg-kelme-surface px-4 py-3"
+              >
+                <p className="text-xs text-kelme-gray-500">{board.dateLine}</p>
+                <p className="font-semibold">{board.matchLabel}</p>
+              </Link>
             )
           })}
         </div>
