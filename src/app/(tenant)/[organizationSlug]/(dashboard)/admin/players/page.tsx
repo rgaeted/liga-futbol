@@ -58,7 +58,7 @@ export default async function AdminPlayersPage({
 
   const mergeOptions = players.map((player) => ({
     personId: player.personId,
-    label: playerDisplayName(player.person),
+    label: playerDisplayName(player),
   }))
 
   const rows = players.map((player) => ({
