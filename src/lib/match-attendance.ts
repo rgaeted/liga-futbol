@@ -72,3 +72,10 @@ export function findNextFriendlyAttendanceWhere(organizationId: string, now: Dat
     scheduledAt: { gte: now },
   }
 }
+
+export function isViewerGoing(
+  myPlayerId: string | null,
+  attendees: Array<{ playerId: string }>
+): boolean {
+  return Boolean(myPlayerId && attendees.some((row) => row.playerId === myPlayerId))
+}

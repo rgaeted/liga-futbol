@@ -4,6 +4,7 @@ import {
   attendanceClosedMessage,
   canOpenMatchAttendance,
   findNextFriendlyAttendanceWhere,
+  isViewerGoing,
   serializeMatchAttendance,
 } from '@/lib/match-attendance'
 
@@ -83,5 +84,13 @@ describe('findNextFriendlyAttendanceWhere', () => {
       status: MatchStatus.SCHEDULED,
       scheduledAt: { gte: now },
     })
+  })
+})
+
+describe('isViewerGoing', () => {
+  it('is true only when myPlayerId is in the list', () => {
+    expect(isViewerGoing('p1', [{ playerId: 'p1' }, { playerId: 'p2' }])).toBe(true)
+    expect(isViewerGoing('p3', [{ playerId: 'p1' }])).toBe(false)
+    expect(isViewerGoing(null, [{ playerId: 'p1' }])).toBe(false)
   })
 })
