@@ -16,6 +16,7 @@ import { MatchActions, type MatchRow } from '@/components/admin/MatchActions'
 import { useOrgPath } from '@/hooks/useOrgPath'
 import { DeleteButton } from '@/components/admin/DeleteButton'
 import type { FriendlyRosterPlayer } from '@/components/admin/FriendlyMatchConvocationPicker'
+import { attendanceCountLabel } from '@/lib/match-attendance'
 
 type FriendlyPlayerRow = {
   participationId: string
@@ -47,6 +48,7 @@ type Props = {
   referees: RefereeOption[]
   rosterPlayers: FriendlyRosterPlayer[]
   teams?: Array<{ id: string; name: string }>
+  attendanceNames?: string[]
 }
 
 function SideColumn({
@@ -140,6 +142,7 @@ export function AdminMatchCard({
   referees,
   rosterPlayers,
   teams = [],
+  attendanceNames = [],
 }: Props) {
   const orgPath = useOrgPath()
   const [editing, setEditing] = useState(false)
@@ -177,6 +180,13 @@ export function AdminMatchCard({
             ) : null}
           </div>
         </div>
+
+        {matchType === MatchType.FRIENDLY && status === 'SCHEDULED' ? (
+          <p className="mt-2 text-xs text-kelme-gray-600">
+            {attendanceCountLabel(attendanceNames.length)}
+            {attendanceNames.length > 0 ? `: ${attendanceNames.join(', ')}` : ''}
+          </p>
+        ) : null}
 
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-kelme-gray-50 px-3 py-1.5 text-xs text-kelme-gray-700">

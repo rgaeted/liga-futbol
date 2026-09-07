@@ -9,6 +9,7 @@ import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { formatScheduleDateInput, formatScheduleTimeInput } from '@/lib/schedule-datetime'
 import { ChallengeStatus, MatchType } from '@prisma/client'
 import { matchSideHasCrest } from '@/lib/match-side-crest'
+import { MATCH_ATTENDANCE_INCLUDE, serializeMatchAttendance } from '@/lib/match-attendance'
 
 export default async function AdminMatchesPage({
   params,
@@ -63,6 +64,10 @@ export default async function AdminMatchesPage({
               },
             },
           },
+        },
+        attendances: {
+          orderBy: { createdAt: 'asc' },
+          include: MATCH_ATTENDANCE_INCLUDE,
         },
       },
       orderBy: { scheduledAt: 'desc' },
@@ -211,6 +216,11 @@ export default async function AdminMatchesPage({
               referees={referees}
               rosterPlayers={rosterPlayers}
               teams={teamOptions}
+              attendanceNames={
+                match.matchType === MatchType.FRIENDLY
+                  ? serializeMatchAttendance(match.attendances).map((row) => row.name)
+                  : []
+              }
             />
           )
         })}
