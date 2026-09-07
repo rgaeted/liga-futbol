@@ -49,3 +49,15 @@ next-env.d.ts
 # contexto local de sesión (no subir al repo)
 docs/handoff/
 .cursor/rules/session-context.mdc
+
+# artefactos locales de agentes / SDD
+.superpowers/
+
+# basura de debug HTTP y scratch en raíz
+/cookies*.txt
+/body.txt
+/headers.txt
+/tmp-*
+
+# CLI Supabase (queries y estado local)
+supabase/.temp/
