@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import Link from 'next/link'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
 import { LosLunesDarkPitch } from '@/components/live/LosLunesDarkPitch'
 import { LosLunesLiveScoreboard } from '@/components/live/LosLunesLiveScoreboard'
@@ -23,6 +24,30 @@ import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { TeamCrest } from '@/components/TeamCrest'
 import { matchStatusLabel } from '@/lib/match-status-ui'
+
+function LiveHomeButton({ href, premium }: { href: string; premium: boolean }) {
+  return (
+    <nav className="mb-6">
+      <Link
+        href={href}
+        className={
+          premium
+            ? 'inline-flex items-center gap-2 rounded-full border border-[#d4af37]/40 bg-black/55 px-3.5 py-1.5 font-ui text-xs font-semibold text-white/80 backdrop-blur-sm transition hover:border-[#d4af37]/70 hover:text-white'
+            : 'inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#121A18] px-3.5 py-1.5 font-ui text-xs font-semibold text-[#E8E4D8] transition hover:border-org-primary/50 hover:text-white'
+        }
+      >
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M10.2 2.7 4.9 8l5.3 5.3 1.1-1.1L7.1 8l4.2-4.2-1.1-1.1Z"
+          />
+        </svg>
+        Volver al inicio
+      </Link>
+    </nav>
+  )
+}
+
 function DefaultScoreboardBody({
   match,
   isLive,
@@ -152,6 +177,10 @@ export function LiveScoreboard({
       {premium ? <LosLunesPageBackdrop /> : null}
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-8">
+        {organizationSlug ? (
+          <LiveHomeButton href={`/${organizationSlug}`} premium={premium} />
+        ) : null}
+
         {premium ? (
           <div className="mb-10">
             <LosLunesLiveScoreboard match={match} isLive={isLive} />
