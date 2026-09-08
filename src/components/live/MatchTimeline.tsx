@@ -734,11 +734,22 @@ function TimelineHeader({
   header?: MatchTimelineHeader
 }) {
   if (premium) {
-    const showScore =
+    const score =
       header?.homeName &&
       header.awayName &&
       header.homeScore != null &&
       header.awayScore != null
+        ? {
+            homeName: header.homeName,
+            awayName: header.awayName,
+            homeScore: header.homeScore,
+            awayScore: header.awayScore,
+            homeCrestSrc: header.homeCrestSrc,
+            awayCrestSrc: header.awayCrestSrc,
+            homeColor: header.homeColor,
+            awayColor: header.awayColor,
+          }
+        : null
 
     return (
       <div className="relative z-10 mb-8 px-1 text-center">
@@ -753,15 +764,15 @@ function TimelineHeader({
             <LosLunesLocationPill label={header.venueLabel} />
           </div>
         ) : null}
-        {showScore ? (
+        {score ? (
           <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
             <div className="flex min-w-0 flex-col items-center text-center">
               <div className="mb-2 rounded-full bg-gradient-to-br from-[#fff1b0] via-[#d4af37] to-[#8a6414] p-[2px] shadow-[0_0_18px_rgba(212,175,55,0.35)]">
                 <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#141010] sm:h-16 sm:w-16">
                   <TeamCrest
-                    name={header.homeName}
-                    src={header.homeCrestSrc}
-                    color={header.homeColor}
+                    name={score.homeName}
+                    src={score.homeCrestSrc}
+                    color={score.homeColor}
                     size="md"
                     fit="contain"
                     className="!h-[78%] !w-[78%]"
@@ -769,7 +780,7 @@ function TimelineHeader({
                 </div>
               </div>
               <p className="font-display text-sm font-bold uppercase tracking-[-0.02em] text-white sm:text-lg">
-                {header.homeName}
+                {score.homeName}
               </p>
             </div>
             <div className="relative min-w-[110px] text-center">
@@ -778,18 +789,18 @@ function TimelineHeader({
                 aria-hidden
               />
               <p className="loslunes-gold-score relative font-live-serif text-[clamp(40px,9vw,72px)] font-black leading-none tracking-tight tabular-nums">
-                {header.homeScore}
+                {score.homeScore}
                 <span className="mx-[0.12em]">-</span>
-                {header.awayScore}
+                {score.awayScore}
               </p>
             </div>
             <div className="flex min-w-0 flex-col items-center text-center">
               <div className="mb-2 rounded-full bg-gradient-to-br from-[#fff1b0] via-[#d4af37] to-[#8a6414] p-[2px] shadow-[0_0_18px_rgba(212,175,55,0.35)]">
                 <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#141010] sm:h-16 sm:w-16">
                   <TeamCrest
-                    name={header.awayName}
-                    src={header.awayCrestSrc}
-                    color={header.awayColor}
+                    name={score.awayName}
+                    src={score.awayCrestSrc}
+                    color={score.awayColor}
                     size="md"
                     fit="contain"
                     className="!h-[78%] !w-[78%]"
@@ -797,7 +808,7 @@ function TimelineHeader({
                 </div>
               </div>
               <p className="font-display text-sm font-bold uppercase tracking-[-0.02em] text-white sm:text-lg">
-                {header.awayName}
+                {score.awayName}
               </p>
             </div>
           </div>
