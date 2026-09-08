@@ -67,9 +67,12 @@ function resolveEventSide(
   return 'left'
 }
 
-function AxisNode({ type }: { type: string }) {
+function AxisNode({ type, premium }: { type: string; premium: boolean }) {
   const base =
     'relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 sm:h-10 sm:w-10'
+  const goalRing = premium
+    ? 'border-amber-300/70 bg-[#0a0806] shadow-[0_0_18px_rgba(245,200,66,0.45)]'
+    : 'border-org-primary bg-[#141010] shadow-[0_0_16px_rgba(245,127,32,0.45)]'
 
   switch (type) {
     case 'KICKOFF':
@@ -84,8 +87,8 @@ function AxisNode({ type }: { type: string }) {
     case 'PENALTY_GOAL':
     case 'OWN_GOAL':
       return (
-        <span className={`${base} border-org-primary bg-[#141010] shadow-[0_0_16px_rgba(245,127,32,0.45)]`} aria-hidden>
-          <svg viewBox="0 0 16 16" className="h-4 w-4 text-white">
+        <span className={`${base} ${goalRing}`} aria-hidden>
+          <svg viewBox="0 0 16 16" className="h-4 w-4 text-amber-100">
             <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.1" />
             <path
               d="M8 2.2 9.4 5.1 12.6 5.3 10.2 7.3 11 10.4 8 8.8 5 10.4 5.8 7.3 3.4 5.3 6.6 5.1 8 2.2z"
@@ -136,9 +139,15 @@ function AxisNode({ type }: { type: string }) {
   }
 }
 
-function MinuteOnAxis({ minute }: { minute: number }) {
+function MinuteOnAxis({ minute, premium }: { minute: number; premium: boolean }) {
   return (
-    <span className="mb-1 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-white/85 sm:text-[11px]">
+    <span
+      className={`mb-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums sm:text-[11px] ${
+        premium
+          ? 'bg-black/80 text-amber-100/90 ring-1 ring-amber-400/25'
+          : 'bg-black/70 text-white/85'
+      }`}
+    >
       {minute}&apos;
     </span>
   )
@@ -148,35 +157,76 @@ function PlayerActorAvatar({
   name,
   photoUrl,
   size = 'md',
+  premium = false,
 }: {
   name: string
   photoUrl?: string | null
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
+  premium?: boolean
 }) {
-  const box = size === 'sm' ? 'h-10 w-10' : 'h-12 w-12 sm:h-14 sm:w-14'
-  const text = size === 'sm' ? 'text-[10px]' : 'text-xs sm:text-sm'
+  const box =
+    size === 'sm' ? 'h-10 w-10' : size === 'lg' ? 'h-16 w-16 sm:h-[4.5rem] sm:w-[4.5rem]' : 'h-12 w-12 sm:h-14 sm:w-14'
+  const text =
+    size === 'sm' ? 'text-[10px]' : size === 'lg' ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'
 
-  return (
+  const inner = (
     <div
-      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1a1a1a] ring-2 ring-white/15 ${box}`}
+      className={`flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#141010] ${
+        premium ? 'ring-0' : 'ring-2 ring-white/15'
+      }`}
     >
       {photoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={photoUrl} alt="" className="h-full w-full object-cover" />
       ) : (
-        <span className={`font-display font-bold text-white/70 ${text}`}>{personInitials(name)}</span>
+        <span className={`font-display font-bold text-white/75 ${text}`}>{personInitials(name)}</span>
       )}
     </div>
   )
+
+  if (premium) {
+    return (
+      <div
+        className={`shrink-0 rounded-full bg-gradient-to-br from-amber-200/90 via-amber-400/50 to-amber-700/40 p-[3px] shadow-[0_0_22px_rgba(245,200,66,0.35)] ${box}`}
+      >
+        {inner}
+      </div>
+    )
+  }
+
+  return <div className={`shrink-0 overflow-hidden rounded-full ${box}`}>{inner}</div>
 }
 
 function AssistLine({
   name,
   photoUrl,
+  premium = false,
 }: {
   name: string
   photoUrl?: string | null
+  premium?: boolean
 }) {
+  if (premium) {
+    return (
+      <div className="mt-1.5 flex min-w-0 items-center gap-2">
+        {photoUrl ? (
+          <div className="shrink-0 rounded-full bg-gradient-to-br from-amber-200/70 to-amber-600/30 p-px">
+            <div className="h-5 w-5 overflow-hidden rounded-full bg-[#141010]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+            </div>
+          </div>
+        ) : null}
+        <p className="min-w-0 truncate text-xs text-white/55">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-400/55">
+            Asist.
+          </span>{' '}
+          <span className="font-display text-sm text-white/80">{name}</span>
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="mt-1 flex min-w-0 items-center gap-2">
       {photoUrl ? (
@@ -193,15 +243,75 @@ function AssistLine({
   )
 }
 
-function EventPlayerColumn({ event }: { event: TimelineEvent }) {
-  if (!event.playerName) return null
-  return (
-    <PlayerActorAvatar name={event.playerName} photoUrl={event.playerPhotoUrl} />
-  )
+function cardShell(premium: boolean, extra = '') {
+  return premium
+    ? `overflow-hidden rounded-2xl border border-amber-400/30 bg-black/55 shadow-[0_0_32px_rgba(245,200,66,0.08)] backdrop-blur-sm ${extra}`
+    : `overflow-hidden rounded-xl border border-white/10 bg-[#101010]/90 ${extra}`
 }
 
-function GoalCard({ event, label }: { event: TimelineEvent; label: string }) {
+function GoalCard({
+  event,
+  label,
+  premium,
+}: {
+  event: TimelineEvent
+  label: string
+  premium: boolean
+}) {
   const quote = isGoalType(event.type) && event.description
+
+  if (premium) {
+    return (
+      <article className={cardShell(true, 'relative border-org-primary/40')}>
+        <div
+          className="pointer-events-none absolute inset-0 opacity-25"
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 12% 40%, rgba(245,200,66,0.16), transparent 45%),
+              repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 20px),
+              repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 20px)
+            `,
+          }}
+          aria-hidden
+        />
+        <div className="relative flex items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
+          {event.playerName ? (
+            <PlayerActorAvatar
+              name={event.playerName}
+              photoUrl={event.playerPhotoUrl}
+              size="lg"
+              premium
+            />
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-400/80">
+              {label}
+            </p>
+            {event.playerName ? (
+              <p className="mt-0.5 truncate font-display text-lg font-bold leading-tight text-white sm:text-xl">
+                {event.playerName}
+              </p>
+            ) : null}
+            {event.assistName ? (
+              <AssistLine name={event.assistName} photoUrl={event.assistPhotoUrl} premium />
+            ) : null}
+            {quote ? (
+              <p className="mt-2 font-display text-xs italic leading-snug text-amber-100/70 sm:text-sm">
+                &ldquo;{event.description}&rdquo;
+              </p>
+            ) : null}
+          </div>
+          {event.scoreAfter ? (
+            <div className="flex shrink-0 items-center self-center px-1">
+              <span className="font-display text-3xl font-bold tabular-nums tracking-tight text-[#f5c842] drop-shadow-[0_0_18px_rgba(245,200,66,0.45)] sm:text-4xl">
+                {formatScoreDisplay(event.scoreAfter)}
+              </span>
+            </div>
+          ) : null}
+        </div>
+      </article>
+    )
+  }
 
   return (
     <article className="relative overflow-hidden rounded-xl border border-org-primary bg-[#0c0c0c] shadow-[0_0_28px_rgba(245,127,32,0.22)]">
@@ -216,8 +326,11 @@ function GoalCard({ event, label }: { event: TimelineEvent; label: string }) {
         }}
         aria-hidden
       />
-      <div className="relative grid grid-cols-[1fr_auto] items-stretch gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4 sm:p-4">
-        <div className="min-w-0">
+      <div className="relative flex items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
+        {event.playerName ? (
+          <PlayerActorAvatar name={event.playerName} photoUrl={event.playerPhotoUrl} size="lg" />
+        ) : null}
+        <div className="min-w-0 flex-1">
           <p className="font-display text-sm font-bold uppercase tracking-[0.14em] text-org-primary sm:text-base">
             {label}
           </p>
@@ -235,18 +348,11 @@ function GoalCard({ event, label }: { event: TimelineEvent; label: string }) {
             </p>
           ) : null}
         </div>
-
         {event.scoreAfter ? (
-          <div className="flex items-center justify-center px-1 sm:px-3">
+          <div className="flex shrink-0 items-center self-center px-1">
             <span className="font-display text-3xl font-bold tabular-nums tracking-tight text-[#f5c842] sm:text-4xl">
               {formatScoreDisplay(event.scoreAfter)}
             </span>
-          </div>
-        ) : null}
-
-        {event.playerName ? (
-          <div className="col-span-2 flex justify-end sm:col-span-1 sm:justify-center">
-            <EventPlayerColumn event={event} />
           </div>
         ) : null}
       </div>
@@ -259,18 +365,16 @@ function MilestoneCard({
   label,
   side,
   showHalftimePhoto,
+  premium,
 }: {
   event: TimelineEvent
   label: string
   side: 'left' | 'right'
   showHalftimePhoto?: boolean
+  premium: boolean
 }) {
   return (
-    <article
-      className={`overflow-hidden rounded-xl border border-white/12 bg-[#101010]/95 ${
-        side === 'left' ? 'sm:mr-2' : 'sm:ml-2'
-      }`}
-    >
+    <article className={cardShell(premium, side === 'left' ? 'sm:mr-2' : 'sm:ml-2')}>
       <div className="flex items-stretch gap-0">
         {showHalftimePhoto && event.type === 'HALFTIME' ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -281,38 +385,69 @@ function MilestoneCard({
           />
         ) : null}
         <div className="flex flex-1 items-center gap-3 p-3 sm:p-4">
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-white sm:text-sm">
-            {label}
-          </p>
-          {event.description ? (
-            <p className="mt-1 text-xs leading-snug text-white/55 sm:text-sm">{event.description}</p>
-          ) : event.type === 'KICKOFF' ? (
-            <p className="mt-1 text-xs text-white/45 sm:text-sm">¡Ya se juega en la cancha!</p>
-          ) : null}
-        </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className={`font-display text-xs font-bold uppercase tracking-[0.16em] sm:text-sm ${
+                premium ? 'text-amber-100/90' : 'text-white'
+              }`}
+            >
+              {label}
+            </p>
+            {event.description ? (
+              <p className="mt-1 text-xs leading-snug text-white/55 sm:text-sm">{event.description}</p>
+            ) : event.type === 'KICKOFF' ? (
+              <p className="mt-1 text-xs text-white/45 sm:text-sm">¡Ya se juega en la cancha!</p>
+            ) : null}
+          </div>
         </div>
       </div>
     </article>
   )
 }
 
-function CompactCard({ event, label }: { event: TimelineEvent; label: string }) {
+function CompactCard({
+  event,
+  label,
+  premium,
+}: {
+  event: TimelineEvent
+  label: string
+  premium: boolean
+}) {
   return (
-    <article className="rounded-lg border border-white/10 bg-[#101010]/90 px-3 py-2.5 sm:px-4 sm:py-3">
+    <article className={cardShell(premium, 'px-3 py-2.5 sm:px-4 sm:py-3')}>
       <div className="flex items-center gap-3">
+        {event.playerName ? (
+          <PlayerActorAvatar
+            name={event.playerName}
+            photoUrl={event.playerPhotoUrl}
+            size={premium ? 'md' : 'sm'}
+            premium={premium}
+          />
+        ) : null}
         <div className="min-w-0 flex-1">
-          <p className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-white/90 sm:text-xs">
+          <p
+            className={`font-display text-[11px] font-bold uppercase tracking-[0.14em] sm:text-xs ${
+              premium ? 'text-amber-400/75' : 'text-white/90'
+            }`}
+          >
             {label}
           </p>
           {event.playerName ? (
-            <p className="mt-0.5 truncate font-ui text-sm text-white/75">{event.playerName}</p>
+            <p
+              className={`mt-0.5 truncate ${
+                premium
+                  ? 'font-display text-base font-semibold text-white'
+                  : 'font-ui text-sm text-white/75'
+              }`}
+            >
+              {event.playerName}
+            </p>
           ) : null}
           {event.assistName ? (
-            <AssistLine name={event.assistName} photoUrl={event.assistPhotoUrl} />
+            <AssistLine name={event.assistName} photoUrl={event.assistPhotoUrl} premium={premium} />
           ) : null}
         </div>
-        {event.playerName ? <EventPlayerColumn event={event} /> : null}
       </div>
     </article>
   )
@@ -323,14 +458,16 @@ function TimelineEventCard({
   label,
   side,
   showHalftimePhoto,
+  premium,
 }: {
   event: TimelineEvent
   label: string
   side: 'left' | 'right'
   showHalftimePhoto?: boolean
+  premium: boolean
 }) {
   if (isGoalType(event.type)) {
-    return <GoalCard event={event} label={label} />
+    return <GoalCard event={event} label={label} premium={premium} />
   }
   if (event.type === 'KICKOFF' || event.type === 'HALFTIME' || event.type === 'FULLTIME') {
     return (
@@ -339,10 +476,11 @@ function TimelineEventCard({
         label={label}
         side={side}
         showHalftimePhoto={showHalftimePhoto}
+        premium={premium}
       />
     )
   }
-  return <CompactCard event={event} label={label} />
+  return <CompactCard event={event} label={label} premium={premium} />
 }
 
 function SideWatermark({
@@ -350,17 +488,19 @@ function SideWatermark({
   crestSrc,
   color,
   align,
+  premium,
 }: {
   name: string
   crestSrc: string | null
   color: string
   align: 'left' | 'right'
+  premium: boolean
 }) {
   return (
     <div
-      className={`pointer-events-none absolute top-8 hidden select-none opacity-[0.07] lg:block ${
-        align === 'left' ? 'left-0' : 'right-0'
-      }`}
+      className={`pointer-events-none absolute top-12 hidden select-none lg:block ${
+        premium ? 'opacity-[0.05]' : 'opacity-[0.07]'
+      } ${align === 'left' ? 'left-0' : 'right-0'}`}
       aria-hidden
     >
       <div
@@ -383,11 +523,13 @@ function TimelineRow({
   side,
   label,
   showHalftimePhoto,
+  premium,
 }: {
   event: TimelineEvent
   side: 'left' | 'right'
   label: string
   showHalftimePhoto?: boolean
+  premium: boolean
 }) {
   const connector =
     side === 'left'
@@ -400,32 +542,41 @@ function TimelineRow({
       label={label}
       side={side}
       showHalftimePhoto={showHalftimePhoto}
+      premium={premium}
     />
   )
+
+  const spineClass = premium
+    ? 'bg-gradient-to-b from-amber-400/5 via-amber-300/25 to-amber-400/5'
+    : 'bg-gradient-to-b from-white/5 via-white/20 to-white/5'
 
   return (
     <li className="relative py-3 sm:py-4">
       <div
-        className={`absolute top-1/2 hidden h-px -translate-y-1/2 bg-white/15 sm:block ${connector}`}
+        className={`absolute top-1/2 hidden h-px -translate-y-1/2 sm:block ${
+          premium ? 'bg-amber-400/20' : 'bg-white/15'
+        } ${connector}`}
         aria-hidden
       />
 
       <div className="hidden grid-cols-[1fr_44px_1fr] items-center gap-3 sm:grid">
         <div className="min-w-0">{side === 'left' ? card : null}</div>
         <div className="flex flex-col items-center justify-center">
-          <MinuteOnAxis minute={event.minute} />
-          <AxisNode type={event.type} />
+          <MinuteOnAxis minute={event.minute} premium={premium} />
+          <AxisNode type={event.type} premium={premium} />
         </div>
         <div className="min-w-0">{side === 'right' ? card : null}</div>
       </div>
 
       <div className="grid grid-cols-[40px_1fr] items-start gap-3 sm:hidden">
         <div className="flex flex-col items-center">
-          <MinuteOnAxis minute={event.minute} />
-          <AxisNode type={event.type} />
+          <MinuteOnAxis minute={event.minute} premium={premium} />
+          <AxisNode type={event.type} premium={premium} />
         </div>
         <div className="min-w-0 pt-1">{card}</div>
       </div>
+
+      <span className={`absolute bottom-0 left-1/2 top-0 -z-10 w-px -translate-x-1/2 ${spineClass} sm:hidden`} aria-hidden />
     </li>
   )
 }
@@ -439,14 +590,18 @@ export function MatchTimeline({
   teams: MatchTimelineTeams
   organizationSlug?: string
 }) {
-  const isLosLunes = organizationSlug === LOSLUNES_SLUG
+  const premium = organizationSlug === LOSLUNES_SLUG
   let kickoffCount = 0
 
   if (events.length === 0) {
     return (
       <section className="relative">
-        <TimelineHeader isLosLunes={isLosLunes} />
-        <div className="rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-10 text-center font-ui text-sm text-white/40">
+        <TimelineHeader premium={premium} />
+        <div
+          className={`rounded-xl px-4 py-10 text-center font-ui text-sm text-white/40 ${
+            premium ? 'border border-amber-400/20 bg-black/50' : 'border border-white/10 bg-[#0a0a0a]'
+          }`}
+        >
           Aún no hay eventos en este partido.
         </div>
       </section>
@@ -454,27 +609,54 @@ export function MatchTimeline({
   }
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#050505] px-3 py-6 sm:px-6 sm:py-8">
+    <section
+      className={`relative overflow-hidden px-3 py-6 sm:px-6 sm:py-8 ${
+        premium
+          ? 'rounded-2xl border border-amber-400/25 bg-[#050403]'
+          : 'rounded-2xl border border-white/[0.06] bg-[#050505]'
+      }`}
+    >
+      {premium ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={LOSLUNES_HERO_PATH}
+            alt=""
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.14]"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-black/55 to-black/90"
+            aria-hidden
+          />
+          <p
+            className="pointer-events-none absolute bottom-6 left-4 hidden font-display text-4xl font-bold uppercase tracking-[0.08em] text-white/[0.03] sm:block xl:text-5xl"
+            aria-hidden
+          >
+            Los lunes también se juega
+          </p>
+        </>
+      ) : null}
+
       <SideWatermark
         name={teams.home.name}
         crestSrc={teams.home.crestSrc}
         color={teams.home.color}
         align="left"
+        premium={premium}
       />
       <SideWatermark
         name={teams.away.name}
         crestSrc={teams.away.crestSrc}
         color={teams.away.color}
         align="right"
+        premium={premium}
       />
 
-      <TimelineHeader isLosLunes={isLosLunes} />
+      <TimelineHeader premium={premium} />
 
       <div className="relative mx-auto max-w-4xl">
-        <div
-          className="absolute bottom-4 left-1/2 top-4 w-px -translate-x-1/2 bg-gradient-to-b from-white/5 via-white/20 to-white/5"
-          aria-hidden
-        />
+        <div className={`absolute bottom-4 left-1/2 top-4 w-px -translate-x-1/2 ${premium ? 'bg-gradient-to-b from-amber-400/5 via-amber-300/30 to-amber-400/5' : 'bg-gradient-to-b from-white/5 via-white/20 to-white/5'}`} aria-hidden />
 
         <ul className="relative">
           {events.map((event) => {
@@ -492,28 +674,40 @@ export function MatchTimeline({
                 event={event}
                 side={side}
                 label={label}
-                showHalftimePhoto={isLosLunes}
+                showHalftimePhoto={premium}
+                premium={premium}
               />
             )
           })}
         </ul>
       </div>
 
-      {isLosLunes ? <TimelineFooterLosLunes /> : null}
+      {premium ? <TimelineFooterLosLunes /> : null}
     </section>
   )
 }
 
-function TimelineHeader({ isLosLunes }: { isLosLunes: boolean }) {
+function TimelineHeader({ premium }: { premium: boolean }) {
   return (
-    <div className="relative z-10 mb-6 flex items-end justify-between gap-4 px-1">
-      <h2 className="font-display text-xl font-bold uppercase tracking-[0.08em] text-white sm:text-2xl">
-        Cronología
-      </h2>
-      {isLosLunes ? (
-        <p className="hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-white/35 sm:block">
-          Fútbol · Pasión · Siempre
-        </p>
+    <div className="relative z-10 mb-6 px-1">
+      <div className="flex items-end justify-between gap-4">
+        <h2 className="font-display text-xl font-bold uppercase tracking-[0.08em] text-white sm:text-2xl">
+          Cronología
+        </h2>
+        {premium ? (
+          <p className="hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/45 sm:block">
+            Fútbol · Pasión · Siempre
+          </p>
+        ) : null}
+      </div>
+      {premium ? (
+        <div className="mt-3 flex items-center gap-3">
+          <span className="h-px flex-1 bg-amber-400/25" aria-hidden />
+          <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.24em] text-amber-400/50">
+            Fútbol — Disciplina — Amigos
+          </p>
+          <span className="h-px flex-1 bg-amber-400/25" aria-hidden />
+        </div>
       ) : null}
     </div>
   )
@@ -521,8 +715,8 @@ function TimelineHeader({ isLosLunes }: { isLosLunes: boolean }) {
 
 function TimelineFooterLosLunes() {
   return (
-    <div className="relative z-10 mt-8 flex items-end justify-between gap-4 border-t border-white/[0.06] px-1 pt-5">
-      <p className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 sm:text-xs">
+    <div className="relative z-10 mt-8 flex items-end justify-between gap-4 border-t border-amber-400/15 px-1 pt-5">
+      <p className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-400/40 sm:text-xs">
         Más que un partido
       </p>
       {/* eslint-disable-next-line @next/next/no-img-element */}
