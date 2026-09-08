@@ -53,11 +53,9 @@ docs/handoff/
 # artefactos locales de agentes / SDD
 .superpowers/
 
-# basura de debug HTTP y scratch en raíz
-/cookies*.txt
-/body.txt
-/headers.txt
-/tmp-*
+# scratch local de verificación / segundo next
+.tmp-verify/
+.next-3001/
 
 # CLI Supabase (queries y estado local)
 supabase/.temp/
