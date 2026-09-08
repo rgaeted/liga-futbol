@@ -271,6 +271,11 @@ export function LiveScoreboard({
           }}
           organizationSlug={organizationSlug}
           embedded={premium}
+          header={{
+            status: match.status,
+            isLive,
+            venueLabel: [match.venue, match.locationLabel].filter(Boolean).join(' · ') || null,
+          }}
         />
 
         {premium ? (

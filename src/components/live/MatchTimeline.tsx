@@ -2,7 +2,9 @@ import { TeamCrest } from '@/components/TeamCrest'
 import {
   LosLunesFlankedTitle,
   LosLunesGoldDivider,
+  LosLunesLocationPill,
   LosLunesPhotoRing,
+  LosLunesStatusLine,
   losLunesLiveCard,
 } from '@/components/live/loslunes-live-ui'
 import { LOSLUNES_HERO_PATH, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
@@ -583,16 +585,24 @@ function TimelineRow({
   )
 }
 
+export type MatchTimelineHeader = {
+  status: string
+  isLive?: boolean
+  venueLabel?: string | null
+}
+
 export function MatchTimeline({
   events,
   teams,
   organizationSlug,
   embedded = false,
+  header,
 }: {
   events: TimelineEvent[]
   teams: MatchTimelineTeams
   organizationSlug?: string
   embedded?: boolean
+  header?: MatchTimelineHeader
 }) {
   const premium = organizationSlug === LOSLUNES_SLUG
   const unifiedPremium = premium && embedded
@@ -671,7 +681,7 @@ export function MatchTimeline({
   if (unifiedPremium) {
     return (
       <section className="relative">
-        <TimelineHeader premium />
+        <TimelineHeader premium header={header} />
         <div className={bodyShell}>{timelineList}</div>
       </section>
     )
@@ -701,19 +711,35 @@ export function MatchTimeline({
         </>
       ) : null}
 
-      <TimelineHeader premium={premium} />
+      <TimelineHeader premium={premium} header={header} />
       {timelineList}
       {premium ? <TimelineFooterLosLunes /> : null}
     </section>
   )
 }
 
-function TimelineHeader({ premium }: { premium: boolean }) {
+function TimelineHeader({
+  premium,
+  header,
+}: {
+  premium: boolean
+  header?: MatchTimelineHeader
+}) {
   if (premium) {
     return (
       <div className="relative z-10 mb-8 px-1 text-center">
         <LosLunesFlankedTitle size="hero">Cronología</LosLunesFlankedTitle>
-        <div className="mt-3">
+        {header?.status ? (
+          <div className="mt-2">
+            <LosLunesStatusLine status={header.status} isLive={header.isLive} />
+          </div>
+        ) : null}
+        {header?.venueLabel ? (
+          <div className="mt-4">
+            <LosLunesLocationPill label={header.venueLabel} />
+          </div>
+        ) : null}
+        <div className="mt-4">
           <LosLunesGoldDivider text="Fútbol — Disciplina — Amigos" />
         </div>
       </div>

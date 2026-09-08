@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { LOSLUNES_HERO_PATH } from '@/lib/org-brand'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 import { personInitials } from '@/lib/player-name'
 
 export const losLunesLiveCard =
@@ -41,6 +42,52 @@ export function LosLunesPageBackdrop() {
         Más que fútbol
       </p>
     </>
+  )
+}
+
+function LocationPin() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 text-[#d4af37]">
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z"
+      />
+      <circle cx="12" cy="10" r="2.4" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function LosLunesStatusLine({
+  status,
+  isLive = false,
+}: {
+  status: string
+  isLive?: boolean
+}) {
+  return (
+    <p className="font-display text-[13px] font-semibold uppercase tracking-[0.28em] text-[#e08a32] sm:text-sm">
+      {isLive ? (
+        <span className="live-pulse inline-flex items-center gap-2">
+          <span className="inline-block h-2 w-2 rounded-full bg-[#e08a32]" />
+          En vivo
+        </span>
+      ) : (
+        matchStatusLabel(status)
+      )}
+    </p>
+  )
+}
+
+export function LosLunesLocationPill({ label }: { label: string }) {
+  return (
+    <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-[#d4af37]/40 bg-black/55 px-4 py-2 backdrop-blur-sm">
+      <LocationPin />
+      <p className="truncate font-ui text-xs text-white/80 sm:text-sm">{label}</p>
+    </div>
   )
 }
 

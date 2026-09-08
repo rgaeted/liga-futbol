@@ -1,26 +1,15 @@
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
-import { LosLunesFlankedTitle, LosLunesGoldDivider, LosLunesPhotoRing } from '@/components/live/loslunes-live-ui'
+import {
+  LosLunesFlankedTitle,
+  LosLunesGoldDivider,
+  LosLunesLocationPill,
+  LosLunesPhotoRing,
+  LosLunesStatusLine,
+} from '@/components/live/loslunes-live-ui'
 import { TeamCrest } from '@/components/TeamCrest'
-import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
-
-function LocationPin() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 text-[#d4af37]">
-      <path
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z"
-      />
-      <circle cx="12" cy="10" r="2.4" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
 
 function MvpCard({ mvp }: { mvp: TeamMvpSideView }) {
   return (
@@ -87,20 +76,12 @@ export function LosLunesLiveScoreboard({
         <LosLunesFlankedTitle as="h1" size="hero">
           {match.organization.name}
         </LosLunesFlankedTitle>
-        <p className="mt-2 font-display text-[13px] font-semibold uppercase tracking-[0.28em] text-[#e08a32] sm:text-sm">
-          {isLive ? (
-            <span className="live-pulse inline-flex items-center gap-2">
-              <span className="inline-block h-2 w-2 rounded-full bg-[#e08a32]" />
-              En vivo
-            </span>
-          ) : (
-            matchStatusLabel(match.status)
-          )}
-        </p>
+        <div className="mt-2">
+          <LosLunesStatusLine status={match.status} isLive={isLive} />
+        </div>
         {venueLabel ? (
-          <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-[#d4af37]/40 bg-black/55 px-4 py-2 backdrop-blur-sm">
-            <LocationPin />
-            <p className="truncate font-ui text-xs text-white/80 sm:text-sm">{venueLabel}</p>
+          <div className="mt-4">
+            <LosLunesLocationPill label={venueLabel} />
           </div>
         ) : null}
       </header>
