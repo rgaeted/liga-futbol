@@ -12,7 +12,7 @@ export function LosLunesPageBackdrop() {
       <img
         src={LOSLUNES_HERO_PATH}
         alt=""
-        className="pointer-events-none fixed inset-0 h-full w-full object-cover opacity-[0.16]"
+        className="pointer-events-none fixed inset-0 h-full w-full object-cover opacity-[0.24]"
         aria-hidden
       />
       <div

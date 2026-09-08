@@ -28,6 +28,7 @@ import {
   resolveTeamColor,
 } from '@/lib/team-color'
 import type { LineupView } from '@/lib/match-lineup'
+import { formatLandingCardDate } from '@/lib/org-public-landing'
 
 export type LiveMatchWeather = {
   label: string
@@ -97,6 +98,7 @@ export type LiveMatchSnapshot = {
   awayCoachLabel: string | null
   venue: string | null
   locationLabel: string | null
+  dateLine: string
   weather: LiveMatchWeather | null
   formations: LiveMatchFormation[]
 }
@@ -364,6 +366,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
     awayCoachLabel,
     venue: match.venue,
     locationLabel: formatChileLocation(match.regionName, match.communeName),
+    dateLine: formatLandingCardDate(match.scheduledAt),
     weather,
     formations: formationSides.map((side) => ({
       label: side.label,

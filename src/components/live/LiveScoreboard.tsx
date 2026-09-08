@@ -1,168 +1,26 @@
 'use client'
 
 import { useMemo } from 'react'
-import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
-import { useLiveMatchSnapshot } from '@/hooks/useLiveMatchSnapshot'
-import { sortTimelineEvents } from '@/lib/match-timeline-sort'
-import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
-import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
-import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
+import { LosLunesDarkPitch } from '@/components/live/LosLunesDarkPitch'
+import { LosLunesLiveScoreboard } from '@/components/live/LosLunesLiveScoreboard'
 import {
-  LosLunesGoldDivider,
   LosLunesPageBackdrop,
   LosLunesPageFooter,
   LosLunesPhotoRing,
-  LosLunesSectionTitle,
-  losLunesLiveCard,
 } from '@/components/live/loslunes-live-ui'
-import { TeamCrest } from '@/components/TeamCrest'
+import { useLiveMatchSnapshot } from '@/hooks/useLiveMatchSnapshot'
+import { sortTimelineEvents } from '@/lib/match-timeline-sort'
 import { footballFormatLabel } from '@/lib/football-format'
-import { LOSLUNES_SLUG } from '@/lib/org-brand'
+import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { MatchType } from '@prisma/client'
-import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
-import type { TeamMvpSideView } from '@/lib/match-mvp'
-
-function LiveOrganizationBrand({
-  name,
-  logoUrl,
-  premium,
-}: {
-  name: string
-  logoUrl: string | null
-  premium: boolean
-}) {
-  if (premium) {
-    return (
-      <div className="text-center">
-        <p className="font-display text-xl font-bold uppercase tracking-[0.06em] text-white sm:text-2xl md:text-3xl">
-          {name}
-        </p>
-      </div>
-    )
-  }
-
-  if (logoUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={logoUrl} alt={name} className="h-10 max-w-[220px] object-contain" />
-    )
-  }
-
-  return (
-    <p className="font-display text-lg font-bold uppercase tracking-widest text-[#E8E4D8]">
-      {name}
-    </p>
-  )
-}
-
-function LosLunesMvpCard({ mvp }: { mvp: TeamMvpSideView }) {
-  return (
-    <article className={`${losLunesLiveCard} p-4 sm:p-5`}>
-      <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-        <LosLunesPhotoRing name={mvp.label ?? '?'} photoUrl={mvp.photoUrl} size="xl" />
-        <div className="min-w-0 text-center sm:text-left">
-          <p className="truncate text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-400/70">
-            👑 MVP · {mvp.teamLabel}
-          </p>
-          <p className="mt-1 truncate font-display text-xl font-bold text-white sm:text-2xl">
-            {mvp.label}
-          </p>
-          <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/30">
-            Juego real · Personas reales
-          </p>
-        </div>
-      </div>
-    </article>
-  )
-}
-
-function LosLunesScoreboardBody({
-  match,
-  isLive,
-}: {
-  match: LiveMatchSnapshot
-  isLive: boolean
-}) {
-  const showMvps = match.status === 'FINISHED' && match.teamMvps.some((m) => m.label)
-
-  return (
-    <div className={`${losLunesLiveCard} p-5 sm:p-8`}>
-      <p className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-org-primary">
-        {isLive ? (
-          <span className="live-pulse inline-flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-org-primary" />
-            En vivo
-          </span>
-        ) : (
-          matchStatusLabel(match.status)
-        )}
-      </p>
-
-      <div className="flex items-start justify-between gap-3 sm:gap-4">
-        <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-          <TeamCrest
-            name={match.homeTeam.name}
-            src={match.homeTeam.crestSrc ?? match.organization.logoUrl}
-            color={match.homeTeam.color}
-            size="lg"
-          />
-          <p className="font-display text-sm font-bold uppercase tracking-wide text-white sm:text-base">
-            {match.homeTeam.name}
-          </p>
-          <LiveTeamStaff
-            captainLabel={match.homeCaptainLabel}
-            coachLabel={match.homeCoachLabel}
-          />
-        </div>
-
-        <div className="shrink-0 px-1 pt-2 text-center sm:px-3">
-          <MatchClockDisplay
-            clock={{ ...match.clock, status: match.status }}
-            className="mb-1 text-3xl text-amber-100/90 sm:text-4xl"
-          />
-          <p className="font-display text-5xl font-bold tabular-nums tracking-tight text-[#f5c842] drop-shadow-[0_0_20px_rgba(245,200,66,0.4)] sm:text-6xl md:text-7xl">
-            {match.homeScore}
-            <span className="mx-1 text-amber-400/40">-</span>
-            {match.awayScore}
-          </p>
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-          <TeamCrest
-            name={match.awayTeam.name}
-            src={match.awayTeam.crestSrc ?? match.guestOrganization?.logoUrl}
-            color={match.awayTeam.color}
-            size="lg"
-          />
-          <p className="font-display text-sm font-bold uppercase tracking-wide text-white sm:text-base">
-            {match.awayTeam.name}
-          </p>
-          <LiveTeamStaff
-            captainLabel={match.awayCaptainLabel}
-            coachLabel={match.awayCoachLabel}
-          />
-        </div>
-      </div>
-
-      <div className="my-5 sm:my-6">
-        <LosLunesGoldDivider text="Fútbol — Disciplina — Amigos" />
-      </div>
-
-      {showMvps ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {match.teamMvps
-            .filter((m) => m.label)
-            .map((mvp) => (
-              <LosLunesMvpCard key={mvp.side} mvp={mvp} />
-            ))}
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
+import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
+import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
+import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
+import { FormationPitch } from '@/components/lineup/FormationPitch'
+import { TeamCrest } from '@/components/TeamCrest'
+import { matchStatusLabel } from '@/lib/match-status-ui'
 function DefaultScoreboardBody({
   match,
   isLive,
@@ -292,26 +150,21 @@ export function LiveScoreboard({
       {premium ? <LosLunesPageBackdrop /> : null}
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-8">
-        <div className="mb-6 flex justify-center">
-          <LiveOrganizationBrand
-            name={match.organization.name}
-            logoUrl={match.organization.logoUrl}
-            premium={premium}
-          />
-        </div>
+        {premium ? (
+          <div className="mb-6 flex justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={LOSLUNES_LOGO_PATH}
+              alt={match.organization.name}
+              className="h-14 w-14 object-contain opacity-95 sm:h-16 sm:w-16"
+            />
+          </div>
+        ) : null}
 
         {premium ? (
-          <>
-            <LiveMatchContextBar
-              venue={match.venue}
-              locationLabel={match.locationLabel}
-              weather={match.weather}
-              premium
-            />
-            <div className="mb-8">
-              <LosLunesScoreboardBody match={match} isLive={isLive} />
-            </div>
-          </>
+          <div className="mb-8">
+            <LosLunesLiveScoreboard match={match} isLive={isLive} />
+          </div>
         ) : (
           <>
             <DefaultScoreboardBody match={match} isLive={isLive} />
@@ -324,44 +177,64 @@ export function LiveScoreboard({
         )}
 
         {hasFormations && (
-          <section className={`mb-8 ${premium ? losLunesLiveCard + ' p-5 sm:p-6' : ''}`}>
+          <section
+            className={`mb-8 ${
+              premium
+                ? 'overflow-hidden rounded-2xl border border-org-primary bg-[#0a0a0a] p-5 sm:p-6'
+                : ''
+            }`}
+          >
             {premium ? (
-              <div className="mb-4">
-                <LosLunesSectionTitle>Formaciones</LosLunesSectionTitle>
-                <p className="mt-2 text-center font-ui text-[10px] uppercase tracking-[0.2em] text-amber-400/45">
-                  {footballFormatLabel(match.footballFormat)}
-                  {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
-                  {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
-                </p>
+              <div className="mb-4 flex items-center gap-3">
+                <span className="h-px flex-1 bg-org-primary/80" />
+                <h2 className="font-display text-[13px] font-bold uppercase tracking-[0.2em] text-white">
+                  Formaciones
+                </h2>
+                <span className="h-px flex-1 bg-org-primary/80" />
               </div>
             ) : (
               <>
                 <h2 className="mb-1 font-display text-sm font-bold uppercase tracking-[0.25em] text-amber-200/75">
                   Formaciones
                 </h2>
-                <p className="mb-4 text-center font-ui text-xs uppercase tracking-widest text-white/40">
-                  {footballFormatLabel(match.footballFormat)}
-                  {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
-                  {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
-                </p>
               </>
             )}
+            <p
+              className={`text-center font-ui uppercase tracking-[0.2em] ${
+                premium
+                  ? 'mb-4 text-[10px] text-white/40'
+                  : 'mb-4 text-xs text-white/40'
+              }`}
+            >
+              {footballFormatLabel(match.footballFormat)}
+              {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
+              {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
+            </p>
             <div className="grid gap-5 sm:grid-cols-2">
               {match.formations.map((side) =>
                 side.lineup ? (
                   <div key={side.label}>
-                    <FormationPitch
-                      variant="live"
-                      lineup={side.lineup}
-                      teamName={side.label}
-                      crestSrc={side.crestSrc}
-                      color={side.color}
-                      coachLabel={side.coachLabel}
-                      mvpPlayerIds={match.mvpPlayerIds}
-                      captainPlayerIds={match.captainPlayerIds}
-                      paidByPlayerId={paidByPlayerId}
-                      galletaPlayerIds={galletaPlayerIds}
-                    />
+                    {premium ? (
+                      <>
+                        <p className="mb-2 text-center font-display text-sm font-bold uppercase tracking-wide text-white">
+                          {side.label}
+                        </p>
+                        <LosLunesDarkPitch lineup={side.lineup} />
+                      </>
+                    ) : (
+                      <FormationPitch
+                        variant="live"
+                        lineup={side.lineup}
+                        teamName={side.label}
+                        crestSrc={side.crestSrc}
+                        color={side.color}
+                        coachLabel={side.coachLabel}
+                        mvpPlayerIds={match.mvpPlayerIds}
+                        captainPlayerIds={match.captainPlayerIds}
+                        paidByPlayerId={paidByPlayerId}
+                        galletaPlayerIds={galletaPlayerIds}
+                      />
+                    )}
                     {side.lineup.bench.length > 0 && (
                       <p
                         className={`mt-2 text-center text-xs ${
