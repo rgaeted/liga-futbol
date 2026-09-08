@@ -12,5 +12,5 @@ export default async function LiveMatchPage({
   const { organizationSlug, matchId } = await params
   const snapshot = await getLiveMatchSnapshot(matchId, organizationSlug)
   if (!snapshot) notFound()
-  return <LiveScoreboard initialMatch={snapshot} />
+  return <LiveScoreboard initialMatch={snapshot} organizationSlug={organizationSlug} />
 }

@@ -1,4 +1,5 @@
 import { TeamCrest } from '@/components/TeamCrest'
+import { LOSLUNES_HERO_PATH, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 
 export type TimelineEvent = {
   id: string
@@ -11,6 +12,11 @@ export type TimelineEvent = {
   assistName: string | null
   description?: string | null
   scoreAfter?: string | null
+}
+
+export type MatchTimelineTeams = {
+  home: { name: string; crestSrc: string | null; color: string }
+  away: { name: string; crestSrc: string | null; color: string }
 }
 
 function isGoalType(type: string) {
@@ -37,38 +43,34 @@ function eventLabel(type: string): string {
   return EVENT_LABELS[type] ?? type
 }
 
-function TimeBadge({ minute }: { minute: number }) {
-  return (
-    <span className="w-8 shrink-0 rounded-md bg-black/40 px-1 py-1 text-center font-mono text-xs tabular-nums text-white/80 sm:w-9 sm:px-1.5">
-      {minute}&apos;
-    </span>
-  )
+function formatScoreDisplay(scoreAfter: string): string {
+  const [home, away] = scoreAfter.split('-')
+  if (home === undefined || away === undefined) return scoreAfter
+  return `${home} - ${away}`
 }
 
-function TeamBadge({
-  name,
-  crestSrc,
-  color,
-}: {
-  name: string
-  crestSrc?: string | null
-  color?: string | null
-}) {
-  return (
-    <span className="flex shrink-0 items-center gap-1.5">
-      <TeamCrest name={name} src={crestSrc} color={color} size="sm" />
-      <span className="hidden truncate font-ui text-xs font-semibold uppercase tracking-wide text-white sm:inline sm:text-sm">
-        {name}
-      </span>
-    </span>
-  )
+function resolveEventSide(
+  event: TimelineEvent,
+  homeName: string,
+  awayName: string,
+  kickoffCount: number,
+): 'left' | 'right' {
+  if (event.teamName === homeName) return 'left'
+  if (event.teamName === awayName) return 'right'
+  if (event.type === 'KICKOFF') return kickoffCount <= 1 ? 'left' : 'right'
+  if (event.type === 'HALFTIME') return 'left'
+  if (event.type === 'FULLTIME') return 'right'
+  return 'left'
 }
 
-function TimelineIcon({ type }: { type: string }) {
+function AxisNode({ type }: { type: string }) {
+  const base =
+    'relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 sm:h-10 sm:w-10'
+
   switch (type) {
     case 'KICKOFF':
       return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
+        <span className={`${base} border-emerald-500/70 bg-[#0a1210]`} aria-hidden>
           <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-emerald-400">
             <path d="M4 2.5v11L13 8 4 2.5z" />
           </svg>
@@ -78,225 +80,351 @@ function TimelineIcon({ type }: { type: string }) {
     case 'PENALTY_GOAL':
     case 'OWN_GOAL':
       return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
-          <svg viewBox="0 0 16 16" className="h-4 w-4">
-            <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.25" className="text-white" />
+        <span className={`${base} border-org-primary bg-[#141010] shadow-[0_0_16px_rgba(245,127,32,0.45)]`} aria-hidden>
+          <svg viewBox="0 0 16 16" className="h-4 w-4 text-white">
+            <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.1" />
             <path
-              d="M8 1.5 9.8 5.2 13.8 5.5 10.8 8.1 11.7 12 8 10.1 4.3 12 5.2 8.1 2.2 5.5 6.2 5.2 8 1.5z"
+              d="M8 2.2 9.4 5.1 12.6 5.3 10.2 7.3 11 10.4 8 8.8 5 10.4 5.8 7.3 3.4 5.3 6.6 5.1 8 2.2z"
               fill="currentColor"
-              className="text-white/90"
             />
           </svg>
         </span>
       )
     case 'HALFTIME':
       return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center gap-0.5" aria-hidden>
-          <span className="h-3.5 w-1 rounded-sm bg-amber-400" />
-          <span className="h-3.5 w-1 rounded-sm bg-amber-400" />
+        <span className={`${base} border-amber-500/60 bg-[#121010]`} aria-hidden>
+          <span className="flex gap-0.5">
+            <span className="h-3.5 w-1 rounded-sm bg-amber-400" />
+            <span className="h-3.5 w-1 rounded-sm bg-amber-400" />
+          </span>
         </span>
       )
     case 'FULLTIME':
       return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
-          <span className="h-3 w-3 rounded-sm bg-kelme-surface/90" />
+        <span className={`${base} border-white/25 bg-[#121010]`} aria-hidden>
+          <span className="h-3 w-3 rounded-sm bg-white/70" />
+        </span>
+      )
+    case 'SUBSTITUTION':
+      return (
+        <span className={`${base} border-sky-500/50 bg-[#101418]`} aria-hidden>
+          <span className="text-sm font-bold text-sky-400">⇄</span>
         </span>
       )
     case 'YELLOW_CARD':
       return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
+        <span className={`${base} border-yellow-500/50 bg-[#121010]`} aria-hidden>
           <span className="h-4 w-2.5 rounded-sm bg-yellow-400" />
         </span>
       )
     case 'RED_CARD':
       return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
+        <span className={`${base} border-red-500/50 bg-[#121010]`} aria-hidden>
           <span className="h-4 w-2.5 rounded-sm bg-red-500" />
-        </span>
-      )
-    case 'MISSED_PENALTY':
-      return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center text-xs font-bold text-rose-400" aria-hidden>
-          ✕
-        </span>
-      )
-    case 'SUBSTITUTION':
-      return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center text-xs text-sky-400" aria-hidden>
-          ⇄
         </span>
       )
     default:
       return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
-          <span className="h-1.5 w-1.5 rounded-full bg-kelme-surface/50" />
+        <span className={`${base} border-white/20 bg-[#121010]`} aria-hidden>
+          <span className="h-2 w-2 rounded-full bg-white/40" />
         </span>
       )
   }
 }
 
-function ScoreAfterBadge({ score }: { score: string }) {
+function MinuteOnAxis({ minute }: { minute: number }) {
   return (
-    <span className="shrink-0 font-data text-sm font-bold tabular-nums tracking-tight text-org-primary">
-      {score}
+    <span className="mb-1 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-white/85 sm:text-[11px]">
+      {minute}&apos;
     </span>
   )
 }
 
-function EventSummary({
-  scoreAfter,
-  playerName,
-  assistName,
-  align = 'right',
+function TeamBlock({
+  name,
+  crestSrc,
+  color,
 }: {
-  scoreAfter?: string | null
-  playerName: string | null
-  assistName: string | null
-  align?: 'left' | 'center' | 'right'
+  name: string
+  crestSrc?: string | null
+  color?: string | null
 }) {
-  const hasPlayer = Boolean(playerName || assistName)
-  const alignClass =
-    align === 'center' ? 'justify-center text-center' : align === 'left' ? 'justify-start text-left' : 'justify-end text-right'
-
-  if (!scoreAfter && !hasPlayer) return null
-
   return (
-    <div className={`flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5 ${alignClass}`}>
-      {scoreAfter ? <ScoreAfterBadge score={scoreAfter} /> : null}
-      {hasPlayer ? (
-        <PlayerDetails playerName={playerName} assistName={assistName} align={align} />
-      ) : null}
+    <div className="flex shrink-0 flex-col items-center gap-1.5 text-center sm:gap-2">
+      <div className="flex h-11 w-11 items-center justify-center sm:h-14 sm:w-14">
+        <TeamCrest name={name} src={crestSrc} color={color} size="lg" fit="contain" className="!h-full !w-full" />
+      </div>
+      <span className="max-w-[5.5rem] truncate font-display text-[10px] font-bold uppercase tracking-[0.12em] text-white sm:max-w-none sm:text-xs">
+        {name}
+      </span>
     </div>
   )
 }
 
-function PlayerDetails({
-  playerName,
-  assistName,
-  align = 'right',
-}: {
-  playerName: string | null
-  assistName: string | null
-  align?: 'left' | 'center' | 'right'
-}) {
-  if (!playerName && !assistName) return null
-
-  const alignClass =
-    align === 'center'
-      ? 'text-center'
-      : align === 'left'
-        ? 'text-left'
-        : 'text-right'
+function GoalCard({ event, label }: { event: TimelineEvent; label: string }) {
+  const quote = isGoalType(event.type) && event.description
 
   return (
-    <div className={`min-w-0 font-ui text-sm text-white/70 ${alignClass}`}>
-      {playerName && <p className="truncate">{playerName}</p>}
-      {assistName && (
-        <p className="truncate text-xs text-white/40">Asistencia: {assistName}</p>
-      )}
-    </div>
+    <article className="relative overflow-hidden rounded-xl border border-org-primary bg-[#0c0c0c] shadow-[0_0_28px_rgba(245,127,32,0.22)]">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 18% 50%, rgba(245,127,32,0.18), transparent 42%),
+            repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 22px),
+            repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 22px)
+          `,
+        }}
+        aria-hidden
+      />
+      <div className="relative grid grid-cols-[1fr_auto] items-stretch gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4 sm:p-4">
+        <div className="min-w-0">
+          <p className="font-display text-sm font-bold uppercase tracking-[0.14em] text-org-primary sm:text-base">
+            {label}
+          </p>
+          {event.playerName ? (
+            <p className="mt-1 truncate font-ui text-sm font-semibold text-white sm:text-base">
+              {event.playerName}
+            </p>
+          ) : null}
+          {event.assistName ? (
+            <p className="mt-0.5 truncate text-xs text-white/45">Asistencia: {event.assistName}</p>
+          ) : null}
+          {quote ? (
+            <p className="mt-2 font-display text-xs italic leading-snug text-amber-100/80 sm:text-sm">
+              &ldquo;{event.description}&rdquo;
+            </p>
+          ) : null}
+        </div>
+
+        {event.scoreAfter ? (
+          <div className="flex items-center justify-center px-1 sm:px-3">
+            <span className="font-display text-3xl font-bold tabular-nums tracking-tight text-[#f5c842] sm:text-4xl">
+              {formatScoreDisplay(event.scoreAfter)}
+            </span>
+          </div>
+        ) : null}
+
+        {event.teamName ? (
+          <div className="col-span-2 flex justify-end sm:col-span-1 sm:justify-center">
+            <TeamBlock
+              name={event.teamName}
+              crestSrc={event.teamCrestSrc}
+              color={event.teamColor}
+            />
+          </div>
+        ) : null}
+      </div>
+    </article>
   )
 }
 
-function GoalWithDescriptionRow({ event, label }: { event: TimelineEvent; label: string }) {
+function MilestoneCard({
+  event,
+  label,
+  side,
+  showHalftimePhoto,
+}: {
+  event: TimelineEvent
+  label: string
+  side: 'left' | 'right'
+  showHalftimePhoto?: boolean
+}) {
   return (
-    <li className="border-b border-white/5 px-3 py-3.5 last:border-b-0 sm:px-4">
-      <div className="flex items-center gap-2 sm:gap-3">
-        <TimeBadge minute={event.minute} />
-        <TimelineIcon type={event.type} />
-        <span className="shrink-0 font-ui text-sm uppercase tracking-wide text-white/90">{label}</span>
-        {(event.scoreAfter || event.playerName || event.assistName) && (
-          <EventSummary
-            scoreAfter={event.scoreAfter}
-            playerName={event.playerName}
-            assistName={event.assistName}
-            align="right"
+    <article
+      className={`overflow-hidden rounded-xl border border-white/12 bg-[#101010]/95 ${
+        side === 'left' ? 'sm:mr-2' : 'sm:ml-2'
+      }`}
+    >
+      <div className="flex items-stretch gap-0">
+        {showHalftimePhoto && event.type === 'HALFTIME' ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={LOSLUNES_HERO_PATH}
+            alt=""
+            className="hidden w-24 shrink-0 object-cover sm:block sm:w-28"
           />
-        )}
-        {event.teamName && (
-          <TeamBadge
+        ) : null}
+        <div className="flex flex-1 items-center gap-3 p-3 sm:p-4">
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-white sm:text-sm">
+            {label}
+          </p>
+          {event.description ? (
+            <p className="mt-1 text-xs leading-snug text-white/55 sm:text-sm">{event.description}</p>
+          ) : event.type === 'KICKOFF' ? (
+            <p className="mt-1 text-xs text-white/45 sm:text-sm">¡Ya se juega en la cancha!</p>
+          ) : null}
+        </div>
+        {event.teamName ? (
+          <TeamBlock
             name={event.teamName}
             crestSrc={event.teamCrestSrc}
             color={event.teamColor}
           />
-        )}
-      </div>
-
-      <p className="mt-2.5 text-center font-display text-[0.8125rem] font-semibold leading-snug italic text-amber-200/90 sm:text-base">
-        &ldquo;{event.description}&rdquo;
-      </p>
-
-      {(event.scoreAfter || event.playerName || event.assistName) && (
-        <div className="mt-1.5 flex justify-center">
-          <EventSummary
-            scoreAfter={event.scoreAfter}
-            playerName={event.playerName}
-            assistName={event.assistName}
-            align="center"
-          />
+        ) : null}
         </div>
-      )}
-    </li>
+      </div>
+    </article>
   )
 }
 
-function CompactTimelineRow({ event, label }: { event: TimelineEvent; label: string }) {
-  const showLabelOnMobile =
-    event.type === 'KICKOFF' ||
-    event.type === 'HALFTIME' ||
-    event.type === 'FULLTIME' ||
-    Boolean(event.scoreAfter)
+function CompactCard({ event, label }: { event: TimelineEvent; label: string }) {
+  return (
+    <article className="rounded-lg border border-white/10 bg-[#101010]/90 px-3 py-2.5 sm:px-4 sm:py-3">
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-white/90 sm:text-xs">
+            {label}
+          </p>
+          {event.playerName ? (
+            <p className="mt-0.5 truncate font-ui text-sm text-white/75">{event.playerName}</p>
+          ) : null}
+          {event.assistName ? (
+            <p className="truncate text-xs text-white/40">Asistencia: {event.assistName}</p>
+          ) : null}
+        </div>
+        {event.teamName ? (
+          <TeamBlock
+            name={event.teamName}
+            crestSrc={event.teamCrestSrc}
+            color={event.teamColor}
+          />
+        ) : null}
+      </div>
+    </article>
+  )
+}
+
+function TimelineEventCard({
+  event,
+  label,
+  side,
+  showHalftimePhoto,
+}: {
+  event: TimelineEvent
+  label: string
+  side: 'left' | 'right'
+  showHalftimePhoto?: boolean
+}) {
+  if (isGoalType(event.type)) {
+    return <GoalCard event={event} label={label} />
+  }
+  if (event.type === 'KICKOFF' || event.type === 'HALFTIME' || event.type === 'FULLTIME') {
+    return (
+      <MilestoneCard
+        event={event}
+        label={label}
+        side={side}
+        showHalftimePhoto={showHalftimePhoto}
+      />
+    )
+  }
+  return <CompactCard event={event} label={label} />
+}
+
+function SideWatermark({
+  name,
+  crestSrc,
+  color,
+  align,
+}: {
+  name: string
+  crestSrc: string | null
+  color: string
+  align: 'left' | 'right'
+}) {
+  return (
+    <div
+      className={`pointer-events-none absolute top-8 hidden select-none opacity-[0.07] lg:block ${
+        align === 'left' ? 'left-0' : 'right-0'
+      }`}
+      aria-hidden
+    >
+      <div
+        className={`flex flex-col items-center gap-4 ${align === 'left' ? 'pl-2' : 'pr-2'}`}
+        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+      >
+        <span className="font-display text-5xl font-bold uppercase tracking-[0.2em] text-white xl:text-6xl">
+          {name}
+        </span>
+        <div className="h-16 w-16 rotate-90 opacity-80">
+          <TeamCrest name={name} src={crestSrc} color={color} size="lg" fit="contain" className="!h-full !w-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TimelineRow({
+  event,
+  side,
+  label,
+  showHalftimePhoto,
+}: {
+  event: TimelineEvent
+  side: 'left' | 'right'
+  label: string
+  showHalftimePhoto?: boolean
+}) {
+  const connector =
+    side === 'left'
+      ? 'right-1/2 mr-[22px] w-[calc(50%-22px)]'
+      : 'left-1/2 ml-[22px] w-[calc(50%-22px)]'
+
+  const card = (
+    <TimelineEventCard
+      event={event}
+      label={label}
+      side={side}
+      showHalftimePhoto={showHalftimePhoto}
+    />
+  )
 
   return (
-    <li className="flex items-center gap-2 border-b border-white/5 px-3 py-3 last:border-b-0 sm:gap-3 sm:px-4">
-      <TimeBadge minute={event.minute} />
-      <TimelineIcon type={event.type} />
+    <li className="relative py-3 sm:py-4">
+      <div
+        className={`absolute top-1/2 hidden h-px -translate-y-1/2 bg-white/15 sm:block ${connector}`}
+        aria-hidden
+      />
 
-      <span
-        className={`shrink-0 font-ui text-sm uppercase tracking-wide text-white/90 ${showLabelOnMobile ? '' : 'hidden sm:inline'}`}
-      >
-        {label}
-      </span>
+      <div className="hidden grid-cols-[1fr_44px_1fr] items-center gap-3 sm:grid">
+        <div className="min-w-0">{side === 'left' ? card : null}</div>
+        <div className="flex flex-col items-center justify-center">
+          <MinuteOnAxis minute={event.minute} />
+          <AxisNode type={event.type} />
+        </div>
+        <div className="min-w-0">{side === 'right' ? card : null}</div>
+      </div>
 
-      {(event.scoreAfter || event.playerName || event.assistName) && (
-        <EventSummary
-          scoreAfter={event.scoreAfter}
-          playerName={event.playerName}
-          assistName={event.assistName}
-          align="right"
-        />
-      )}
-
-      {event.teamName && (
-        <TeamBadge
-          name={event.teamName}
-          crestSrc={event.teamCrestSrc}
-          color={event.teamColor}
-        />
-      )}
+      <div className="grid grid-cols-[40px_1fr] items-start gap-3 sm:hidden">
+        <div className="flex flex-col items-center">
+          <MinuteOnAxis minute={event.minute} />
+          <AxisNode type={event.type} />
+        </div>
+        <div className="min-w-0 pt-1">{card}</div>
+      </div>
     </li>
   )
 }
 
-function TimelineRow({ event }: { event: TimelineEvent }) {
-  const label = eventLabel(event.type)
-  const goalQuote = isGoalType(event.type) && event.description
+export function MatchTimeline({
+  events,
+  teams,
+  organizationSlug,
+}: {
+  events: TimelineEvent[]
+  teams: MatchTimelineTeams
+  organizationSlug?: string
+}) {
+  const isLosLunes = organizationSlug === LOSLUNES_SLUG
+  let kickoffCount = 0
 
-  if (goalQuote) {
-    return <GoalWithDescriptionRow event={event} label={label} />
-  }
-
-  return <CompactTimelineRow event={event} label={label} />
-}
-
-export function MatchTimeline({ events }: { events: TimelineEvent[] }) {
   if (events.length === 0) {
     return (
-      <section>
-        <h2 className="mb-4 font-display text-sm font-bold uppercase tracking-[0.25em] text-amber-200/75">
-          Cronología
-        </h2>
-        <div className="rounded-xl border border-white/10 bg-kelme-live-surface px-4 py-8 text-center font-ui text-sm text-white/40">
+      <section className="relative">
+        <TimelineHeader isLosLunes={isLosLunes} />
+        <div className="rounded-xl border border-white/10 bg-[#0a0a0a] px-4 py-10 text-center font-ui text-sm text-white/40">
           Aún no hay eventos en este partido.
         </div>
       </section>
@@ -304,17 +432,79 @@ export function MatchTimeline({ events }: { events: TimelineEvent[] }) {
   }
 
   return (
-    <section>
-      <h2 className="mb-4 font-display text-sm font-bold uppercase tracking-[0.25em] text-amber-200/75">
-        Cronología
-      </h2>
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-kelme-live-surface">
-        <ul>
-          {events.map((event) => (
-            <TimelineRow key={event.id} event={event} />
-          ))}
+    <section className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#050505] px-3 py-6 sm:px-6 sm:py-8">
+      <SideWatermark
+        name={teams.home.name}
+        crestSrc={teams.home.crestSrc}
+        color={teams.home.color}
+        align="left"
+      />
+      <SideWatermark
+        name={teams.away.name}
+        crestSrc={teams.away.crestSrc}
+        color={teams.away.color}
+        align="right"
+      />
+
+      <TimelineHeader isLosLunes={isLosLunes} />
+
+      <div className="relative mx-auto max-w-4xl">
+        <div
+          className="absolute bottom-4 left-1/2 top-4 w-px -translate-x-1/2 bg-gradient-to-b from-white/5 via-white/20 to-white/5"
+          aria-hidden
+        />
+
+        <ul className="relative">
+          {events.map((event) => {
+            if (event.type === 'KICKOFF') kickoffCount += 1
+            const side = resolveEventSide(
+              event,
+              teams.home.name,
+              teams.away.name,
+              kickoffCount,
+            )
+            const label = eventLabel(event.type)
+            return (
+              <TimelineRow
+                key={event.id}
+                event={event}
+                side={side}
+                label={label}
+                showHalftimePhoto={isLosLunes}
+              />
+            )
+          })}
         </ul>
       </div>
+
+      {isLosLunes ? <TimelineFooterLosLunes /> : null}
     </section>
+  )
+}
+
+function TimelineHeader({ isLosLunes }: { isLosLunes: boolean }) {
+  return (
+    <div className="relative z-10 mb-6 flex items-end justify-between gap-4 px-1">
+      <h2 className="font-display text-xl font-bold uppercase tracking-[0.08em] text-white sm:text-2xl">
+        Cronología
+      </h2>
+      {isLosLunes ? (
+        <p className="hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-white/35 sm:block">
+          Fútbol · Pasión · Siempre
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+function TimelineFooterLosLunes() {
+  return (
+    <div className="relative z-10 mt-8 flex items-end justify-between gap-4 border-t border-white/[0.06] px-1 pt-5">
+      <p className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 sm:text-xs">
+        Más que un partido
+      </p>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={LOSLUNES_LOGO_PATH} alt="" className="h-8 w-8 object-contain opacity-90 sm:h-9 sm:w-9" />
+    </div>
   )
 }

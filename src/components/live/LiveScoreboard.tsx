@@ -42,8 +42,10 @@ function LiveOrganizationBrand({
 
 export function LiveScoreboard({
   initialMatch,
+  organizationSlug,
 }: {
   initialMatch: LiveMatchSnapshot
+  organizationSlug?: string
 }) {
   const { snapshot: match } = useLiveMatchSnapshot({
     initialSnapshot: initialMatch,
@@ -209,7 +211,14 @@ export function LiveScoreboard({
           </section>
         )}
 
-        <MatchTimeline events={sortedEvents} />
+        <MatchTimeline
+          events={sortedEvents}
+          teams={{
+            home: match.homeTeam,
+            away: match.awayTeam,
+          }}
+          organizationSlug={organizationSlug}
+        />
 
         <p className="mt-10 text-center font-ui text-xs uppercase tracking-widest text-white/30">
           {match.organization.name}
