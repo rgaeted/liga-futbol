@@ -9,7 +9,7 @@ import { TeamCrest } from '@/components/TeamCrest'
 import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
 import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { matchStatusLabel } from '@/lib/match-status-ui'
-import type { OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
+import { formatLandingPerMatchRate, type OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
 
 function FeaturedCrest({
   name,
@@ -39,7 +39,7 @@ function RankingCard({
   rows,
 }: {
   title: string
-  rows: Array<{ name: string; value: number }>
+  rows: Array<{ name: string; value: number; display?: string }>
 }) {
   if (rows.length === 0) return null
   return (
@@ -64,7 +64,7 @@ function RankingCard({
               {index + 1}
             </span>
             <span className="font-ui text-sm font-bold">{row.name}</span>
-            <span className="font-data text-lg font-black tabular-nums">{row.value}</span>
+            <span className="font-data text-lg font-black tabular-nums">{row.display ?? row.value}</span>
           </li>
         ))}
       </ol>
@@ -79,11 +79,15 @@ export function OrgPublicLanding({
   data: OrgPublicLandingData
   panelHref?: string | null
 }) {
-  const { organization, featured, nextMatch, results, form, scorers, assists, awards } = data
+  const { organization, featured, nextMatch, results, form, scorers, assists, goalsPerMatch, assistsPerMatch, awards } = data
   const slug = organization.slug
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/${slug}`)}`
   const year = new Date().getFullYear()
-  const hasStats = scorers.length > 0 || assists.length > 0
+  const hasStats =
+    scorers.length > 0 ||
+    assists.length > 0 ||
+    goalsPerMatch.length > 0 ||
+    assistsPerMatch.length > 0
   const isEmpty =
     !featured &&
     !nextMatch &&
@@ -513,6 +517,26 @@ export function OrgPublicLanding({
                   title="🎯 Asistencias"
                   rows={assists.map((row) => ({ name: row.name, value: row.assists }))}
                 />
+                {isLosLunes ? (
+                  <>
+                    <RankingCard
+                      title="Goles por partido"
+                      rows={goalsPerMatch.map((row) => ({
+                        name: row.name,
+                        value: row.rate,
+                        display: formatLandingPerMatchRate(row.rate),
+                      }))}
+                    />
+                    <RankingCard
+                      title="Asistencias por partido"
+                      rows={assistsPerMatch.map((row) => ({
+                        name: row.name,
+                        value: row.rate,
+                        display: formatLandingPerMatchRate(row.rate),
+                      }))}
+                    />
+                  </>
+                ) : null}
               </div>
             </div>
           </section>

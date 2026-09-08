@@ -107,6 +107,18 @@ export type OrgPublicLanding = {
     name: string
     assists: number
   }>
+  goalsPerMatch: Array<{
+    name: string
+    rate: number
+    goals: number
+    matches: number
+  }>
+  assistsPerMatch: Array<{
+    name: string
+    rate: number
+    assists: number
+    matches: number
+  }>
   awards: Array<{
     name: string
     shortLabel: string
@@ -520,6 +532,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       orderBy: { scheduledAt: 'desc' },
       take: 40,
       select: {
+        id: true,
         events: {
           where: { type: { in: [...SCORING_GOAL_EVENT_TYPES] } },
           select: {
@@ -530,6 +543,8 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
             assistPlayer: { include: PLAYER_PERSON_NAME_INCLUDE },
           },
         },
+        friendlyPlayers: { select: { playerId: true } },
+        callUps: { select: { playerId: true } },
       },
     }),
     db.orgAward.findMany({
@@ -559,15 +574,21 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     }),
   ])
 
-  const goalEvents = scorerMatches.flatMap((match) =>
-    match.events.map((event) => ({
+  const matchStatRows = scorerMatches.map((match) => ({
+    id: match.id,
+    playerIds: [
+      ...match.friendlyPlayers.map((row) => row.playerId),
+      ...match.callUps.map((row) => row.playerId),
+    ],
+    events: match.events.map((event) => ({
       type: event.type,
       playerId: event.playerId,
       playerName: event.player ? playerDisplayName(event.player) : null,
       assistPlayerId: event.assistPlayerId,
       assistName: event.assistPlayer ? playerDisplayName(event.assistPlayer) : null,
     })),
-  )
+  }))
+  const goalEvents = matchStatRows.flatMap((match) => match.events)
 
   const resultCards = results.map(toResultMatch)
   const featuredId = liveMatches[0]?.id ?? results[0]?.id ?? null
@@ -597,6 +618,18 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       : null,
     scorers: tallyRecentScorers(goalEvents),
     assists: tallyRecentAssists(goalEvents),
+    goalsPerMatch: tallyRecentPerMatchRates(matchStatRows, 'goals').map((row) => ({
+      name: row.name,
+      rate: row.rate,
+      goals: row.count,
+      matches: row.matches,
+    })),
+    assistsPerMatch: tallyRecentPerMatchRates(matchStatRows, 'assists').map((row) => ({
+      name: row.name,
+      rate: row.rate,
+      assists: row.count,
+      matches: row.matches,
+    })),
     awards: orgAwards.map((award) => ({
       name: award.name,
       shortLabel: award.shortLabel,
@@ -659,5 +692,76 @@ export function tallyRecentAssists(
   }
   return [...map.values()]
     .sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name, 'es'))
+    .slice(0, take)
+}
+
+export type LandingMatchStatRow = {
+  id: string
+  playerIds: string[]
+  events: Array<{
+    type: string
+    playerId: string | null
+    playerName: string | null
+    assistPlayerId: string | null
+    assistName: string | null
+  }>
+}
+
+export function formatLandingPerMatchRate(rate: number): string {
+  return rate.toLocaleString(APP_LOCALE, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })
+}
+
+export function tallyRecentPerMatchRates(
+  matches: LandingMatchStatRow[],
+  kind: 'goals' | 'assists',
+  take = 5,
+): Array<{ name: string; rate: number; count: number; matches: number }> {
+  const appearances = new Map<string, Set<string>>()
+  const names = new Map<string, string>()
+  const counts = new Map<string, number>()
+
+  function addAppearance(playerId: string, matchId: string) {
+    const set = appearances.get(playerId) ?? new Set<string>()
+    set.add(matchId)
+    appearances.set(playerId, set)
+  }
+
+  for (const match of matches) {
+    for (const playerId of match.playerIds) {
+      addAppearance(playerId, match.id)
+    }
+    for (const event of match.events) {
+      if (kind === 'goals') {
+        if (!isScoringGoalEvent(event.type as EventType) || !event.playerId) continue
+        addAppearance(event.playerId, match.id)
+        counts.set(event.playerId, (counts.get(event.playerId) ?? 0) + 1)
+        if (event.playerName) names.set(event.playerId, event.playerName)
+      } else {
+        if (event.type !== 'GOAL' || !event.assistPlayerId) continue
+        addAppearance(event.assistPlayerId, match.id)
+        counts.set(event.assistPlayerId, (counts.get(event.assistPlayerId) ?? 0) + 1)
+        if (event.assistName) names.set(event.assistPlayerId, event.assistName)
+      }
+    }
+  }
+
+  return [...counts.entries()]
+    .map(([playerId, count]) => {
+      const played = appearances.get(playerId)?.size ?? 0
+      return {
+        name: names.get(playerId) ?? 'Jugador',
+        rate: played > 0 ? count / played : 0,
+        count,
+        matches: played,
+      }
+    })
+    .filter((row) => row.matches > 0 && row.count > 0)
+    .sort(
+      (a, b) =>
+        b.rate - a.rate || b.count - a.count || a.name.localeCompare(b.name, 'es'),
+    )
     .slice(0, take)
 }

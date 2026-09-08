@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   formLastFive,
+  formatLandingPerMatchRate,
   orgMonogram,
   sidesAreReady,
   landingAwardRecipient,
   splitOrgHeadline,
   tallyRecentAssists,
+  tallyRecentPerMatchRates,
   tallyRecentScorers,
   teamKitColorFromName,
   teamToneFromName,
@@ -66,6 +68,81 @@ describe('tallyRecentAssists', () => {
     const assists = tallyRecentAssists(events, 5)
     expect(assists).toHaveLength(5)
     expect(assists[0]).toEqual({ name: 'J0', assists: 4 })
+  })
+})
+
+describe('tallyRecentPerMatchRates', () => {
+  it('ranks goals per match using roster appearances as denominator', () => {
+    const rows = tallyRecentPerMatchRates(
+      [
+        {
+          id: 'm1',
+          playerIds: ['p1', 'p2'],
+          events: [
+            { type: 'GOAL', playerId: 'p1', playerName: 'Ana', assistPlayerId: null, assistName: null },
+            { type: 'GOAL', playerId: 'p1', playerName: 'Ana', assistPlayerId: null, assistName: null },
+          ],
+        },
+        {
+          id: 'm2',
+          playerIds: ['p1', 'p2'],
+          events: [
+            { type: 'GOAL', playerId: 'p2', playerName: 'Ben', assistPlayerId: null, assistName: null },
+          ],
+        },
+      ],
+      'goals',
+    )
+    expect(rows[0]).toMatchObject({ name: 'Ana', count: 2, matches: 2, rate: 1 })
+    expect(rows[1]).toMatchObject({ name: 'Ben', count: 1, matches: 2, rate: 0.5 })
+  })
+
+  it('ranks assists per match and ignores players without assists', () => {
+    const rows = tallyRecentPerMatchRates(
+      [
+        {
+          id: 'm1',
+          playerIds: ['p1', 'p2'],
+          events: [
+            {
+              type: 'GOAL',
+              playerId: 'p2',
+              playerName: 'Ben',
+              assistPlayerId: 'p1',
+              assistName: 'Ana',
+            },
+            {
+              type: 'GOAL',
+              playerId: 'p2',
+              playerName: 'Ben',
+              assistPlayerId: 'p1',
+              assistName: 'Ana',
+            },
+          ],
+        },
+        {
+          id: 'm2',
+          playerIds: ['p1', 'p2'],
+          events: [
+            {
+              type: 'GOAL',
+              playerId: 'p1',
+              playerName: 'Ana',
+              assistPlayerId: 'p2',
+              assistName: 'Ben',
+            },
+          ],
+        },
+      ],
+      'assists',
+    )
+    expect(rows[0]).toMatchObject({ name: 'Ana', count: 2, matches: 2, rate: 1 })
+    expect(rows[1]).toMatchObject({ name: 'Ben', count: 1, matches: 2, rate: 0.5 })
+  })
+
+  it('formats rates with one decimal in es-CL', () => {
+    expect(formatLandingPerMatchRate(1.5)).toBe('1,5')
+    expect(formatLandingPerMatchRate(0.5)).toBe('0,5')
   })
 })
 
@@ -152,6 +229,8 @@ describe('public landing payload keys', () => {
       form: null,
       scorers: [{ name: 'Ana', goals: 1 }],
       assists: [{ name: 'Ben', assists: 2 }],
+      goalsPerMatch: [{ name: 'Ana', rate: 1.5, goals: 3, matches: 2 }],
+      assistsPerMatch: [{ name: 'Ben', rate: 0.5, assists: 1, matches: 2 }],
       awards: [
         {
           name: 'Premio al 7 pulmones',
