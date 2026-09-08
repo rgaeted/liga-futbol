@@ -589,6 +589,14 @@ export type MatchTimelineHeader = {
   status: string
   isLive?: boolean
   venueLabel?: string | null
+  homeName?: string
+  awayName?: string
+  homeScore?: number
+  awayScore?: number
+  homeCrestSrc?: string | null
+  awayCrestSrc?: string | null
+  homeColor?: string
+  awayColor?: string
 }
 
 export function MatchTimeline({
@@ -726,6 +734,12 @@ function TimelineHeader({
   header?: MatchTimelineHeader
 }) {
   if (premium) {
+    const showScore =
+      header?.homeName &&
+      header.awayName &&
+      header.homeScore != null &&
+      header.awayScore != null
+
     return (
       <div className="relative z-10 mb-8 px-1 text-center">
         <LosLunesFlankedTitle size="hero">Cronología</LosLunesFlankedTitle>
@@ -737,6 +751,55 @@ function TimelineHeader({
         {header?.venueLabel ? (
           <div className="mt-4">
             <LosLunesLocationPill label={header.venueLabel} />
+          </div>
+        ) : null}
+        {showScore ? (
+          <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+            <div className="flex min-w-0 flex-col items-center text-center">
+              <div className="mb-2 rounded-full bg-gradient-to-br from-[#fff1b0] via-[#d4af37] to-[#8a6414] p-[2px] shadow-[0_0_18px_rgba(212,175,55,0.35)]">
+                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#141010] sm:h-16 sm:w-16">
+                  <TeamCrest
+                    name={header.homeName}
+                    src={header.homeCrestSrc}
+                    color={header.homeColor}
+                    size="md"
+                    fit="contain"
+                    className="!h-[78%] !w-[78%]"
+                  />
+                </div>
+              </div>
+              <p className="font-display text-sm font-bold uppercase tracking-[-0.02em] text-white sm:text-lg">
+                {header.homeName}
+              </p>
+            </div>
+            <div className="relative min-w-[110px] text-center">
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 h-24 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(245,200,66,0.22),transparent_70%)]"
+                aria-hidden
+              />
+              <p className="loslunes-gold-score relative font-live-serif text-[clamp(40px,9vw,72px)] font-black leading-none tracking-tight tabular-nums">
+                {header.homeScore}
+                <span className="mx-[0.12em]">-</span>
+                {header.awayScore}
+              </p>
+            </div>
+            <div className="flex min-w-0 flex-col items-center text-center">
+              <div className="mb-2 rounded-full bg-gradient-to-br from-[#fff1b0] via-[#d4af37] to-[#8a6414] p-[2px] shadow-[0_0_18px_rgba(212,175,55,0.35)]">
+                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#141010] sm:h-16 sm:w-16">
+                  <TeamCrest
+                    name={header.awayName}
+                    src={header.awayCrestSrc}
+                    color={header.awayColor}
+                    size="md"
+                    fit="contain"
+                    className="!h-[78%] !w-[78%]"
+                  />
+                </div>
+              </div>
+              <p className="font-display text-sm font-bold uppercase tracking-[-0.02em] text-white sm:text-lg">
+                {header.awayName}
+              </p>
+            </div>
           </div>
         ) : null}
         <div className="mt-4">

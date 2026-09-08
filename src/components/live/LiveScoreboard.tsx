@@ -275,6 +275,14 @@ export function LiveScoreboard({
             status: match.status,
             isLive,
             venueLabel: [match.venue, match.locationLabel].filter(Boolean).join(' · ') || null,
+            homeName: match.homeTeam.name,
+            awayName: match.awayTeam.name,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            homeCrestSrc: match.homeTeam.crestSrc ?? match.organization.logoUrl,
+            awayCrestSrc: match.awayTeam.crestSrc ?? match.guestOrganization?.logoUrl ?? null,
+            homeColor: match.homeTeam.color,
+            awayColor: match.awayTeam.color,
           }}
         />
 
