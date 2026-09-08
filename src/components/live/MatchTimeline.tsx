@@ -10,6 +10,7 @@ export type TimelineEvent = {
   teamColor?: string | null
   assistName: string | null
   description?: string | null
+  scoreAfter?: string | null
 }
 
 function isGoalType(type: string) {
@@ -134,6 +135,41 @@ function TimelineIcon({ type }: { type: string }) {
   }
 }
 
+function ScoreAfterBadge({ score }: { score: string }) {
+  return (
+    <span className="shrink-0 font-data text-sm font-bold tabular-nums tracking-tight text-org-primary">
+      {score}
+    </span>
+  )
+}
+
+function EventSummary({
+  scoreAfter,
+  playerName,
+  assistName,
+  align = 'right',
+}: {
+  scoreAfter?: string | null
+  playerName: string | null
+  assistName: string | null
+  align?: 'left' | 'center' | 'right'
+}) {
+  const hasPlayer = Boolean(playerName || assistName)
+  const alignClass =
+    align === 'center' ? 'justify-center text-center' : align === 'left' ? 'justify-start text-left' : 'justify-end text-right'
+
+  if (!scoreAfter && !hasPlayer) return null
+
+  return (
+    <div className={`flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5 ${alignClass}`}>
+      {scoreAfter ? <ScoreAfterBadge score={scoreAfter} /> : null}
+      {hasPlayer ? (
+        <PlayerDetails playerName={playerName} assistName={assistName} align={align} />
+      ) : null}
+    </div>
+  )
+}
+
 function PlayerDetails({
   playerName,
   assistName,
@@ -168,8 +204,15 @@ function GoalWithDescriptionRow({ event, label }: { event: TimelineEvent; label:
       <div className="flex items-center gap-2 sm:gap-3">
         <TimeBadge minute={event.minute} />
         <TimelineIcon type={event.type} />
-        <span className="shrink-0 font-ui text-sm text-white/90">{label}</span>
-        <span className="min-w-0 flex-1" />
+        <span className="shrink-0 font-ui text-sm uppercase tracking-wide text-white/90">{label}</span>
+        {(event.scoreAfter || event.playerName || event.assistName) && (
+          <EventSummary
+            scoreAfter={event.scoreAfter}
+            playerName={event.playerName}
+            assistName={event.assistName}
+            align="right"
+          />
+        )}
         {event.teamName && (
           <TeamBadge
             name={event.teamName}
@@ -183,9 +226,10 @@ function GoalWithDescriptionRow({ event, label }: { event: TimelineEvent; label:
         &ldquo;{event.description}&rdquo;
       </p>
 
-      {(event.playerName || event.assistName) && (
-        <div className="mt-1.5">
-          <PlayerDetails
+      {(event.scoreAfter || event.playerName || event.assistName) && (
+        <div className="mt-1.5 flex justify-center">
+          <EventSummary
+            scoreAfter={event.scoreAfter}
             playerName={event.playerName}
             assistName={event.assistName}
             align="center"
@@ -197,7 +241,11 @@ function GoalWithDescriptionRow({ event, label }: { event: TimelineEvent; label:
 }
 
 function CompactTimelineRow({ event, label }: { event: TimelineEvent; label: string }) {
-  const showLabelOnMobile = event.type === 'KICKOFF' || event.type === 'HALFTIME' || event.type === 'FULLTIME'
+  const showLabelOnMobile =
+    event.type === 'KICKOFF' ||
+    event.type === 'HALFTIME' ||
+    event.type === 'FULLTIME' ||
+    Boolean(event.scoreAfter)
 
   return (
     <li className="flex items-center gap-2 border-b border-white/5 px-3 py-3 last:border-b-0 sm:gap-3 sm:px-4">
@@ -205,15 +253,18 @@ function CompactTimelineRow({ event, label }: { event: TimelineEvent; label: str
       <TimelineIcon type={event.type} />
 
       <span
-        className={`shrink-0 font-ui text-sm text-white/90 ${showLabelOnMobile ? '' : 'hidden sm:inline'}`}
+        className={`shrink-0 font-ui text-sm uppercase tracking-wide text-white/90 ${showLabelOnMobile ? '' : 'hidden sm:inline'}`}
       >
         {label}
       </span>
 
-      <span className="min-w-0 flex-1" />
-
-      {(event.playerName || event.assistName) && (
-        <PlayerDetails playerName={event.playerName} assistName={event.assistName} align="right" />
+      {(event.scoreAfter || event.playerName || event.assistName) && (
+        <EventSummary
+          scoreAfter={event.scoreAfter}
+          playerName={event.playerName}
+          assistName={event.assistName}
+          align="right"
+        />
       )}
 
       {event.teamName && (

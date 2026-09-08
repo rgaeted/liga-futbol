@@ -18,6 +18,7 @@ import {
   type TeamMvpSideView,
 } from '@/lib/match-mvp'
 import { sortTimelineEvents, timelineUsesCreatedAtOrder } from '@/lib/match-timeline-sort'
+import { buildTimelineScoresAfter } from '@/lib/match-timeline-score'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
 import { playerDisplayName } from '@/lib/person-name'
 import {
@@ -45,6 +46,7 @@ export type LiveMatchEvent = {
   teamName: string | null
   teamCrestSrc: string | null
   teamColor: string | null
+  scoreAfter: string | null
 }
 
 export type LiveMatchFormation = {
@@ -145,6 +147,17 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
   const events = sortTimelineEvents(match.events, {
     preferCreatedAt: preferCreatedAtOrder,
   })
+  const scoreAfterByEventId = buildTimelineScoresAfter(
+    match.matchType,
+    match.homeTeamId,
+    match.awayTeamId,
+    events.map((event) => ({
+      id: event.id,
+      type: event.type,
+      teamId: event.teamId,
+      side: event.side,
+    })),
+  )
   const friendlySideByPlayer = new Map(
     match.friendlyPlayers.map((player) => [player.playerId, player.side])
   )
@@ -325,6 +338,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
         teamName,
         teamCrestSrc: resolveEventTeamCrest(teamName, teamVisual),
         teamColor: resolveEventTeamColor(teamName, teamVisual),
+        scoreAfter: scoreAfterByEventId.get(event.id) ?? null,
       }
     }),
     footballFormat: match.footballFormat,
