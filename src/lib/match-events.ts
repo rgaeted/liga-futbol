@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { EventType, MatchStatus, MatchType, NotificationKind } from '@prisma/client'
+import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 import type { CreateMatchEventInput } from '@/lib/validations/match-event'
 import { getMatchMinute } from '@/lib/match-clock'
@@ -116,6 +117,10 @@ export async function registerMatchEvent(
   }
 
   await publishMatchInvalidation(matchId)
+
+  if (input.type === EventType.FULLTIME) {
+    await revalidateOrgPublicLandingForMatch(matchId)
+  }
 
   if (match.matchType === MatchType.LEAGUE) {
     if (input.type === EventType.KICKOFF && match.status === MatchStatus.SCHEDULED) {

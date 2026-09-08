@@ -10,6 +10,7 @@ import {
 } from '@/lib/match-mvp'
 import { setMatchMvpSchema } from '@/lib/validations/mvp'
 import { matchSideNames } from '@/lib/match-label'
+import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 import { MembershipRole } from '@/lib/membership-role'
 import type { MembershipRole as MembershipRoleType } from '@/lib/membership-role'
@@ -128,6 +129,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   )
 
   await publishMatchInvalidation(id)
+  await revalidateOrgPublicLandingForMatch(id)
 
   return NextResponse.json({ side: updatedSide, teamMvps })
 }

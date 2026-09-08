@@ -13,6 +13,7 @@ import {
   matchMvpPhotoUrl,
 } from '@/lib/match-mvp-photo'
 import { matchSideNames } from '@/lib/match-label'
+import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 import { MembershipRole } from '@/lib/membership-role'
 import type { MembershipRole as MembershipRoleType } from '@/lib/membership-role'
@@ -145,6 +146,7 @@ export async function POST(req: Request, { params }: RouteParams) {
   })
 
   await publishMatchInvalidation(id)
+  await revalidateOrgPublicLandingForMatch(id)
 
   return NextResponse.json({
     ok: true,
@@ -213,6 +215,7 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   })
 
   await publishMatchInvalidation(id)
+  await revalidateOrgPublicLandingForMatch(id)
 
   return NextResponse.json({ ok: true, teamMvps })
 }

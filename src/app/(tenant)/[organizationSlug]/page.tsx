@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { OrgPublicLanding } from '@/components/marketing/OrgPublicLanding'
+import { OrgPublicLandingRefresh } from '@/components/marketing/OrgPublicLandingRefresh'
 import { getOrgPublicLanding } from '@/lib/org-public-landing'
 import { resolveOrgLandingPanelHref } from '@/lib/org-landing-panel-href'
 
@@ -17,5 +18,9 @@ export default async function OrgLandingPage({
   ])
   if (!data) notFound()
 
-  return <OrgPublicLanding data={data} panelHref={panelHref} />
+  return (
+    <OrgPublicLandingRefresh data={data}>
+      <OrgPublicLanding data={data} panelHref={panelHref} />
+    </OrgPublicLandingRefresh>
+  )
 }

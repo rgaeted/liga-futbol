@@ -1,6 +1,7 @@
 import { EventType, MatchType, type MatchEvent } from '@prisma/client'
 import { db } from '@/lib/db'
 import { isScoringGoalEvent, SCORING_GOAL_EVENT_TYPES } from '@/lib/event-labels'
+import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 
 export function computeScoresFromEvents(
@@ -92,6 +93,10 @@ export async function reconcileMatchState(matchId: string, affectedPlayerIds: st
   }
 
   await publishMatchInvalidation(matchId)
+
+  if (match.status === 'FINISHED') {
+    await revalidateOrgPublicLandingForMatch(matchId)
+  }
 
   return updatedMatch
 }

@@ -7,6 +7,8 @@ import { buildMatchLocationFields, clearMatchWeatherFields } from '@/lib/match-l
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
 import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigger-process'
+import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
+import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 import { MatchStatus, MatchType, NotificationKind } from '@prisma/client'
 import { MembershipRole } from '@/lib/membership-role'
 import {
@@ -254,6 +256,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     if (match.matchType === MatchType.LEAGUE) {
       triggerNotificationProcessing()
+    }
+
+    const becameFinished =
+      existing.status !== MatchStatus.FINISHED && match.status === MatchStatus.FINISHED
+    if (becameFinished) {
+      await publishMatchInvalidation(id)
+      await revalidateOrgPublicLandingForMatch(id)
     }
 
     return NextResponse.json(match)
