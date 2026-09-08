@@ -1,7 +1,9 @@
 import { TeamCrest } from '@/components/TeamCrest'
 import {
   LosLunesFlankedTitle,
+  LosLunesFloatingCrest,
   LosLunesGoldDivider,
+  LosLunesGoldScore,
   LosLunesLocationPill,
   LosLunesPhotoRing,
   LosLunesStatusLine,
@@ -767,19 +769,15 @@ function TimelineHeader({
         {score ? (
           <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
             <div className="flex min-w-0 flex-col items-center text-center">
-              <div className="mb-2 rounded-full bg-gradient-to-br from-[#fff1b0] via-[#d4af37] to-[#8a6414] p-[2px] shadow-[0_0_18px_rgba(212,175,55,0.35)]">
-                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#141010] sm:h-16 sm:w-16">
-                  <TeamCrest
-                    name={score.homeName}
-                    src={score.homeCrestSrc}
-                    color={score.homeColor}
-                    size="md"
-                    fit="contain"
-                    className="!h-[78%] !w-[78%]"
-                  />
-                </div>
+              <div className="mb-2">
+                <LosLunesFloatingCrest
+                  name={score.homeName}
+                  src={score.homeCrestSrc}
+                  color={score.homeColor}
+                  size="md"
+                />
               </div>
-              <p className="font-display text-sm font-bold uppercase tracking-[-0.02em] text-white sm:text-lg">
+              <p className="font-display text-sm font-bold uppercase tracking-[-0.03em] text-white sm:text-lg">
                 {score.homeName}
               </p>
             </div>
@@ -788,26 +786,18 @@ function TimelineHeader({
                 className="pointer-events-none absolute left-1/2 top-1/2 h-24 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(245,200,66,0.22),transparent_70%)]"
                 aria-hidden
               />
-              <p className="loslunes-gold-score relative font-live-serif text-[clamp(40px,9vw,72px)] font-black leading-none tracking-tight tabular-nums">
-                {score.homeScore}
-                <span className="mx-[0.12em]">-</span>
-                {score.awayScore}
-              </p>
+              <LosLunesGoldScore home={score.homeScore} away={score.awayScore} size="compact" />
             </div>
             <div className="flex min-w-0 flex-col items-center text-center">
-              <div className="mb-2 rounded-full bg-gradient-to-br from-[#fff1b0] via-[#d4af37] to-[#8a6414] p-[2px] shadow-[0_0_18px_rgba(212,175,55,0.35)]">
-                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#141010] sm:h-16 sm:w-16">
-                  <TeamCrest
-                    name={score.awayName}
-                    src={score.awayCrestSrc}
-                    color={score.awayColor}
-                    size="md"
-                    fit="contain"
-                    className="!h-[78%] !w-[78%]"
-                  />
-                </div>
+              <div className="mb-2">
+                <LosLunesFloatingCrest
+                  name={score.awayName}
+                  src={score.awayCrestSrc}
+                  color={score.awayColor}
+                  size="md"
+                />
               </div>
-              <p className="font-display text-sm font-bold uppercase tracking-[-0.02em] text-white sm:text-lg">
+              <p className="font-display text-sm font-bold uppercase tracking-[-0.03em] text-white sm:text-lg">
                 {score.awayName}
               </p>
             </div>

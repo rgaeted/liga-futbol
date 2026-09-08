@@ -2,12 +2,13 @@ import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import {
   LosLunesFlankedTitle,
+  LosLunesFloatingCrest,
   LosLunesGoldDivider,
+  LosLunesGoldScore,
   LosLunesLocationPill,
   LosLunesPhotoRing,
   LosLunesStatusLine,
 } from '@/components/live/loslunes-live-ui'
-import { TeamCrest } from '@/components/TeamCrest'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
 
@@ -19,7 +20,7 @@ function MvpCard({ mvp }: { mvp: TeamMvpSideView }) {
         <p className="truncate text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d4af37]">
           👑 MVP · {mvp.teamLabel}
         </p>
-        <p className="mt-1 truncate font-live-serif text-2xl font-bold leading-tight text-white sm:text-[28px]">
+        <p className="mt-1 truncate font-display text-2xl font-bold leading-tight text-white sm:text-[28px]">
           {mvp.label}
         </p>
         <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/35">
@@ -45,12 +46,10 @@ function TeamColumn({
 }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center text-center">
-      <div className="mb-3 rounded-full bg-gradient-to-br from-[#fff1b0] via-[#d4af37] to-[#8a6414] p-[3px] shadow-[0_0_24px_rgba(212,175,55,0.4)]">
-        <div className="flex h-[86px] w-[86px] items-center justify-center overflow-hidden rounded-full bg-[#141010] max-sm:h-[62px] max-sm:w-[62px]">
-          <TeamCrest name={name} src={crestSrc} color={color} size="lg" fit="contain" className="!h-[78%] !w-[78%]" />
-        </div>
+      <div className="mb-3">
+        <LosLunesFloatingCrest name={name} src={crestSrc} color={color} size="lg" />
       </div>
-      <p className="font-display text-[22px] font-bold uppercase leading-none tracking-[-0.02em] text-white max-sm:text-[16px]">
+      <p className="font-display text-[22px] font-bold uppercase leading-none tracking-[-0.03em] text-white max-sm:text-[16px]">
         {name}
       </p>
       <div className="mt-3">
@@ -106,11 +105,7 @@ export function LosLunesLiveScoreboard({
               className="relative mb-2 text-3xl text-[#f5c842] sm:text-4xl"
             />
           ) : null}
-          <p className="loslunes-gold-score relative font-live-serif text-[clamp(56px,11vw,104px)] font-black leading-none tracking-tight tabular-nums">
-            {match.homeScore}
-            <span className="mx-[0.12em]">-</span>
-            {match.awayScore}
-          </p>
+          <LosLunesGoldScore home={match.homeScore} away={match.awayScore} />
           <div className="relative mt-4">
             <LosLunesGoldDivider text="Fútbol — Disciplina — Amigos" />
           </div>

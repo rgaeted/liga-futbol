@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { TeamCrest } from '@/components/TeamCrest'
 import { LOSLUNES_HERO_PATH } from '@/lib/org-brand'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import { personInitials } from '@/lib/player-name'
@@ -42,6 +43,94 @@ export function LosLunesPageBackdrop() {
         Más que fútbol
       </p>
     </>
+  )
+}
+
+function crestFilterId(name: string, size: string) {
+  return `loslunes-crest-knockout-${size}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+}
+
+function CrestKnockoutFilter({ id }: { id: string }) {
+  return (
+    <svg className="pointer-events-none absolute h-0 w-0 overflow-hidden" aria-hidden>
+      <filter id={id} colorInterpolationFilters="sRGB">
+        <feColorMatrix type="luminanceToAlpha" result="lum" />
+        <feComponentTransfer in="lum" result="keep">
+          <feFuncA type="table" tableValues="1 1 1 1 1 1 0.92 0.4 0.1 0" />
+        </feComponentTransfer>
+        <feComposite in="SourceGraphic" in2="keep" operator="in" />
+      </filter>
+    </svg>
+  )
+}
+
+export function LosLunesFloatingCrest({
+  name,
+  src,
+  color,
+  size = 'lg',
+}: {
+  name: string
+  src?: string | null
+  color?: string
+  size?: 'md' | 'lg'
+}) {
+  const box =
+    size === 'lg'
+      ? 'h-[92px] w-[92px] max-sm:h-[68px] max-sm:w-[68px]'
+      : 'h-[72px] w-[72px] max-sm:h-14 max-sm:w-14'
+  const filterId = crestFilterId(name, size)
+
+  return (
+    <div className={`relative flex items-center justify-center ${box}`}>
+      {src ? (
+        <>
+          <CrestKnockoutFilter id={filterId} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={`Escudo ${name}`}
+            className="h-full w-full object-contain"
+            style={{
+              filter: `url(#${filterId}) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.5))`,
+            }}
+          />
+        </>
+      ) : (
+        <TeamCrest
+          name={name}
+          color={color}
+          size={size === 'lg' ? 'lg' : 'md'}
+          fit="contain"
+          className="!h-full !w-full"
+        />
+      )}
+    </div>
+  )
+}
+
+export function LosLunesGoldScore({
+  home,
+  away,
+  size = 'hero',
+}: {
+  home: number
+  away: number
+  size?: 'hero' | 'compact'
+}) {
+  const type =
+    size === 'hero'
+      ? 'text-[clamp(52px,10vw,92px)]'
+      : 'text-[clamp(36px,8vw,64px)]'
+
+  return (
+    <p
+      className={`loslunes-gold-score relative font-display font-bold leading-none tracking-[-0.06em] tabular-nums ${type}`}
+    >
+      {home}
+      <span className="mx-[0.14em] inline-block h-[0.1em] w-[0.38em] translate-y-[-0.22em] bg-current align-middle" />
+      {away}
+    </p>
   )
 }
 

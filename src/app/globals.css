@@ -74,11 +74,8 @@ body {
 }
 
 .loslunes-gold-score {
-  background: linear-gradient(180deg, #fff6d4 0%, #f5c842 38%, #c9862a 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 28px rgba(245, 200, 66, 0.35));
+  color: #f3c453;
+  text-shadow: 0 0 28px rgba(243, 196, 83, 0.28);
 }
 
 .btn-kelme {
