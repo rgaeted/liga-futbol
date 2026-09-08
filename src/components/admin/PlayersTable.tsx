@@ -171,8 +171,11 @@ export function PlayersTable({
                     <td className="p-3">{player.position ?? '—'}</td>
                     <td className="p-3">
                       <span className="inline-flex items-center gap-2">
-                        {!player.hasAccount ? (
-                          <CopyRegisterLinkButton registerPath={player.registerPath!} />
+                        {!player.hasAccount && player.registerPath ? (
+                          <CopyRegisterLinkButton
+                            registerPath={player.registerPath}
+                            playerName={player.name}
+                          />
                         ) : null}
                         <button
                           type="button"

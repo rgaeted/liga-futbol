@@ -6,6 +6,7 @@ import { requireOrganizationId } from '@/lib/tenant-access'
 import { FriendlyPlayerForm } from '@/components/admin/FriendlyPlayerForm'
 import { FriendlyPlayersTable } from '@/components/admin/FriendlyPlayersTable'
 import { playerDisplayName } from '@/lib/person-name'
+import { playerRegisterPath } from '@/lib/player-register-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,7 @@ export default async function AdminPlayersPage({
     notFound()
   }
 
-  const [players, categories, teams] = await Promise.all([
+  const [players, categories, teams, organization] = await Promise.all([
     db.player.findMany({
       where: { organizationId },
       include: {
@@ -44,6 +45,10 @@ export default async function AdminPlayersPage({
       where: { organizationId },
       orderBy: { name: 'asc' },
     }),
+    db.organization.findUnique({
+      where: { id: organizationId },
+      select: { name: true },
+    }),
   ])
 
   const categoryOptions = categories.map((category) => ({
@@ -61,18 +66,23 @@ export default async function AdminPlayersPage({
     label: playerDisplayName(player),
   }))
 
-  const rows = players.map((player) => ({
-    id: player.id,
-    personId: player.personId,
-    firstName: player.person.firstName,
-    lastName: player.person.lastName,
-    email: player.person.user?.email ?? null,
-    hasPhoto: Boolean(player.person.photoMimeType),
-    dominantFoot: player.dominantFoot,
-    primaryPosition: player.primaryPosition,
-    secondaryPosition: player.secondaryPosition,
-    categoryIds: player.categories.map((link) => link.friendlyCategoryId),
-  }))
+  const rows = players.map((player) => {
+    const hasAccount = Boolean(player.person.user)
+    return {
+      id: player.id,
+      personId: player.personId,
+      firstName: player.person.firstName,
+      lastName: player.person.lastName,
+      email: player.person.user?.email ?? null,
+      hasAccount,
+      registerPath: hasAccount ? null : playerRegisterPath(player.id, organizationSlug),
+      hasPhoto: Boolean(player.person.photoMimeType),
+      dominantFoot: player.dominantFoot,
+      primaryPosition: player.primaryPosition,
+      secondaryPosition: player.secondaryPosition,
+      categoryIds: player.categories.map((link) => link.friendlyCategoryId),
+    }
+  })
 
   const filteredRows = categoryId
     ? rows.filter((row) => row.categoryIds.includes(categoryId))
@@ -84,7 +94,7 @@ export default async function AdminPlayersPage({
         <h1 className="font-display text-2xl font-bold">Jugadores</h1>
         <p className="mt-1 text-sm text-kelme-gray-500">
           Fichas de jugadores de tu organización: categorías, equipo, foto de perfil y cuenta de
-          acceso opcional.
+          acceso. Si aún no tiene cuenta, envíale el link por WhatsApp para que la cree.
         </p>
         {categoryOptions.length > 0 && (
           <p className="mt-2 text-sm">
@@ -117,6 +127,7 @@ export default async function AdminPlayersPage({
         players={filteredRows}
         categories={categoryOptions}
         mergeOptions={mergeOptions}
+        organizationName={organization?.name}
       />
     </div>
   )

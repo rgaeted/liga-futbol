@@ -13,6 +13,7 @@ import { FriendlyPlayerPhotoUpload } from './FriendlyPlayerPhotoUpload'
 import { FriendlyCategoryCheckboxes } from './FriendlyCategoryCheckboxes'
 import { PersonCareerBlock } from './PersonCareerBlock'
 import { PersonMergeDialog } from './PersonMergeDialog'
+import { CopyRegisterLinkButton } from './CopyRegisterLinkButton'
 import type { DominantFoot } from '@prisma/client'
 
 export type FriendlyPlayerRow = {
@@ -21,6 +22,8 @@ export type FriendlyPlayerRow = {
   firstName: string
   lastName: string
   email: string | null
+  hasAccount: boolean
+  registerPath: string | null
   hasPhoto: boolean
   dominantFoot: DominantFoot | null
   primaryPosition: string | null
@@ -34,10 +37,12 @@ export function FriendlyPlayersTable({
   players,
   categories,
   mergeOptions,
+  organizationName,
 }: {
   players: FriendlyPlayerRow[]
   categories: CategoryOption[]
   mergeOptions: Array<{ personId: string; label: string }>
+  organizationName?: string | null
 }) {
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -229,9 +234,16 @@ export function FriendlyPlayersTable({
                   <td className="p-3">{formatDominantFoot(player.dominantFoot)}</td>
                   <td className="p-3">{player.primaryPosition ?? '—'}</td>
                   <td className="p-3">{player.secondaryPosition ?? '—'}</td>
-                  <td className="p-3">{player.email ?? 'Sin cuenta'}</td>
+                  <td className="p-3">{player.hasAccount ? (player.email ?? 'Con cuenta') : 'Sin cuenta'}</td>
                   <td className="p-3">
-                    <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      {!player.hasAccount && player.registerPath ? (
+                        <CopyRegisterLinkButton
+                          registerPath={player.registerPath}
+                          playerName={`${player.firstName} ${player.lastName}`.trim()}
+                          organizationName={organizationName}
+                        />
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => startEdit(player)}
