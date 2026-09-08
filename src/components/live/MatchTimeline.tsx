@@ -1,15 +1,19 @@
 import { TeamCrest } from '@/components/TeamCrest'
 import { LOSLUNES_HERO_PATH, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
+import { personInitials } from '@/lib/player-name'
 
 export type TimelineEvent = {
   id: string
   type: string
   minute: number
   playerName: string | null
+  playerId?: string | null
+  playerPhotoUrl?: string | null
   teamName: string | null
   teamCrestSrc?: string | null
   teamColor?: string | null
   assistName: string | null
+  assistPhotoUrl?: string | null
   description?: string | null
   scoreAfter?: string | null
 }
@@ -140,24 +144,59 @@ function MinuteOnAxis({ minute }: { minute: number }) {
   )
 }
 
-function TeamBlock({
+function PlayerActorAvatar({
   name,
-  crestSrc,
-  color,
+  photoUrl,
+  size = 'md',
 }: {
   name: string
-  crestSrc?: string | null
-  color?: string | null
+  photoUrl?: string | null
+  size?: 'sm' | 'md'
+}) {
+  const box = size === 'sm' ? 'h-10 w-10' : 'h-12 w-12 sm:h-14 sm:w-14'
+  const text = size === 'sm' ? 'text-[10px]' : 'text-xs sm:text-sm'
+
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1a1a1a] ring-2 ring-white/15 ${box}`}
+    >
+      {photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <span className={`font-display font-bold text-white/70 ${text}`}>{personInitials(name)}</span>
+      )}
+    </div>
+  )
+}
+
+function AssistLine({
+  name,
+  photoUrl,
+}: {
+  name: string
+  photoUrl?: string | null
 }) {
   return (
-    <div className="flex shrink-0 flex-col items-center gap-1.5 text-center sm:gap-2">
-      <div className="flex h-11 w-11 items-center justify-center sm:h-14 sm:w-14">
-        <TeamCrest name={name} src={crestSrc} color={color} size="lg" fit="contain" className="!h-full !w-full" />
+    <div className="mt-1 flex min-w-0 items-center gap-2">
+      {photoUrl ? (
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1a1a1a] ring-1 ring-white/10">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+        </div>
+      ) : null}
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/30">Asist.</p>
+        <p className="truncate text-xs text-white/60">{name}</p>
       </div>
-      <span className="max-w-[5.5rem] truncate font-display text-[10px] font-bold uppercase tracking-[0.12em] text-white sm:max-w-none sm:text-xs">
-        {name}
-      </span>
     </div>
+  )
+}
+
+function EventPlayerColumn({ event }: { event: TimelineEvent }) {
+  if (!event.playerName) return null
+  return (
+    <PlayerActorAvatar name={event.playerName} photoUrl={event.playerPhotoUrl} />
   )
 }
 
@@ -188,7 +227,7 @@ function GoalCard({ event, label }: { event: TimelineEvent; label: string }) {
             </p>
           ) : null}
           {event.assistName ? (
-            <p className="mt-0.5 truncate text-xs text-white/45">Asistencia: {event.assistName}</p>
+            <AssistLine name={event.assistName} photoUrl={event.assistPhotoUrl} />
           ) : null}
           {quote ? (
             <p className="mt-2 font-display text-xs italic leading-snug text-amber-100/80 sm:text-sm">
@@ -205,13 +244,9 @@ function GoalCard({ event, label }: { event: TimelineEvent; label: string }) {
           </div>
         ) : null}
 
-        {event.teamName ? (
+        {event.playerName ? (
           <div className="col-span-2 flex justify-end sm:col-span-1 sm:justify-center">
-            <TeamBlock
-              name={event.teamName}
-              crestSrc={event.teamCrestSrc}
-              color={event.teamColor}
-            />
+            <EventPlayerColumn event={event} />
           </div>
         ) : null}
       </div>
@@ -256,13 +291,6 @@ function MilestoneCard({
             <p className="mt-1 text-xs text-white/45 sm:text-sm">¡Ya se juega en la cancha!</p>
           ) : null}
         </div>
-        {event.teamName ? (
-          <TeamBlock
-            name={event.teamName}
-            crestSrc={event.teamCrestSrc}
-            color={event.teamColor}
-          />
-        ) : null}
         </div>
       </div>
     </article>
@@ -281,16 +309,10 @@ function CompactCard({ event, label }: { event: TimelineEvent; label: string }) 
             <p className="mt-0.5 truncate font-ui text-sm text-white/75">{event.playerName}</p>
           ) : null}
           {event.assistName ? (
-            <p className="truncate text-xs text-white/40">Asistencia: {event.assistName}</p>
+            <AssistLine name={event.assistName} photoUrl={event.assistPhotoUrl} />
           ) : null}
         </div>
-        {event.teamName ? (
-          <TeamBlock
-            name={event.teamName}
-            crestSrc={event.teamCrestSrc}
-            color={event.teamColor}
-          />
-        ) : null}
+        {event.playerName ? <EventPlayerColumn event={event} /> : null}
       </div>
     </article>
   )

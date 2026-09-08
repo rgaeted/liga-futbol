@@ -20,6 +20,7 @@ import {
 import { sortTimelineEvents, timelineUsesCreatedAtOrder } from '@/lib/match-timeline-sort'
 import { buildTimelineScoresAfter } from '@/lib/match-timeline-score'
 import { teamCrestUrl, teamHasCrest } from '@/lib/team-crest'
+import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { playerDisplayName } from '@/lib/person-name'
 import {
   resolveEventTeamColor,
@@ -41,7 +42,10 @@ export type LiveMatchEvent = {
   minute: number
   createdAt: string
   playerName: string | null
+  playerId: string | null
+  playerPhotoUrl: string | null
   assistName: string | null
+  assistPhotoUrl: string | null
   description: string | null
   teamName: string | null
   teamCrestSrc: string | null
@@ -332,8 +336,17 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
         type: event.type,
         minute: event.minute,
         createdAt: event.createdAt.toISOString(),
+        playerId: event.playerId,
         playerName: event.player ? playerDisplayName(event.player) : null,
+        playerPhotoUrl:
+          event.playerId && event.player?.person.photoMimeType
+            ? friendlyPlayerPhotoUrl(event.playerId)
+            : null,
         assistName: event.assistPlayer ? playerDisplayName(event.assistPlayer) : null,
+        assistPhotoUrl:
+          event.assistPlayerId && event.assistPlayer?.person.photoMimeType
+            ? friendlyPlayerPhotoUrl(event.assistPlayerId)
+            : null,
         description: event.description,
         teamName,
         teamCrestSrc: resolveEventTeamCrest(teamName, teamVisual),
