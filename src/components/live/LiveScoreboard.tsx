@@ -5,14 +5,16 @@ import { MatchTimeline } from '@/components/live/MatchTimeline'
 import { LosLunesDarkPitch } from '@/components/live/LosLunesDarkPitch'
 import { LosLunesLiveScoreboard } from '@/components/live/LosLunesLiveScoreboard'
 import {
+  LosLunesFlankedTitle,
   LosLunesPageBackdrop,
   LosLunesPageFooter,
   LosLunesPhotoRing,
+  losLunesLiveCard,
 } from '@/components/live/loslunes-live-ui'
 import { useLiveMatchSnapshot } from '@/hooks/useLiveMatchSnapshot'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
 import { footballFormatLabel } from '@/lib/football-format'
-import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
+import { LOSLUNES_SLUG } from '@/lib/org-brand'
 import { MatchType } from '@prisma/client'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
 import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
@@ -151,18 +153,7 @@ export function LiveScoreboard({
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-8">
         {premium ? (
-          <div className="mb-6 flex justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={LOSLUNES_LOGO_PATH}
-              alt={match.organization.name}
-              className="h-14 w-14 object-contain opacity-95 sm:h-16 sm:w-16"
-            />
-          </div>
-        ) : null}
-
-        {premium ? (
-          <div className="mb-8">
+          <div className="mb-10">
             <LosLunesLiveScoreboard match={match} isLive={isLive} />
           </div>
         ) : (
@@ -178,19 +169,11 @@ export function LiveScoreboard({
 
         {hasFormations && (
           <section
-            className={`mb-8 ${
-              premium
-                ? 'overflow-hidden rounded-2xl border border-org-primary bg-[#0a0a0a] p-5 sm:p-6'
-                : ''
-            }`}
+            className={`mb-8 ${premium ? `${losLunesLiveCard} p-5 sm:p-6` : ''}`}
           >
             {premium ? (
-              <div className="mb-4 flex items-center gap-3">
-                <span className="h-px flex-1 bg-org-primary/80" />
-                <h2 className="font-display text-[13px] font-bold uppercase tracking-[0.2em] text-white">
-                  Formaciones
-                </h2>
-                <span className="h-px flex-1 bg-org-primary/80" />
+              <div className="mb-4">
+                <LosLunesFlankedTitle>Formaciones</LosLunesFlankedTitle>
               </div>
             ) : (
               <>
@@ -262,7 +245,7 @@ export function LiveScoreboard({
         />
 
         {premium ? (
-          <LosLunesPageFooter />
+          <LosLunesPageFooter locationLabel={match.locationLabel} />
         ) : (
           <p className="mt-10 text-center font-ui text-xs uppercase tracking-widest text-white/30">
             {match.organization.name}

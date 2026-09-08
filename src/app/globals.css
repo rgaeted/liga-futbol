@@ -69,6 +69,18 @@ body {
   font-family: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
 }
 
+.font-live-serif {
+  font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
+}
+
+.loslunes-gold-score {
+  background: linear-gradient(180deg, #fff6d4 0%, #f5c842 38%, #c9862a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 28px rgba(245, 200, 66, 0.35));
+}
+
 .btn-kelme {
   @apply rounded-xl bg-org-primary px-4 py-3 font-ui text-sm font-extrabold text-[#E8E4D8] shadow-none transition hover:brightness-110 disabled:opacity-50;
 }

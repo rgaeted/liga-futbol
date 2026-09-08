@@ -1,8 +1,8 @@
 import { TeamCrest } from '@/components/TeamCrest'
 import {
+  LosLunesFlankedTitle,
   LosLunesGoldDivider,
   LosLunesPhotoRing,
-  LosLunesSectionTitle,
   losLunesLiveCard,
 } from '@/components/live/loslunes-live-ui'
 import { LOSLUNES_HERO_PATH, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
@@ -598,30 +598,88 @@ export function MatchTimeline({
   const unifiedPremium = premium && embedded
   let kickoffCount = 0
 
-  const sectionShell = unifiedPremium
-    ? `${losLunesLiveCard} p-5 sm:p-6`
+  const bodyShell = unifiedPremium
+    ? `${losLunesLiveCard} relative p-5 sm:p-6`
     : premium
       ? 'overflow-hidden rounded-2xl border border-amber-400/25 bg-[#050403] px-3 py-6 sm:px-6 sm:py-8'
       : 'relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#050505] px-3 py-6 sm:px-6 sm:py-8'
 
-  if (events.length === 0) {
-    return (
-      <section className={`relative ${sectionShell}`}>
-        <TimelineHeader premium={premium} embedded={embedded} />
-        <div
-          className={`rounded-xl px-4 py-10 text-center font-ui text-sm text-white/40 ${
-            premium ? 'border border-amber-400/20 bg-black/50' : 'border border-white/10 bg-[#0a0a0a]'
-          }`}
-        >
-          Aún no hay eventos en este partido.
+  const emptyState = (
+    <div
+      className={`rounded-xl px-4 py-10 text-center font-ui text-sm text-white/40 ${
+        premium ? 'border border-amber-400/20 bg-black/50' : 'border border-white/10 bg-[#0a0a0a]'
+      }`}
+    >
+      Aún no hay eventos en este partido.
+    </div>
+  )
+
+  const timelineList =
+    events.length === 0 ? (
+      emptyState
+    ) : (
+      <>
+        <SideWatermark
+          name={teams.home.name}
+          crestSrc={teams.home.crestSrc}
+          color={teams.home.color}
+          align="left"
+          premium={premium}
+        />
+        <SideWatermark
+          name={teams.away.name}
+          crestSrc={teams.away.crestSrc}
+          color={teams.away.color}
+          align="right"
+          premium={premium}
+        />
+        <div className="relative mx-auto max-w-4xl">
+          <div
+            className={`absolute bottom-4 left-1/2 top-4 w-px -translate-x-1/2 ${
+              premium
+                ? 'bg-gradient-to-b from-amber-400/5 via-amber-300/30 to-amber-400/5'
+                : 'bg-gradient-to-b from-white/5 via-white/20 to-white/5'
+            }`}
+            aria-hidden
+          />
+          <ul className="relative">
+            {events.map((event) => {
+              if (event.type === 'KICKOFF') kickoffCount += 1
+              const side = resolveEventSide(
+                event,
+                teams.home.name,
+                teams.away.name,
+                kickoffCount,
+              )
+              const label = eventLabel(event.type)
+              return (
+                <TimelineRow
+                  key={event.id}
+                  event={event}
+                  side={side}
+                  label={label}
+                  showHalftimePhoto={premium}
+                  premium={premium}
+                />
+              )
+            })}
+          </ul>
         </div>
+      </>
+    )
+
+  if (unifiedPremium) {
+    return (
+      <section className="relative">
+        <TimelineHeader premium />
+        <div className={bodyShell}>{timelineList}</div>
       </section>
     )
   }
 
   return (
-    <section className={`relative ${sectionShell}`}>
-      {premium && !embedded ? (
+    <section className={`relative ${bodyShell}`}>
+      {premium ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -643,64 +701,20 @@ export function MatchTimeline({
         </>
       ) : null}
 
-      <SideWatermark
-        name={teams.home.name}
-        crestSrc={teams.home.crestSrc}
-        color={teams.home.color}
-        align="left"
-        premium={premium}
-      />
-      <SideWatermark
-        name={teams.away.name}
-        crestSrc={teams.away.crestSrc}
-        color={teams.away.color}
-        align="right"
-        premium={premium}
-      />
-
-      <TimelineHeader premium={premium} embedded={embedded} />
-
-      <div className="relative mx-auto max-w-4xl">
-        <div className={`absolute bottom-4 left-1/2 top-4 w-px -translate-x-1/2 ${premium ? 'bg-gradient-to-b from-amber-400/5 via-amber-300/30 to-amber-400/5' : 'bg-gradient-to-b from-white/5 via-white/20 to-white/5'}`} aria-hidden />
-
-        <ul className="relative">
-          {events.map((event) => {
-            if (event.type === 'KICKOFF') kickoffCount += 1
-            const side = resolveEventSide(
-              event,
-              teams.home.name,
-              teams.away.name,
-              kickoffCount,
-            )
-            const label = eventLabel(event.type)
-            return (
-              <TimelineRow
-                key={event.id}
-                event={event}
-                side={side}
-                label={label}
-                showHalftimePhoto={premium}
-                premium={premium}
-              />
-            )
-          })}
-        </ul>
-      </div>
-
-      {premium && !embedded ? <TimelineFooterLosLunes /> : null}
+      <TimelineHeader premium={premium} />
+      {timelineList}
+      {premium ? <TimelineFooterLosLunes /> : null}
     </section>
   )
 }
 
-function TimelineHeader({ premium, embedded = false }: { premium: boolean; embedded?: boolean }) {
-  if (premium && embedded) {
+function TimelineHeader({ premium }: { premium: boolean }) {
+  if (premium) {
     return (
-      <div className="relative z-10 mb-6">
-        <div className="flex items-end justify-between gap-4">
-          <LosLunesSectionTitle>Cronología</LosLunesSectionTitle>
-          <p className="hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/45 sm:block">
-            Fútbol · Pasión · Siempre
-          </p>
+      <div className="relative z-10 mb-8 px-1 text-center">
+        <LosLunesFlankedTitle size="hero">Cronología</LosLunesFlankedTitle>
+        <div className="mt-3">
+          <LosLunesGoldDivider text="Fútbol — Disciplina — Amigos" />
         </div>
       </div>
     )
@@ -708,21 +722,9 @@ function TimelineHeader({ premium, embedded = false }: { premium: boolean; embed
 
   return (
     <div className="relative z-10 mb-6 px-1">
-      <div className="flex items-end justify-between gap-4">
-        <h2 className="font-display text-xl font-bold uppercase tracking-[0.08em] text-white sm:text-2xl">
-          Cronología
-        </h2>
-        {premium ? (
-          <p className="hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/45 sm:block">
-            Fútbol · Pasión · Siempre
-          </p>
-        ) : null}
-      </div>
-      {premium ? (
-        <div className="mt-3">
-          <LosLunesGoldDivider text="Fútbol — Disciplina — Amigos" />
-        </div>
-      ) : null}
+      <h2 className="font-display text-xl font-bold uppercase tracking-[0.08em] text-white sm:text-2xl">
+        Cronología
+      </h2>
     </div>
   )
 }

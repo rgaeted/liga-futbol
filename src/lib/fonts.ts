@@ -1,4 +1,4 @@
-import { IBM_Plex_Mono, Manrope, Oswald } from 'next/font/google'
+import { IBM_Plex_Mono, Manrope, Oswald, Playfair_Display } from 'next/font/google'
 
 export const oswald = Oswald({
   variable: '--font-oswald',
@@ -16,4 +16,10 @@ export const ibmPlexMono = IBM_Plex_Mono({
   variable: '--font-ibm-plex-mono',
   subsets: ['latin'],
   weight: ['400', '500', '600'],
+})
+
+export const playfair = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+  weight: ['700', '800', '900'],
 })

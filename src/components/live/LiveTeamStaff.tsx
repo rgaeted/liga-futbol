@@ -2,6 +2,7 @@ type StaffBadgeProps = {
   role: 'C' | 'DT'
   label: string
   compact?: boolean
+  tone?: 'default' | 'premium'
 }
 
 const BADGE_STYLES = {
@@ -19,7 +20,32 @@ const BADGE_STYLES = {
   },
 } as const
 
-function StaffBadge({ role, label, compact = false }: StaffBadgeProps) {
+function StaffBadge({ role, label, compact = false, tone = 'default' }: StaffBadgeProps) {
+  if (tone === 'premium') {
+    const premium =
+      role === 'C'
+        ? 'bg-[#1e3a8a] text-white'
+        : 'bg-[#d4af37] text-[#1a1204]'
+    return (
+      <span
+        className={`inline-flex max-w-full items-center gap-1.5 rounded-full py-1 pl-1 pr-2.5 text-[10px] font-semibold tracking-wide ${premium} ${
+          compact ? 'py-0.5 pl-0.5 pr-2 text-[9px]' : ''
+        }`}
+      >
+        <span
+          className={`inline-flex shrink-0 items-center justify-center rounded-full font-ui font-bold uppercase ${
+            role === 'C'
+              ? 'h-5 w-5 bg-white text-[#1e3a8a]'
+              : 'h-5 min-w-5 px-0.5 bg-[#1a1204] text-[#f5e6b8]'
+          } ${compact ? 'h-4 w-4 text-[8px]' : 'text-[9px]'}`}
+        >
+          {role}
+        </span>
+        <span className="truncate">{label}</span>
+      </span>
+    )
+  }
+
   const styles = BADGE_STYLES[role]
   return (
     <span
@@ -43,17 +69,19 @@ export function LiveTeamStaff({
   captainLabel,
   coachLabel,
   compact = false,
+  tone = 'default',
 }: {
   captainLabel?: string | null
   coachLabel?: string | null
   compact?: boolean
+  tone?: 'default' | 'premium'
 }) {
   if (!captainLabel && !coachLabel) return null
 
   return (
     <div className={`flex flex-col items-center ${compact ? 'gap-1' : 'gap-1.5'}`}>
-      {captainLabel && <StaffBadge role="C" label={captainLabel} compact={compact} />}
-      {coachLabel && <StaffBadge role="DT" label={coachLabel} compact={compact} />}
+      {captainLabel && <StaffBadge role="C" label={captainLabel} compact={compact} tone={tone} />}
+      {coachLabel && <StaffBadge role="DT" label={coachLabel} compact={compact} tone={tone} />}
     </div>
   )
 }

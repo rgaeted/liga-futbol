@@ -1,35 +1,44 @@
 import type { ReactNode } from 'react'
-import { LOSLUNES_HERO_PATH, LOSLUNES_LOGO_PATH } from '@/lib/org-brand'
+import { LOSLUNES_HERO_PATH } from '@/lib/org-brand'
 import { personInitials } from '@/lib/player-name'
 
 export const losLunesLiveCard =
-  'overflow-hidden rounded-2xl border border-amber-400/30 bg-black/55 shadow-[0_0_32px_rgba(245,200,66,0.08)] backdrop-blur-sm'
+  'overflow-hidden rounded-2xl border border-[#d4af37]/35 bg-black/45 shadow-[0_0_32px_rgba(212,175,55,0.12)] backdrop-blur-sm'
 
 export function LosLunesPageBackdrop() {
   return (
     <>
+      <div className="pointer-events-none fixed inset-0 bg-[#020202]" aria-hidden />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={LOSLUNES_HERO_PATH}
         alt=""
-        className="pointer-events-none fixed inset-0 h-full w-full object-cover opacity-[0.24]"
+        className="pointer-events-none fixed inset-0 h-full w-full object-cover opacity-[0.22] saturate-50"
         aria-hidden
       />
       <div
-        className="pointer-events-none fixed inset-0 bg-gradient-to-b from-black/88 via-[#050403]/92 to-black/95"
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background: `
+            radial-gradient(ellipse 70% 45% at 8% -8%, rgba(255, 236, 180, 0.28), transparent 52%),
+            radial-gradient(ellipse 55% 40% at 96% -6%, rgba(255, 220, 140, 0.16), transparent 48%),
+            radial-gradient(ellipse 80% 50% at 50% 108%, rgba(8, 12, 20, 0.95), transparent 55%),
+            linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 38%, rgba(0,0,0,0.88) 100%)
+          `,
+        }}
         aria-hidden
       />
       <p
-        className="pointer-events-none fixed bottom-8 left-6 hidden font-display text-4xl font-bold uppercase tracking-[0.08em] text-white/[0.025] sm:block xl:text-5xl"
-        aria-hidden
-      >
-        Más que fútbol
-      </p>
-      <p
-        className="pointer-events-none fixed right-6 top-24 hidden font-display text-3xl font-bold uppercase tracking-[0.12em] text-white/[0.02] sm:block"
+        className="pointer-events-none fixed left-[-2%] top-[28%] hidden origin-left -rotate-[18deg] font-display text-[42px] font-bold uppercase tracking-[0.14em] text-white/[0.045] xl:block"
         aria-hidden
       >
         Los lunes también se juega
+      </p>
+      <p
+        className="pointer-events-none fixed right-[-1%] top-[34%] hidden origin-right rotate-[16deg] font-display text-[36px] font-bold uppercase tracking-[0.16em] text-white/[0.04] xl:block"
+        aria-hidden
+      >
+        Más que fútbol
       </p>
     </>
   )
@@ -38,11 +47,38 @@ export function LosLunesPageBackdrop() {
 export function LosLunesGoldDivider({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="h-px flex-1 bg-amber-400/25" aria-hidden />
-      <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.24em] text-amber-400/50">
+      <span className="h-px flex-1 bg-[#d4af37]/30" aria-hidden />
+      <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.24em] text-[#d4af37]/55">
         {text}
       </p>
-      <span className="h-px flex-1 bg-amber-400/25" aria-hidden />
+      <span className="h-px flex-1 bg-[#d4af37]/30" aria-hidden />
+    </div>
+  )
+}
+
+export function LosLunesFlankedTitle({
+  children,
+  as: Tag = 'h2',
+  size = 'section',
+}: {
+  children: ReactNode
+  as?: 'h1' | 'h2'
+  size?: 'hero' | 'section'
+}) {
+  const title =
+    size === 'hero'
+      ? 'min-w-0 font-display text-[24px] font-bold uppercase tracking-[0.08em] text-white sm:text-[36px] md:text-[42px]'
+      : 'shrink-0 font-display text-[13px] font-bold uppercase tracking-[0.2em] text-white sm:text-sm'
+  const line =
+    size === 'hero'
+      ? 'h-px w-8 shrink-0 bg-[#c4782a] sm:w-[64px] md:w-[88px]'
+      : 'h-px min-w-8 flex-1 bg-[#d4af37]/40'
+
+  return (
+    <div className="flex items-center justify-center gap-3 sm:gap-4">
+      <span className={line} aria-hidden />
+      <Tag className={`text-center ${title}`}>{children}</Tag>
+      <span className={line} aria-hidden />
     </div>
   )
 }
@@ -66,7 +102,7 @@ export function LosLunesPhotoRing({
 
   return (
     <div
-      className={`shrink-0 rounded-full bg-gradient-to-br from-amber-200/90 via-amber-400/50 to-amber-700/40 p-[3px] shadow-[0_0_22px_rgba(245,200,66,0.35)] ${box}`}
+      className={`shrink-0 rounded-full bg-gradient-to-br from-[#fff1b0] via-[#d4af37] to-[#8a6414] p-[3px] shadow-[0_0_28px_rgba(212,175,55,0.45)] ${box}`}
     >
       <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#141010]">
         {photoUrl ? (
@@ -80,22 +116,10 @@ export function LosLunesPhotoRing({
   )
 }
 
-export function LosLunesSectionTitle({ children }: { children: ReactNode }) {
+export function LosLunesPageFooter({ locationLabel }: { locationLabel?: string | null }) {
   return (
-    <h2 className="font-display text-sm font-bold uppercase tracking-[0.2em] text-amber-100/85 sm:text-base">
-      {children}
-    </h2>
-  )
-}
-
-export function LosLunesPageFooter() {
-  return (
-    <div className="mt-10 flex items-end justify-between gap-4 border-t border-amber-400/15 pt-5">
-      <p className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-400/40 sm:text-xs">
-        Más que un partido
-      </p>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={LOSLUNES_LOGO_PATH} alt="" className="h-8 w-8 object-contain opacity-90 sm:h-9 sm:w-9" />
-    </div>
+    <p className="mt-10 text-center font-ui text-[10px] font-semibold uppercase tracking-[0.22em] text-white/30">
+      FDL{locationLabel ? ` · ${locationLabel}` : ''}
+    </p>
   )
 }
