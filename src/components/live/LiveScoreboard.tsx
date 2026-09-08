@@ -8,28 +8,45 @@ import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { MatchTimeline } from '@/components/live/MatchTimeline'
 import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
 import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
+import {
+  LosLunesGoldDivider,
+  LosLunesPageBackdrop,
+  LosLunesPageFooter,
+  LosLunesPhotoRing,
+  LosLunesSectionTitle,
+  losLunesLiveCard,
+} from '@/components/live/loslunes-live-ui'
 import { TeamCrest } from '@/components/TeamCrest'
 import { footballFormatLabel } from '@/lib/football-format'
+import { LOSLUNES_SLUG } from '@/lib/org-brand'
 import { MatchType } from '@prisma/client'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
-import { personInitials } from '@/lib/player-name'
+import type { TeamMvpSideView } from '@/lib/match-mvp'
 
 function LiveOrganizationBrand({
   name,
   logoUrl,
+  premium,
 }: {
   name: string
   logoUrl: string | null
+  premium: boolean
 }) {
+  if (premium) {
+    return (
+      <div className="text-center">
+        <p className="font-display text-xl font-bold uppercase tracking-[0.06em] text-white sm:text-2xl md:text-3xl">
+          {name}
+        </p>
+      </div>
+    )
+  }
+
   if (logoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={logoUrl}
-        alt={name}
-        className="h-10 max-w-[220px] object-contain"
-      />
+      <img src={logoUrl} alt={name} className="h-10 max-w-[220px] object-contain" />
     )
   }
 
@@ -37,6 +54,203 @@ function LiveOrganizationBrand({
     <p className="font-display text-lg font-bold uppercase tracking-widest text-[#E8E4D8]">
       {name}
     </p>
+  )
+}
+
+function LosLunesMvpCard({ mvp }: { mvp: TeamMvpSideView }) {
+  return (
+    <article className={`${losLunesLiveCard} p-4 sm:p-5`}>
+      <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <LosLunesPhotoRing name={mvp.label ?? '?'} photoUrl={mvp.photoUrl} size="xl" />
+        <div className="min-w-0 text-center sm:text-left">
+          <p className="truncate text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-400/70">
+            👑 MVP · {mvp.teamLabel}
+          </p>
+          <p className="mt-1 truncate font-display text-xl font-bold text-white sm:text-2xl">
+            {mvp.label}
+          </p>
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/30">
+            Juego real · Personas reales
+          </p>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function LosLunesScoreboardBody({
+  match,
+  isLive,
+}: {
+  match: LiveMatchSnapshot
+  isLive: boolean
+}) {
+  const showMvps = match.status === 'FINISHED' && match.teamMvps.some((m) => m.label)
+
+  return (
+    <div className={`${losLunesLiveCard} p-5 sm:p-8`}>
+      <p className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-org-primary">
+        {isLive ? (
+          <span className="live-pulse inline-flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-org-primary" />
+            En vivo
+          </span>
+        ) : (
+          matchStatusLabel(match.status)
+        )}
+      </p>
+
+      <div className="flex items-start justify-between gap-3 sm:gap-4">
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+          <TeamCrest
+            name={match.homeTeam.name}
+            src={match.homeTeam.crestSrc ?? match.organization.logoUrl}
+            color={match.homeTeam.color}
+            size="lg"
+          />
+          <p className="font-display text-sm font-bold uppercase tracking-wide text-white sm:text-base">
+            {match.homeTeam.name}
+          </p>
+          <LiveTeamStaff
+            captainLabel={match.homeCaptainLabel}
+            coachLabel={match.homeCoachLabel}
+          />
+        </div>
+
+        <div className="shrink-0 px-1 pt-2 text-center sm:px-3">
+          <MatchClockDisplay
+            clock={{ ...match.clock, status: match.status }}
+            className="mb-1 text-3xl text-amber-100/90 sm:text-4xl"
+          />
+          <p className="font-display text-5xl font-bold tabular-nums tracking-tight text-[#f5c842] drop-shadow-[0_0_20px_rgba(245,200,66,0.4)] sm:text-6xl md:text-7xl">
+            {match.homeScore}
+            <span className="mx-1 text-amber-400/40">-</span>
+            {match.awayScore}
+          </p>
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+          <TeamCrest
+            name={match.awayTeam.name}
+            src={match.awayTeam.crestSrc ?? match.guestOrganization?.logoUrl}
+            color={match.awayTeam.color}
+            size="lg"
+          />
+          <p className="font-display text-sm font-bold uppercase tracking-wide text-white sm:text-base">
+            {match.awayTeam.name}
+          </p>
+          <LiveTeamStaff
+            captainLabel={match.awayCaptainLabel}
+            coachLabel={match.awayCoachLabel}
+          />
+        </div>
+      </div>
+
+      <div className="my-5 sm:my-6">
+        <LosLunesGoldDivider text="Fútbol — Disciplina — Amigos" />
+      </div>
+
+      {showMvps ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {match.teamMvps
+            .filter((m) => m.label)
+            .map((mvp) => (
+              <LosLunesMvpCard key={mvp.side} mvp={mvp} />
+            ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function DefaultScoreboardBody({
+  match,
+  isLive,
+}: {
+  match: LiveMatchSnapshot
+  isLive: boolean
+}) {
+  return (
+    <>
+      <p className="mb-2 text-center font-ui text-sm uppercase tracking-widest text-org-primary">
+        {isLive ? (
+          <span className="live-pulse inline-flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-org-primary" />
+            EN VIVO
+          </span>
+        ) : (
+          matchStatusLabel(match.status)
+        )}
+      </p>
+
+      <div className="mb-4 flex justify-center">
+        <MatchClockDisplay clock={{ ...match.clock, status: match.status }} />
+      </div>
+
+      <div className="mb-8 rounded-2xl border border-white/10 bg-kelme-live-surface p-6 sm:p-8">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+            <TeamCrest
+              name={match.homeTeam.name}
+              src={match.homeTeam.crestSrc ?? match.organization.logoUrl}
+              color={match.homeTeam.color}
+              size="lg"
+            />
+            <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
+              {match.homeTeam.name}
+            </p>
+            <LiveTeamStaff
+              captainLabel={match.homeCaptainLabel}
+              coachLabel={match.homeCoachLabel}
+            />
+          </div>
+          <div className="shrink-0 px-2 text-center">
+            <p className="font-data text-5xl font-extrabold tabular-nums text-[#E8E4D8] sm:text-6xl">
+              {match.homeScore}
+              <span className="mx-1 text-[#8A938C]/50">-</span>
+              {match.awayScore}
+            </p>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+            <TeamCrest
+              name={match.awayTeam.name}
+              src={match.awayTeam.crestSrc ?? match.guestOrganization?.logoUrl}
+              color={match.awayTeam.color}
+              size="lg"
+            />
+            <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
+              {match.awayTeam.name}
+            </p>
+            <LiveTeamStaff
+              captainLabel={match.awayCaptainLabel}
+              coachLabel={match.awayCoachLabel}
+            />
+          </div>
+        </div>
+        {match.status === 'FINISHED' && match.teamMvps.some((m) => m.label) && (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {match.teamMvps
+              .filter((m) => m.label)
+              .map((mvp) => (
+                <div
+                  key={mvp.side}
+                  className="flex flex-col items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-4 sm:flex-row sm:items-center"
+                >
+                  <LosLunesPhotoRing name={mvp.label ?? '?'} photoUrl={mvp.photoUrl} size="xl" />
+                  <div className="min-w-0 text-center sm:text-left">
+                    <p className="truncate font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/70">
+                      MVP · {mvp.teamLabel}
+                    </p>
+                    <p className="truncate font-display text-lg font-bold text-amber-100 sm:text-xl">
+                      {mvp.label}
+                    </p>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -51,6 +265,8 @@ export function LiveScoreboard({
     initialSnapshot: initialMatch,
   })
 
+  const premium = organizationSlug === LOSLUNES_SLUG
+
   const paidByPlayerId =
     match.matchType === MatchType.FRIENDLY ? match.friendlyPaidByPlayerId : undefined
   const galletaPlayerIds =
@@ -61,128 +277,75 @@ export function LiveScoreboard({
       sortTimelineEvents(match.events, {
         preferCreatedAt: match.preferCreatedAtOrder,
       }),
-    [match.events, match.preferCreatedAtOrder]
+    [match.events, match.preferCreatedAtOrder],
   )
 
   const isLive = match.status === 'LIVE'
   const hasFormations = match.formations.some((formation) => formation.lineup)
 
   return (
-    <div className="min-h-screen bg-[#0B1210] text-[#E8E4D8]">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+    <div
+      className={`relative min-h-screen ${
+        premium ? 'bg-[#050403] text-white' : 'bg-[#0B1210] text-[#E8E4D8]'
+      }`}
+    >
+      {premium ? <LosLunesPageBackdrop /> : null}
+
+      <div className="relative z-10 mx-auto max-w-4xl px-4 py-8">
         <div className="mb-6 flex justify-center">
           <LiveOrganizationBrand
             name={match.organization.name}
             logoUrl={match.organization.logoUrl}
+            premium={premium}
           />
         </div>
 
-        <p className="mb-2 text-center font-ui text-sm uppercase tracking-widest text-org-primary">
-          {isLive ? (
-            <span className="live-pulse inline-flex items-center gap-2">
-              <span className="inline-block h-2 w-2 rounded-full bg-org-primary" />
-              EN VIVO
-            </span>
-          ) : (
-            matchStatusLabel(match.status)
-          )}
-        </p>
-
-        <div className="mb-4 flex justify-center">
-          <MatchClockDisplay clock={{ ...match.clock, status: match.status }} />
-        </div>
-
-        <LiveMatchContextBar
-          venue={match.venue}
-          locationLabel={match.locationLabel}
-          weather={match.weather}
-        />
-
-        <div className="mb-8 rounded-2xl border border-white/10 bg-kelme-live-surface p-6 sm:p-8">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-              <TeamCrest
-                name={match.homeTeam.name}
-                src={match.homeTeam.crestSrc ?? match.organization.logoUrl}
-                color={match.homeTeam.color}
-                size="lg"
-              />
-              <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
-                {match.homeTeam.name}
-              </p>
-              <LiveTeamStaff
-                captainLabel={match.homeCaptainLabel}
-                coachLabel={match.homeCoachLabel}
-              />
+        {premium ? (
+          <>
+            <LiveMatchContextBar
+              venue={match.venue}
+              locationLabel={match.locationLabel}
+              weather={match.weather}
+              premium
+            />
+            <div className="mb-8">
+              <LosLunesScoreboardBody match={match} isLive={isLive} />
             </div>
-            <div className="shrink-0 px-2 text-center">
-              <p className="font-data text-5xl font-extrabold tabular-nums text-[#E8E4D8] sm:text-6xl">
-                {match.homeScore}
-                <span className="mx-1 text-[#8A938C]/50">-</span>
-                {match.awayScore}
-              </p>
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-              <TeamCrest
-                name={match.awayTeam.name}
-                src={match.awayTeam.crestSrc ?? match.guestOrganization?.logoUrl}
-                color={match.awayTeam.color}
-                size="lg"
-              />
-              <p className="font-ui text-sm font-semibold uppercase tracking-wide sm:text-base">
-                {match.awayTeam.name}
-              </p>
-              <LiveTeamStaff
-                captainLabel={match.awayCaptainLabel}
-                coachLabel={match.awayCoachLabel}
-              />
-            </div>
-          </div>
-          {match.status === 'FINISHED' && match.teamMvps.some((m) => m.label) && (
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {match.teamMvps
-                .filter((m) => m.label)
-                .map((mvp) => (
-                  <div
-                    key={mvp.side}
-                    className="flex flex-col items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-4 sm:flex-row sm:items-center"
-                  >
-                    {mvp.photoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={mvp.photoUrl}
-                        alt={mvp.label ?? ''}
-                        className="h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-amber-300/80 sm:h-28 sm:w-28"
-                      />
-                    ) : (
-                      <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-amber-300/25 text-lg font-bold text-amber-100 ring-4 ring-amber-300/50 sm:h-28 sm:w-28">
-                        {personInitials(mvp.label ?? '?')}
-                      </span>
-                    )}
-                    <div className="min-w-0 text-center sm:text-left">
-                      <p className="truncate font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/70">
-                        MVP · {mvp.teamLabel}
-                      </p>
-                      <p className="truncate font-display text-lg font-bold text-amber-100 sm:text-xl">
-                        {mvp.label}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <>
+            <DefaultScoreboardBody match={match} isLive={isLive} />
+            <LiveMatchContextBar
+              venue={match.venue}
+              locationLabel={match.locationLabel}
+              weather={match.weather}
+            />
+          </>
+        )}
 
         {hasFormations && (
-          <section className="mb-8">
-            <h2 className="mb-1 font-display text-sm font-bold uppercase tracking-[0.25em] text-amber-200/75">
-              Formaciones
-            </h2>
-            <p className="mb-4 text-center font-ui text-xs uppercase tracking-widest text-white/40">
-              {footballFormatLabel(match.footballFormat)}
-              {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
-              {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
-            </p>
+          <section className={`mb-8 ${premium ? losLunesLiveCard + ' p-5 sm:p-6' : ''}`}>
+            {premium ? (
+              <div className="mb-4">
+                <LosLunesSectionTitle>Formaciones</LosLunesSectionTitle>
+                <p className="mt-2 text-center font-ui text-[10px] uppercase tracking-[0.2em] text-amber-400/45">
+                  {footballFormatLabel(match.footballFormat)}
+                  {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
+                  {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
+                </p>
+              </div>
+            ) : (
+              <>
+                <h2 className="mb-1 font-display text-sm font-bold uppercase tracking-[0.25em] text-amber-200/75">
+                  Formaciones
+                </h2>
+                <p className="mb-4 text-center font-ui text-xs uppercase tracking-widest text-white/40">
+                  {footballFormatLabel(match.footballFormat)}
+                  {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
+                  {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
+                </p>
+              </>
+            )}
             <div className="grid gap-5 sm:grid-cols-2">
               {match.formations.map((side) =>
                 side.lineup ? (
@@ -200,12 +363,16 @@ export function LiveScoreboard({
                       galletaPlayerIds={galletaPlayerIds}
                     />
                     {side.lineup.bench.length > 0 && (
-                      <p className="mt-2 text-center text-xs text-white/40">
+                      <p
+                        className={`mt-2 text-center text-xs ${
+                          premium ? 'text-white/35' : 'text-white/40'
+                        }`}
+                      >
                         Banco: {side.lineup.bench.map((b) => b.playerName).join(', ')}
                       </p>
                     )}
                   </div>
-                ) : null
+                ) : null,
               )}
             </div>
           </section>
@@ -218,11 +385,16 @@ export function LiveScoreboard({
             away: match.awayTeam,
           }}
           organizationSlug={organizationSlug}
+          embedded={premium}
         />
 
-        <p className="mt-10 text-center font-ui text-xs uppercase tracking-widest text-white/30">
-          {match.organization.name}
-        </p>
+        {premium ? (
+          <LosLunesPageFooter />
+        ) : (
+          <p className="mt-10 text-center font-ui text-xs uppercase tracking-widest text-white/30">
+            {match.organization.name}
+          </p>
+        )}
       </div>
     </div>
   )

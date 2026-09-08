@@ -1,4 +1,10 @@
 import { TeamCrest } from '@/components/TeamCrest'
+import {
+  LosLunesGoldDivider,
+  LosLunesPhotoRing,
+  LosLunesSectionTitle,
+  losLunesLiveCard,
+} from '@/components/live/loslunes-live-ui'
 import { LOSLUNES_HERO_PATH, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { personInitials } from '@/lib/player-name'
 
@@ -164,37 +170,33 @@ function PlayerActorAvatar({
   size?: 'sm' | 'md' | 'lg'
   premium?: boolean
 }) {
+  if (premium && size !== 'sm') {
+    return (
+      <LosLunesPhotoRing
+        name={name}
+        photoUrl={photoUrl}
+        size={size === 'lg' ? 'lg' : 'md'}
+      />
+    )
+  }
+
   const box =
     size === 'sm' ? 'h-10 w-10' : size === 'lg' ? 'h-16 w-16 sm:h-[4.5rem] sm:w-[4.5rem]' : 'h-12 w-12 sm:h-14 sm:w-14'
   const text =
     size === 'sm' ? 'text-[10px]' : size === 'lg' ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'
 
-  const inner = (
-    <div
-      className={`flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#141010] ${
-        premium ? 'ring-0' : 'ring-2 ring-white/15'
-      }`}
-    >
-      {photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photoUrl} alt="" className="h-full w-full object-cover" />
-      ) : (
-        <span className={`font-display font-bold text-white/75 ${text}`}>{personInitials(name)}</span>
-      )}
+  return (
+    <div className={`shrink-0 overflow-hidden rounded-full ${box}`}>
+      <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#141010] ring-2 ring-white/15">
+        {photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className={`font-display font-bold text-white/75 ${text}`}>{personInitials(name)}</span>
+        )}
+      </div>
     </div>
   )
-
-  if (premium) {
-    return (
-      <div
-        className={`shrink-0 rounded-full bg-gradient-to-br from-amber-200/90 via-amber-400/50 to-amber-700/40 p-[3px] shadow-[0_0_22px_rgba(245,200,66,0.35)] ${box}`}
-      >
-        {inner}
-      </div>
-    )
-  }
-
-  return <div className={`shrink-0 overflow-hidden rounded-full ${box}`}>{inner}</div>
 }
 
 function AssistLine({
@@ -245,7 +247,7 @@ function AssistLine({
 
 function cardShell(premium: boolean, extra = '') {
   return premium
-    ? `overflow-hidden rounded-2xl border border-amber-400/30 bg-black/55 shadow-[0_0_32px_rgba(245,200,66,0.08)] backdrop-blur-sm ${extra}`
+    ? `${losLunesLiveCard} ${extra}`
     : `overflow-hidden rounded-xl border border-white/10 bg-[#101010]/90 ${extra}`
 }
 
@@ -585,18 +587,27 @@ export function MatchTimeline({
   events,
   teams,
   organizationSlug,
+  embedded = false,
 }: {
   events: TimelineEvent[]
   teams: MatchTimelineTeams
   organizationSlug?: string
+  embedded?: boolean
 }) {
   const premium = organizationSlug === LOSLUNES_SLUG
+  const unifiedPremium = premium && embedded
   let kickoffCount = 0
+
+  const sectionShell = unifiedPremium
+    ? `${losLunesLiveCard} p-5 sm:p-6`
+    : premium
+      ? 'overflow-hidden rounded-2xl border border-amber-400/25 bg-[#050403] px-3 py-6 sm:px-6 sm:py-8'
+      : 'relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#050505] px-3 py-6 sm:px-6 sm:py-8'
 
   if (events.length === 0) {
     return (
-      <section className="relative">
-        <TimelineHeader premium={premium} />
+      <section className={`relative ${sectionShell}`}>
+        <TimelineHeader premium={premium} embedded={embedded} />
         <div
           className={`rounded-xl px-4 py-10 text-center font-ui text-sm text-white/40 ${
             premium ? 'border border-amber-400/20 bg-black/50' : 'border border-white/10 bg-[#0a0a0a]'
@@ -609,14 +620,8 @@ export function MatchTimeline({
   }
 
   return (
-    <section
-      className={`relative overflow-hidden px-3 py-6 sm:px-6 sm:py-8 ${
-        premium
-          ? 'rounded-2xl border border-amber-400/25 bg-[#050403]'
-          : 'rounded-2xl border border-white/[0.06] bg-[#050505]'
-      }`}
-    >
-      {premium ? (
+    <section className={`relative ${sectionShell}`}>
+      {premium && !embedded ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -653,7 +658,7 @@ export function MatchTimeline({
         premium={premium}
       />
 
-      <TimelineHeader premium={premium} />
+      <TimelineHeader premium={premium} embedded={embedded} />
 
       <div className="relative mx-auto max-w-4xl">
         <div className={`absolute bottom-4 left-1/2 top-4 w-px -translate-x-1/2 ${premium ? 'bg-gradient-to-b from-amber-400/5 via-amber-300/30 to-amber-400/5' : 'bg-gradient-to-b from-white/5 via-white/20 to-white/5'}`} aria-hidden />
@@ -682,12 +687,25 @@ export function MatchTimeline({
         </ul>
       </div>
 
-      {premium ? <TimelineFooterLosLunes /> : null}
+      {premium && !embedded ? <TimelineFooterLosLunes /> : null}
     </section>
   )
 }
 
-function TimelineHeader({ premium }: { premium: boolean }) {
+function TimelineHeader({ premium, embedded = false }: { premium: boolean; embedded?: boolean }) {
+  if (premium && embedded) {
+    return (
+      <div className="relative z-10 mb-6">
+        <div className="flex items-end justify-between gap-4">
+          <LosLunesSectionTitle>Cronología</LosLunesSectionTitle>
+          <p className="hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/45 sm:block">
+            Fútbol · Pasión · Siempre
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative z-10 mb-6 px-1">
       <div className="flex items-end justify-between gap-4">
@@ -701,12 +719,8 @@ function TimelineHeader({ premium }: { premium: boolean }) {
         ) : null}
       </div>
       {premium ? (
-        <div className="mt-3 flex items-center gap-3">
-          <span className="h-px flex-1 bg-amber-400/25" aria-hidden />
-          <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.24em] text-amber-400/50">
-            Fútbol — Disciplina — Amigos
-          </p>
-          <span className="h-px flex-1 bg-amber-400/25" aria-hidden />
+        <div className="mt-3">
+          <LosLunesGoldDivider text="Fútbol — Disciplina — Amigos" />
         </div>
       ) : null}
     </div>

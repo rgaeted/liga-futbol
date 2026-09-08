@@ -4,9 +4,13 @@ import { formatLiveWeatherTempC, formatLiveWeatherWindKmh } from '@/lib/match-we
 
 export type { LiveMatchWeather } from '@/lib/live-match-snapshot'
 
-function MapPinIcon() {
+function MapPinIcon({ premium }: { premium?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 text-[#8A938C]">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className={`h-4 w-4 shrink-0 ${premium ? 'text-amber-400/80' : 'text-[#8A938C]'}`}
+    >
       <path
         fill="none"
         stroke="currentColor"
@@ -83,12 +87,20 @@ function WindIcon() {
 function ContextPill({
   icon,
   children,
+  premium,
 }: {
   icon: ReactNode
   children: ReactNode
+  premium?: boolean
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#121A18] px-3 py-1.5 font-ui text-xs text-[#E8E4D8] ring-1 ring-[#2A3A32]">
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-ui text-xs ${
+        premium
+          ? 'bg-black/60 text-amber-50/90 ring-1 ring-amber-400/25'
+          : 'bg-[#121A18] text-[#E8E4D8] ring-1 ring-[#2A3A32]'
+      }`}
+    >
       {icon}
       <span>{children}</span>
     </span>
@@ -99,43 +111,71 @@ type Props = {
   venue: string | null
   locationLabel: string | null
   weather: LiveMatchWeather | null
+  premium?: boolean
 }
 
-export function LiveMatchContextBar({ venue, locationLabel, weather }: Props) {
+export function LiveMatchContextBar({ venue, locationLabel, weather, premium = false }: Props) {
   const hasLocation = Boolean(venue || locationLabel)
   const hasWeather = weather !== null
 
   if (!hasLocation && !hasWeather) return null
 
   return (
-    <div className="relative mb-6 flex flex-col items-center gap-3 px-2 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-4 sm:gap-y-2">
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-[2px] bg-org-primary"
-      />
-      {hasLocation && (
-        <div className="flex max-w-full items-center gap-2 pt-3 text-center sm:text-left">
-          <MapPinIcon />
-          <p className="font-ui text-sm leading-snug text-[#8A938C]">
-            {venue ? <span className="font-display font-semibold text-[#E8E4D8]">{venue}</span> : null}
-            {venue && locationLabel ? <span className="text-[#8A938C]/60"> · </span> : null}
+    <div
+      className={`relative mb-6 flex flex-col items-center gap-3 px-2 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-4 sm:gap-y-2 ${
+        premium ? '' : ''
+      }`}
+    >
+      {premium && hasLocation ? (
+        <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-amber-400/25 bg-black/55 px-4 py-2 backdrop-blur-sm">
+          <MapPinIcon premium />
+          <p className="font-ui text-xs leading-snug text-white/70 sm:text-sm">
+            {venue ? (
+              <span className="font-display font-semibold text-amber-50/95">{venue}</span>
+            ) : null}
+            {venue && locationLabel ? <span className="text-white/35"> · </span> : null}
             {locationLabel ? <span>{locationLabel}</span> : null}
           </p>
         </div>
-      )}
+      ) : !premium ? (
+        <>
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-[2px] bg-org-primary"
+          />
+          {hasLocation && (
+            <div className="flex max-w-full items-center gap-2 pt-3 text-center sm:text-left">
+              <MapPinIcon />
+              <p className="font-ui text-sm leading-snug text-[#8A938C]">
+                {venue ? (
+                  <span className="font-display font-semibold text-[#E8E4D8]">{venue}</span>
+                ) : null}
+                {venue && locationLabel ? <span className="text-[#8A938C]/60"> · </span> : null}
+                {locationLabel ? <span>{locationLabel}</span> : null}
+              </p>
+            </div>
+          )}
 
-      {hasLocation && hasWeather ? (
-        <span aria-hidden className="hidden h-4 w-px bg-[#2A3A32] sm:block" />
+          {hasLocation && hasWeather ? (
+            <span aria-hidden className="hidden h-4 w-px bg-[#2A3A32] sm:block" />
+          ) : null}
+        </>
       ) : null}
 
       {hasWeather && weather ? (
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-3 sm:pt-0">
-          <ContextPill icon={<CloudIcon />}>{weather.label}</ContextPill>
-          <ContextPill icon={<ThermometerIcon />}>
+        <div className={`flex flex-wrap items-center justify-center gap-2 ${premium ? '' : 'pt-3 sm:pt-0'}`}>
+          <ContextPill icon={<CloudIcon />} premium={premium}>
+            {weather.label}
+          </ContextPill>
+          <ContextPill icon={<ThermometerIcon />} premium={premium}>
             {formatLiveWeatherTempC(weather.tempC)}
           </ContextPill>
-          <ContextPill icon={<DropletIcon />}>{weather.humidityPct}% humedad</ContextPill>
-          <ContextPill icon={<WindIcon />}>{formatLiveWeatherWindKmh(weather.windKmh)}</ContextPill>
+          <ContextPill icon={<DropletIcon />} premium={premium}>
+            {weather.humidityPct}% humedad
+          </ContextPill>
+          <ContextPill icon={<WindIcon />} premium={premium}>
+            {formatLiveWeatherWindKmh(weather.windKmh)}
+          </ContextPill>
         </div>
       ) : null}
     </div>
