@@ -35,6 +35,11 @@ const EDITIONS = {
   },
 } as const
 
+const EAS_PROJECT_IDS = {
+  'liga-invierno-kelme-puerto-varas-2026': '82b41e84-1be0-4d1d-b7e3-99296e490606',
+  'kelme-cup-los-lagos-2026': 'b7f611ea-4cc1-49fe-868a-ab3e5b28d1c2',
+} as const
+
 function resolveEditionKey(): string {
   const editionKey = process.env.EDITION ?? process.env.EXPO_PUBLIC_EDITION
   if (!editionKey) {
@@ -51,6 +56,7 @@ const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? edition.apiBaseUrl
 const assetsDir = path.join(__dirname, edition.assetsDir, 'assets')
 
 const config: ExpoConfig = {
+  owner: 'rgaete',
   name: edition.displayName,
   slug: edition.slug,
   version: '1.0.0',
@@ -105,7 +111,7 @@ const config: ExpoConfig = {
     secondaryColor: edition.secondaryColor,
     eas: {
       projectId:
-        process.env.EAS_PROJECT_ID ?? '82b41e84-1be0-4d1d-b7e3-99296e490606',
+        process.env.EAS_PROJECT_ID ?? EAS_PROJECT_IDS[edition.key],
     },
   },
 }
