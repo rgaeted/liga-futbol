@@ -286,4 +286,93 @@ describe('evaluarBadgesDePartido', () => {
     const awards = evaluarBadgesDePartido(m, inactiveCatalog, { p: emptyHistory() })
     expect(awards.map((a) => a.predicateId)).not.toContain('hat_trick')
   })
+
+  it('awards nunca_falla on the 8th consecutive presence', () => {
+    const prior = Array.from({ length: 7 }, (_, i) => ({
+      id: `p${i}`,
+      scheduledAt: new Date(`2026-07-0${i + 1}T23:00:00.000Z`),
+      played: true,
+      goles: 0,
+      asistencias: 0,
+      amarillas: 0,
+      rojas: 0,
+    }))
+    const m = match({
+      id: 'm8',
+      roster: [{ playerId: 'p', side: 'A' }],
+      events: [],
+    })
+    const awards = evaluarBadgesDePartido(m, catalog, {
+      p: { ...emptyHistory(), priorMatches: prior, laterSameYearExists: true },
+    })
+    expect(awards.some((a) => a.predicateId === 'nunca_falla')).toBe(true)
+  })
+
+  it('awards club_50 when this match crosses 50 career goals', () => {
+    const m = match({
+      roster: [{ playerId: 'p', side: 'A' }],
+      events: [{ id: 'g', type: 'GOAL', minute: 10, playerId: 'p', assistPlayerId: null, side: 'A' }],
+    })
+    const prior = [
+      {
+        id: 'old',
+        scheduledAt: new Date('2026-01-05T23:00:00.000Z'),
+        played: true,
+        goles: 49,
+        asistencias: 0,
+        amarillas: 0,
+        rojas: 0,
+      },
+    ]
+    const awards = evaluarBadgesDePartido(m, catalog, {
+      p: { ...emptyHistory(), priorMatches: prior },
+    })
+    expect(awards.some((a) => a.predicateId === 'club_50')).toBe(true)
+  })
+
+  it('skips caballero when laterSameYearExists is true', () => {
+    const m = match({
+      roster: [{ playerId: 'p', side: 'A' }],
+      events: [],
+      scheduledAt: new Date('2026-11-30T23:00:00.000Z'),
+    })
+    const prior = [
+      {
+        id: 'prev',
+        scheduledAt: new Date('2026-03-10T23:00:00.000Z'),
+        played: true,
+        goles: 0,
+        asistencias: 0,
+        amarillas: 0,
+        rojas: 0,
+      },
+    ]
+    const awards = evaluarBadgesDePartido(m, catalog, {
+      p: { ...emptyHistory(), priorMatches: prior, laterSameYearExists: true },
+    })
+    expect(awards.some((a) => a.predicateId === 'caballero')).toBe(false)
+  })
+
+  it('awards caballero when laterSameYearExists is false with zero cards and at least one PJ', () => {
+    const m = match({
+      roster: [{ playerId: 'p', side: 'A' }],
+      events: [],
+      scheduledAt: new Date('2026-11-30T23:00:00.000Z'),
+    })
+    const prior = [
+      {
+        id: 'prev',
+        scheduledAt: new Date('2026-03-10T23:00:00.000Z'),
+        played: true,
+        goles: 0,
+        asistencias: 0,
+        amarillas: 0,
+        rojas: 0,
+      },
+    ]
+    const awards = evaluarBadgesDePartido(m, catalog, {
+      p: { ...emptyHistory(), priorMatches: prior, laterSameYearExists: false },
+    })
+    expect(awards.some((a) => a.predicateId === 'caballero')).toBe(true)
+  })
 })

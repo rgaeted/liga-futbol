@@ -1,7 +1,9 @@
 import { EventType } from '@prisma/client'
 import { isScoringGoalEvent } from '@/lib/event-labels'
 import { cardPositionFromPlayer } from '@/lib/player-card'
-import { ladoDeJugador } from '@/lib/badges/context'
+import { trailingStreak } from '@/lib/player-card-window'
+import { chileYear, ladoDeJugador } from '@/lib/badges/context'
+import { APP_TIMEZONE } from '@/lib/locale'
 import type { BadgeEvent, BadgeHistory, BadgeMatch, BadgeRosterRow, BadgeSide } from '@/lib/badges/types'
 
 export type MatchPredicateInput = {
@@ -323,6 +325,144 @@ function primerGol(input: MatchPredicateInput): string | null {
   return formatMarcador(input.finalScore, input.sideAName, input.sideBName)
 }
 
+function chileYearMonth(d: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+  }).formatToParts(d)
+  const year = parts.find((part) => part.type === 'year')?.value
+  const month = parts.find((part) => part.type === 'month')?.value
+  return `${year}-${month}`
+}
+
+function presenceFlags(history: BadgeHistory): boolean[] {
+  return [...history.priorMatches.map((row) => row.played), true]
+}
+
+function rachaPresencia(input: MatchPredicateInput): string | null {
+  const threshold = input.thresholds.lunesSeguidos ?? 4
+  const streak = trailingStreak(presenceFlags(input.history))
+  if (streak < threshold) return null
+  return `${streak} fechas seguidas`
+}
+
+function nuncaFalla(input: MatchPredicateInput): string | null {
+  return rachaPresencia(input)
+}
+
+function puntual(input: MatchPredicateInput): string | null {
+  return rachaPresencia(input)
+}
+
+function todoterreno(input: MatchPredicateInput): string | null {
+  const month = chileYearMonth(input.match.scheduledAt)
+  const monthMatches = [
+    ...input.history.priorMatches.filter(
+      (row) => chileYearMonth(row.scheduledAt) === month,
+    ),
+    { played: true },
+  ]
+  if (monthMatches.length < 1) return null
+  if (!monthMatches.every((row) => row.played)) return null
+  return `Todas las fechas de ${month}`
+}
+
+function careerPjBefore(history: BadgeHistory): number {
+  return history.priorMatches.filter((row) => row.played).length
+}
+
+function careerGoalsBefore(history: BadgeHistory): number {
+  return history.priorMatches.reduce((sum, row) => sum + row.goles, 0)
+}
+
+function careerAssistsBefore(history: BadgeHistory): number {
+  return history.priorMatches.reduce((sum, row) => sum + row.asistencias, 0)
+}
+
+function elFundador(input: MatchPredicateInput): string | null {
+  const partidos = input.thresholds.partidos ?? 100
+  const totalPj = careerPjBefore(input.history) + 1
+  if (totalPj < partidos) return null
+  return `${totalPj} partidos en el club`
+}
+
+function kilometrero(input: MatchPredicateInput): string | null {
+  const partidos = input.thresholds.partidos ?? 25
+  const totalPj = careerPjBefore(input.history) + 1
+  if (totalPj < partidos) return null
+  return `${totalPj} partidos en el club`
+}
+
+function club50(input: MatchPredicateInput): string | null {
+  const threshold = input.thresholds.goles ?? 50
+  const before = careerGoalsBefore(input.history)
+  const golesThis = golesDelJugador(input.match, input.playerId).length
+  const after = before + golesThis
+  if (before >= threshold || after < threshold) return null
+  return `${after} goles históricos · ${formatMarcador(input.finalScore, input.sideAName, input.sideBName)}`
+}
+
+function centurionAsist(input: MatchPredicateInput): string | null {
+  const threshold = input.thresholds.asistencias ?? 50
+  const before = careerAssistsBefore(input.history)
+  const asistThis = asistenciasDelJugador(input.match, input.playerId).length
+  const after = before + asistThis
+  if (before >= threshold || after < threshold) return null
+  return `${after} asistencias históricas · ${formatMarcador(input.finalScore, input.sideAName, input.sideBName)}`
+}
+
+function cardsThisMatch(match: BadgeMatch, playerId: string): { amarillas: number; rojas: number } {
+  let amarillas = 0
+  let rojas = 0
+  for (const event of match.events) {
+    if (event.playerId !== playerId) continue
+    if (event.type === 'YELLOW_CARD') amarillas += 1
+    if (event.type === 'RED_CARD') rojas += 1
+  }
+  return { amarillas, rojas }
+}
+
+function yearStats(input: MatchPredicateInput): {
+  pj: number
+  amarillas: number
+  rojas: number
+} {
+  const year = chileYear(input.match.scheduledAt)
+  let pj = 1
+  let amarillas = 0
+  let rojas = 0
+
+  for (const row of input.history.priorMatches) {
+    if (chileYear(row.scheduledAt) !== year) continue
+    if (row.played) pj += 1
+    amarillas += row.amarillas
+    rojas += row.rojas
+  }
+
+  const currentCards = cardsThisMatch(input.match, input.playerId)
+  amarillas += currentCards.amarillas
+  rojas += currentCards.rojas
+
+  return { pj, amarillas, rojas }
+}
+
+function tarjetero(input: MatchPredicateInput): string | null {
+  if (input.history.yearHasTarjetero) return null
+  const threshold = input.thresholds.amarillas ?? 3
+  const { amarillas } = yearStats(input)
+  if (amarillas < threshold) return null
+  return `${amarillas} amarillas en ${chileYear(input.match.scheduledAt)}`
+}
+
+function caballero(input: MatchPredicateInput): string | null {
+  if (input.history.laterSameYearExists) return null
+  if (input.history.yearHasCaballero) return null
+  const { pj, amarillas, rojas } = yearStats(input)
+  if (pj < 1 || amarillas + rojas > 0) return null
+  return `Temporada ${chileYear(input.match.scheduledAt)} sin tarjetas`
+}
+
 const MATCH_PREDICATES: Record<string, (input: MatchPredicateInput) => string | null> = {
   gol_ultima_hora: golUltimaHora,
   heroe_remontada: heroeRemontada,
@@ -344,25 +484,21 @@ const MATCH_PREDICATES: Record<string, (input: MatchPredicateInput) => string | 
   en_contra: enContra,
   el_show: elShow,
   primer_gol: primerGol,
+  nunca_falla: nuncaFalla,
+  puntual: puntual,
+  todoterreno: todoterreno,
+  el_fundador: elFundador,
+  kilometrero: kilometrero,
+  club_50: club50,
+  centurion_asist: centurionAsist,
+  tarjetero: tarjetero,
+  caballero: caballero,
 }
-
-const STUB_PREDICATE_IDS = new Set([
-  'nunca_falla',
-  'puntual',
-  'todoterreno',
-  'el_fundador',
-  'caballero',
-  'tarjetero',
-  'club_50',
-  'centurion_asist',
-  'kilometrero',
-])
 
 export function evaluateMatchPredicate(
   predicateId: string,
   input: MatchPredicateInput,
 ): string | null {
-  if (STUB_PREDICATE_IDS.has(predicateId)) return null
   const predicate = MATCH_PREDICATES[predicateId]
   if (!predicate) return null
   return predicate(input)
