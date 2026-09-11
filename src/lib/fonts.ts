@@ -1,4 +1,24 @@
-import { Caveat, IBM_Plex_Mono, Manrope, Oswald, Playfair_Display } from 'next/font/google'
+import {
+  Anton,
+  Barlow_Condensed,
+  Caveat,
+  IBM_Plex_Mono,
+  Manrope,
+  Oswald,
+  Playfair_Display,
+} from 'next/font/google'
+
+export const anton = Anton({
+  variable: '--font-anton',
+  subsets: ['latin'],
+  weight: '400',
+})
+
+export const barlowCondensed = Barlow_Condensed({
+  variable: '--font-barlow-condensed',
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+})
 
 export const oswald = Oswald({
   variable: '--font-oswald',
