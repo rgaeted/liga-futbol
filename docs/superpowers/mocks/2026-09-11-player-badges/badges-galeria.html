@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LigaLab · Insignias · Fútbol de los Lunes</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noche:#0B1210; --panel:#12211B; --panel-2:#16281F; --borde:#22382E;
+  --hielo:#EDF2EE; --hielo-suave:#8BA598;
+  --oro:#E8C878; --oro-2:#C79A3E;
+  --lunes:#3DE68C; --lunes-2:#1FA968;
+  --display:'Anton','Arial Narrow',sans-serif;
+  --texto:'Barlow Condensed','Helvetica Neue',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--texto);color:var(--hielo);line-height:1.4;
+  background:radial-gradient(760px 460px at 50% -100px,rgba(61,230,140,.09),transparent 60%),var(--noche);
+  min-height:100vh;padding:38px 20px 70px}
+.wrap{max-width:1040px;margin:0 auto}
+header{text-align:center;margin-bottom:34px}
+.kick{font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--lunes);font-weight:700}
+h1{font-family:var(--display);font-size:34px;text-transform:uppercase;letter-spacing:1px;margin:6px 0}
+.sub{color:var(--hielo-suave);font-size:15px;max-width:560px;margin:0 auto}
+.leyenda{display:flex;gap:16px;justify-content:center;margin:20px 0 8px;flex-wrap:wrap;font-size:12px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--hielo-suave)}
+.leyenda span{display:inline-flex;align-items:center;gap:7px}
+.pip{width:12px;height:12px;border-radius:3px}
+.fam{font-family:var(--display);font-size:15px;letter-spacing:2px;text-transform:uppercase;color:var(--hielo-suave);margin:30px 0 14px;display:flex;align-items:center;gap:12px}
+.fam::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--borde),transparent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px}
+
+.badge{background:var(--panel);border:1px solid var(--borde);border-radius:16px;padding:16px 13px 14px;text-align:center;position:relative;overflow:hidden;transition:transform .15s ease}
+.badge:hover{transform:translateY(-3px)}
+.badge .disco{width:72px;height:72px;margin:0 auto 11px;border-radius:50%;display:grid;place-items:center;position:relative}
+.badge .disco svg{width:36px;height:36px;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.badge b{font-family:var(--display);font-size:15px;letter-spacing:.5px;text-transform:uppercase;display:block;line-height:1.05}
+.badge p{font-size:12px;color:var(--hielo-suave);margin-top:5px;min-height:32px}
+.badge .ctx{font-size:10.5px;letter-spacing:.5px;color:var(--lunes);font-weight:700;margin-top:7px;text-transform:uppercase}
+.rar{position:absolute;top:9px;right:10px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--hielo-suave);opacity:.7}
+
+/* rarezas */
+.comun .disco{background:#1B2C24;border:1px solid #2C4438;color:var(--hielo-suave)}
+.raro .disco{background:radial-gradient(circle at 50% 35%,rgba(61,230,140,.25),#12241B);border:1px solid var(--lunes-2);color:var(--lunes)}
+.raro{border-color:rgba(61,230,140,.3)}
+.epico .disco{background:radial-gradient(circle at 50% 35%,rgba(232,200,120,.28),#1B1710);border:1px solid var(--oro-2);color:var(--oro);box-shadow:0 0 16px rgba(232,200,120,.15)}
+.epico{border-color:rgba(232,200,120,.32)}
+.legendario{border-color:transparent;background:
+  linear-gradient(var(--panel),var(--panel)) padding-box,
+  conic-gradient(from 210deg,var(--oro-2),var(--oro),#FFF3D0,var(--oro),var(--oro-2)) border-box;border:2px solid transparent}
+.legendario .disco{background:radial-gradient(circle at 50% 30%,rgba(255,243,208,.4),rgba(232,200,120,.15) 55%,#1B1710);border:1px solid var(--oro);color:#1B1710;box-shadow:0 0 22px rgba(232,200,120,.35)}
+.legendario .disco svg{stroke:#3a2c0a}
+.locked{opacity:.4;filter:grayscale(.7)}
+.locked .ctx{color:var(--hielo-suave)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kick">Fútbol de los Lunes · Insignias</div>
+  <h1>Se ganan en la cancha</h1>
+  <p class="sub">Reconocimientos automáticos por lo que pasa en el partido. Cada uno cuenta una historia — y se comparte en el grupo.</p>
+  <div class="leyenda">
+    <span><i class="pip" style="background:#2C4438"></i>Común</span>
+    <span><i class="pip" style="background:var(--lunes)"></i>Raro</span>
+    <span><i class="pip" style="background:var(--oro)"></i>Épico</span>
+    <span><i class="pip" style="background:conic-gradient(from 210deg,var(--oro-2),var(--oro),#FFF3D0,var(--oro))"></i>Legendario</span>
+  </div>
+</header>
+
+<div class="fam">Momentos decisivos</div>
+<div class="grid">
+  <div class="badge epico"><span class="rar">Épico</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M12 3h0M9 3h6"/></svg></div>
+    <b>Gol de Última Hora</b><p>El gol de la victoria en los minutos finales.</p><div class="ctx">58' · Blancos 5-4</div></div>
+  <div class="badge legendario"><span class="rar">Legendario</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M4 14l4-4 4 3 6-7"/><path d="M18 6h2v2"/><path d="M4 19h16"/></svg></div>
+    <b>Héroe de la Remontada</b><p>Dio vuelta un partido perdido por 2+.</p><div class="ctx">Iba 0-2 · ganó 3-2</div></div>
+  <div class="badge raro"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 3v4"/><circle cx="12" cy="14" r="6"/><path d="M9.5 14l1.8 1.8 3.2-3.4"/></svg></div>
+    <b>Mano Helada</b><p>Rompió el empate en el último cuarto.</p><div class="ctx">Sangre fría</div></div>
+  <div class="badge epico"><span class="rar">Épico</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><circle cx="17" cy="12" r="4"/><path d="M12 6v12"/></svg></div>
+    <b>Doblete Exprés</b><p>Dos goles en menos de 10 minutos.</p><div class="ctx">Ráfaga</div></div>
+</div>
+
+<div class="fam">Goleador</div>
+<div class="grid">
+  <div class="badge epico"><span class="rar">Épico</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="6" cy="15" r="3"/><circle cx="12" cy="15" r="3"/><circle cx="18" cy="15" r="3"/><path d="M4 9l2 3M12 8v4M20 9l-2 3"/></svg></div>
+    <b>Hat-Trick</b><p>Tres goles en un partido.</p><div class="ctx">El de siempre</div></div>
+  <div class="badge legendario"><span class="rar">Legendario</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 5 5.6.6-4 4 1 5.4L12 19l-5 3 1-5.4-4-4 5.6-.6z"/></svg></div>
+    <b>Póker</b><p>Cuatro goles o más. Noche perfecta.</p><div class="ctx">Imparable</div></div>
+  <div class="badge comun"><span class="rar">Común</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    <b>Abrió la Lata</b><p>El primer gol del partido.</p><div class="ctx">Rompió el hielo</div></div>
+  <div class="badge raro"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 7l5-4 5 4M7 12l5-4 5 4"/></svg></div>
+    <b>De Todos los Sabores</b><p>Gol de zurda, derecha y cabeza en la temporada.</p><div class="ctx">Completo</div></div>
+</div>
+
+<div class="fam">Creador</div>
+<div class="grid">
+  <div class="badge epico"><span class="rar">Épico</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M4 18L10 6l4 8 2-4 4 8"/></svg></div>
+    <b>El Arquitecto</b><p>Tres asistencias en un partido.</p><div class="ctx">Puso todas</div></div>
+  <div class="badge raro"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="7" cy="9" r="3"/><circle cx="17" cy="15" r="3"/><path d="M9.5 10.5l5 3"/></svg></div>
+    <b>Sociedad Anónima</b><p>Asistió 3 veces al mismo goleador.</p><div class="ctx">Dupla letal</div></div>
+  <div class="badge raro"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 3v6M9 6h6"/><circle cx="12" cy="15" r="5"/><path d="M10 15l1.5 1.5 3-3"/></svg></div>
+    <b>Taco de Oro</b><p>Gol y asistencia en la misma noche.</p><div class="ctx">Doblete total</div></div>
+  <div class="badge comun locked"><span class="rar">Común</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M4 16l8-8 4 4 4-4"/><circle cx="4" cy="16" r="1.5"/></svg></div>
+    <b>Bandeja de Plata</b><p>Tu primera asistencia de la noche.</p><div class="ctx">Bloqueada</div></div>
+</div>
+
+<div class="fam">Muralla</div>
+<div class="grid">
+  <div class="badge epico"><span class="rar">Épico</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6z"/></svg></div>
+    <b>Valla Invicta</b><p>El equipo cerró el arco: cero goles en contra.</p><div class="ctx">Candado</div></div>
+  <div class="badge raro"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12"/><path d="M4 12h16M9 8v12M15 8v12"/></svg></div>
+    <b>El Muro</b><p>Ganó recibiendo un gol o menos.</p><div class="ctx">Infranqueable</div></div>
+  <div class="badge raro"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M6 20V10a6 6 0 0112 0v10"/><path d="M9 20v-4M15 20v-4"/><circle cx="12" cy="9" r="1.5"/></svg></div>
+    <b>San Portero</b><p>Atajó un penal.</p><div class="ctx">Milagro</div></div>
+  <div class="badge comun"><span class="rar">Común</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 4l6 2.5V11c0 4-2.6 6.5-6 8-3.4-1.5-6-4-6-8V6.5z"/><path d="M9.5 11l1.8 1.8 3.2-3.3"/></svg></div>
+    <b>Pichanga Limpia</b><p>Sin goles en contra en el primer tiempo.</p><div class="ctx">Empezó firme</div></div>
+</div>
+
+<div class="fam">Constancia — el corazón del club</div>
+<div class="grid">
+  <div class="badge epico"><span class="rar">Épico</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></div>
+    <b>Nunca Falla</b><p>Ocho lunes seguidos en la cancha.</p><div class="ctx">Presente</div></div>
+  <div class="badge legendario"><span class="rar">Legendario</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 3l2 5 5 .5-4 3.5 1.2 5L12 19l-4.2 3 1.2-5-4-3.5 5-.5z"/></svg></div>
+    <b>De la Vieja Escuela</b><p>100 partidos en el club. Patrimonio vivo.</p><div class="ctx">Desde 2014</div></div>
+  <div class="badge comun"><span class="rar">Común</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8 12l3 3 5-6"/></svg></div>
+    <b>Puntual</b><p>Cuatro partidos seguidos.</p><div class="ctx">Cumplidor</div></div>
+  <div class="badge raro locked"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M4 14a8 8 0 0116 0"/><path d="M4 14h16M8 19h8"/><path d="M12 6V3"/></svg></div>
+    <b>Sin Excusas</b><p>Jugó bajo lluvia o frío extremo.</p><div class="ctx">Bloqueada</div></div>
+</div>
+
+<div class="fam">Camarín — con cariño</div>
+<div class="grid">
+  <div class="badge comun"><span class="rar">Común</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 15l6-6M9 9l6 6"/></svg></div>
+    <b>Cambio de Camiseta</b><p>Se anotó un autogol. Le puede pasar a cualquiera… </p><div class="ctx">Uy</div></div>
+  <div class="badge raro"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6z"/><path d="M9.5 11.5l1.8 1.8 3.2-3.3"/></svg></div>
+    <b>Juego Limpio</b><p>Temporada completa sin tarjetas.</p><div class="ctx">Caballero</div></div>
+  <div class="badge raro"><span class="rar">Raro</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>
+    <b>Cara de la Fecha</b><p>Fue el MVP del partido.</p><div class="ctx">La figura</div></div>
+  <div class="badge comun"><span class="rar">Común</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><path d="M5 18v-6a7 7 0 0114 0v6"/><path d="M5 18h14"/><path d="M12 5V3"/></svg></div>
+    <b>Apaga Incendios</b><p>Entró de suplente y dio vuelta la historia.</p><div class="ctx">Revulsivo</div></div>
+</div>
+
+<div class="fam">Hitos de carrera</div>
+<div class="grid">
+  <div class="badge epico"><span class="rar">Épico</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M8.5 9.5h5a2 2 0 010 4h-4"/></svg></div>
+    <b>Club de los 50</b><p>Cincuenta goles históricos en el club.</p><div class="ctx">Leyenda</div></div>
+  <div class="badge comun"><span class="rar">Común</span>
+    <div class="disco"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M9 11l3-3 3 3"/></svg></div>
+    <b>Se Abrió la Cuenta</b><p>Tu primer gol en el club. Bienvenido.</p><div class="ctx">El primero</div></div>
+</div>
+
+<p style="text-align:center;color:var(--hielo-suave);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:40px">
+  34 insignias · 7 familias · Hecho a mano en Puerto Varas · <b style="color:var(--hielo)">LigaLab</b></p>
+</div>
+</body>
+</html>
