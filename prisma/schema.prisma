@@ -207,8 +207,11 @@ model Organization {
   sponsors         Sponsor[]
   refereeSharesFrom RefereeShareInvite[] @relation("RefereeShareFrom")
   refereeSharesTo   RefereeShareInvite[] @relation("RefereeShareTo")
+  badgesEnabled     Boolean  @default(false)
   orgAwards         OrgAward[]
   playerAwards      PlayerAward[]
+  orgBadges         OrgBadge[]
+  playerBadges      PlayerBadge[]
 }
 
 model RefereeProfile {
@@ -300,6 +303,7 @@ model Player {
   friendlyParticipations FriendlyMatchPlayer[]
   attendances            MatchAttendance[]
   playerAwards           PlayerAward[]
+  playerBadges           PlayerBadge[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -397,6 +401,47 @@ model PlayerAward {
   @@index([organizationId, orgAwardId])
 }
 
+model OrgBadge {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  predicateId    String
+  name           String
+  description    String
+  family         String
+  rarity         String
+  iconKey        String
+  thresholds     Json
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  playerBadges   PlayerBadge[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, predicateId])
+  @@index([organizationId, sortOrder])
+}
+
+model PlayerBadge {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  playerId       String
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  orgBadgeId     String
+  orgBadge       OrgBadge @relation(fields: [orgBadgeId], references: [id], onDelete: Restrict)
+  matchId        String
+  match          Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  context        String
+  awardedAt      DateTime
+  createdAt      DateTime @default(now())
+
+  @@unique([playerId, orgBadgeId, matchId])
+  @@index([playerId, awardedAt])
+  @@index([matchId])
+  @@index([organizationId, orgBadgeId])
+}
+
 model Match {
   id           String      @id @default(cuid())
   organizationId String
@@ -450,6 +495,7 @@ model Match {
   attendances  MatchAttendance[]
   formations   MatchFormation[]
   teamMvps            MatchTeamMvp[]
+  playerBadges        PlayerBadge[]
   notificationOutbox  NotificationOutbox[]
   guestOrganizationId String?
   guestOrganization   Organization? @relation("MatchGuestOrg", fields: [guestOrganizationId], references: [id], onDelete: Restrict)
