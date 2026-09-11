@@ -5,7 +5,7 @@
 > Producto: **LigaLab**
 > Org: **Torneos Kelme** (`slug: kelme`)
 > Depende de: [app móvil por temporada](./2026-08-14-app-movil-por-temporada-design.md), [Copa Kelme Los Lagos](./2026-08-31-copa-kelme-los-lagos-design.md), landing flyer Kelme Cup (`src/lib/org-brand.ts`)
-> Plan: se escribe en `docs/superpowers/plans/2026-09-11-kelme-cup-mobile-edition.md` después de aprobar esta spec
+> Plan: [`docs/superpowers/plans/2026-09-11-kelme-cup-mobile-edition.md`](../plans/2026-09-11-kelme-cup-mobile-edition.md)
 
 ---
 
