@@ -1,4 +1,5 @@
 import puertoVaras2026 from '../../editions/liga-invierno-kelme-puerto-varas-2026/edition.config'
+import kelmeCupLosLagos2026 from '../../editions/kelme-cup-los-lagos-2026/edition.config'
 
 export type EditionConfig = {
   key: string
@@ -17,6 +18,7 @@ export type EditionConfig = {
 }
 
 const EDITIONS: Record<string, EditionConfig> = {
+  [kelmeCupLosLagos2026.key]: kelmeCupLosLagos2026,
   [puertoVaras2026.key]: puertoVaras2026,
 }
 
