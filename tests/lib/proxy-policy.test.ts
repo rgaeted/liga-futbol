@@ -159,4 +159,15 @@ describe('proxy policy', () => {
     expect(isPublicRequest('POST', '/loslunes/partidos/match-1')).toBe(false)
     expect(isPublicRequest('GET', '/plataforma/partidos/match-1')).toBe(false)
   })
+
+  it('makes Los Lunes player cards public GET', () => {
+    expect(isPublicRequest('GET', '/loslunes/jugador/player-1')).toBe(true)
+    expect(isPublicRequest('HEAD', '/loslunes/jugador/player-1')).toBe(true)
+    expect(isPublicRequest('GET', '/loslunes/jugador/player-1/og')).toBe(true)
+    expect(isPublicRequest('GET', '/api/players/player-1/card')).toBe(true)
+    expect(isPublicRequest('HEAD', '/api/players/player-1/card')).toBe(true)
+    expect(isPublicRequest('POST', '/api/players/player-1/card')).toBe(false)
+    expect(isPublicRequest('GET', '/kelme/jugador/player-1')).toBe(true)
+    expect(isPublicRequest('POST', '/loslunes/jugador/player-1')).toBe(false)
+  })
 })

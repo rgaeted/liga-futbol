@@ -30,6 +30,13 @@ function isTenantFriendlyMatchPageGet(method: string, pathname: string): boolean
   return parseOrganizationSlug(match[1]).ok
 }
 
+function isTenantPlayerCardGet(method: string, pathname: string): boolean {
+  if (method !== 'GET' && method !== 'HEAD') return false
+  const match = /^\/([^/]+)\/jugador\/[^/]+(?:\/og)?$/.exec(pathname)
+  if (!match) return false
+  return parseOrganizationSlug(match[1]).ok
+}
+
 export function isPublicRequest(method: string, pathname: string): boolean {
   const isPhotoGet =
     method === 'GET' && /^\/api\/players\/[^/]+\/photo$/.test(pathname)
@@ -59,6 +66,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     /^\/api\/mobile\/v1\/leagues\/[^/]+\/installations\/[^/]+$/.test(pathname)
   const isPlayersClaimPost =
     method === 'POST' && pathname === '/api/players/claim'
+  const isPlayerCardGet =
+    (method === 'GET' || method === 'HEAD') && /^\/api\/players\/[^/]+\/card$/.test(pathname)
   const isTenantPublicGet =
     (method === 'GET' || method === 'HEAD') &&
     (tenantLive.test(pathname) || tenantAyuda.test(pathname))
@@ -88,7 +97,9 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isPlayersClaimPost ||
     isTenantOrgLandingGet(method, pathname) ||
     isTenantIconGet(method, pathname) ||
-    isTenantFriendlyMatchPageGet(method, pathname)
+    isTenantFriendlyMatchPageGet(method, pathname) ||
+    isTenantPlayerCardGet(method, pathname) ||
+    isPlayerCardGet
   )
 }
 
