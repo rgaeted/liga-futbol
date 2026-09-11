@@ -1,3 +1,4 @@
+import type { CSSProperties, ReactNode } from 'react'
 import { TeamCrest } from '@/components/TeamCrest'
 import {
   LosLunesFlankedTitle,
@@ -11,6 +12,7 @@ import {
 } from '@/components/live/loslunes-live-ui'
 import { LOSLUNES_HERO_PATH, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { personInitials } from '@/lib/player-name'
+import { hexToRgba, visibleTeamAccentColor } from '@/lib/team-color'
 
 export type TimelineEvent = {
   id: string
@@ -249,26 +251,88 @@ function AssistLine({
   )
 }
 
+function isMilestoneType(type: string) {
+  return type === 'KICKOFF' || type === 'HALFTIME' || type === 'FULLTIME'
+}
+
+function resolveCardTeamColor(
+  event: TimelineEvent,
+  side: 'left' | 'right',
+  teams: MatchTimelineTeams,
+): string | null {
+  if (isMilestoneType(event.type)) return null
+  return event.teamColor ?? (side === 'left' ? teams.home.color : teams.away.color)
+}
+
+function teamAccentStyle(teamColor: string): CSSProperties {
+  const accent = visibleTeamAccentColor(teamColor)
+  const glow = hexToRgba(accent, 0.22)
+  return {
+    borderColor: accent,
+    boxShadow: glow ? `0 0 28px ${glow}` : undefined,
+  }
+}
+
 function cardShell(premium: boolean, extra = '') {
   return premium
     ? `${losLunesLiveCard} ${extra}`
     : `overflow-hidden rounded-xl border border-white/10 bg-[#101010]/90 ${extra}`
 }
 
+function EventCardFrame({
+  premium,
+  teamColor,
+  side,
+  extra = '',
+  children,
+}: {
+  premium: boolean
+  teamColor?: string | null
+  side: 'left' | 'right'
+  extra?: string
+  children: ReactNode
+}) {
+  const accent = teamColor ? visibleTeamAccentColor(teamColor) : null
+  const className = premium
+    ? `${losLunesLiveCard} relative ${extra}`
+    : `relative overflow-hidden rounded-xl border bg-[#101010]/90 ${
+        accent ? 'border-transparent' : 'border-white/10'
+      } ${extra}`
+
+  return (
+    <article className={className} style={teamColor ? teamAccentStyle(teamColor) : undefined}>
+      {accent ? (
+        <span
+          className={`pointer-events-none absolute inset-y-0 w-[3px] ${
+            side === 'right' ? 'right-0' : 'left-0'
+          }`}
+          style={{ backgroundColor: accent }}
+          aria-hidden
+        />
+      ) : null}
+      {children}
+    </article>
+  )
+}
+
 function GoalCard({
   event,
   label,
+  side,
+  teamColor,
   premium,
 }: {
   event: TimelineEvent
   label: string
+  side: 'left' | 'right'
+  teamColor?: string | null
   premium: boolean
 }) {
   const quote = isGoalType(event.type) && event.description
 
   if (premium) {
     return (
-      <article className={cardShell(true, 'relative border-org-primary/40')}>
+      <EventCardFrame premium teamColor={teamColor} side={side}>
         <div
           className="pointer-events-none absolute inset-0 opacity-25"
           style={{
@@ -315,12 +379,12 @@ function GoalCard({
             </div>
           ) : null}
         </div>
-      </article>
+      </EventCardFrame>
     )
   }
 
   return (
-    <article className="relative overflow-hidden rounded-xl border border-org-primary bg-[#0c0c0c] shadow-[0_0_28px_rgba(245,127,32,0.22)]">
+    <EventCardFrame premium={false} teamColor={teamColor} side={side} extra="bg-[#0c0c0c]">
       <div
         className="pointer-events-none absolute inset-0 opacity-30"
         style={{
@@ -362,7 +426,7 @@ function GoalCard({
           </div>
         ) : null}
       </div>
-    </article>
+    </EventCardFrame>
   )
 }
 
@@ -414,14 +478,23 @@ function MilestoneCard({
 function CompactCard({
   event,
   label,
+  side,
+  teamColor,
   premium,
 }: {
   event: TimelineEvent
   label: string
+  side: 'left' | 'right'
+  teamColor?: string | null
   premium: boolean
 }) {
   return (
-    <article className={cardShell(premium, 'px-3 py-2.5 sm:px-4 sm:py-3')}>
+    <EventCardFrame
+      premium={premium}
+      teamColor={teamColor}
+      side={side}
+      extra="px-3 py-2.5 sm:px-4 sm:py-3"
+    >
       <div className="flex items-center gap-3">
         {event.playerName ? (
           <PlayerActorAvatar
@@ -455,7 +528,7 @@ function CompactCard({
           ) : null}
         </div>
       </div>
-    </article>
+    </EventCardFrame>
   )
 }
 
@@ -463,19 +536,23 @@ function TimelineEventCard({
   event,
   label,
   side,
+  teamColor,
   showHalftimePhoto,
   premium,
 }: {
   event: TimelineEvent
   label: string
   side: 'left' | 'right'
+  teamColor?: string | null
   showHalftimePhoto?: boolean
   premium: boolean
 }) {
   if (isGoalType(event.type)) {
-    return <GoalCard event={event} label={label} premium={premium} />
+    return (
+      <GoalCard event={event} label={label} side={side} teamColor={teamColor} premium={premium} />
+    )
   }
-  if (event.type === 'KICKOFF' || event.type === 'HALFTIME' || event.type === 'FULLTIME') {
+  if (isMilestoneType(event.type)) {
     return (
       <MilestoneCard
         event={event}
@@ -486,7 +563,15 @@ function TimelineEventCard({
       />
     )
   }
-  return <CompactCard event={event} label={label} premium={premium} />
+  return (
+    <CompactCard
+      event={event}
+      label={label}
+      side={side}
+      teamColor={teamColor}
+      premium={premium}
+    />
+  )
 }
 
 function SideWatermark({
@@ -528,12 +613,14 @@ function TimelineRow({
   event,
   side,
   label,
+  teamColor,
   showHalftimePhoto,
   premium,
 }: {
   event: TimelineEvent
   side: 'left' | 'right'
   label: string
+  teamColor?: string | null
   showHalftimePhoto?: boolean
   premium: boolean
 }) {
@@ -547,6 +634,7 @@ function TimelineRow({
       event={event}
       label={label}
       side={side}
+      teamColor={teamColor}
       showHalftimePhoto={showHalftimePhoto}
       premium={premium}
     />
@@ -672,12 +760,14 @@ export function MatchTimeline({
                 kickoffCount,
               )
               const label = eventLabel(event.type)
+              const teamColor = resolveCardTeamColor(event, side, teams)
               return (
                 <TimelineRow
                   key={event.id}
                   event={event}
                   side={side}
                   label={label}
+                  teamColor={teamColor}
                   showHalftimePhoto={premium}
                   premium={premium}
                 />

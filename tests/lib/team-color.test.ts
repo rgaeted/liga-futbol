@@ -4,6 +4,8 @@ import {
   resolveTeamColor,
   resolveEventTeamColor,
   contrastTextColor,
+  visibleTeamAccentColor,
+  hexToRgba,
   TEAM_COLOR_PALETTE,
 } from '@/lib/team-color'
 
@@ -35,5 +37,19 @@ describe('team-color', () => {
   it('picks readable text on light and dark backgrounds', () => {
     expect(contrastTextColor('#F5F5F5')).toBe('#111827')
     expect(contrastTextColor('#1A1A1A')).toBe('#ffffff')
+  })
+
+  it('keeps light and mid team colors as live accents', () => {
+    expect(visibleTeamAccentColor('#F5F5F5')).toBe('#F5F5F5')
+    expect(visibleTeamAccentColor('#CD212A')).toBe('#CD212A')
+  })
+
+  it('lifts very dark team colors so borders read on the night live cards', () => {
+    expect(visibleTeamAccentColor('#1A1A1A')).toBe('#989898')
+  })
+
+  it('converts hex to rgba for card glows', () => {
+    expect(hexToRgba('#F5F5F5', 0.2)).toBe('rgba(245, 245, 245, 0.2)')
+    expect(hexToRgba('nope', 0.2)).toBeNull()
   })
 })

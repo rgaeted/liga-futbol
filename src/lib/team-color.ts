@@ -35,13 +35,50 @@ export function resolveTeamColor(stored: string | null | undefined, seed: string
   return deriveTeamColor(seed)
 }
 
+function parseHexRgb(hex: string): { r: number; g: number; b: number } | null {
+  if (!teamColorSchema.safeParse(hex).success) return null
+  const value = hex.trim().slice(1)
+  return {
+    r: parseInt(value.slice(0, 2), 16),
+    g: parseInt(value.slice(2, 4), 16),
+    b: parseInt(value.slice(4, 6), 16),
+  }
+}
+
+function relativeLuminance(hex: string): number | null {
+  const rgb = parseHexRgb(hex)
+  if (!rgb) return null
+  return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255
+}
+
+function toHexByte(value: number): string {
+  return Math.max(0, Math.min(255, Math.round(value)))
+    .toString(16)
+    .padStart(2, '0')
+    .toUpperCase()
+}
+
 export function contrastTextColor(hex: string): '#ffffff' | '#111827' {
-  const normalized = hex.replace('#', '')
-  const r = parseInt(normalized.slice(0, 2), 16)
-  const g = parseInt(normalized.slice(2, 4), 16)
-  const b = parseInt(normalized.slice(4, 6), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  const luminance = relativeLuminance(hex) ?? 0
   return luminance > 0.62 ? '#111827' : '#ffffff'
+}
+
+/** Colores muy oscuros (Negros) no se leen como borde sobre el live noche. */
+const DARK_ACCENT_LUMINANCE = 0.22
+const DARK_ACCENT_WHITE_MIX = 0.55
+
+export function visibleTeamAccentColor(hex: string): string {
+  const rgb = parseHexRgb(hex)
+  const luminance = relativeLuminance(hex)
+  if (!rgb || luminance == null || luminance >= DARK_ACCENT_LUMINANCE) return hex
+  const mix = DARK_ACCENT_WHITE_MIX
+  return `#${toHexByte(rgb.r + (255 - rgb.r) * mix)}${toHexByte(rgb.g + (255 - rgb.g) * mix)}${toHexByte(rgb.b + (255 - rgb.b) * mix)}`
+}
+
+export function hexToRgba(hex: string, alpha: number): string | null {
+  const rgb = parseHexRgb(hex)
+  if (!rgb) return null
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
 }
 
 export function resolveMatchSideColor(
