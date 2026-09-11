@@ -21,7 +21,7 @@ describe('tallyRecentScorers', () => {
       { type: 'OWN_GOAL', playerId: 'p1', playerName: 'Ana' },
       { type: 'YELLOW_CARD', playerId: 'p2', playerName: 'Ben' },
     ])
-    expect(scorers).toEqual([{ name: 'Ana', goals: 2 }])
+    expect(scorers).toEqual([{ playerId: 'p1', name: 'Ana', goals: 2 }])
   })
 
   it('takes top 5 by goals then name', () => {
@@ -38,7 +38,7 @@ describe('tallyRecentScorers', () => {
     )
     const scorers = tallyRecentScorers(events, 5)
     expect(scorers).toHaveLength(5)
-    expect(scorers[0]).toEqual({ name: 'J0', goals: 4 })
+    expect(scorers[0]).toEqual({ playerId: 'p0', name: 'J0', goals: 4 })
   })
 })
 
@@ -50,7 +50,7 @@ describe('tallyRecentAssists', () => {
       { type: 'GOAL', assistPlayerId: null, assistName: null },
       { type: 'OWN_GOAL', assistPlayerId: 'p1', assistName: 'Ana' },
     ])
-    expect(assists).toEqual([{ name: 'Ana', assists: 2 }])
+    expect(assists).toEqual([{ playerId: 'p1', name: 'Ana', assists: 2 }])
   })
 
   it('takes top 5 by assists then name', () => {
@@ -67,7 +67,7 @@ describe('tallyRecentAssists', () => {
     )
     const assists = tallyRecentAssists(events, 5)
     expect(assists).toHaveLength(5)
-    expect(assists[0]).toEqual({ name: 'J0', assists: 4 })
+    expect(assists[0]).toEqual({ playerId: 'p0', name: 'J0', assists: 4 })
   })
 })
 
@@ -93,8 +93,8 @@ describe('tallyRecentPerMatchRates', () => {
       ],
       'goals',
     )
-    expect(rows[0]).toMatchObject({ name: 'Ana', count: 2, matches: 2, rate: 1 })
-    expect(rows[1]).toMatchObject({ name: 'Ben', count: 1, matches: 2, rate: 0.5 })
+    expect(rows[0]).toMatchObject({ playerId: 'p1', name: 'Ana', count: 2, matches: 2, rate: 1 })
+    expect(rows[1]).toMatchObject({ playerId: 'p2', name: 'Ben', count: 1, matches: 2, rate: 0.5 })
   })
 
   it('ranks assists per match and ignores players without assists', () => {
@@ -136,8 +136,8 @@ describe('tallyRecentPerMatchRates', () => {
       ],
       'assists',
     )
-    expect(rows[0]).toMatchObject({ name: 'Ana', count: 2, matches: 2, rate: 1 })
-    expect(rows[1]).toMatchObject({ name: 'Ben', count: 1, matches: 2, rate: 0.5 })
+    expect(rows[0]).toMatchObject({ playerId: 'p1', name: 'Ana', count: 2, matches: 2, rate: 1 })
+    expect(rows[1]).toMatchObject({ playerId: 'p2', name: 'Ben', count: 1, matches: 2, rate: 0.5 })
   })
 
   it('formats rates with one decimal in es-CL', () => {
@@ -227,10 +227,10 @@ describe('public landing payload keys', () => {
       nextMatch: null,
       results: [],
       form: null,
-      scorers: [{ name: 'Ana', goals: 1 }],
-      assists: [{ name: 'Ben', assists: 2 }],
-      goalsPerMatch: [{ name: 'Ana', rate: 1.5, goals: 3, matches: 2 }],
-      assistsPerMatch: [{ name: 'Ben', rate: 0.5, assists: 1, matches: 2 }],
+      scorers: [{ playerId: 'p1', name: 'Ana', goals: 1 }],
+      assists: [{ playerId: 'p2', name: 'Ben', assists: 2 }],
+      goalsPerMatch: [{ playerId: 'p1', name: 'Ana', rate: 1.5, goals: 3, matches: 2 }],
+      assistsPerMatch: [{ playerId: 'p2', name: 'Ben', rate: 0.5, assists: 1, matches: 2 }],
       awards: [
         {
           name: 'Premio al 7 pulmones',

@@ -100,20 +100,24 @@ export type OrgPublicLanding = {
     marks: LandingFormMark[]
   } | null
   scorers: Array<{
+    playerId: string
     name: string
     goals: number
   }>
   assists: Array<{
+    playerId: string
     name: string
     assists: number
   }>
   goalsPerMatch: Array<{
+    playerId: string
     name: string
     rate: number
     goals: number
     matches: number
   }>
   assistsPerMatch: Array<{
+    playerId: string
     name: string
     rate: number
     assists: number
@@ -619,12 +623,14 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     scorers: tallyRecentScorers(goalEvents),
     assists: tallyRecentAssists(goalEvents),
     goalsPerMatch: tallyRecentPerMatchRates(matchStatRows, 'goals').map((row) => ({
+      playerId: row.playerId,
       name: row.name,
       rate: row.rate,
       goals: row.count,
       matches: row.matches,
     })),
     assistsPerMatch: tallyRecentPerMatchRates(matchStatRows, 'assists').map((row) => ({
+      playerId: row.playerId,
       name: row.name,
       rate: row.rate,
       assists: row.count,
@@ -660,11 +666,15 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
 export function tallyRecentScorers(
   events: Array<{ type: string; playerId: string | null; playerName: string | null }>,
   take = 5,
-): Array<{ name: string; goals: number }> {
-  const map = new Map<string, { name: string; goals: number }>()
+): Array<{ playerId: string; name: string; goals: number }> {
+  const map = new Map<string, { playerId: string; name: string; goals: number }>()
   for (const e of events) {
     if (!isScoringGoalEvent(e.type as EventType) || !e.playerId) continue
-    const row = map.get(e.playerId) ?? { name: e.playerName ?? 'Jugador', goals: 0 }
+    const row = map.get(e.playerId) ?? {
+      playerId: e.playerId,
+      name: e.playerName ?? 'Jugador',
+      goals: 0,
+    }
     row.goals += 1
     if (e.playerName) row.name = e.playerName
     map.set(e.playerId, row)
@@ -681,11 +691,15 @@ export function tallyRecentAssists(
     assistName: string | null
   }>,
   take = 5,
-): Array<{ name: string; assists: number }> {
-  const map = new Map<string, { name: string; assists: number }>()
+): Array<{ playerId: string; name: string; assists: number }> {
+  const map = new Map<string, { playerId: string; name: string; assists: number }>()
   for (const e of events) {
     if (e.type !== 'GOAL' || !e.assistPlayerId) continue
-    const row = map.get(e.assistPlayerId) ?? { name: e.assistName ?? 'Jugador', assists: 0 }
+    const row = map.get(e.assistPlayerId) ?? {
+      playerId: e.assistPlayerId,
+      name: e.assistName ?? 'Jugador',
+      assists: 0,
+    }
     row.assists += 1
     if (e.assistName) row.name = e.assistName
     map.set(e.assistPlayerId, row)
@@ -718,7 +732,7 @@ export function tallyRecentPerMatchRates(
   matches: LandingMatchStatRow[],
   kind: 'goals' | 'assists',
   take = 5,
-): Array<{ name: string; rate: number; count: number; matches: number }> {
+): Array<{ playerId: string; name: string; rate: number; count: number; matches: number }> {
   const appearances = new Map<string, Set<string>>()
   const names = new Map<string, string>()
   const counts = new Map<string, number>()
@@ -752,6 +766,7 @@ export function tallyRecentPerMatchRates(
     .map(([playerId, count]) => {
       const played = appearances.get(playerId)?.size ?? 0
       return {
+        playerId,
         name: names.get(playerId) ?? 'Jugador',
         rate: played > 0 ? count / played : 0,
         count,

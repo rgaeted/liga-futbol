@@ -9,6 +9,7 @@ import { listFriendlyParticipationsForPlayerInOrg } from '@/lib/friendly-match-p
 import { findPlayerInOrganization } from '@/lib/player-org-profile'
 import { friendlyLineupLinkLabel } from '@/lib/match-player-links'
 import { requireOrganizationId } from '@/lib/tenant-access'
+import { LOSLUNES_SLUG } from '@/lib/org-brand'
 import { orgPath } from '@/lib/tenant-paths'
 import { MatchLiveLink } from '@/components/player/MatchLiveLink'
 import { PlayerAwardBadges } from '@/components/player/PlayerAwardBadges'
@@ -132,6 +133,15 @@ export default async function PlayerDashboardPage({
           </p>
         </div>
       </header>
+
+      {organizationSlug === LOSLUNES_SLUG ? (
+        <Link
+          href={orgPath(organizationSlug, `/jugador/${player.id}`)}
+          className="text-kelme-red hover:underline"
+        >
+          Ver mi carta
+        </Link>
+      ) : null}
 
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
         <StatCard label="Goles" value={playerWithTeam.goals} />

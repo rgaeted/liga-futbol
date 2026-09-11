@@ -44,7 +44,7 @@ function RankingCard({
   light = false,
 }: {
   title: string
-  rows: Array<{ name: string; value: number; display?: string }>
+  rows: Array<{ name: string; value: number; display?: string; href?: string }>
   light?: boolean
 }) {
   if (rows.length === 0) return null
@@ -100,7 +100,13 @@ function RankingCard({
               {index + 1}
             </span>
             <span className={`font-ui text-sm font-bold ${light ? 'text-[#123a6b]' : ''}`}>
-              {row.name}
+              {row.href ? (
+                <Link href={row.href} className="hover:text-org-primary hover:underline">
+                  {row.name}
+                </Link>
+              ) : (
+                row.name
+              )}
             </span>
             <span
               className={`font-data text-lg font-black tabular-nums ${light ? 'text-[#0B3D8F]' : ''}`}
@@ -663,12 +669,20 @@ export function OrgPublicLanding({
               <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
                 <RankingCard
                   title="⚽ Goleadores"
-                  rows={scorers.map((row) => ({ name: row.name, value: row.goals }))}
+                  rows={scorers.map((row) => ({
+                    name: row.name,
+                    value: row.goals,
+                    href: isLosLunes ? `/${slug}/jugador/${row.playerId}` : undefined,
+                  }))}
                   light={isKelme}
                 />
                 <RankingCard
                   title="🎯 Asistencias"
-                  rows={assists.map((row) => ({ name: row.name, value: row.assists }))}
+                  rows={assists.map((row) => ({
+                    name: row.name,
+                    value: row.assists,
+                    href: isLosLunes ? `/${slug}/jugador/${row.playerId}` : undefined,
+                  }))}
                   light={isKelme}
                 />
                 {isLosLunes ? (
@@ -679,6 +693,7 @@ export function OrgPublicLanding({
                         name: row.name,
                         value: row.rate,
                         display: formatLandingPerMatchRate(row.rate),
+                        href: `/${slug}/jugador/${row.playerId}`,
                       }))}
                     />
                     <RankingCard
@@ -687,6 +702,7 @@ export function OrgPublicLanding({
                         name: row.name,
                         value: row.rate,
                         display: formatLandingPerMatchRate(row.rate),
+                        href: `/${slug}/jugador/${row.playerId}`,
                       }))}
                     />
                   </>
