@@ -1,24 +1,11 @@
 import type { ExpoConfig } from 'expo/config'
 import path from 'path'
-
-const slug = 'liga-invierno-kelme-puerto-varas-2026'
+import kelmeCupLosLagos2026 from './editions/kelme-cup-los-lagos-2026/edition.config'
+import puertoVaras2026 from './editions/liga-invierno-kelme-puerto-varas-2026/edition.config'
 
 const EDITIONS = {
-  [slug]: {
-    key: slug,
-    slug,
-    displayName: 'Liga de Invierno Kelme Puerto Varas 2026',
-    shortName: 'Kelme Invierno 2026',
-    urlScheme: 'kelmeinvierno2026',
-    iosBundleIdentifier: 'cl.torneoskelme.ligainvierno2026',
-    androidPackage: 'cl.torneoskelme.ligainvierno2026',
-    apiBaseUrl: 'https://torneos-kelme.vercel.app',
-    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
-    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
-    primaryColor: '#CD212A',
-    secondaryColor: '#FFFFFF',
-    assetsDir: path.join(__dirname, 'editions', slug),
-  },
+  [puertoVaras2026.key]: puertoVaras2026,
+  [kelmeCupLosLagos2026.key]: kelmeCupLosLagos2026,
 } as const
 
 function resolveEditionKey(): string {
@@ -34,7 +21,7 @@ function resolveEditionKey(): string {
 
 const edition = EDITIONS[resolveEditionKey() as keyof typeof EDITIONS]
 const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? edition.apiBaseUrl
-const assetsDir = path.join(edition.assetsDir, 'assets')
+const assetsDir = path.join(__dirname, edition.assetsDir, 'assets')
 
 const config: ExpoConfig = {
   name: edition.displayName,

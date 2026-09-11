@@ -30,6 +30,22 @@
       "env": {
         "EDITION": "liga-invierno-kelme-puerto-varas-2026"
       }
+    },
+    "kelme-cup-preview": {
+      "distribution": "internal",
+      "channel": "kelme-cup-los-lagos-2026-preview",
+      "env": {
+        "EDITION": "kelme-cup-los-lagos-2026",
+        "EXPO_PUBLIC_API_BASE_URL": "https://ligalab.cl"
+      }
+    },
+    "kelme-cup-preview-ios": {
+      "distribution": "internal",
+      "channel": "kelme-cup-los-lagos-2026-preview",
+      "env": {
+        "EDITION": "kelme-cup-los-lagos-2026",
+        "EXPO_PUBLIC_API_BASE_URL": "https://ligalab.cl"
+      }
     }
   },
   "submit": {
