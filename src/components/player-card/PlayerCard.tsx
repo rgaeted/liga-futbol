@@ -2,6 +2,7 @@ import { APP_LOCALE } from '@/lib/locale'
 import { PLAYER_CARD_HOT_THRESHOLD } from '@/lib/player-card'
 import type { PlayerCardDto } from '@/lib/player-card-query'
 import { personInitials } from '@/lib/player-name'
+import { BadgeDisco } from '@/components/badges/BadgeDisco'
 import { PlayerCardPhoto } from '@/components/player-card/PlayerCardPhoto'
 
 type Props = {
@@ -69,8 +70,10 @@ function StatRow({
 }
 
 export function PlayerCard({ card }: Props) {
-  const { player, ventana, crudos, atributos, ovr, estado, partidosFaltantes } = card
+  const { player, ventana, crudos, atributos, ovr, estado, partidosFaltantes, badgesRecientes } =
+    card
   const enFormacion = estado === 'en_formacion'
+  const recentBadges = badgesRecientes?.slice(0, 4) ?? []
 
   return (
     <div
@@ -160,6 +163,19 @@ export function PlayerCard({ card }: Props) {
             <StatRow key={key} label={label} value={atributos[key]} />
           ))}
         </div>
+
+        {recentBadges.length > 0 ? (
+          <div className="relative mt-3 flex justify-center gap-2">
+            {recentBadges.map((badge) => (
+              <BadgeDisco
+                key={`${badge.iconKey}-${badge.name}`}
+                rarity={badge.rarity}
+                iconKey={badge.iconKey}
+                size="sm"
+              />
+            ))}
+          </div>
+        ) : null}
 
         <div className="relative mt-[13px] flex justify-between">
           <div className="flex-1 text-center">

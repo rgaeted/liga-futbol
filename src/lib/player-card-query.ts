@@ -9,6 +9,7 @@ import {
   type PlayerCardPosition,
 } from '@/lib/player-card'
 import { aggregatePlayerCardWindow } from '@/lib/player-card-window'
+import { getPlayerRecentBadges } from '@/lib/badges/query'
 import { db } from '@/lib/db'
 import { APP_TIMEZONE } from '@/lib/locale'
 import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
@@ -56,6 +57,7 @@ export type PlayerCardDto = {
   ovr: number | null
   estado: PlayerCardEstado
   partidosFaltantes: number
+  badgesRecientes?: Array<{ rarity: string; iconKey: string; name: string }>
 }
 
 export async function getLosLunesPlayerCard(
@@ -66,7 +68,7 @@ export async function getLosLunesPlayerCard(
   const player = await db.player.findUnique({
     where: { id: playerId },
     include: {
-      organization: { select: { slug: true, status: true } },
+      organization: { select: { slug: true, status: true, badgesEnabled: true } },
       ...PLAYER_PERSON_NAME_INCLUDE,
       playerAwards: {
         orderBy: { awardedAt: 'desc' },
@@ -138,6 +140,9 @@ export async function getLosLunesPlayerCard(
 
   const nombre = playerDisplayName(player)
   const premio = player.playerAwards[0]?.orgAward.name ?? null
+  const badgesRecientes = player.organization.badgesEnabled
+    ? await getPlayerRecentBadges(player.organizationId, playerId)
+    : undefined
 
   return {
     kind: 'ok',
@@ -174,6 +179,7 @@ export async function getLosLunesPlayerCard(
       ovr: card.ovr,
       estado: card.estado,
       partidosFaltantes: card.partidosFaltantes,
+      badgesRecientes,
     },
   }
 }

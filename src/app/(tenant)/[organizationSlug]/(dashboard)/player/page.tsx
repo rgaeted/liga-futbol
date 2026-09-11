@@ -53,7 +53,8 @@ export default async function PlayerDashboardPage({
     )
   }
 
-  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies] = await Promise.all([
+  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies, organization] =
+    await Promise.all([
     db.callUp.findMany({
       where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
       include: {
@@ -83,6 +84,10 @@ export default async function PlayerDashboardPage({
       where: findScheduledFriendlyAttendanceWhere(organizationId, new Date()),
       orderBy: { scheduledAt: 'asc' },
       select: MATCH_ATTENDANCE_BOARD_SELECT,
+    }),
+    db.organization.findUniqueOrThrow({
+      where: { id: organizationId },
+      select: { badgesEnabled: true },
     }),
   ])
 
@@ -134,14 +139,26 @@ export default async function PlayerDashboardPage({
         </div>
       </header>
 
-      {organizationSlug === LOSLUNES_SLUG ? (
-        <Link
-          href={orgPath(organizationSlug, `/jugador/${player.id}`)}
-          className="text-kelme-red hover:underline"
-        >
-          Ver mi carta
-        </Link>
-      ) : null}
+      {(organizationSlug === LOSLUNES_SLUG || organization.badgesEnabled) && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          {organizationSlug === LOSLUNES_SLUG ? (
+            <Link
+              href={orgPath(organizationSlug, `/jugador/${player.id}`)}
+              className="text-kelme-red hover:underline"
+            >
+              Ver mi carta
+            </Link>
+          ) : null}
+          {organization.badgesEnabled ? (
+            <Link
+              href={orgPath(organizationSlug, `/jugador/${player.id}`)}
+              className="text-kelme-red hover:underline"
+            >
+              Ver mis insignias
+            </Link>
+          ) : null}
+        </div>
+      )}
 
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
         <StatCard label="Goles" value={playerWithTeam.goals} />
