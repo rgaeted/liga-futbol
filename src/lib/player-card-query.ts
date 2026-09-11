@@ -111,7 +111,9 @@ export async function getLosLunesPlayerCard(
       side: fp.side as 'A' | 'B',
     })),
     events: match.events,
-    mvpPlayerIds: match.teamMvps.map((m) => m.playerId),
+    mvpPlayerIds: match.teamMvps
+      .map((m) => m.playerId)
+      .filter((id): id is string => id != null),
   }))
 
   const window = aggregatePlayerCardWindow(matchRows, playerId)
