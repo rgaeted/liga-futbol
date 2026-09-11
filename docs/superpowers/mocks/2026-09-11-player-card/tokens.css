@@ -1,0 +1,309 @@
+/* ============================================================
+   LIGALAB · tokens.css · v1
+   Sistema de diseño único para todas las páginas del producto.
+   Regla de uso: NINGÚN valor de color, fuente, radio, sombra o
+   espaciado se escribe a mano en las páginas — siempre var(--...).
+   Importar primero en todo HTML:  <link rel="stylesheet" href="tokens.css">
+   ============================================================ */
+
+/* ---------- Fuentes (cargar junto al archivo) ----------
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600&family=Russo+One&family=Rubik:wght@500;700;800&family=Baloo+2:wght@600;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+-------------------------------------------------------- */
+
+:root {
+
+  /* ============================================
+     1 · MARCA — el tronco. Manda en todo lo
+     institucional: web comercial, pitch, admin.
+     ============================================ */
+  --marca-pizarra:      #0F2A1D;   /* fondo maestro, el verde de la pizarra */
+  --marca-pizarra-2:    #14382A;   /* superficie elevada sobre pizarra */
+  --marca-tiza:         #F2EFE6;   /* texto y trazos sobre oscuro */
+  --marca-tiza-suave:   #9DB3A5;   /* texto secundario sobre oscuro */
+  --marca-oro:          #E8C878;   /* SOLO datos ganados y acciones primarias */
+  --marca-oro-2:        #B98F35;   /* extremo oscuro del degradado de oro */
+  --marca-verde-suave:  #5C7A66;   /* secundarios sobre claro */
+  --marca-papel:        #FAF8F2;   /* fondo claro institucional (docs, guía) */
+  --marca-linea-clara:  #E4E0D4;   /* bordes sobre papel */
+
+  /* Degradado de oro: siempre este, nunca otro ángulo ni otros tonos */
+  --grad-oro: linear-gradient(160deg, var(--marca-oro), var(--marca-oro-2));
+
+  /* ============================================
+     2 · SEMÁFORO — estados universales.
+     El oro NUNCA se usa para error ni advertencia.
+     ============================================ */
+  --ok:        #7FE0A0;
+  --error:     #E06055;
+  --alerta:    #E0A83C;
+  --info:      #6FA8DC;
+
+  /* ============================================
+     3 · PIEL ADULTO — estadio nocturno.
+     Solo dentro del módulo adulto.
+     ============================================ */
+  --adulto-fondo:       #0A120D;
+  --adulto-panel:       #111C14;
+  --adulto-borde:       #1E2E21;
+  --adulto-texto:       #EDEAE0;
+  --adulto-texto-suave: #9AA79C;
+  /* el acento adulto ES el oro de marca: --marca-oro */
+
+  /* ============================================
+     4 · PIEL FORMATIVA 11-14 — arcade nocturno.
+     Solo dentro del módulo Sub-11 a Sub-14.
+     ============================================ */
+  --f11-fondo:        #0E1526;
+  --f11-panel:        #16203A;
+  --f11-borde:        #26334F;
+  --f11-chip:         #1E2A45;
+  --f11-texto:        #EAF0FF;
+  --f11-texto-suave:  #8C9BC0;
+  --f11-cian:         #3EE6FF;
+  --f11-violeta:      #8B5CF6;
+  --f11-naranja:      #FF8A3D;
+  --f11-gana:         #4ADE80;
+  --f11-pierde:       #FF6B6B;
+  --grad-f11: linear-gradient(135deg, var(--f11-cian), var(--f11-violeta));
+  --glow-f11: 0 0 22px rgba(62, 230, 255, .35);
+
+  /* ============================================
+     5 · PIEL FORMATIVA 6-10 — cancha soleada.
+     Solo dentro del módulo Sub-6 a Sub-10.
+     ============================================ */
+  --f6-fondo:        #EAF4FB;
+  --f6-panel:        #FFFFFF;
+  --f6-borde:        #D3E3EE;
+  --f6-chip:         #EAF4FB;
+  --f6-texto:        #26415A;
+  --f6-texto-suave:  #7A93A8;
+  --f6-pasto:        #3FA65C;
+  --f6-pasto-2:      #2C7D45;
+  --f6-sol:          #FFC93C;
+  --f6-ambar:        #F59E0B;
+  --f6-naranja:      #FF7A59;
+  --grad-f6: linear-gradient(135deg, var(--f6-pasto), var(--f6-pasto-2));
+  --grad-f6-carta: linear-gradient(150deg, #FFD66B, var(--f6-pasto));
+
+  /* ============================================
+     6 · TIPOGRAFÍA
+     Dos familias por contexto, nunca mezcladas
+     entre contextos. Los fallbacks son parte
+     del token: no recortarlos.
+     ============================================ */
+  /* Institucional + adulto */
+  --tipo-display: 'Anton', 'Arial Narrow', sans-serif;
+  --tipo-texto:   'Barlow Condensed', 'Helvetica Neue', sans-serif;
+  /* Formativo 11-14 */
+  --tipo-f11-display: 'Russo One', 'Arial Black', sans-serif;
+  --tipo-f11-texto:   'Rubik', 'Helvetica Neue', sans-serif;
+  /* Formativo 6-10 */
+  --tipo-f6-display: 'Baloo 2', 'Comic Sans MS', cursive;
+  --tipo-f6-texto:   'Nunito', 'Helvetica Neue', sans-serif;
+
+  /* Escala tipográfica — pocos pasos, contraste grande.
+     El "look profesional" vive en el salto display/texto. */
+  --txt-hero:    clamp(38px, 7vw, 66px);   /* el titular tesis, una vez por página */
+  --txt-h2:      clamp(26px, 4.5vw, 38px);
+  --txt-h3:      19px;
+  --txt-grande:  18px;    /* leads y subtítulos */
+  --txt-base:    16px;
+  --txt-chico:   13px;    /* metadatos, notas */
+  --txt-micro:   11px;    /* etiquetas uppercase con tracking */
+  --txt-cifra:   44px;    /* marcadores, OVR, datos protagonistas */
+
+  /* Tracking: los display en mayúsculas siempre llevan aire */
+  --track-display: 1px;
+  --track-etiqueta: 2px;  /* uppercase pequeños: kickers, chips, tabs */
+
+  /* ============================================
+     7 · ESPACIADO — escala única de 8.
+     Prohibido inventar valores intermedios.
+     ============================================ */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+  --esp-7: 48px;
+  --esp-8: 72px;    /* respiro entre secciones */
+  --ancho-pagina: 960px;
+  --ancho-lectura: 640px;  /* máximo para párrafos: nunca líneas de lado a lado */
+
+  /* ============================================
+     8 · FORMA — un vocabulario por contexto,
+     consistente en toda la página.
+     ============================================ */
+  /* Institucional + adulto: rectitud de estadio */
+  --radio-panel: 12px;
+  --radio-control: 8px;
+  --radio-pill: 999px;      /* solo chips y etiquetas */
+  /* Formativo 11-14 usa los mismos radios (la dureza es parte de la piel) */
+  /* Formativo 6-10: todo más redondo */
+  --radio-f6-panel: 18px;
+  --radio-f6-control: 999px;
+
+  --borde-fino: 1px solid;   /* el color lo pone cada piel */
+  --borde-marcado: 2px solid;
+
+  /* ============================================
+     9 · SOMBRA Y PROFUNDIDAD — exactamente dos
+     niveles. Un tercero es señal de deriva.
+     ============================================ */
+  --sombra-reposo: 0 4px 14px rgba(10, 18, 13, .10);
+  --sombra-flotante: 0 10px 30px rgba(10, 18, 13, .22);
+  /* Glow de neón: solo piel f11, solo en acción primaria y emblemas */
+
+  /* ============================================
+     10 · MOVIMIENTO — poco y con propósito.
+     Solo dos duraciones. Nada anima "porque sí".
+     ============================================ */
+  --mov-rapido: 150ms ease;      /* hover, focus, toggles */
+  --mov-revelacion: 400ms ease;  /* barras que suben, sobres que abren */
+
+  /* ============================================
+     11 · CAPAS
+     ============================================ */
+  --z-base: 0;
+  --z-flotante: 10;    /* dropdowns, tooltips */
+  --z-fijo: 100;       /* header pegado */
+  --z-modal: 1000;
+}
+
+/* ============================================================
+   BASE MÍNIMA COMPARTIDA
+   Lo justo para que toda página nazca ordenada.
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--tipo-texto);
+  font-size: var(--txt-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { display: inline-block; vertical-align: middle; max-width: 100%; }
+
+button { cursor: pointer; font-family: inherit; }
+button:disabled { cursor: default; }
+
+/* Foco visible siempre: profesionalismo invisible */
+:focus-visible {
+  outline: 2px solid var(--marca-oro);
+  outline-offset: 2px;
+}
+.piel-f11 :focus-visible { outline-color: var(--f11-cian); }
+.piel-f6  :focus-visible { outline-color: var(--f6-pasto); }
+
+/* Respeto por reduced motion: quietud = confianza */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Contenedor estándar */
+.contenedor {
+  max-width: var(--ancho-pagina);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ============================================================
+   UTILIDADES DE MARCA (las 6 que evitan reinventar)
+   ============================================================ */
+
+/* El kicker: etiqueta uppercase sobre el titular */
+.kicker {
+  font-size: var(--txt-chico);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Titular tesis: uno por página */
+.titular-hero {
+  font-family: var(--tipo-display);
+  font-size: var(--txt-hero);
+  text-transform: uppercase;
+  letter-spacing: var(--track-display);
+  line-height: 1.05;
+}
+
+/* Botón primario institucional/adulto: el oro es acción */
+.btn-oro {
+  padding: var(--esp-3) var(--esp-6);
+  border-radius: var(--radio-control);
+  border: none;
+  font-family: var(--tipo-display);
+  font-size: 17px;
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  background: var(--grad-oro);
+  color: #141B15;
+  transition: transform var(--mov-rapido);
+}
+.btn-oro:hover:not(:disabled) { transform: translateY(-1px); }
+.btn-oro:disabled { background: var(--adulto-borde); color: var(--marca-verde-suave); }
+
+/* Botón secundario: línea, sin relleno */
+.btn-linea {
+  padding: var(--esp-2) var(--esp-5);
+  border-radius: var(--radio-control);
+  border: 1px solid var(--marca-oro-2);
+  background: transparent;
+  color: var(--marca-oro);
+  font-size: var(--txt-base);
+}
+
+/* Chip / etiqueta */
+.chip {
+  display: inline-block;
+  font-size: 12px;
+  letter-spacing: var(--track-etiqueta);
+  text-transform: uppercase;
+  font-weight: 600;
+  border: 1px solid var(--marca-oro-2);
+  color: var(--marca-oro);
+  border-radius: var(--radio-pill);
+  padding: var(--esp-1) var(--esp-4);
+}
+
+/* Cifra protagonista: marcadores, OVR, totales */
+.cifra {
+  font-family: var(--tipo-display);
+  font-size: var(--txt-cifra);
+  line-height: 1;
+}
+
+/* ============================================================
+   NOTAS DE USO (leer antes de diseñar cualquier página nueva)
+
+   1. Una página = una piel. El <body> lleva la clase de contexto
+      (.piel-adulto, .piel-f11, .piel-f6 o ninguna = institucional)
+      y SOLO usa los tokens de esa piel + los de marca.
+
+   2. El oro es sagrado: acciones primarias y datos ganados.
+      Jamás en errores, advertencias ni decoración.
+
+   3. Tipografía: display SOLO en titulares, cifras y botones
+      primarios. Todo lo demás es la familia de texto. Si un
+      elemento no sabe cuál usar, es texto.
+
+   4. Emojis prohibidos como iconografía. Iconos SVG monolínea
+      (stroke 1.8, linecap round) del set del producto.
+
+   5. Copy con la voz de marca: segunda persona, el dato antes
+      que el adjetivo, cero verbos de pitch. Estados vacíos con
+      dirección: "Aún no hay resultados — la tabla se escribe
+      el domingo", nunca "No data".
+
+   6. Ante la duda, quitar: máximo dos sombras, dos animaciones
+      con propósito por página, un solo elemento firma.
+   ============================================================ */

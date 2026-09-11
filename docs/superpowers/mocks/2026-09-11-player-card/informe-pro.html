@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LigaLab · Informe Pro · Juan Pérez</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#0A0F1A; --fondo-2:#0D1422; --panel:#121A2B; --panel-2:#182236; --borde:#243049;
+  --hielo:#EDF2FA; --hielo-suave:#8B98B4;
+  --acento:#FF5A1F; --acento-2:#FF8A3D; --ambar:#FFC24B;
+  --grad-acento:linear-gradient(160deg,var(--acento-2),var(--acento));
+  --norte:#E03A3A;
+  --display:'Anton','Arial Narrow',sans-serif;
+  --texto:'Barlow Condensed','Helvetica Neue',sans-serif;
+  --r:14px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--texto);color:var(--hielo);line-height:1.45;
+  background:radial-gradient(800px 400px at 70% -60px, rgba(255,138,61,.10), transparent 60%),var(--fondo)}
+.doc{max-width:860px;margin:0 auto;padding:34px 26px 60px}
+.pagina{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);overflow:hidden;margin-bottom:18px}
+.pad{padding:24px 28px}
+.kicker{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--acento-2);font-weight:600}
+h2{font-family:var(--display);font-size:20px;letter-spacing:1.5px;text-transform:uppercase;margin:2px 0 16px}
+.nota{font-size:13px;color:var(--hielo-suave)}
+.sello{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ambar);color:var(--ambar);border-radius:6px;padding:6px 12px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
+
+/* portada */
+.portada{background:linear-gradient(170deg,var(--fondo-2),var(--panel));position:relative;overflow:hidden}
+.portada .num-fondo{position:absolute;right:-20px;top:-30px;font-family:var(--display);font-size:300px;line-height:1;color:transparent;-webkit-text-stroke:2px rgba(255,138,61,.14)}
+.portada-in{position:relative;padding:34px 30px;display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+.retrato{width:150px;height:150px;border-radius:18px;background:radial-gradient(circle at 50% 26%,#1C2740,var(--fondo-2));border:1px solid var(--borde);overflow:hidden;transform:rotate(-2deg);box-shadow:0 14px 34px rgba(0,0,0,.5)}
+.retrato svg{width:100%;height:100%}
+.marca{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.wordmark{font-family:var(--display);font-size:16px;letter-spacing:2px}
+.wordmark span{color:var(--acento)}
+h1{font-family:var(--display);font-size:clamp(34px,5vw,50px);text-transform:uppercase;letter-spacing:1px;line-height:1}
+.portada .rol{font-size:16px;color:var(--hielo-suave);margin:6px 0 14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:rgba(255,90,31,.10);border:1px solid rgba(255,138,61,.35);border-radius:6px;padding:5px 12px;font-size:13px;font-weight:600}
+.chip b{font-family:var(--display);color:var(--ambar);font-weight:400;margin-right:5px}
+.ovr{margin-left:auto;text-align:center}
+.ovr .n{font-family:var(--display);font-size:74px;line-height:1;color:var(--ambar);text-shadow:0 0 34px rgba(255,194,75,.35)}
+.ovr .l{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--hielo-suave);font-weight:600}
+
+/* grid de stats */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.st{background:var(--panel-2);border:1px solid var(--borde);border-radius:10px;padding:12px;text-align:center}
+.st b{font-family:var(--display);font-size:28px;display:block;color:var(--hielo)}
+.st.dorado b{color:var(--ambar)}
+.st span{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--hielo-suave);font-weight:600}
+.veredicto{border-left:3px solid var(--acento);background:var(--panel-2);border-radius:0 10px 10px 0;padding:14px 16px;font-size:16px;margin-top:16px}
+.veredicto b{color:var(--acento-2)}
+
+/* barras percentil */
+.pbar{margin:11px 0}
+.pbar .lab{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:5px}
+.pbar .lab span{color:var(--hielo-suave)}
+.pbar .lab b{color:var(--ambar);font-family:var(--display);font-weight:400}
+.pista{height:8px;border-radius:4px;background:var(--panel-2);position:relative;overflow:hidden}
+.pista i{position:absolute;inset:0;width:var(--w);background:var(--grad-acento);border-radius:4px}
+.pista em{position:absolute;top:-2px;bottom:-2px;left:var(--liga);width:2px;background:var(--hielo-suave)}
+.leyenda{font-size:12px;color:var(--hielo-suave);margin-top:8px}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--grad-acento);margin-right:5px;vertical-align:-1px}
+.leyenda em{display:inline-block;width:2px;height:12px;background:var(--hielo-suave);margin:0 5px 0 14px;vertical-align:-2px}
+
+svg text{font-family:var(--texto)}
+.pie-doc{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 28px;border-top:1px solid var(--borde);font-size:12px;color:var(--hielo-suave);letter-spacing:1px}
+.pie-doc b{color:var(--hielo)}
+@media(max-width:700px){.g2{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}.ovr{margin:0 auto}}
+@media print{body{background:#fff}.doc{padding:0}.pagina{border-color:#ccc;break-inside:avoid}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="busto" viewBox="0 0 100 100">
+  <path d="M14 100 L20 76 Q50 62 80 76 L86 100 Z" fill="var(--norte)"/>
+  <path d="M14 100 L20 76 Q35 69 50 68 L50 100 Z" fill="rgba(0,0,0,.22)"/>
+  <path d="M42 70 L50 78 L58 70 L54 66 L46 66 Z" fill="#0D1422"/>
+  <rect x="43" y="54" width="14" height="14" fill="#D9A377"/>
+  <path d="M43 58 h14 v5 q-7 4 -14 0 Z" fill="#B37F55"/>
+  <ellipse cx="50" cy="38" rx="17" ry="20" fill="#D9A377"/>
+  <polygon points="50,20 67,30 65,52 50,58" fill="#B37F55" opacity=".45"/>
+  <circle cx="33" cy="40" r="3.5" fill="#B37F55"/><circle cx="67" cy="40" r="3.5" fill="#B37F55"/>
+  <path d="M41 40 h6 M55 40 h6" stroke="#20160E" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M46 50 q4 3 8 0" stroke="#B37F55" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M33 36 Q31 16 50 15 Q69 16 67 36 L64 30 Q58 22 50 23 Q42 22 36 30 Z" fill="#1E140C"/>
+  <path d="M35 44 Q35 62 50 62 Q65 62 65 44 L65 50 Q64 60 50 60 Q36 60 35 50 Z" fill="#1E140C" opacity=".9"/>
+</symbol>
+</defs></svg>
+
+<div class="doc">
+
+<!-- PORTADA -->
+<section class="pagina portada">
+  <div class="num-fondo">9</div>
+  <div class="portada-in">
+    <div class="retrato"><svg viewBox="0 0 100 100"><use href="#busto"/></svg></div>
+    <div>
+      <div class="marca">
+        <svg width="22" height="22" viewBox="0 0 120 120"><path d="M60 10 L102 34 L102 84 L60 110 L18 84 L18 34 Z" fill="none" stroke="#EDF2FA" stroke-width="6" stroke-linejoin="round"/><path d="M60 38 L82 72 L38 72 Z" fill="none" stroke="#8B98B4" stroke-width="4.5"/><circle cx="60" cy="38" r="8.5" fill="#FF5A1F"/><circle cx="82" cy="72" r="7" fill="#EDF2FA"/><circle cx="38" cy="72" r="7" fill="#EDF2FA"/></svg>
+        <span class="wordmark">LIGA<span>LAB</span> · INFORME PRO</span>
+      </div>
+      <h1>Juan Pérez</h1>
+      <div class="rol">Delantero · #9 · Kelme Norte FC · Liga Invierno Kelme 2026</div>
+      <div class="chips">
+        <span class="chip"><b>12</b>partidos oficiales</span>
+        <span class="chip"><b>960</b>minutos</span>
+        <span class="chip"><b>2</b>veces MVP</span>
+      </div>
+    </div>
+    <div class="ovr"><div class="n">82</div><div class="l">OVR temporada</div></div>
+  </div>
+  <div class="pie-doc">
+    <span class="sello">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      Datos verificados por la liga
+    </span>
+    <span>12 planillas oficiales · árbitro y rival identificados · <b>cero autodeclaración</b></span>
+  </div>
+</section>
+
+<!-- RESUMEN -->
+<section class="pagina"><div class="pad">
+  <div class="kicker">01 · Resumen de temporada</div>
+  <h2>Los números que dejaste en la cancha</h2>
+  <div class="statgrid">
+    <div class="st dorado"><b>11</b><span>Goles</span></div>
+    <div class="st"><b>4</b><span>Asistencias</span></div>
+    <div class="st"><b>7,8</b><span>Rating prom.</span></div>
+    <div class="st"><b>92%</b><span>Asistencia</span></div>
+    <div class="st"><b>31</b><span>Remates</span></div>
+    <div class="st"><b>48%</b><span>Al arco</span></div>
+    <div class="st"><b>2</b><span>Amarillas</span></div>
+    <div class="st"><b>0</b><span>Rojas</span></div>
+  </div>
+  <div class="veredicto"><b>El veredicto de la temporada:</b> goleador confiable y presente — anotaste en 7 de 12 fechas y tu equipo ganó el 78% de los partidos en los que convertiste. Tu mes más fino fue septiembre: 5 goles en 3 fechas.</div>
+</div></section>
+
+<!-- RADAR + EVOLUCION -->
+<section class="pagina"><div class="pad">
+  <div class="kicker">02 · Tu perfil de juego</div>
+  <h2>Radar contra el promedio de la liga</h2>
+  <div class="g2">
+    <svg viewBox="0 0 340 300" role="img" aria-label="Radar de atributos">
+      <g transform="translate(170,152)">
+        <!-- anillos -->
+        <polygon points="0,-110 95,-55 95,55 0,110 -95,55 -95,-55" fill="none" stroke="#243049" stroke-width="1"/>
+        <polygon points="0,-82 71,-41 71,41 0,82 -71,41 -71,-41" fill="none" stroke="#243049" stroke-width="1"/>
+        <polygon points="0,-55 47,-27 47,27 0,55 -47,27 -47,-27" fill="none" stroke="#243049" stroke-width="1"/>
+        <polygon points="0,-27 24,-14 24,14 0,27 -24,14 -24,-14" fill="none" stroke="#243049" stroke-width="1"/>
+        <!-- promedio liga -->
+        <polygon points="0,-72 55,-33 62,36 0,66 -50,30 -58,-32" fill="rgba(139,152,180,.15)" stroke="#8B98B4" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <!-- jugador -->
+        <polygon points="0,-99 88,-50 75,43 0,55 -42,25 -68,-38" fill="rgba(255,90,31,.22)" stroke="#FF8A3D" stroke-width="2.5"/>
+        <circle cx="0" cy="-99" r="4" fill="#FFC24B"/><circle cx="88" cy="-50" r="4" fill="#FFC24B"/><circle cx="75" cy="43" r="4" fill="#FFC24B"/><circle cx="0" cy="55" r="4" fill="#FFC24B"/><circle cx="-42" cy="25" r="4" fill="#FFC24B"/><circle cx="-68" cy="-38" r="4" fill="#FFC24B"/>
+        <text x="0" y="-122" text-anchor="middle" fill="#EDF2FA" font-size="13" font-weight="600">TIR 90</text>
+        <text x="112" y="-58" text-anchor="middle" fill="#EDF2FA" font-size="13" font-weight="600">RIT 88</text>
+        <text x="110" y="58" text-anchor="middle" fill="#EDF2FA" font-size="13" font-weight="600">FIS 74</text>
+        <text x="0" y="132" text-anchor="middle" fill="#EDF2FA" font-size="13" font-weight="600">DEF 51</text>
+        <text x="-108" y="42" text-anchor="middle" fill="#EDF2FA" font-size="13" font-weight="600">REG 68</text>
+        <text x="-105" y="-52" text-anchor="middle" fill="#EDF2FA" font-size="13" font-weight="600">PAS 70</text>
+      </g>
+    </svg>
+    <div>
+      <div class="pbar"><div class="lab"><span>Goles por partido</span><b>TOP 4%</b></div><div class="pista" style="--w:96%;--liga:44%"><i></i><em></em></div></div>
+      <div class="pbar"><div class="lab"><span>Conversión de remates</span><b>TOP 9%</b></div><div class="pista" style="--w:91%;--liga:40%"><i></i><em></em></div></div>
+      <div class="pbar"><div class="lab"><span>Rating promedio</span><b>TOP 12%</b></div><div class="pista" style="--w:88%;--liga:50%"><i></i><em></em></div></div>
+      <div class="pbar"><div class="lab"><span>Asistencia a partidos</span><b>TOP 15%</b></div><div class="pista" style="--w:85%;--liga:62%"><i></i><em></em></div></div>
+      <div class="pbar"><div class="lab"><span>Juego limpio</span><b>TOP 30%</b></div><div class="pista" style="--w:70%;--liga:55%"><i></i><em></em></div></div>
+      <div class="leyenda"><i></i> Tú <em></em> Promedio de la liga (46 delanteros)</div>
+    </div>
+  </div>
+</div></section>
+
+<!-- EVOLUCIÓN -->
+<section class="pagina"><div class="pad">
+  <div class="kicker">03 · Fecha a fecha</div>
+  <h2>Tu temporada, partido por partido</h2>
+  <svg viewBox="0 0 780 240" role="img" aria-label="Goles y rating por fecha">
+    <line x1="40" y1="190" x2="760" y2="190" stroke="#243049" stroke-width="1"/>
+    <!-- barras de goles -->
+    <g fill="url(#gbar)">
+      <defs><linearGradient id="gbar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8A3D"/><stop offset="1" stop-color="#FF5A1F"/></linearGradient></defs>
+      <rect x="52"  y="130" width="26" height="60" rx="4"/>
+      <rect x="112" y="190" width="26" height="0"/>
+      <rect x="172" y="130" width="26" height="60" rx="4"/>
+      <rect x="232" y="70"  width="26" height="120" rx="4"/>
+      <rect x="292" y="190" width="26" height="0"/>
+      <rect x="352" y="130" width="26" height="60" rx="4"/>
+      <rect x="412" y="130" width="26" height="60" rx="4"/>
+      <rect x="472" y="190" width="26" height="0"/>
+      <rect x="532" y="70"  width="26" height="120" rx="4"/>
+      <rect x="592" y="130" width="26" height="60" rx="4"/>
+      <rect x="652" y="190" width="26" height="0"/>
+      <rect x="712" y="130" width="26" height="60" rx="4"/>
+    </g>
+    <!-- línea de rating -->
+    <polyline points="65,95 125,140 185,88 245,52 305,150 365,92 425,86 485,155 545,48 605,90 665,146 725,84" fill="none" stroke="#FFC24B" stroke-width="2.5" stroke-linejoin="round"/>
+    <g fill="#FFC24B"><circle cx="65" cy="95" r="3.5"/><circle cx="245" cy="52" r="3.5"/><circle cx="545" cy="48" r="3.5"/><circle cx="725" cy="84" r="3.5"/></g>
+    <g fill="#8B98B4" font-size="12" text-anchor="middle">
+      <text x="65" y="212">F1</text><text x="125" y="212">F2</text><text x="185" y="212">F3</text><text x="245" y="212">F4</text><text x="305" y="212">F5</text><text x="365" y="212">F6</text><text x="425" y="212">F7</text><text x="485" y="212">F8</text><text x="545" y="212">F9</text><text x="605" y="212">F10</text><text x="665" y="212">F11</text><text x="725" y="212">F12</text>
+    </g>
+    <g font-size="12" fill="#EDF2FA" text-anchor="middle" font-weight="600">
+      <text x="245" y="60" dy="-14">2 goles · 9,1</text>
+      <text x="545" y="56" dy="-14">2 goles · 9,3</text>
+    </g>
+    <text x="40" y="30" fill="#8B98B4" font-size="12">■ Goles (barras) · ─ Rating (línea)</text>
+  </svg>
+  <p class="nota">Tus dos mejores noches: Fecha 4 vs Kelme Sur (2 goles, rating 9,1) y Fecha 9 vs Kelme Centro (2 goles, 9,3 — elegido MVP).</p>
+</div></section>
+
+<!-- ZONAS + RECORDS -->
+<section class="pagina"><div class="pad">
+  <div class="kicker">04 · Dónde vives en la cancha</div>
+  <h2>Zonas de acción y récords personales</h2>
+  <div class="g2">
+    <svg viewBox="0 0 360 240" role="img" aria-label="Mapa de zonas de acción">
+      <rect x="10" y="10" width="340" height="220" rx="8" fill="#0E1F17" stroke="#2A4A38" stroke-width="2"/>
+      <line x1="180" y1="10" x2="180" y2="230" stroke="#2A4A38" stroke-width="2"/>
+      <circle cx="180" cy="120" r="34" fill="none" stroke="#2A4A38" stroke-width="2"/>
+      <rect x="296" y="70" width="54" height="100" fill="none" stroke="#2A4A38" stroke-width="2"/>
+      <rect x="10" y="70" width="54" height="100" fill="none" stroke="#2A4A38" stroke-width="2"/>
+      <!-- calor -->
+      <ellipse cx="288" cy="118" rx="52" ry="58" fill="rgba(255,90,31,.42)"/>
+      <ellipse cx="255" cy="90" rx="42" ry="40" fill="rgba(255,138,61,.30)"/>
+      <ellipse cx="228" cy="140" rx="48" ry="44" fill="rgba(255,194,75,.20)"/>
+      <ellipse cx="180" cy="120" rx="55" ry="50" fill="rgba(255,194,75,.10)"/>
+      <text x="300" y="126" fill="#FFF" font-size="13" font-weight="600" text-anchor="middle">64%</text>
+      <text x="180" y="222" fill="#8B98B4" font-size="11" text-anchor="middle">64% de tus acciones nacen en el último cuarto de cancha</text>
+    </svg>
+    <div>
+      <div class="pbar"><div class="lab"><span>⚡ Récord: goles en un partido</span><b>2</b></div></div>
+      <div class="pbar"><div class="lab"><span>Racha anotando</span><b>3 fechas seguidas</b></div></div>
+      <div class="pbar"><div class="lab"><span>Racha sin faltar</span><b>11 fechas</b></div></div>
+      <div class="pbar"><div class="lab"><span>Gol más rápido</span><b>4' (F9)</b></div></div>
+      <div class="pbar"><div class="lab"><span>Mejor mes</span><b>Septiembre · 5 goles</b></div></div>
+      <div class="pbar"><div class="lab"><span>Rival favorito</span><b>Kelme Centro · 5 goles</b></div></div>
+      <p class="nota" style="margin-top:12px">Récords calculados solo sobre partidos oficiales con planilla cerrada. La temporada 2027 parte con estos números como vara.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- CIERRE -->
+<section class="pagina">
+  <div class="pad">
+    <div class="kicker">05 · Lo que dice tu juego</div>
+    <h2>Tres lecturas para la próxima temporada</h2>
+    <div class="veredicto" style="margin-top:0"><b>Tu arma:</b> la definición. Convertiste casi la mitad de tus remates al arco — el promedio de la liga no llega a un cuarto. Cada llegada tuya es peligro real.</div>
+    <div class="veredicto"><b>Tu margen:</b> el primer pase. Tus 4 asistencias vienen de solo 19 pases al área. Más sociedad con el 10 y esa cifra se duplica.</div>
+    <div class="veredicto"><b>Tu sello:</b> la constancia. 92% de asistencia y 11 fechas seguidas sin faltar — el gol se entrena estando. De eso se trata jugar en serio.</div>
+  </div>
+  <div class="pie-doc">
+    <span><b>LigaLab · Informe Pro</b> · generado desde 12 planillas oficiales de Liga Invierno Kelme</span>
+    <span>Verificación: <b>ligalab.cl/v/JP-0926-KN</b></span>
+  </div>
+</section>
+
+</div>
+</body>
+</html>

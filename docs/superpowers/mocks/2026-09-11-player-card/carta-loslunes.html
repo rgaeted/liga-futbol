@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LigaLab · Carta · Fútbol de los Lunes</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noche:#0B1210; --noche-2:#0F1A16; --panel:#12211B; --borde:#22382E;
+  --hielo:#EDF2EE; --hielo-suave:#8BA598;
+  --oro:#E8C878; --oro-2:#C79A3E;
+  --lunes:#3DE68C; --lunes-2:#1FA968;   /* verde "on fire" que ya usa la app */
+  --display:'Anton','Arial Narrow',sans-serif;
+  --texto:'Barlow Condensed','Helvetica Neue',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--texto);color:var(--hielo);line-height:1.4;
+  background:radial-gradient(700px 460px at 50% -80px,rgba(61,230,140,.10),transparent 60%),var(--noche);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:26px;padding:36px 18px 60px}
+.intro{text-align:center;max-width:520px}
+.intro .kick{font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--lunes);font-weight:700}
+.intro h1{font-family:var(--display);font-size:30px;text-transform:uppercase;letter-spacing:1px;margin:6px 0}
+.intro p{font-size:15px;color:var(--hielo-suave)}
+
+/* ====== LA CARTA ====== */
+.escena{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.carta{width:310px;border-radius:22px;padding:2px;background:conic-gradient(from 210deg,var(--oro-2),var(--oro),#FFF3D0,var(--oro),var(--oro-2));
+  box-shadow:0 26px 60px rgba(0,0,0,.6);position:relative}
+.carta-in{border-radius:20px;background:linear-gradient(172deg,#14241D 0%,#0C1611 62%,#0A130F 100%);padding:18px 18px 20px;position:relative;overflow:hidden}
+.carta-in::before{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(115deg,transparent 0 26px,rgba(255,255,255,.014) 26px 27px);pointer-events:none}
+.brillo{position:absolute;top:-60%;left:-30%;width:80%;height:220%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);transform:rotate(18deg);pointer-events:none}
+
+.c-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative}
+.c-ovr{text-align:center;line-height:.9}
+.c-ovr .n{font-family:var(--display);font-size:52px;color:var(--oro);text-shadow:0 2px 16px rgba(232,200,120,.3)}
+.c-ovr .l{font-size:12px;letter-spacing:3px;color:var(--hielo-suave);font-weight:700}
+.c-ovr .pos{margin-top:5px;font-family:var(--display);font-size:15px;color:var(--hielo);background:rgba(61,230,140,.14);border:1px solid rgba(61,230,140,.3);border-radius:6px;padding:1px 9px;letter-spacing:1px}
+.c-escudo{text-align:right}
+.c-escudo .esc{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+.c-escudo .eq{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--hielo-suave);font-weight:700;margin-top:3px}
+
+.c-foto{height:186px;margin:6px -4px 0;position:relative;display:flex;align-items:flex-end;justify-content:center}
+.c-foto .halo{position:absolute;bottom:14px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(61,230,140,.22),transparent 68%)}
+.c-foto img{height:190px;object-fit:contain;position:relative;filter:drop-shadow(0 12px 18px rgba(0,0,0,.55));z-index:1}
+.c-foto .sin{position:relative;z-index:1;width:120px;height:120px;border-radius:50%;background:linear-gradient(160deg,#1D3228,#0E1B15);border:1px solid var(--borde);display:grid;place-items:center;font-family:var(--display);font-size:44px;color:var(--lunes);margin-bottom:16px}
+
+.c-nombre{text-align:center;position:relative;margin-top:2px}
+.c-nombre b{font-family:var(--display);font-size:27px;letter-spacing:1px;text-transform:uppercase;display:block;line-height:1}
+.c-nombre .tag{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--oro);font-weight:700}
+.c-linea{height:1px;background:linear-gradient(90deg,transparent,var(--oro-2),transparent);margin:11px 0}
+
+.c-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;position:relative}
+.c-stats .row{display:flex;align-items:center;gap:8px}
+.c-stats .v{font-family:var(--display);font-size:21px;width:34px;color:var(--hielo)}
+.c-stats .v.hot{color:var(--lunes)}
+.c-stats .k{font-size:13px;letter-spacing:1.5px;color:var(--hielo-suave);font-weight:700}
+.c-stats .bar{flex:1;height:4px;border-radius:2px;background:#1B2C24;overflow:hidden}
+.c-stats .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--lunes-2),var(--lunes))}
+
+.c-pie{display:flex;justify-content:space-between;margin-top:13px;position:relative}
+.c-pie div{text-align:center;flex:1}
+.c-pie b{font-family:var(--display);font-size:18px;color:var(--oro);display:block}
+.c-pie span{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--hielo-suave);font-weight:700}
+.c-marca{text-align:center;margin-top:12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--hielo-suave);font-weight:700;position:relative}
+.c-marca b{color:var(--hielo)}
+
+/* ====== panel explicativo ====== */
+.expl{max-width:340px;background:var(--panel);border:1px solid var(--borde);border-radius:16px;padding:20px}
+.expl h3{font-family:var(--display);font-size:16px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.expl .item{display:flex;gap:11px;padding:9px 0;border-top:1px solid var(--borde)}
+.expl .item:first-of-type{border-top:0}
+.expl .ab{font-family:var(--display);font-size:15px;color:var(--lunes);width:34px;flex-shrink:0}
+.expl .tx{font-size:14px;color:var(--hielo-suave)}
+.expl .tx b{color:var(--hielo);font-weight:700}
+.expl .cierre{margin-top:12px;font-size:13px;color:var(--hielo-suave);font-style:italic;border-left:2px solid var(--oro-2);padding-left:11px}
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="kick">Fútbol de los Lunes · desde 2014</div>
+  <h1>La carta se gana en la cancha</h1>
+  <p>Los mismos goles, asistencias y lunes que ya registras — reunidos en una sola identidad que sube y baja según cómo juegues.</p>
+</div>
+
+<div class="escena">
+  <!-- LA CARTA (datos reales de Opitz) -->
+  <div class="carta">
+    <div class="carta-in">
+      <div class="brillo"></div>
+      <div class="c-top">
+        <div class="c-ovr">
+          <div class="n">86</div>
+          <div class="l">OVR</div>
+          <div class="pos">DEL</div>
+        </div>
+        <div class="c-escudo">
+          <img class="esc" src="https://ligalab.cl/branding/loslunes-logo.png" alt="Escudo" onerror="this.style.display='none'">
+          <span class="eq">Blancos</span>
+        </div>
+      </div>
+
+      <div class="c-foto">
+        <div class="halo"></div>
+        <img src="https://ligalab.cl/api/players/cm92624634c9f14665bb0cc5c/photo" alt="Fernando Opitz"
+             onerror="this.outerHTML='<div class=\'sin\'>FO</div>'">
+      </div>
+
+      <div class="c-nombre">
+        <span class="tag">◆ Patrimonio Histórico ◆</span>
+        <b>F. Opitz</b>
+      </div>
+
+      <div class="c-linea"></div>
+
+      <div class="c-stats">
+        <div class="row"><span class="v hot">88</span><span class="k">TIR</span><span class="bar"><i style="width:88%"></i></span></div>
+        <div class="row"><span class="v">82</span><span class="k">VIS</span><span class="bar"><i style="width:82%"></i></span></div>
+        <div class="row"><span class="v hot">90</span><span class="k">RES</span><span class="bar"><i style="width:90%"></i></span></div>
+        <div class="row"><span class="v">74</span><span class="k">REG</span><span class="bar"><i style="width:74%"></i></span></div>
+        <div class="row"><span class="v">79</span><span class="k">RIT</span><span class="bar"><i style="width:79%"></i></span></div>
+        <div class="row"><span class="v">71</span><span class="k">FÍS</span><span class="bar"><i style="width:71%"></i></span></div>
+      </div>
+
+      <div class="c-pie">
+        <div><b>7</b><span>Goles 30d</span></div>
+        <div><b>5</b><span>Asist 30d</span></div>
+        <div><b>2,3</b><span>Gol/PJ</span></div>
+      </div>
+
+      <div class="c-marca">Fútbol de los Lunes · <b>LigaLab</b></div>
+    </div>
+  </div>
+
+  <!-- de dónde sale cada número -->
+  <div class="expl">
+    <h3>De dónde sale cada número</h3>
+    <div class="item"><span class="ab">TIR</span><span class="tx"><b>Definición.</b> De sus goles por partido y el % que termina en gol. Opitz: 2,3 gol/PJ → 88.</span></div>
+    <div class="item"><span class="ab">VIS</span><span class="tx"><b>Visión.</b> De las asistencias por partido. 1,7 asist/PJ → 82.</span></div>
+    <div class="item"><span class="ab">RES</span><span class="tx"><b>Resistencia.</b> Del % de lunes que no falta. Casi perfecto → 90. <b>Premia estar.</b></span></div>
+    <div class="item"><span class="ab">REG·RIT·FÍS</span><span class="tx">Base del capitán al inscribirse, ajustable. Suben con MVPs y rachas.</span></div>
+    <div class="cierre">La ventana es de 30 días: si esta semana la rompe, la carta sube el próximo lunes. Si desaparece un mes, baja. Nadie compra estos números — se ganan en Nueva Braunau.</div>
+  </div>
+</div>
+
+</body>
+</html>
