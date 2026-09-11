@@ -63,6 +63,7 @@ function adminNavGroups(slug: string): DashboardNavGroup[] {
         { href: base('/admin/teams'), label: 'Equipos', icon: 'EQ' },
         { href: base('/admin/players'), label: 'Jugadores', icon: 'JU' },
         { href: base('/admin/awards'), label: 'Premios', icon: 'PR' },
+        { href: base('/admin/badges'), label: 'Insignias', icon: 'IG' },
         {
           href: base('/admin/matches'),
           label: 'Partidos',
