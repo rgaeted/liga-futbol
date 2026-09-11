@@ -1,4 +1,5 @@
 import { EventType, MatchType, type MatchEvent } from '@prisma/client'
+import { syncBadgesForFinishedMatch } from '@/lib/badges/persist'
 import { db } from '@/lib/db'
 import { isScoringGoalEvent, SCORING_GOAL_EVENT_TYPES } from '@/lib/event-labels'
 import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
@@ -96,6 +97,7 @@ export async function reconcileMatchState(matchId: string, affectedPlayerIds: st
 
   if (match.status === 'FINISHED') {
     await revalidateOrgPublicLandingForMatch(matchId)
+    await syncBadgesForFinishedMatch(matchId)
   }
 
   return updatedMatch
