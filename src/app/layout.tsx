@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Providers } from '@/components/providers'
-import { ibmPlexMono, manrope, oswald, playfair } from '@/lib/fonts'
+import { caveat, ibmPlexMono, manrope, oswald, playfair } from '@/lib/fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="es-CL"
-      className={`${oswald.variable} ${manrope.variable} ${ibmPlexMono.variable} ${playfair.variable} h-full antialiased`}
+      className={`${oswald.variable} ${manrope.variable} ${ibmPlexMono.variable} ${playfair.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>

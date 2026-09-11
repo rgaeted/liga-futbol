@@ -1,4 +1,4 @@
-import { IBM_Plex_Mono, Manrope, Oswald, Playfair_Display } from 'next/font/google'
+import { Caveat, IBM_Plex_Mono, Manrope, Oswald, Playfair_Display } from 'next/font/google'
 
 export const oswald = Oswald({
   variable: '--font-oswald',
@@ -22,4 +22,10 @@ export const playfair = Playfair_Display({
   variable: '--font-playfair',
   subsets: ['latin'],
   weight: ['700', '800', '900'],
+})
+
+export const caveat = Caveat({
+  variable: '--font-caveat',
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
 })

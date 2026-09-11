@@ -4,10 +4,14 @@ import { AwardRevealGrid } from '@/components/marketing/AwardRevealCard'
 import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
 import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { LosLunesResults } from '@/components/marketing/LosLunesResults'
+import { KelmeCupHomeHero } from '@/components/marketing/KelmeCupHomeHero'
+import { KelmeCupInvite } from '@/components/marketing/KelmeCupInvite'
+import { KelmeCupMatchBoard } from '@/components/marketing/KelmeCupMatchBoard'
+import { KelmeCupResults } from '@/components/marketing/KelmeCupResults'
 import { FriendlyAttendanceCards } from '@/components/marketing/FriendlyAttendanceCards'
 import { TeamCrest } from '@/components/TeamCrest'
 import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
-import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
+import { KELME_CUP, KELME_CUP_SHIELD_PATH, KELME_SLUG, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import { formatLandingPerMatchRate, type OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
 
@@ -37,16 +41,40 @@ function FeaturedCrest({
 function RankingCard({
   title,
   rows,
+  light = false,
 }: {
   title: string
   rows: Array<{ name: string; value: number; display?: string }>
+  light?: boolean
 }) {
   if (rows.length === 0) return null
   return (
-    <div className="overflow-hidden rounded-[18px] border border-[#2a302d] bg-[#131615]">
-      <div className="flex items-center justify-between border-b border-[#2a302d] px-[18px] py-4">
-        <h3 className="m-0 font-display text-[17px] font-semibold uppercase tracking-wide">{title}</h3>
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#9ca59f]">
+    <div
+      className={
+        light
+          ? 'overflow-hidden rounded-[18px] border border-[#1A7AE8]/20 bg-white'
+          : 'overflow-hidden rounded-[18px] border border-[#2a302d] bg-[#131615]'
+      }
+    >
+      <div
+        className={
+          light
+            ? 'flex items-center justify-between border-b border-[#1A7AE8]/15 px-[18px] py-4'
+            : 'flex items-center justify-between border-b border-[#2a302d] px-[18px] py-4'
+        }
+      >
+        <h3
+          className={`m-0 font-display text-[17px] font-semibold uppercase tracking-wide ${
+            light ? 'text-[#0B3D8F]' : ''
+          }`}
+        >
+          {title}
+        </h3>
+        <span
+          className={`text-[11px] font-extrabold uppercase tracking-[0.1em] ${
+            light ? 'text-[#4d6790]' : 'text-[#9ca59f]'
+          }`}
+        >
           Top 5
         </span>
       </div>
@@ -54,17 +82,31 @@ function RankingCard({
         {rows.map((row, index) => (
           <li
             key={`${row.name}-${index}`}
-            className="grid grid-cols-[34px_1fr_auto] items-center gap-3 px-[18px] py-2.5 [&+li]:border-t [&+li]:border-white/[0.045]"
+            className={`grid grid-cols-[34px_1fr_auto] items-center gap-3 px-[18px] py-2.5 [&+li]:border-t ${
+              light ? '[&+li]:border-[#1A7AE8]/10' : '[&+li]:border-white/[0.045]'
+            }`}
           >
             <span
               className={`grid h-[26px] w-[26px] place-items-center rounded-lg text-[11px] font-extrabold ${
-                index === 0 ? 'bg-org-primary text-[#0a0c0b]' : 'bg-[#1b1f1d] text-[#879089]'
+                index === 0
+                  ? light
+                    ? 'bg-[#1A7AE8] text-white'
+                    : 'bg-org-primary text-[#0a0c0b]'
+                  : light
+                    ? 'bg-[#eef6ff] text-[#4d6790]'
+                    : 'bg-[#1b1f1d] text-[#879089]'
               }`}
             >
               {index + 1}
             </span>
-            <span className="font-ui text-sm font-bold">{row.name}</span>
-            <span className="font-data text-lg font-black tabular-nums">{row.display ?? row.value}</span>
+            <span className={`font-ui text-sm font-bold ${light ? 'text-[#123a6b]' : ''}`}>
+              {row.name}
+            </span>
+            <span
+              className={`font-data text-lg font-black tabular-nums ${light ? 'text-[#0B3D8F]' : ''}`}
+            >
+              {row.display ?? row.value}
+            </span>
           </li>
         ))}
       </ol>
@@ -96,16 +138,20 @@ export function OrgPublicLanding({
     awards.length === 0 &&
     data.attendances.length === 0
   const isLosLunes = slug === LOSLUNES_SLUG
+  const isKelme = slug === KELME_SLUG
+  const customLanding = isLosLunes || isKelme
 
   return (
     <div
       className={
-        isLosLunes
-          ? 'min-h-screen bg-black text-[#f4f5f2]'
-          : 'min-h-screen bg-[#0b0d0c] text-[#f4f5f2] [background:radial-gradient(circle_at_50%_-10%,color-mix(in_srgb,var(--org-primary)_7%,transparent),transparent_28%),#0b0d0c]'
+        isKelme
+          ? 'min-h-screen bg-[#f4f9ff] text-[#123a6b]'
+          : isLosLunes
+            ? 'min-h-screen bg-black text-[#f4f5f2]'
+            : 'min-h-screen bg-[#0b0d0c] text-[#f4f5f2] [background:radial-gradient(circle_at_50%_-10%,color-mix(in_srgb,var(--org-primary)_7%,transparent),transparent_28%),#0b0d0c]'
       }
     >
-      {isLosLunes ? null : (
+      {customLanding ? null : (
       <header
         className="sticky top-0 z-20 border-b border-white/[0.06] bg-[#0b0d0c]/86 backdrop-blur-[18px]"
       >
@@ -196,11 +242,15 @@ export function OrgPublicLanding({
       {isLosLunes ? (
         <LosLunesHomeHero homeHref={`/${slug}`} panelHref={panelHref} loginHref={loginHref} />
       ) : null}
+      {isKelme ? (
+        <KelmeCupHomeHero homeHref={`/${slug}`} panelHref={panelHref} loginHref={loginHref} />
+      ) : null}
 
       <main>
-        <section className={isLosLunes ? 'pb-7 pt-8' : 'pb-7 pt-[54px] max-sm:pt-8'}>
+        {isKelme ? <KelmeCupInvite /> : null}
+        <section className={customLanding ? 'pb-7 pt-8' : 'pb-7 pt-[54px] max-sm:pt-8'}>
           <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
-            {isLosLunes ? null : (
+            {customLanding ? null : (
             <div className="mb-[18px] flex items-end justify-between gap-6 max-md:flex-col max-md:items-start">
               <div className="flex items-center gap-5 max-sm:gap-3.5">
                 {organization.logoUrl ? (
@@ -236,6 +286,8 @@ export function OrgPublicLanding({
             {featured ? (
               isLosLunes ? (
                 <LosLunesMatchBoard featured={featured} slug={slug} />
+              ) : isKelme ? (
+                <KelmeCupMatchBoard featured={featured} slug={slug} />
               ) : (
               <article className="relative overflow-hidden rounded-3xl border border-[#2a302d] bg-[#131615] shadow-[0_18px_50px_rgba(0,0,0,.22)] before:absolute before:inset-x-0 before:top-0 before:h-[3px] before:bg-[linear-gradient(90deg,var(--org-primary),transparent_70%)]">
                 <div className="flex items-center justify-between gap-3.5 border-b border-[#2a302d] px-[22px] py-[18px] max-sm:px-[15px] max-sm:py-3.5">
@@ -343,8 +395,18 @@ export function OrgPublicLanding({
             {scorers[0] || assists[0] || form ? (
               <div className="mb-8 mt-3.5 grid grid-cols-3 gap-3 max-sm:grid-cols-1">
                 {scorers[0] ? (
-                  <div className="rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4">
-                    <div className="text-[11px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                  <div
+                    className={
+                      isKelme
+                        ? 'rounded-[14px] border border-[#1A7AE8]/20 bg-white px-[17px] py-4'
+                        : 'rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4'
+                    }
+                  >
+                    <div
+                      className={`text-[11px] uppercase tracking-[0.1em] ${
+                        isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'
+                      }`}
+                    >
                       Goleador · 30 días
                     </div>
                     <div className="mt-1.5 text-base font-extrabold">{scorers[0].name}</div>
@@ -354,8 +416,18 @@ export function OrgPublicLanding({
                   </div>
                 ) : null}
                 {assists[0] ? (
-                  <div className="rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4">
-                    <div className="text-[11px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                  <div
+                    className={
+                      isKelme
+                        ? 'rounded-[14px] border border-[#1A7AE8]/20 bg-white px-[17px] py-4'
+                        : 'rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4'
+                    }
+                  >
+                    <div
+                      className={`text-[11px] uppercase tracking-[0.1em] ${
+                        isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'
+                      }`}
+                    >
                       Asistencias · 30 días
                     </div>
                     <div className="mt-1.5 text-base font-extrabold">{assists[0].name}</div>
@@ -365,8 +437,18 @@ export function OrgPublicLanding({
                   </div>
                 ) : null}
                 {form ? (
-                  <div className="rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4">
-                    <div className="text-[11px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                  <div
+                    className={
+                      isKelme
+                        ? 'rounded-[14px] border border-[#1A7AE8]/20 bg-white px-[17px] py-4'
+                        : 'rounded-[14px] border border-[#232824] bg-[#101311] px-[17px] py-4'
+                    }
+                  >
+                    <div
+                      className={`text-[11px] uppercase tracking-[0.1em] ${
+                        isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'
+                      }`}
+                    >
                       Últimos {form.marks.length} · {form.teamName}
                     </div>
                     <div className="mt-1.5 text-base font-extrabold">
@@ -381,9 +463,15 @@ export function OrgPublicLanding({
             ) : null}
 
             {isEmpty ? (
-              <div className="rounded-[18px] border border-[#2a302d] bg-[#131615] p-10 text-center">
+              <div
+                className={
+                  isKelme
+                    ? 'rounded-[18px] border border-[#1A7AE8]/20 bg-white p-10 text-center'
+                    : 'rounded-[18px] border border-[#2a302d] bg-[#131615] p-10 text-center'
+                }
+              >
                 <p className="font-ui text-lg font-semibold">Aún no hay partidos publicados</p>
-                <p className="mt-2 text-sm text-[#9ca59f]">
+                <p className={`mt-2 text-sm ${isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'}`}>
                   Vuelve más tarde para ver el fixture, resultados y estadísticas.
                 </p>
               </div>
@@ -395,14 +483,28 @@ export function OrgPublicLanding({
           <section className="py-[26px]">
             <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
               <div className="mb-4">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                <p
+                  className={`text-[11px] font-extrabold uppercase tracking-[0.14em] ${
+                    isKelme ? 'text-[#1A7AE8]' : 'text-[#9ca59f]'
+                  }`}
+                >
                   Ahora
                 </p>
-                <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
+                <h2
+                  className={`mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em] ${
+                    isKelme ? 'text-[#0B3D8F]' : ''
+                  }`}
+                >
                   Próximo partido
                 </h2>
               </div>
-              <div className="grid grid-cols-[1.25fr_.75fr] gap-5 rounded-[18px] border border-[#2a302d] bg-[#131615] p-6 max-md:grid-cols-1 max-sm:p-[18px]">
+              <div
+                className={
+                  isKelme
+                    ? 'grid grid-cols-[1.25fr_.75fr] gap-5 rounded-[18px] border border-[#1A7AE8]/20 bg-white p-6 max-md:grid-cols-1 max-sm:p-[18px]'
+                    : 'grid grid-cols-[1.25fr_.75fr] gap-5 rounded-[18px] border border-[#2a302d] bg-[#131615] p-6 max-md:grid-cols-1 max-sm:p-[18px]'
+                }
+              >
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-org-primary">
                     {nextMatch.dateLine}
@@ -413,35 +515,75 @@ export function OrgPublicLanding({
                       ? `${nextMatch.home} vs ${nextMatch.away}`
                       : 'El próximo partido se juega.'}
                   </h3>
-                  <p className="mt-2 max-w-[560px] text-[#9ca59f]">
+                  <p className={`mt-2 max-w-[560px] ${isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'}`}>
                     {nextMatch.sidesReady
                       ? `${nextMatch.venue} · ${nextMatch.time}`
                       : 'Los equipos todavía no están publicados. Cuando queden confirmados, este bloque muestra los lados y la sede.'}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 content-start gap-2.5 max-[420px]:grid-cols-1">
-                  <div className="rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5">
-                    <small className="block text-[10px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                  <div
+                    className={
+                      isKelme
+                        ? 'rounded-xl border border-[#1A7AE8]/15 bg-[#eef6ff] p-3.5'
+                        : 'rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5'
+                    }
+                  >
+                    <small
+                      className={`block text-[10px] uppercase tracking-[0.1em] ${
+                        isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'
+                      }`}
+                    >
                       Hora
                     </small>
                     <strong className="mt-1.5 block text-sm">{nextMatch.time}</strong>
                   </div>
-                  <div className="rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5">
-                    <small className="block text-[10px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                  <div
+                    className={
+                      isKelme
+                        ? 'rounded-xl border border-[#1A7AE8]/15 bg-[#eef6ff] p-3.5'
+                        : 'rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5'
+                    }
+                  >
+                    <small
+                      className={`block text-[10px] uppercase tracking-[0.1em] ${
+                        isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'
+                      }`}
+                    >
                       Estado
                     </small>
                     <strong className="mt-1.5 block text-sm">
                       {nextMatch.sidesReady ? 'Programado' : 'Por confirmar'}
                     </strong>
                   </div>
-                  <div className="rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5">
-                    <small className="block text-[10px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                  <div
+                    className={
+                      isKelme
+                        ? 'rounded-xl border border-[#1A7AE8]/15 bg-[#eef6ff] p-3.5'
+                        : 'rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5'
+                    }
+                  >
+                    <small
+                      className={`block text-[10px] uppercase tracking-[0.1em] ${
+                        isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'
+                      }`}
+                    >
                       Cancha
                     </small>
                     <strong className="mt-1.5 block text-sm">{nextMatch.venue}</strong>
                   </div>
-                  <div className="rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5">
-                    <small className="block text-[10px] uppercase tracking-[0.1em] text-[#9ca59f]">
+                  <div
+                    className={
+                      isKelme
+                        ? 'rounded-xl border border-[#1A7AE8]/15 bg-[#eef6ff] p-3.5'
+                        : 'rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5'
+                    }
+                  >
+                    <small
+                      className={`block text-[10px] uppercase tracking-[0.1em] ${
+                        isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'
+                      }`}
+                    >
                       Equipos
                     </small>
                     <strong className="mt-1.5 block text-sm">
@@ -454,11 +596,13 @@ export function OrgPublicLanding({
           </section>
         ) : null}
 
-        <FriendlyAttendanceCards slug={slug} boards={data.attendances} />
+        <FriendlyAttendanceCards slug={slug} boards={data.attendances} light={isKelme} />
 
         {results.length > 0 ? (
           isLosLunes ? (
             <LosLunesResults results={results} slug={slug} />
+          ) : isKelme ? (
+            <KelmeCupResults results={results} slug={slug} />
           ) : (
           <section id="resultados" className="scroll-mt-24 py-[26px]">
             <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
@@ -501,10 +645,18 @@ export function OrgPublicLanding({
           <section id="estadisticas" className="scroll-mt-24 py-[26px]">
             <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
               <div className="mb-4">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                <p
+                  className={`text-[11px] font-extrabold uppercase tracking-[0.14em] ${
+                    isKelme ? 'text-[#1A7AE8]' : 'text-[#9ca59f]'
+                  }`}
+                >
                   Estadísticas · Últimos 30 días
                 </p>
-                <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
+                <h2
+                  className={`mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em] ${
+                    isKelme ? 'text-[#0B3D8F]' : ''
+                  }`}
+                >
                   Los que están on fire
                 </h2>
               </div>
@@ -512,10 +664,12 @@ export function OrgPublicLanding({
                 <RankingCard
                   title="⚽ Goleadores"
                   rows={scorers.map((row) => ({ name: row.name, value: row.goals }))}
+                  light={isKelme}
                 />
                 <RankingCard
                   title="🎯 Asistencias"
                   rows={assists.map((row) => ({ name: row.name, value: row.assists }))}
+                  light={isKelme}
                 />
                 {isLosLunes ? (
                   <>
@@ -576,10 +730,18 @@ export function OrgPublicLanding({
                 </div>
               ) : (
                 <div className="mb-4">
-                  <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9ca59f]">
+                  <p
+                    className={`text-[11px] font-extrabold uppercase tracking-[0.14em] ${
+                      isKelme ? 'text-[#1A7AE8]' : 'text-[#9ca59f]'
+                    }`}
+                  >
                     Reconocimientos
                   </p>
-                  <h2 className="mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em]">
+                  <h2
+                    className={`mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em] ${
+                      isKelme ? 'text-[#0B3D8F]' : ''
+                    }`}
+                  >
                     Premios del camarín
                   </h2>
                 </div>
@@ -590,13 +752,33 @@ export function OrgPublicLanding({
         ) : null}
       </main>
 
-      <footer className="mt-[42px] border-t border-[#212622] py-7 text-xs text-[#7f8882]">
+      <footer
+        className={
+          isKelme
+            ? 'mt-[42px] border-t border-[#1A7AE8]/20 py-7 text-xs text-[#4d6790]'
+            : 'mt-[42px] border-t border-[#212622] py-7 text-xs text-[#7f8882]'
+        }
+      >
         <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] items-center justify-between gap-5 max-sm:flex-col max-sm:items-start">
           <div>
-            © {year} {organization.name}
+            {isKelme ? (
+              <>
+                © {year} Kelme Cup · {KELME_CUP.region}
+                <span className="mt-1 block">
+                  {KELME_CUP.contactName} · {KELME_CUP.whatsappDisplay}
+                </span>
+              </>
+            ) : (
+              <>© {year} {organization.name}</>
+            )}
           </div>
-          <div>
-            Powered by <strong className="text-[#dfe3df]">LigaLab</strong>
+          <div className="flex items-center gap-2">
+            {isKelme ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={KELME_CUP_SHIELD_PATH} alt="" className="h-8 w-8 object-contain mix-blend-multiply" />
+            ) : null}
+            Powered by{' '}
+            <strong className={isKelme ? 'text-[#0B3D8F]' : 'text-[#dfe3df]'}>LigaLab</strong>
           </div>
         </div>
       </footer>

@@ -49,6 +49,7 @@
   --font-ui: var(--font-manrope);
   --font-body: var(--font-manrope);
   --font-data: var(--font-ibm-plex-mono);
+  --font-script: var(--font-caveat);
 }
 
 body {
@@ -71,6 +72,10 @@ body {
 
 .font-live-serif {
   font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
+}
+
+.font-script {
+  font-family: var(--font-caveat), Caveat, cursive;
 }
 
 .loslunes-gold-score {

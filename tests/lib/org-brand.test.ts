@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  KELME_CUP_PRIMARY,
+  KELME_CUP_SECONDARY,
+  KELME_CUP_SHIELD_PATH,
   LOSLUNES_LOGO_PATH,
   LOSLUNES_PRIMARY,
   resolveOrgBrandColors,
@@ -17,8 +20,12 @@ describe('resolveOrgLandingLogo', () => {
     expect(resolveOrgLandingLogo('loslunes', null)).toBe(LOSLUNES_LOGO_PATH)
   })
 
+  it('falls back to the Kelme Cup shield', () => {
+    expect(resolveOrgLandingLogo('kelme', null)).toBe(KELME_CUP_SHIELD_PATH)
+  })
+
   it('returns null for other orgs without a stored logo', () => {
-    expect(resolveOrgLandingLogo('kelme', null)).toBeNull()
+    expect(resolveOrgLandingLogo('liga-demo', null)).toBeNull()
   })
 })
 
@@ -30,10 +37,10 @@ describe('resolveOrgBrandColors', () => {
     })
   })
 
-  it('keeps other orgs as stored', () => {
+  it('locks Kelme to the Cup flyer blue', () => {
     expect(resolveOrgBrandColors('kelme', '#CD212A', '#111111')).toEqual({
-      primaryColor: '#CD212A',
-      secondaryColor: '#111111',
+      primaryColor: KELME_CUP_PRIMARY,
+      secondaryColor: KELME_CUP_SECONDARY,
     })
   })
 })
