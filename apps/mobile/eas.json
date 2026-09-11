@@ -34,6 +34,9 @@
     "kelme-cup-preview": {
       "distribution": "internal",
       "channel": "kelme-cup-los-lagos-2026-preview",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EDITION": "kelme-cup-los-lagos-2026",
         "EXPO_PUBLIC_API_BASE_URL": "https://ligalab.cl"

@@ -1,11 +1,38 @@
 import type { ExpoConfig } from 'expo/config'
 import path from 'path'
-import kelmeCupLosLagos2026 from './editions/kelme-cup-los-lagos-2026/edition.config'
-import puertoVaras2026 from './editions/liga-invierno-kelme-puerto-varas-2026/edition.config'
 
+// Valores espejo de editions/*/edition.config.ts (Expo config no resuelve imports TS anidados).
 const EDITIONS = {
-  [puertoVaras2026.key]: puertoVaras2026,
-  [kelmeCupLosLagos2026.key]: kelmeCupLosLagos2026,
+  'liga-invierno-kelme-puerto-varas-2026': {
+    key: 'liga-invierno-kelme-puerto-varas-2026',
+    slug: 'liga-invierno-kelme-puerto-varas-2026',
+    displayName: 'Liga de Invierno Kelme Puerto Varas 2026',
+    shortName: 'Kelme PV 2026',
+    urlScheme: 'kelmeinvierno2026',
+    iosBundleIdentifier: 'cl.kelme.ligainvierno.puertovaras2026',
+    androidPackage: 'cl.kelme.ligainvierno.puertovaras2026',
+    apiBaseUrl: 'https://torneos-kelme.vercel.app',
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
+    primaryColor: '#CD212A',
+    secondaryColor: '#FFFFFF',
+    assetsDir: 'editions/liga-invierno-kelme-puerto-varas-2026',
+  },
+  'kelme-cup-los-lagos-2026': {
+    key: 'kelme-cup-los-lagos-2026',
+    slug: 'kelme-cup-los-lagos-2026',
+    displayName: 'Kelme Cup Los Lagos 2026',
+    shortName: 'Kelme Cup',
+    urlScheme: 'kelmecuploslagos2026',
+    iosBundleIdentifier: 'cl.admintorneo.kelme.kelmecuploslagos2026',
+    androidPackage: 'cl.admintorneo.kelme.kelmecuploslagos2026',
+    apiBaseUrl: 'https://ligalab.cl',
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
+    primaryColor: '#1A7AE8',
+    secondaryColor: '#0B3D8F',
+    assetsDir: 'editions/kelme-cup-los-lagos-2026',
+  },
 } as const
 
 function resolveEditionKey(): string {
