@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { PlayerCard } from '@/components/player-card/PlayerCard'
+import { SharePlayerCardButton } from '@/components/player-card/SharePlayerCardButton'
 import { getLosLunesPlayerCard } from '@/lib/player-card-query'
 import { LOSLUNES_SLUG } from '@/lib/org-brand'
 
@@ -37,6 +38,7 @@ export default async function PlayerCardPage({
   if (organizationSlug !== LOSLUNES_SLUG) notFound()
   const result = await getLosLunesPlayerCard(playerId)
   if (result.kind !== 'ok') notFound()
+  const path = `/${organizationSlug}/jugador/${playerId}`
   return (
     <main
       className="min-h-screen bg-[#0B1210] px-4 py-10 text-[#EDF2EE]"
@@ -54,8 +56,13 @@ export default async function PlayerCardPage({
           que sube y baja según cómo juegues.
         </p>
       </div>
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex flex-col items-center">
         <PlayerCard card={result.card} />
+        <SharePlayerCardButton
+          nombreCorto={result.card.player.nombreCorto}
+          path={path}
+          ogPath={`${path}/og`}
+        />
       </div>
     </main>
   )
