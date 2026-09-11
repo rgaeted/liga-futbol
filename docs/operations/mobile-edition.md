@@ -93,4 +93,4 @@ Platform admin: `/plataforma/apps` lista todas las ediciones (org, temporada, sl
 | Slug | Carpeta Expo | Bundle | Notas |
 |------|--------------|--------|-------|
 | `liga-invierno-kelme-puerto-varas-2026` | `apps/mobile/editions/liga-invierno-kelme-puerto-varas-2026` | `cl.kelme.ligainvierno.puertovaras2026` | Piloto. No regenerar. |
-| `kelme-cup-los-lagos-2026` | `apps/mobile/editions/kelme-cup-los-lagos-2026` | `cl.admintorneo.kelme.kelmecuploslagos2026` | Kelme Cup. Publicar config: `npm run db:publish:kelme-cup-mobile`. Sin perfil EAS en esta entrega. |
+| `kelme-cup-los-lagos-2026` | `apps/mobile/editions/kelme-cup-los-lagos-2026` | `cl.admintorneo.kelme.kelmecuploslagos2026` | Kelme Cup. Publicar config: `npm run db:publish:kelme-cup-mobile`. EAS project `b7f611ea-4cc1-49fe-868a-ab3e5b28d1c2` (`@rgaete/kelme-cup-los-lagos-2026`). Perfil preview: `kelme-cup-preview` (APK) / `kelme-cup-preview-ios` (TestFlight internal). |
