@@ -53,7 +53,7 @@ const MATCH_BADGE_INCLUDE = {
       side: true,
       teamId: true,
     },
-    orderBy: [{ minute: 'asc' as const }, { createdAt: 'asc' as const }],
+    orderBy: [{ minute: 'asc' }, { createdAt: 'asc' }],
   },
   friendlyPlayers: {
     select: {
@@ -69,7 +69,7 @@ const MATCH_BADGE_INCLUDE = {
     },
   },
   teamMvps: { select: { playerId: true } },
-} as const
+}
 
 const HISTORY_MATCH_SELECT = {
   id: true,
