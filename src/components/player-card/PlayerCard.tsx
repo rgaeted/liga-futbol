@@ -1,7 +1,15 @@
 import { useId } from 'react'
-import { APP_LOCALE } from '@/lib/locale'
 import { PLAYER_CARD_HOT_THRESHOLD } from '@/lib/player-card'
 import type { PlayerCardDto } from '@/lib/player-card-query'
+import {
+  formatPlayerCardStat,
+  PLAYER_CARD_PALETTE as PALETTE,
+  PLAYER_CARD_STAT_LABELS as STAT_LABELS,
+  PLAYER_CARD_STAT_PAIRS as STAT_PAIRS,
+  playerCardGolPorPartido,
+  playerCardShieldHeight,
+  playerCardShieldPath,
+} from '@/lib/player-card-shield'
 import { personInitials } from '@/lib/player-name'
 import { BadgeDisco } from '@/components/badges/BadgeDisco'
 import { PlayerCardPhoto } from '@/components/player-card/PlayerCardPhoto'
@@ -10,64 +18,11 @@ type Props = {
   card: PlayerCardDto
 }
 
-/** Paleta Los Lunes sobre silueta escudo FIFA (futbol-stats). */
-const PALETTE = {
-  bg1: '#1a3828',
-  bg2: '#0c1611',
-  bg3: '#14241d',
-  lines: '#3de68c',
-  text: '#edf2ee',
-  num: '#e8c878',
-  glow: '#3de68c',
-  muted: '#8ba598',
-}
-
-const STAT_PAIRS: Array<[keyof PlayerCardDto['atributos'], keyof PlayerCardDto['atributos']]> = [
-  ['TIR', 'VIS'],
-  ['RES', 'REG'],
-  ['RIT', 'FIS'],
-]
-
-const STAT_LABELS: Record<string, string> = {
-  TIR: 'TIR',
-  VIS: 'VIS',
-  RES: 'RES',
-  REG: 'REG',
-  RIT: 'RIT',
-  FIS: 'FÍS',
-}
-
-function formatStatValue(value: number | null): string {
-  return value === null ? '–' : String(value)
-}
-
 function formationBadgeText(partidosFaltantes: number): string {
   if (partidosFaltantes === 1) {
     return 'Falta 1 partido para tu primera carta completa'
   }
   return `Faltan ${partidosFaltantes} partidos para tu primera carta completa`
-}
-
-function golPorPartido(goles: number, pj: number): string {
-  if (pj === 0) return '–'
-  return (goles / pj).toLocaleString(APP_LOCALE, {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  })
-}
-
-function shieldPath(w: number, h: number): string {
-  return `M ${w * 0.5} ${h * 0.02}
-    C ${w * 0.42} ${h * 0.06}, ${w * 0.3} ${h * 0.07}, ${w * 0.14} ${h * 0.05}
-    C ${w * 0.06} ${h * 0.045}, ${w * 0.02} ${h * 0.06}, ${w * 0.02} ${h * 0.12}
-    L ${w * 0.02} ${h * 0.74}
-    C ${w * 0.02} ${h * 0.82}, ${w * 0.06} ${h * 0.86}, ${w * 0.16} ${h * 0.9}
-    C ${w * 0.3} ${h * 0.95}, ${w * 0.42} ${h * 0.985}, ${w * 0.5} ${h * 0.998}
-    C ${w * 0.58} ${h * 0.985}, ${w * 0.7} ${h * 0.95}, ${w * 0.84} ${h * 0.9}
-    C ${w * 0.94} ${h * 0.86}, ${w * 0.98} ${h * 0.82}, ${w * 0.98} ${h * 0.74}
-    L ${w * 0.98} ${h * 0.12}
-    C ${w * 0.98} ${h * 0.06}, ${w * 0.94} ${h * 0.045}, ${w * 0.86} ${h * 0.05}
-    C ${w * 0.7} ${h * 0.07}, ${w * 0.58} ${h * 0.06}, ${w * 0.5} ${h * 0.02} Z`
 }
 
 export function PlayerCard({ card }: Props) {
@@ -78,13 +33,13 @@ export function PlayerCard({ card }: Props) {
   const recentBadges = badgesRecientes?.slice(0, 4) ?? []
 
   const w = 310
-  const h = Math.round(400 * (w / 270))
+  const h = playerCardShieldHeight(w)
   const s = w / 270
 
   const clipId = `clip-${uid}`
   const gradId = `grad-${uid}`
   const goldGradId = `gold-${uid}`
-  const shield = shieldPath(w, h)
+  const shield = playerCardShieldPath(w, h)
 
   return (
     <div
@@ -319,7 +274,7 @@ export function PlayerCard({ card }: Props) {
                       color: hot ? PALETTE.lines : PALETTE.text,
                     }}
                   >
-                    {formatStatValue(value)}
+                    {formatPlayerCardStat(value)}
                   </span>
                   <span
                     className="text-[10px] font-bold tracking-[0.12em]"
@@ -363,7 +318,7 @@ export function PlayerCard({ card }: Props) {
         {[
           { label: 'Goles 30d', value: String(crudos.goles) },
           { label: 'Asist 30d', value: String(crudos.asistencias) },
-          { label: 'Gol/PJ', value: golPorPartido(crudos.goles, ventana.pj) },
+          { label: 'Gol/PJ', value: playerCardGolPorPartido(crudos.goles, ventana.pj) },
         ].map(({ label, value }) => (
           <div key={label} className="flex-1 text-center">
             <b
