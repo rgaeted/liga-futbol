@@ -38,7 +38,7 @@ function SideLabel({ children }: { children: string }) {
   )
 }
 
-function DarkPitch({ lineup }: { lineup: LineupView }) {
+function DarkPitch({ lineup, slug }: { lineup: LineupView; slug: string }) {
   return (
     <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#141414]">
       <svg
@@ -64,13 +64,9 @@ function DarkPitch({ lineup }: { lineup: LineupView }) {
 
       {lineup.pitch.map((slot) => {
         const filled = Boolean(slot.playerName)
-        return (
-          <div
-            key={slot.slotKey}
-            className="absolute z-10 flex w-[4.4rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-            style={{ top: `${slot.topPct}%`, left: `${slot.leftPct}%` }}
-          >
-            <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-[#1c1c1c] ring-[1.5px] ring-white/35">
+        const playerBody = (
+          <>
+            <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-[#1c1c1c] ring-[1.5px] ring-white/35 transition group-hover:ring-org-primary">
               {filled && slot.playerPhotoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={slot.playerPhotoUrl} alt="" className="h-full w-full object-cover" />
@@ -80,9 +76,29 @@ function DarkPitch({ lineup }: { lineup: LineupView }) {
                 </span>
               )}
             </div>
-            <span className="mt-1 max-w-[4.4rem] truncate text-center text-[8px] font-semibold uppercase tracking-wide text-white">
+            <span className="mt-1 max-w-[4.4rem] truncate text-center text-[8px] font-semibold uppercase tracking-wide text-white group-hover:text-org-primary">
               {filled ? shortPlayerName(slot.playerName!) : '—'}
             </span>
+          </>
+        )
+
+        return (
+          <div
+            key={slot.slotKey}
+            className="absolute z-10 w-[4.4rem] -translate-x-1/2 -translate-y-1/2"
+            style={{ top: `${slot.topPct}%`, left: `${slot.leftPct}%` }}
+          >
+            {filled && slot.playerId ? (
+              <Link
+                href={`/${slug}/jugador/${slot.playerId}`}
+                className="group flex flex-col items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-org-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414]"
+                title={`Ver carta de ${slot.playerName}`}
+              >
+                {playerBody}
+              </Link>
+            ) : (
+              <div className="flex flex-col items-center">{playerBody}</div>
+            )}
           </div>
         )
       })}
@@ -182,8 +198,8 @@ export function LosLunesMatchBoard({
             <span className="h-px flex-1 bg-org-primary/80" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {homeLineup ? <DarkPitch lineup={homeLineup} /> : null}
-            {awayLineup ? <DarkPitch lineup={awayLineup} /> : null}
+            {homeLineup ? <DarkPitch lineup={homeLineup} slug={slug} /> : null}
+            {awayLineup ? <DarkPitch lineup={awayLineup} slug={slug} /> : null}
           </div>
         </div>
       ) : null}
