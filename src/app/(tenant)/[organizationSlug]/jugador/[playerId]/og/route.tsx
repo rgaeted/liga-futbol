@@ -1,12 +1,13 @@
 import { ImageResponse } from 'next/og'
 import { PlayerCardOgImage } from '@/components/player-card/PlayerCardOgImage'
+import {
+  PLAYER_CARD_DISPLAY_FONT_OG,
+  PLAYER_CARD_DISPLAY_FONT_OG_URL,
+} from '@/lib/player-card-shield'
 import { getLosLunesPlayerCard } from '@/lib/player-card-query'
 import { LOSLUNES_SLUG } from '@/lib/org-brand'
 
 export const dynamic = 'force-dynamic'
-
-const ANTON_FONT_URL =
-  'https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm3Kz-CYm.woff'
 
 function absUrl(origin: string, path: string): string {
   return new URL(path, origin).toString()
@@ -27,7 +28,7 @@ export async function GET(
 
   const origin = new URL(req.url).origin
   const { player } = result.card
-  const anton = await fetch(ANTON_FONT_URL).then((res) => res.arrayBuffer())
+  const oswaldBold = await fetch(PLAYER_CARD_DISPLAY_FONT_OG_URL).then((res) => res.arrayBuffer())
 
   return new ImageResponse(
     (
@@ -54,10 +55,10 @@ export async function GET(
       height: 630,
       fonts: [
         {
-          name: 'Anton',
-          data: anton,
+          name: PLAYER_CARD_DISPLAY_FONT_OG,
+          data: oswaldBold,
           style: 'normal',
-          weight: 400,
+          weight: 700,
         },
       ],
     },

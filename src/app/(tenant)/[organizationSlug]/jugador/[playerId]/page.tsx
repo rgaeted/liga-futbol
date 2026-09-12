@@ -79,7 +79,7 @@ export default async function PlayerCardPage({
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#3DE68C]">
               Fútbol de los Lunes · desde 2014
             </p>
-            <h1 className="mt-2 font-[family-name:var(--font-anton)] text-3xl uppercase tracking-wide">
+            <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-3xl uppercase tracking-wide">
               La carta se gana en la cancha
             </h1>
             <p className="mt-2 text-[#8BA598]">

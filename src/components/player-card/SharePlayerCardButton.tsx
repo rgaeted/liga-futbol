@@ -34,7 +34,7 @@ export function SharePlayerCardButton({
       <button
         type="button"
         onClick={() => void onShare()}
-        className="rounded-lg bg-gradient-to-br from-[#E8C878] to-[#C79A3E] px-8 py-3 font-[family-name:var(--font-anton)] text-lg uppercase tracking-wide text-[#141B15]"
+        className="rounded-lg bg-gradient-to-br from-[#E8C878] to-[#C79A3E] px-8 py-3 font-[family-name:var(--font-oswald)] text-lg uppercase tracking-wide text-[#141B15]"
       >
         Compartir carta
       </button>

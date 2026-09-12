@@ -1,6 +1,11 @@
 import { APP_LOCALE } from '@/lib/locale'
 import type { PlayerCardAtributos } from '@/lib/player-card'
 
+/** Display en carta web (`--font-oswald`) y OG (Satori). */
+export const PLAYER_CARD_DISPLAY_FONT_OG = 'Oswald'
+export const PLAYER_CARD_DISPLAY_FONT_OG_URL =
+  'https://fonts.gstatic.com/s/oswald/v57/TK3_WkUHHAIjg75cFRf3bXL8LICs1xZosUZiZQ.woff2'
+
 /** Paleta Los Lunes sobre silueta escudo FIFA (futbol-stats). */
 export const PLAYER_CARD_PALETTE = {
   bg1: '#1a3828',

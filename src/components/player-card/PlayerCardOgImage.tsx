@@ -2,6 +2,7 @@ import { PLAYER_CARD_HOT_THRESHOLD } from '@/lib/player-card'
 import type { PlayerCardDto } from '@/lib/player-card-query'
 import {
   formatPlayerCardStat,
+  PLAYER_CARD_DISPLAY_FONT_OG,
   PLAYER_CARD_PALETTE as PALETTE,
   PLAYER_CARD_STAT_LABELS as STAT_LABELS,
   PLAYER_CARD_STAT_PAIRS as STAT_PAIRS,
@@ -97,7 +98,8 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
       >
         <div
           style={{
-            fontFamily: 'Anton',
+            fontFamily: PLAYER_CARD_DISPLAY_FONT_OG,
+            fontWeight: 700,
             fontSize: 44 * s,
             color: PALETTE.num,
             lineHeight: 0.9,
@@ -123,7 +125,8 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
             border: '1px solid rgba(61,230,140,0.35)',
             background: 'rgba(61,230,140,0.14)',
             borderRadius: 6 * s,
-            fontFamily: 'Anton',
+            fontFamily: PLAYER_CARD_DISPLAY_FONT_OG,
+            fontWeight: 700,
             fontSize: 14 * s,
             color: PALETTE.text,
           }}
@@ -195,7 +198,8 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
         ) : null}
         <div
           style={{
-            fontFamily: 'Anton',
+            fontFamily: PLAYER_CARD_DISPLAY_FONT_OG,
+            fontWeight: 700,
             fontSize: 22 * s,
             color: PALETTE.text,
             textTransform: 'uppercase',
@@ -257,7 +261,8 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
                 >
                   <div
                     style={{
-                      fontFamily: 'Anton',
+                      fontFamily: PLAYER_CARD_DISPLAY_FONT_OG,
+            fontWeight: 700,
                       fontSize: 18 * s,
                       color: hot ? PALETTE.lines : PALETTE.text,
                       minWidth: 22 * s,
@@ -309,7 +314,8 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
           >
             <div
               style={{
-                fontFamily: 'Anton',
+                fontFamily: PLAYER_CARD_DISPLAY_FONT_OG,
+            fontWeight: 700,
                 fontSize: 15 * s,
                 color: PALETTE.num,
               }}

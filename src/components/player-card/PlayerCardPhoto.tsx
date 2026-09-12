@@ -16,7 +16,7 @@ export function PlayerCardPhoto({ fotoUrl, alt, initials, variant = 'rect' }: Pr
   if (failed) {
     return (
       <div
-        className={`relative z-[1] grid place-items-center rounded-full border border-[#22382E] bg-gradient-to-br from-[#1D3228] to-[#0E1B15] font-[family-name:var(--font-anton)] text-[#3DE68C] ${
+        className={`relative z-[1] grid place-items-center rounded-full border border-[#22382E] bg-gradient-to-br from-[#1D3228] to-[#0E1B15] font-[family-name:var(--font-oswald)] text-[#3DE68C] ${
           isShield ? 'mb-2 h-[110px] w-[110px] text-[38px]' : 'mb-4 h-[120px] w-[120px] text-[44px]'
         }`}
       >

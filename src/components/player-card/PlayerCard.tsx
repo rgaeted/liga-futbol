@@ -10,6 +10,8 @@ import {
   playerCardShieldHeight,
   playerCardShieldPath,
 } from '@/lib/player-card-shield'
+
+const CARD_FONT = 'font-[family-name:var(--font-oswald)]'
 import { personInitials } from '@/lib/player-name'
 import { BadgeDisco } from '@/components/badges/BadgeDisco'
 import { PlayerCardPhoto } from '@/components/player-card/PlayerCardPhoto'
@@ -158,7 +160,7 @@ export function PlayerCard({ card }: Props) {
         }}
       >
         <div
-          className="font-[family-name:var(--font-anton)] leading-[0.9]"
+          className={`${CARD_FONT} leading-[0.9]`}
           style={{
             fontSize: `${44 * s}px`,
             color: PALETTE.num,
@@ -174,7 +176,7 @@ export function PlayerCard({ card }: Props) {
           OVR
         </div>
         <div
-          className="mt-0.5 rounded-md border px-2 py-px font-[family-name:var(--font-anton)] tracking-wide"
+          className={`mt-0.5 rounded-md border px-2 py-px ${CARD_FONT} tracking-wide`}
           style={{
             fontSize: `${14 * s}px`,
             borderColor: 'rgba(61,230,140,0.35)',
@@ -219,7 +221,7 @@ export function PlayerCard({ card }: Props) {
           </span>
         ) : null}
         <b
-          className="block truncate font-[family-name:var(--font-anton)] uppercase tracking-wide"
+          className={`block truncate ${CARD_FONT} uppercase tracking-wide`}
           style={{ fontSize: `${22 * s}px`, color: PALETTE.text }}
         >
           {player.nombreCorto}
@@ -268,7 +270,7 @@ export function PlayerCard({ card }: Props) {
                   style={{ maxWidth: `${72 * s}px` }}
                 >
                   <span
-                    className="min-w-[22px] font-[family-name:var(--font-anton)]"
+                    className={`min-w-[22px] ${CARD_FONT}`}
                     style={{
                       fontSize: `${18 * s}px`,
                       color: hot ? PALETTE.lines : PALETTE.text,
@@ -322,7 +324,7 @@ export function PlayerCard({ card }: Props) {
         ].map(({ label, value }) => (
           <div key={label} className="flex-1 text-center">
             <b
-              className="block font-[family-name:var(--font-anton)]"
+              className={`block ${CARD_FONT}`}
               style={{ fontSize: `${15 * s}px`, color: PALETTE.num }}
             >
               {value}
