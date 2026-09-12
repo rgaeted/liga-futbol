@@ -5,7 +5,7 @@
 > Producto: **LigaLab**
 > Fuente original: `docs/superpowers/mocks/2026-09-11-player-badges/ligalab-badges-spec.md`
 > Maqueta: `docs/superpowers/mocks/2026-09-11-player-badges/badges-galeria.html`
-> Plan: (se escribe tras revisar esta spec)
+> Plan: [`docs/superpowers/plans/2026-09-11-player-badges.md`](../plans/2026-09-11-player-badges.md)
 
 ---
 
