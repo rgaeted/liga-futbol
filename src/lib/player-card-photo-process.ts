@@ -32,6 +32,12 @@ const CARD_PHOTO_HORIZONTAL_MARGIN = 60
 const CARD_PHOTO_FILTER =
   'brightness(1.04) contrast(1.05) saturate(1.03)'
 const ALPHA_COMPONENT_THRESHOLD = 12
+/** Punto vertical del sujeto (0 = parte superior del recorte). */
+const CARD_PHOTO_FOCUS_Y_IN_SUBJECT = 0.38
+/** Altura del lienzo donde cae ese punto (1 = borde inferior). */
+const CARD_PHOTO_FOCUS_Y_ON_CANVAS = 0.62
+/** Filas con menos densidad se recortan del encuadre automático. */
+const CARD_PHOTO_MIN_ROW_DENSITY_RATIO = 0.22
 /** Segunda silueta debe ser al menos ~35% del sujeto principal. */
 const MIN_SECONDARY_COMPONENT_RATIO = 0.35
 /** Dos personas suelen quedar separadas horizontalmente en la foto. */
@@ -67,6 +73,47 @@ export function findAlphaBounds(
     y: minY,
     width: maxX - minX + 1,
     height: maxY - minY + 1,
+  }
+}
+
+/**
+ * Recorta filas casi vacías en los bordes del sujeto (ruido o texto residual).
+ */
+export function refineAlphaBoundsForCard(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  bounds: AlphaBounds,
+  threshold = ALPHA_COMPONENT_THRESHOLD,
+  minRowDensityRatio = CARD_PHOTO_MIN_ROW_DENSITY_RATIO,
+): AlphaBounds {
+  const rowCounts = new Array(height).fill(0)
+
+  for (let y = bounds.y; y <= bounds.y + bounds.height - 1; y += 1) {
+    for (let x = bounds.x; x <= bounds.x + bounds.width - 1; x += 1) {
+      if (rgba[(y * width + x) * 4 + 3]! >= threshold) {
+        rowCounts[y]! += 1
+      }
+    }
+  }
+
+  let maxCount = 0
+  for (let y = bounds.y; y <= bounds.y + bounds.height - 1; y += 1) {
+    maxCount = Math.max(maxCount, rowCounts[y]!)
+  }
+
+  const minRowCount = Math.max(4, Math.round(maxCount * minRowDensityRatio))
+  let top = bounds.y
+  let bottom = bounds.y + bounds.height - 1
+
+  while (top < bottom && rowCounts[top]! < minRowCount) top += 1
+  while (bottom > top && rowCounts[bottom]! < minRowCount) bottom -= 1
+
+  return {
+    x: bounds.x,
+    y: top,
+    width: bounds.width,
+    height: bottom - top + 1,
   }
 }
 
@@ -223,10 +270,10 @@ async function exportCardPhotoCanvas(
 }
 
 /**
- * Fits the alpha bounds inside the output canvas, centered and bottom-anchored.
- * Adjustments are applied literally after the fit: offsets are fractions of the
- * 720×900 output and scale grows from the center-bottom anchor. Nothing is
- * clamped; portions outside the output are deterministically clipped by canvas.
+ * Fits the alpha bounds inside the output canvas and ancla el torso (~38% del
+ * sujeto) cerca del centro-bajo de la carta. Los offsets son fracciones del
+ * lienzo 720×900; la escala crece desde ese punto focal. Nada se limita: lo
+ * que quede fuera se recorta al exportar el canvas.
  */
 export function calculateCardPhotoPlacement(
   bounds: AlphaBounds,
@@ -259,8 +306,8 @@ export function calculateCardPhotoPlacement(
         (CARD_PHOTO_WIDTH - destinationWidth) / 2 +
         adjustments.offsetX * CARD_PHOTO_WIDTH,
       y:
-        CARD_PHOTO_HEIGHT -
-        destinationHeight +
+        CARD_PHOTO_FOCUS_Y_ON_CANVAS * CARD_PHOTO_HEIGHT -
+        CARD_PHOTO_FOCUS_Y_IN_SUBJECT * destinationHeight +
         adjustments.offsetY * CARD_PHOTO_HEIGHT,
       width: destinationWidth,
       height: destinationHeight,
@@ -318,8 +365,8 @@ export async function composePlayerCardPhoto(
       bitmap.width,
       bitmap.height,
     )
-    const bounds = findAlphaBounds(rgba.data, bitmap.width, bitmap.height)
-    if (!bounds) {
+    const rawBounds = findAlphaBounds(rgba.data, bitmap.width, bitmap.height)
+    if (!rawBounds) {
       throw new Error('No se detectó una persona en la foto.')
     }
     if (
@@ -342,6 +389,12 @@ export async function composePlayerCardPhoto(
       throw new Error('Tu navegador no permite generar el recorte.')
     }
 
+    const bounds = refineAlphaBoundsForCard(
+      rgba.data,
+      bitmap.width,
+      bitmap.height,
+      rawBounds,
+    )
     const placement = calculateCardPhotoPlacement(bounds, adjustments)
     outputContext.filter = CARD_PHOTO_FILTER
     outputContext.drawImage(

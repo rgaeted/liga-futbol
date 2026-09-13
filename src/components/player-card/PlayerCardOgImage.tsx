@@ -84,12 +84,10 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
             src={fotoUrl}
             alt=""
             style={{
-              maxWidth: '100%',
-              maxHeight: '100%',
-              width: 'auto',
-              height: 'auto',
-              objectFit: fotoEsRecorte ? 'contain' : 'cover',
-              objectPosition: fotoEsRecorte ? 'center bottom' : 'center 10%',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: fotoEsRecorte ? 'center 28%' : 'center 10%',
             }}
           />
           {!fotoEsRecorte ? (

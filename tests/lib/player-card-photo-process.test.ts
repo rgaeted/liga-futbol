@@ -10,6 +10,7 @@ import {
   extractPlayerCutout,
   findAlphaBounds,
   hasMultipleSignificantAlphaComponents,
+  refineAlphaBoundsForCard,
 } from '@/lib/player-card-photo-process'
 import { MAX_CARD_PHOTO_BYTES } from '@/lib/player-card-photo'
 
@@ -211,8 +212,33 @@ describe('hasMultipleSignificantAlphaComponents', () => {
   })
 })
 
+describe('refineAlphaBoundsForCard', () => {
+  it('recorta filas casi vacías en los bordes del sujeto', () => {
+    const rgba = alphaMask(10, 12, [{ x: 2, y: 2, width: 6, height: 8 }], [
+      { x: 3, y: 0 },
+      { x: 4, y: 1 },
+      { x: 5, y: 10 },
+      { x: 6, y: 11 },
+    ])
+
+    expect(
+      refineAlphaBoundsForCard(rgba, 10, 12, {
+        x: 2,
+        y: 0,
+        width: 6,
+        height: 12,
+      }),
+    ).toEqual({
+      x: 2,
+      y: 2,
+      width: 6,
+      height: 8,
+    })
+  })
+})
+
 describe('calculateCardPhotoPlacement', () => {
-  it('encaja el sujeto con margen horizontal y lo ancla abajo', () => {
+  it('encaja el sujeto con margen horizontal y lo posiciona con foco en el torso', () => {
     expect(
       calculateCardPhotoPlacement(
         { x: 10, y: 20, width: 400, height: 600 },
@@ -220,20 +246,18 @@ describe('calculateCardPhotoPlacement', () => {
       ),
     ).toEqual({
       source: { x: 10, y: 20, width: 400, height: 600 },
-      destination: { x: 60, y: 0, width: 600, height: 900 },
+      destination: { x: 60, y: 216, width: 600, height: 900 },
     })
   })
 
-  it('aplica escala desde el centro inferior y offsets como fracciones del lienzo', () => {
-    expect(
-      calculateCardPhotoPlacement(
-        { x: 5, y: 8, width: 300, height: 450 },
-        { offsetX: 0.1, offsetY: -0.1, scale: 1.2 },
-      ),
-    ).toEqual({
-      source: { x: 5, y: 8, width: 300, height: 450 },
-      destination: { x: 72, y: -270, width: 720, height: 1080 },
-    })
+  it('aplica escala desde el punto focal y offsets como fracciones del lienzo', () => {
+    const destination = calculateCardPhotoPlacement(
+      { x: 5, y: 8, width: 300, height: 450 },
+      { offsetX: 0.1, offsetY: -0.1, scale: 1.2 },
+    ).destination
+
+    expect(destination).toMatchObject({ x: 72, width: 720, height: 1080 })
+    expect(destination.y).toBeCloseTo(57.6, 5)
   })
 
   it('limita un sujeto ancho por el margen horizontal', () => {
@@ -242,7 +266,7 @@ describe('calculateCardPhotoPlacement', () => {
         { x: 0, y: 0, width: 1200, height: 600 },
         { offsetX: 0, offsetY: 0, scale: 1 },
       ).destination,
-    ).toEqual({ x: 60, y: 600, width: 600, height: 300 })
+    ).toEqual({ x: 60, y: 444, width: 600, height: 300 })
   })
 
   it('limita un sujeto alto por la altura del lienzo', () => {
@@ -251,7 +275,7 @@ describe('calculateCardPhotoPlacement', () => {
         { x: 0, y: 0, width: 200, height: 1000 },
         { offsetX: 0, offsetY: 0, scale: 1 },
       ).destination,
-    ).toEqual({ x: 270, y: 0, width: 180, height: 900 })
+    ).toEqual({ x: 270, y: 216, width: 180, height: 900 })
   })
 
   it.each([

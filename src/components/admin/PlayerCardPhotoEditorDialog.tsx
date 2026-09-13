@@ -505,7 +505,7 @@ export function PlayerCardPhotoEditorDialog({
                 <img
                   src={previewUrl}
                   alt={`Recorte de ${playerName}`}
-                  className="absolute inset-0 h-full w-full object-contain object-bottom"
+                  className="absolute inset-0 h-full w-full object-cover object-[center_28%]"
                   style={{ clipPath: PREVIEW_CLIP }}
                 />
               ) : null}

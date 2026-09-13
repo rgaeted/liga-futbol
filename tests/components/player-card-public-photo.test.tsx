@@ -140,7 +140,7 @@ function card(fotoEsRecorte: boolean): PlayerCardDto {
 }
 
 describe('public player card photo', () => {
-  it('renders a persisted derivative as a bottom-aligned contained subject', () => {
+  it('renders a persisted derivative as a cover crop with bust framing', () => {
     const html = renderToStaticMarkup(
       <PlayerCardPhoto
         fotoUrl="/api/players/p1/card-photo?v=1"
@@ -152,10 +152,10 @@ describe('public player card photo', () => {
     )
 
     expect(html).toContain('alt="Foto de Fernando Opitz"')
-    expect(html).toContain('object-contain')
-    expect(html).toContain('object-bottom')
-    expect(html).toContain('max-h-full')
-    expect(html).toContain('max-w-full')
+    expect(html).toContain('object-cover')
+    expect(html).toContain('object-[center_28%]')
+    expect(html).toContain('h-full')
+    expect(html).toContain('w-full')
     expect(html).not.toContain('mask-image')
   })
 
@@ -226,7 +226,7 @@ describe('public player card photo', () => {
 })
 
 describe('player card OG photo', () => {
-  it('uses contain and bottom alignment for the persisted derivative', () => {
+  it('uses cover and bust framing for the persisted derivative', () => {
     const html = renderToStaticMarkup(
       <PlayerCardOgImage
         card={card(true)}
@@ -238,8 +238,8 @@ describe('player card OG photo', () => {
     expect(html).toContain(
       'src="https://ligalab.cl/api/players/p1/card-photo?v=1"',
     )
-    expect(html).toContain('object-fit:contain')
-    expect(html).toContain('object-position:center bottom')
+    expect(html).toContain('object-fit:cover')
+    expect(html).toContain('object-position:center 28%')
   })
 
   it('uses cover and a top-biased position for the original fallback', () => {
