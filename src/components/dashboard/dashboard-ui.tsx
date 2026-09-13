@@ -89,6 +89,8 @@ export type DashboardNavItem = {
   icon: string
   count?: number
   activePrefixes?: string[]
+  /** Solo resalta en la ruta exacta (evita que /player marque activo en /player/profile). */
+  exactMatch?: boolean
 }
 
 export type DashboardNavGroup = {
@@ -97,6 +99,7 @@ export type DashboardNavGroup = {
 }
 
 export function isDashboardNavActive(pathname: string, item: DashboardNavItem) {
+  if (item.exactMatch) return pathname === item.href
   const candidates = item.activePrefixes?.length ? item.activePrefixes : [item.href]
   return candidates.some((href) => {
     if (pathname === href) return true

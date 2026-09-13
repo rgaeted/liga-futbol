@@ -140,7 +140,13 @@ export function buildTenantNavGroups(
     groups.push({
       label: 'Jugador',
       items: [
-        { href: base('/player'), label: 'Mi panel', icon: 'IN' },
+        { href: base('/player'), label: 'Mi panel', icon: 'IN', exactMatch: true },
+        {
+          href: base('/player/profile'),
+          label: 'Mi perfil',
+          icon: 'PR',
+          activePrefixes: [base('/player/profile')],
+        },
         {
           href: `/${slug}#asistencia`,
           label: '¿Quién va?',

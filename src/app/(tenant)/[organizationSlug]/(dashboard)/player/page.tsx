@@ -1,20 +1,15 @@
-import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { MatchStatus, type FootballFormat, type FriendlySide, type MatchType } from '@prisma/client'
 import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { footballFormatLabel } from '@/lib/football-format'
 import { listFriendlyParticipationsForPlayerInOrg } from '@/lib/friendly-match-player-list'
-import { findPlayerInOrganization } from '@/lib/player-org-profile'
 import { friendlyLineupLinkLabel } from '@/lib/match-player-links'
-import { requireOrganizationId } from '@/lib/tenant-access'
 import { LOSLUNES_SLUG } from '@/lib/org-brand'
 import { orgPath } from '@/lib/tenant-paths'
 import { MatchLiveLink } from '@/components/player/MatchLiveLink'
 import { PlayerAwardBadges } from '@/components/player/PlayerAwardBadges'
-import { FriendlyPlayerPhotoUpload } from '@/components/admin/FriendlyPlayerPhotoUpload'
-import { personHasPhoto } from '@/lib/friendly-player-photo'
+import { PlayerResultsCard } from '@/components/player/PlayerResultsCard'
+import { requirePlayerDashboardContext } from '@/lib/player-dashboard-access'
 import {
   findScheduledFriendlyAttendanceWhere,
   friendlyMatchPublicPath,
@@ -26,6 +21,8 @@ import {
   serializePlayerAwardBadge,
 } from '@/lib/player-awards'
 import { computePlayerMatchResults } from '@/lib/player-match-results'
+import { getPlayerOrgEventStats } from '@/lib/player-org-stats'
+import { db } from '@/lib/db'
 
 export default async function PlayerDashboardPage({
   params,
@@ -33,18 +30,8 @@ export default async function PlayerDashboardPage({
   params: Promise<{ organizationSlug: string }>
 }) {
   const { organizationSlug } = await params
-  const session = await auth()
-  if (!session?.user?.id) redirect('/login')
-
-  let organizationId: string
-  try {
-    organizationId = await requireOrganizationId(organizationSlug)
-  } catch {
-    redirect('/login')
-  }
-
-  const player = await findPlayerInOrganization(session.user.id, organizationId)
-  if (!player) {
+  const context = await requirePlayerDashboardContext(organizationSlug)
+  if (!context) {
     return (
       <p className="text-kelme-gray-900">
         No tienes ficha de jugador en esta liga. Si jugaste partidos aquí, pide al administrador que
@@ -53,51 +40,46 @@ export default async function PlayerDashboardPage({
     )
   }
 
-  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies, organization] =
+  const { session, organizationId, player, playerWithTeam } = context
+
+  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies, organization, eventStats] =
     await Promise.all([
-    db.callUp.findMany({
-      where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
-      include: {
-        match: {
-          include: {
-            homeTeam: true,
-            awayTeam: true,
-            teamMvps: { select: { id: true, playerId: true } },
+      db.callUp.findMany({
+        where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
+        include: {
+          match: {
+            include: {
+              homeTeam: true,
+              awayTeam: true,
+              teamMvps: { select: { id: true, playerId: true } },
+            },
           },
         },
-      },
-      orderBy: { match: { scheduledAt: 'desc' } },
-    }),
-    listFriendlyParticipationsForPlayerInOrg(session.user.id, organizationId),
-    db.matchTeamMvp.count({
-      where: { playerId: player.id, match: { status: MatchStatus.FINISHED } },
-    }),
-    db.playerAward.findMany({
-      where: { playerId: player.id, organizationId },
-      include: {
-        orgAward: true,
-        season: { select: { id: true, name: true } },
-      },
-      orderBy: { awardedAt: 'desc' },
-    }),
-    db.match.findMany({
-      where: findScheduledFriendlyAttendanceWhere(organizationId, new Date()),
-      orderBy: { scheduledAt: 'asc' },
-      select: MATCH_ATTENDANCE_BOARD_SELECT,
-    }),
-    db.organization.findUniqueOrThrow({
-      where: { id: organizationId },
-      select: { badgesEnabled: true },
-    }),
-  ])
-
-  const playerWithTeam = await db.player.findUniqueOrThrow({
-    where: { id: player.id },
-    include: {
-      team: true,
-      person: { select: { firstName: true, lastName: true, photoMimeType: true, photoData: true } },
-    },
-  })
+        orderBy: { match: { scheduledAt: 'desc' } },
+      }),
+      listFriendlyParticipationsForPlayerInOrg(session.user.id, organizationId),
+      db.matchTeamMvp.count({
+        where: { playerId: player.id, match: { status: MatchStatus.FINISHED } },
+      }),
+      db.playerAward.findMany({
+        where: { playerId: player.id, organizationId },
+        include: {
+          orgAward: true,
+          season: { select: { id: true, name: true } },
+        },
+        orderBy: { awardedAt: 'desc' },
+      }),
+      db.match.findMany({
+        where: findScheduledFriendlyAttendanceWhere(organizationId, new Date()),
+        orderBy: { scheduledAt: 'asc' },
+        select: MATCH_ATTENDANCE_BOARD_SELECT,
+      }),
+      db.organization.findUniqueOrThrow({
+        where: { id: organizationId },
+        select: { badgesEnabled: true },
+      }),
+      getPlayerOrgEventStats(player.id),
+    ])
 
   const upcomingLeague = callUps.filter(
     (c) => c.match.status === 'SCHEDULED' || c.match.status === 'LIVE',
@@ -122,22 +104,22 @@ export default async function PlayerDashboardPage({
 
   return (
     <div className="space-y-6 text-kelme-gray-900">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-        <FriendlyPlayerPhotoUpload
-          playerId={player.id}
-          firstName={playerWithTeam.person.firstName}
-          lastName={playerWithTeam.person.lastName}
-          hasPhoto={personHasPhoto(playerWithTeam.person)}
-          size="lg"
-        />
-        <div className="min-w-0 pt-1">
-          <h1 className="font-display text-2xl font-bold">{session.user.name}</h1>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold">Mi panel</h1>
           <p className="text-kelme-gray-400">
-            {playerWithTeam.team?.name ?? 'Sin equipo'} · #{playerWithTeam.jerseyNumber ?? '—'} ·{' '}
-            {playerWithTeam.position ?? '—'}
+            {playerWithTeam.person.firstName} · {playerWithTeam.team?.name ?? 'Sin equipo'}
           </p>
         </div>
+        <Link
+          href={orgPath(organizationSlug, '/player/profile')}
+          className="text-sm font-semibold text-kelme-red hover:underline"
+        >
+          Mi perfil →
+        </Link>
       </header>
+
+      <PlayerResultsCard stats={eventStats} results={matchResults} mvpCount={mvpCount} />
 
       {(organizationSlug === LOSLUNES_SLUG || organization.badgesEnabled) && (
         <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -159,17 +141,6 @@ export default async function PlayerDashboardPage({
           ) : null}
         </div>
       )}
-
-      <section className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
-        <StatCard label="Goles" value={playerWithTeam.goals} />
-        <StatCard label="Asistencias" value={playerWithTeam.assists} />
-        <StatCard label="Ganados" value={matchResults.won} />
-        <StatCard label="Empatados" value={matchResults.drawn} />
-        <StatCard label="Perdidos" value={matchResults.lost} />
-        <StatCard label="MVPs" value={mvpCount} />
-        <StatCard label="Amarillas" value={playerWithTeam.yellowCards} />
-        <StatCard label="Rojas" value={playerWithTeam.redCards} />
-      </section>
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Mis premios</h2>
@@ -240,15 +211,6 @@ export default async function PlayerDashboardPage({
       <Link href={orgPath(organizationSlug, '/player/matches')} className="text-kelme-red hover:underline">
         Ver todos mis partidos →
       </Link>
-    </div>
-  )
-}
-
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border border-kelme-border bg-kelme-surface p-4 text-center">
-      <p className="font-display text-2xl font-bold text-kelme-red">{value}</p>
-      <p className="text-sm text-kelme-gray-400">{label}</p>
     </div>
   )
 }

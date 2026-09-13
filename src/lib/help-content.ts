@@ -95,7 +95,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         type: 'list',
         items: [
-          'Mi Panel: resumen de stats y próximos partidos.',
+          'Mi panel: resultados, stats y próximos partidos. Mi perfil: foto y datos de ficha.',
           'Mis Partidos: historial de citaciones y resultados.',
           'Las evaluaciones del cuerpo técnico aparecen cuando el DT las registra.',
         ],
