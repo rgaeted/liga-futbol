@@ -165,6 +165,23 @@ export const ICON_SVG: Record<string, ReactNode> = {
   ),
 }
 
+export function discoBackClasses(rarity: string, locked: boolean): string {
+  if (locked) {
+    return 'border border-[#22382E] bg-[#141F1A] text-[#5A7268]'
+  }
+
+  switch (rarity) {
+    case 'raro':
+      return 'border border-[#1A7A4E] bg-[radial-gradient(circle_at_50%_50%,rgba(61,230,140,0.12),#0E1813)] text-[#2FA66A]'
+    case 'epico':
+      return 'border border-[#9A7530] bg-[radial-gradient(circle_at_50%_50%,rgba(232,200,120,0.14),#12100C)] text-[#B89448]'
+    case 'legendario':
+      return 'border border-[#B89448] bg-[radial-gradient(circle_at_50%_50%,rgba(232,200,120,0.22),#15110C)] text-[#8A6A28]'
+    default:
+      return 'border border-[#22382E] bg-[radial-gradient(circle_at_50%_50%,rgba(139,165,152,0.12),#141F1A)] text-[#5A7268]'
+  }
+}
+
 export function discoClasses(rarity: string, locked: boolean): string {
   if (locked) {
     return 'border border-[#2C4438] bg-[#1B2C24] text-[#8BA598]'

@@ -135,16 +135,29 @@ body {
 }
 
 @keyframes badge-disco-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
 }
 
 .live-pulse {
   animation: kelme-pulse 1.6s ease-in-out infinite;
 }
 
+.badge-disco-scene {
+  perspective: 480px;
+}
+
+.badge-disco-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.badge-disco-face-back {
+  transform: rotateY(180deg);
+}
+
 .badge-disco-spin {
-  animation: badge-disco-spin 0.55s cubic-bezier(0.34, 1.15, 0.64, 1);
+  animation: badge-disco-spin 0.7s cubic-bezier(0.34, 1.1, 0.64, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
