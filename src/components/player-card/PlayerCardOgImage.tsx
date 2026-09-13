@@ -229,25 +229,6 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
         </div>
       </div>
 
-      <div
-        style={{
-          position: 'absolute',
-          display: 'flex',
-          justifyContent: 'center',
-          bottom: h * 0.028,
-          left: 0,
-          right: 0,
-          fontSize: 8 * s,
-          fontWeight: 700,
-          color: PALETTE.muted,
-          textTransform: 'uppercase',
-          letterSpacing: '0.28em',
-        }}
-      >
-        Fútbol de los Lunes ·{' '}
-        <span style={{ color: PALETTE.text, marginLeft: 4 * s }}>LigaLab</span>
-      </div>
-
       {enFormacion ? (
         <div
           style={{

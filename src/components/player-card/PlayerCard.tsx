@@ -243,18 +243,6 @@ export function PlayerCard({ card }: Props) {
         )}
       </div>
 
-      <div
-        className="absolute z-10 text-center text-[8px] font-bold uppercase tracking-[0.28em]"
-        style={{
-          bottom: `${h * 0.028}px`,
-          left: 0,
-          right: 0,
-          color: PALETTE.muted,
-        }}
-      >
-        Fútbol de los Lunes · <b style={{ color: PALETTE.text }}>LigaLab</b>
-      </div>
-
       {enFormacion ? (
         <div
           className="absolute inset-x-4 bottom-3 z-20 rounded-lg border px-3 py-2 text-center text-xs font-semibold"
