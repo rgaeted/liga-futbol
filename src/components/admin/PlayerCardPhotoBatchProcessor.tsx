@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { processPlayerCardPhoto } from '@/lib/player-card-photo-process'
-import { playerCardProcessingErrorMessage } from '@/lib/player-card-photo-errors'
+import {
+  playerCardProcessingErrorMessage,
+  playerCardSaveErrorMessage,
+} from '@/lib/player-card-photo-errors'
 import { PlayerCardPhotoEditorDialog } from './PlayerCardPhotoEditorDialog'
 
 export type PlayerCardPhotoBatchPlayer = {
@@ -238,17 +241,21 @@ export function PlayerCardPhotoBatchProcessor({
         headers: {
           'If-Match': sourceEtag,
           'If-None-Match': '*',
+          'X-Photo-Source-ETag': sourceEtag,
         },
         signal,
       })
       if (!mountedRef.current || signal.aborted) return false
       if (!saved.ok) {
         const staleSource = saved.status === 412
+        const message = staleSource
+          ? STALE_SOURCE_ERROR
+          : await playerCardSaveErrorMessage(saved, SAVING_ERROR)
         recordError({
           stage: 'save',
           player,
           version: player.photoVersion,
-          message: staleSource ? STALE_SOURCE_ERROR : SAVING_ERROR,
+          message,
           sourceEtag,
           processedBlob: processed,
           staleSource,

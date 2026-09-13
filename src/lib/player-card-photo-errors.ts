@@ -20,3 +20,15 @@ export function playerCardProcessingErrorMessage(
     ? error.message
     : fallback
 }
+
+export async function playerCardSaveErrorMessage(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  try {
+    const data = (await response.json()) as { error?: unknown }
+    return typeof data.error === 'string' ? data.error : fallback
+  } catch {
+    return fallback
+  }
+}

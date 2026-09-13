@@ -221,6 +221,7 @@ describe('PlayerCardPhotoBatchProcessor', () => {
     expect((post?.[1] as RequestInit).headers).toEqual({
       'If-Match': '"source-p1"',
       'If-None-Match': '*',
+      'X-Photo-Source-ETag': '"source-p1"',
     })
   })
 
@@ -246,6 +247,7 @@ describe('PlayerCardPhotoBatchProcessor', () => {
     expect((post?.[1] as RequestInit).headers).toEqual({
       'If-Match': '"source-p1"',
       'If-None-Match': '*',
+      'X-Photo-Source-ETag': '"source-p1"',
     })
     expect(document.body.textContent).toContain('1 de 1')
     expect(button('Preparar fotos para cartas').disabled).toBe(true)

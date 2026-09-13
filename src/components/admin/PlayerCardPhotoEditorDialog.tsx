@@ -13,7 +13,10 @@ import {
   extractPlayerCutout,
   type CardPhotoAdjustments,
 } from '@/lib/player-card-photo-process'
-import { playerCardProcessingErrorMessage } from '@/lib/player-card-photo-errors'
+import {
+  playerCardProcessingErrorMessage,
+  playerCardSaveErrorMessage,
+} from '@/lib/player-card-photo-errors'
 import {
   PLAYER_CARD_PALETTE,
   playerCardShieldPath,
@@ -393,7 +396,10 @@ export function PlayerCardPhotoEditorDialog({
       const response = await fetch(`/api/players/${playerId}/card-photo`, {
         method: 'POST',
         body: form,
-        headers: { 'If-Match': sourceEtagRef.current },
+        headers: {
+          'If-Match': sourceEtagRef.current,
+          'X-Photo-Source-ETag': sourceEtagRef.current,
+        },
         signal: controller.signal,
       })
       if (
@@ -407,7 +413,12 @@ export function PlayerCardPhotoEditorDialog({
         await reloadLatestSource(saveRun)
         return
       }
-      if (!response.ok) throw new Error('save failed')
+      if (!response.ok) {
+        setStatus('error')
+        setErrorKind('saving')
+        setErrorMessage(await playerCardSaveErrorMessage(response, SAVING_ERROR))
+        return
+      }
       onSaved()
     } catch {
       if (

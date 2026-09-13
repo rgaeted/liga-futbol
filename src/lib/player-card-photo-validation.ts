@@ -34,7 +34,18 @@ export async function validateProcessedCardPhoto(
         error: `El recorte debe medir ${CARD_PHOTO_WIDTH}×${CARD_PHOTO_HEIGHT} px.`,
       }
     }
-    if (!metadata.hasAlpha || (await sharp(buffer).stats()).isOpaque) {
+    const { data, info } = await sharp(buffer)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true })
+    let hasTransparentPixel = false
+    for (let i = 3; i < data.length; i += info.channels) {
+      if (data[i]! < 250) {
+        hasTransparentPixel = true
+        break
+      }
+    }
+    if (!hasTransparentPixel) {
       return {
         ok: false,
         error: 'El recorte debe tener fondo transparente.',

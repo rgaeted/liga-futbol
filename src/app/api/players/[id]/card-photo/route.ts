@@ -96,7 +96,8 @@ export async function POST(req: Request, { params }: RouteContext) {
   const access = await requirePlayerPhotoMutation(id)
   if ('error' in access) return access.error
 
-  const sourceEtag = req.headers.get('if-match')
+  const sourceEtag =
+    req.headers.get('if-match') ?? req.headers.get('x-photo-source-etag')
   if (!sourceEtag) {
     return NextResponse.json(
       { error: 'Debes identificar la versión de la foto original.' },
@@ -134,61 +135,18 @@ export async function POST(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: validation.error }, { status: 400 })
   }
 
-  const updatedAt = new Date()
-  let outcome:
-    | { kind: 'saved' }
-    | { kind: 'stale' }
-    | { kind: 'skipped'; updatedAt: Date | null }
-    | null = null
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      outcome = await db.$transaction(
-        async (tx) => {
-          const current = await tx.person.findUnique({
-            where: { id: access.player.personId },
-            select: {
-              photoData: true,
-              cardPhotoMimeType: true,
-              cardPhotoUpdatedAt: true,
-            },
-          })
-          const currentEtag = current?.photoData
-            ? `"${createHash('sha256').update(current.photoData).digest('hex')}"`
-            : null
-          if (currentEtag !== sourceEtag) return { kind: 'stale' } as const
-          if (
-            createOnly &&
-            (current?.cardPhotoMimeType || current?.cardPhotoUpdatedAt)
-          ) {
-            return {
-              kind: 'skipped',
-              updatedAt: current.cardPhotoUpdatedAt,
-            } as const
-          }
-
-          await tx.person.update({
-            where: { id: access.player.personId },
-            data: {
-              cardPhotoMimeType: 'image/png',
-              cardPhotoData: buffer,
-              cardPhotoUpdatedAt: updatedAt,
-            },
-          })
-          return { kind: 'saved' } as const
-        },
-        { isolationLevel: 'Serializable' },
-      )
-      break
-    } catch (error) {
-      const isSerializationConflict =
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === 'P2034'
-      if (!isSerializationConflict || attempt === 2) throw error
-    }
-  }
-  if (outcome?.kind === 'stale') {
+  const current = await db.person.findUnique({
+    where: { id: access.player.personId },
+    select: {
+      photoData: true,
+      cardPhotoMimeType: true,
+      cardPhotoUpdatedAt: true,
+    },
+  })
+  const currentEtag = current?.photoData
+    ? `"${createHash('sha256').update(current.photoData).digest('hex')}"`
+    : null
+  if (currentEtag !== sourceEtag) {
     return NextResponse.json(
       {
         error:
@@ -197,13 +155,26 @@ export async function POST(req: Request, { params }: RouteContext) {
       { status: 412 },
     )
   }
-  if (outcome?.kind === 'skipped') {
+  if (
+    createOnly &&
+    (current?.cardPhotoMimeType || current?.cardPhotoUpdatedAt)
+  ) {
     return NextResponse.json({
       ok: true,
       skipped: true,
-      updatedAt: outcome.updatedAt?.toISOString() ?? null,
+      updatedAt: current.cardPhotoUpdatedAt?.toISOString() ?? null,
     })
   }
+
+  const updatedAt = new Date()
+  await db.person.update({
+    where: { id: access.player.personId },
+    data: {
+      cardPhotoMimeType: 'image/png',
+      cardPhotoData: buffer,
+      cardPhotoUpdatedAt: updatedAt,
+    },
+  })
   await revalidateOrgAdminRosterPages(access.player.organizationId)
 
   return NextResponse.json({ ok: true, updatedAt: updatedAt.toISOString() })

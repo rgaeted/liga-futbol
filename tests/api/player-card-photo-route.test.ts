@@ -4,15 +4,24 @@ import { GET, HEAD, POST } from '@/app/api/players/[id]/card-photo/route'
 import { validateProcessedCardPhoto } from '@/lib/player-card-photo-validation'
 
 const sharpMetadata = vi.fn()
-const sharpStats = vi.fn()
+const sharpRawBuffer = vi.fn()
+
+function createSharpMock() {
+  const chain = {
+    metadata: sharpMetadata,
+    ensureAlpha: vi.fn(() => chain),
+    raw: vi.fn(() => chain),
+    toBuffer: sharpRawBuffer,
+  }
+  return chain
+}
 
 vi.mock('server-only', () => ({}))
 vi.mock('sharp', () => ({
-  default: vi.fn(() => ({ metadata: sharpMetadata, stats: sharpStats })),
+  default: vi.fn(() => createSharpMock()),
 }))
 vi.mock('@/lib/db', () => ({
   db: {
-    $transaction: vi.fn(),
     player: {
       findUnique: vi.fn(),
     },
@@ -40,17 +49,29 @@ function imageEtag(bytes: Buffer) {
   return `"${createHash('sha256').update(bytes).digest('hex')}"`
 }
 
+function mockTransparentPngRaw() {
+  const rgba = Buffer.alloc(720 * 900 * 4, 255)
+  rgba[3] = 0
+  sharpRawBuffer.mockResolvedValue({
+    data: rgba,
+    info: { channels: 4 },
+  })
+}
+
 function cardPhotoRequest(
   bytes = new Uint8Array([1, 2, 3]),
   type = 'image/png',
   sourceEtag: string | null = imageEtag(currentOriginal),
+  headers: Record<string, string> = {},
 ) {
   const form = new FormData()
   form.set('photo', new File([bytes], 'card-photo.png', { type }))
   return new Request('http://localhost/api/players/player-1/card-photo', {
     method: 'POST',
     body: form,
-    headers: sourceEtag ? { 'If-Match': sourceEtag } : undefined,
+    headers: sourceEtag
+      ? { 'If-Match': sourceEtag, ...headers }
+      : headers,
   })
 }
 
@@ -119,6 +140,10 @@ describe('player card photo validation', () => {
       height: 900,
       hasAlpha: false,
     })
+    sharpRawBuffer.mockResolvedValue({
+      data: Buffer.alloc(720 * 900 * 4, 255),
+      info: { channels: 4 },
+    })
 
     await expect(
       validateProcessedCardPhoto(Buffer.from('png'), 'image/png'),
@@ -151,7 +176,12 @@ describe('player card photo validation', () => {
       height: 900,
       hasAlpha: true,
     })
-    sharpStats.mockResolvedValue({ isOpaque: false })
+    const rgba = Buffer.alloc(720 * 900 * 4, 255)
+    rgba[3] = 0
+    sharpRawBuffer.mockResolvedValue({
+      data: rgba,
+      info: { channels: 4 },
+    })
 
     await expect(
       validateProcessedCardPhoto(Buffer.from('png'), 'image/png'),
@@ -336,9 +366,7 @@ describe('POST /api/players/[id]/card-photo', () => {
       cardPhotoMimeType: null,
       cardPhotoUpdatedAt: null,
     } as never)
-    vi.mocked(db.$transaction).mockImplementation(async (callback: never) =>
-      (callback as (client: typeof db) => Promise<never>)(db),
-    )
+    mockTransparentPngRaw()
   })
 
   it('returns the delegated authorization error unchanged', async () => {
@@ -368,7 +396,7 @@ describe('POST /api/players/[id]/card-photo', () => {
       error: 'Debes identificar la versión de la foto original.',
     })
     expect(sharpMetadata).not.toHaveBeenCalled()
-    expect(db.$transaction).not.toHaveBeenCalled()
+    expect(db.person.update).not.toHaveBeenCalled()
   })
 
   it('rejects an oversized multipart request before parsing it', async () => {
@@ -401,6 +429,10 @@ describe('POST /api/players/[id]/card-photo', () => {
       height: 900,
       hasAlpha: false,
     })
+    sharpRawBuffer.mockResolvedValue({
+      data: Buffer.alloc(720 * 900 * 4, 255),
+      info: { channels: 4 },
+    })
 
     const response = await POST(cardPhotoRequest(), context)
 
@@ -423,7 +455,6 @@ describe('POST /api/players/[id]/card-photo', () => {
       height: 900,
       hasAlpha: true,
     })
-    sharpStats.mockResolvedValue({ isOpaque: false })
 
     try {
       const response = await POST(cardPhotoRequest(), context)
@@ -441,10 +472,6 @@ describe('POST /api/players/[id]/card-photo', () => {
           cardPhotoUpdatedAt: new Date('2026-09-13T05:06:07.000Z'),
         },
       })
-      expect(db.$transaction).toHaveBeenCalledWith(
-        expect.any(Function),
-        { isolationLevel: 'Serializable' },
-      )
       expect(revalidateOrgAdminRosterPages).toHaveBeenCalledWith('org-1')
     } finally {
       vi.useRealTimers()
@@ -467,7 +494,6 @@ describe('POST /api/players/[id]/card-photo', () => {
       height: 900,
       hasAlpha: true,
     })
-    sharpStats.mockResolvedValue({ isOpaque: false })
     const request = cardPhotoRequest()
     request.headers.set('If-None-Match', '*')
 
@@ -480,10 +506,6 @@ describe('POST /api/players/[id]/card-photo', () => {
       updatedAt: existingUpdatedAt.toISOString(),
     })
     expect(db.person.update).not.toHaveBeenCalled()
-    expect(db.$transaction).toHaveBeenCalledWith(
-      expect.any(Function),
-      { isolationLevel: 'Serializable' },
-    )
   })
 
   it('persists when If-Match identifies the current original bytes', async () => {
@@ -500,7 +522,6 @@ describe('POST /api/players/[id]/card-photo', () => {
       height: 900,
       hasAlpha: true,
     })
-    sharpStats.mockResolvedValue({ isOpaque: false })
 
     const response = await POST(
       cardPhotoRequest(
@@ -508,6 +529,34 @@ describe('POST /api/players/[id]/card-photo', () => {
         'image/png',
         imageEtag(original),
       ),
+      context,
+    )
+
+    expect(response.status).toBe(200)
+    expect(db.person.update).toHaveBeenCalled()
+  })
+
+  it('accepts X-Photo-Source-ETag when If-Match is missing', async () => {
+    const original = Buffer.from('current-original')
+    vi.mocked(requirePlayerPhotoMutation).mockResolvedValue({
+      player: { personId: 'person-1', organizationId: 'org-1' },
+    } as never)
+    vi.mocked(db.person.findUnique).mockResolvedValue({
+      photoData: original,
+      cardPhotoMimeType: null,
+      cardPhotoUpdatedAt: null,
+    } as never)
+    sharpMetadata.mockResolvedValue({
+      format: 'png',
+      width: 720,
+      height: 900,
+      hasAlpha: true,
+    })
+
+    const response = await POST(
+      cardPhotoRequest(new Uint8Array([1, 2, 3]), 'image/png', null, {
+        'X-Photo-Source-ETag': imageEtag(original),
+      }),
       context,
     )
 
@@ -528,7 +577,6 @@ describe('POST /api/players/[id]/card-photo', () => {
       height: 900,
       hasAlpha: true,
     })
-    sharpStats.mockResolvedValue({ isOpaque: false })
 
     const response = await POST(
       cardPhotoRequest(
@@ -543,37 +591,6 @@ describe('POST /api/players/[id]/card-photo', () => {
     await expect(response.json()).resolves.toEqual({
       error: 'La foto original cambió. Descárgala y prepara el recorte nuevamente.',
     })
-    expect(db.person.update).not.toHaveBeenCalled()
-  })
-
-  it('retries a serialization conflict and returns 412 for the changed source', async () => {
-    const oldEtag = imageEtag(Buffer.from('old-original'))
-    vi.mocked(requirePlayerPhotoMutation).mockResolvedValue({
-      player: { personId: 'person-1', organizationId: 'org-1' },
-    } as never)
-    vi.mocked(db.person.findUnique).mockResolvedValue({
-      photoData: Buffer.from('new-original'),
-    } as never)
-    vi.mocked(db.$transaction)
-      .mockRejectedValueOnce(Object.assign(new Error('write conflict'), { code: 'P2034' }))
-      .mockImplementationOnce(async (callback: never) =>
-        (callback as (client: typeof db) => Promise<never>)(db),
-      )
-    sharpMetadata.mockResolvedValue({
-      format: 'png',
-      width: 720,
-      height: 900,
-      hasAlpha: true,
-    })
-    sharpStats.mockResolvedValue({ isOpaque: false })
-
-    const response = await POST(
-      cardPhotoRequest(new Uint8Array([1, 2, 3]), 'image/png', oldEtag),
-      context,
-    )
-
-    expect(response.status).toBe(412)
-    expect(db.$transaction).toHaveBeenCalledTimes(2)
     expect(db.person.update).not.toHaveBeenCalled()
   })
 })

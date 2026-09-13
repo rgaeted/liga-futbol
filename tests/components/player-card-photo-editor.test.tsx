@@ -341,7 +341,10 @@ describe('PlayerCardPhotoEditorDialog', () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe('/api/players/player-1/card-photo')
     expect(init.method).toBe('POST')
-    expect(init.headers).toEqual({ 'If-Match': '"source-v1"' })
+    expect(init.headers).toEqual({
+      'If-Match': '"source-v1"',
+      'X-Photo-Source-ETag': '"source-v1"',
+    })
     const photo = (init.body as FormData).get('photo')
     expect(photo).toBeInstanceOf(File)
     expect((photo as File).name).toBe('card-photo.png')
@@ -410,7 +413,10 @@ describe('PlayerCardPhotoEditorDialog', () => {
     expect(fetchMock).toHaveBeenLastCalledWith(
       '/api/players/player-1/card-photo',
       expect.objectContaining({
-        headers: { 'If-Match': '"source-v2"' },
+        headers: {
+          'If-Match': '"source-v2"',
+          'X-Photo-Source-ETag': '"source-v2"',
+        },
       }),
     )
     expect(onSaved).toHaveBeenCalledTimes(1)
@@ -691,7 +697,10 @@ describe('FriendlyPlayerPhotoUpload', () => {
     expect(fetchMock).toHaveBeenLastCalledWith(
       '/api/players/player-1/card-photo',
       expect.objectContaining({
-        headers: { 'If-Match': '"uploaded-source"' },
+        headers: {
+          'If-Match': '"uploaded-source"',
+          'X-Photo-Source-ETag': '"uploaded-source"',
+        },
       }),
     )
   })
