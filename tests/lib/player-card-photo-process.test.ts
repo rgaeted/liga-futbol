@@ -188,6 +188,27 @@ describe('hasMultipleSignificantAlphaComponents', () => {
 
     expect(hasMultipleSignificantAlphaComponents(rgba, 14, 8)).toBe(false)
   })
+
+  it('acepta un sujeto fragmentado por piernas o brazos separados', () => {
+    const rgba = alphaMask(20, 16, [
+      { x: 7, y: 1, width: 6, height: 8 },
+      { x: 5, y: 10, width: 3, height: 5 },
+      { x: 12, y: 10, width: 3, height: 5 },
+      { x: 2, y: 4, width: 2, height: 4 },
+    ])
+
+    expect(hasMultipleSignificantAlphaComponents(rgba, 20, 16)).toBe(false)
+  })
+
+  it('ignora restos de fondo pequeños junto al sujeto principal', () => {
+    const rgba = alphaMask(24, 20, [
+      { x: 8, y: 2, width: 8, height: 14 },
+      { x: 2, y: 12, width: 3, height: 3 },
+      { x: 19, y: 8, width: 2, height: 2 },
+    ])
+
+    expect(hasMultipleSignificantAlphaComponents(rgba, 24, 20)).toBe(false)
+  })
 })
 
 describe('calculateCardPhotoPlacement', () => {

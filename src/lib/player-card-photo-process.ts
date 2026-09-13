@@ -32,7 +32,10 @@ const CARD_PHOTO_HORIZONTAL_MARGIN = 60
 const CARD_PHOTO_FILTER =
   'brightness(1.04) contrast(1.05) saturate(1.03)'
 const ALPHA_COMPONENT_THRESHOLD = 12
-const MIN_SIGNIFICANT_ALPHA_COMPONENT_AREA = 16
+/** Segunda silueta debe ser al menos ~35% del sujeto principal. */
+const MIN_SECONDARY_COMPONENT_RATIO = 0.35
+/** Dos personas suelen quedar separadas horizontalmente en la foto. */
+const MIN_HORIZONTAL_SEPARATION_RATIO = 0.22
 const CARD_PHOTO_SIZE_RETRY_SCALE = 0.85
 
 export function findAlphaBounds(
@@ -67,57 +70,83 @@ export function findAlphaBounds(
   }
 }
 
+type AlphaComponent = {
+  area: number
+  sumX: number
+  sumY: number
+}
+
 export function hasMultipleSignificantAlphaComponents(
   rgba: Uint8ClampedArray,
   width: number,
   height: number,
   threshold = ALPHA_COMPONENT_THRESHOLD,
-  minArea = MIN_SIGNIFICANT_ALPHA_COMPONENT_AREA,
 ): boolean {
   const visited = new Uint8Array(width * height)
-  let significantComponents = 0
+  const components: AlphaComponent[] = []
 
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const index = y * width + x
       if (visited[index] || rgba[index * 4 + 3]! < threshold) continue
 
-      let area = 0
+      const component: AlphaComponent = { area: 0, sumX: 0, sumY: 0 }
       const stack: Array<{ x: number; y: number }> = [{ x, y }]
       visited[index] = 1
 
       while (stack.length > 0) {
         const pixel = stack.pop()!
-        area += 1
+        component.area += 1
+        component.sumX += pixel.x
+        component.sumY += pixel.y
 
-        for (const [dx, dy] of [
-          [-1, 0],
-          [1, 0],
-          [0, -1],
-          [0, 1],
-        ] as const) {
-          const nextX = pixel.x + dx
-          const nextY = pixel.y + dy
-          if (nextX < 0 || nextY < 0 || nextX >= width || nextY >= height) {
-            continue
+        for (let dy = -1; dy <= 1; dy += 1) {
+          for (let dx = -1; dx <= 1; dx += 1) {
+            if (dx === 0 && dy === 0) continue
+
+            const nextX = pixel.x + dx
+            const nextY = pixel.y + dy
+            if (nextX < 0 || nextY < 0 || nextX >= width || nextY >= height) {
+              continue
+            }
+
+            const nextIndex = nextY * width + nextX
+            if (
+              visited[nextIndex] ||
+              rgba[nextIndex * 4 + 3]! < threshold
+            ) {
+              continue
+            }
+
+            visited[nextIndex] = 1
+            stack.push({ x: nextX, y: nextY })
           }
-
-          const nextIndex = nextY * width + nextX
-          if (
-            visited[nextIndex] ||
-            rgba[nextIndex * 4 + 3]! < threshold
-          ) {
-            continue
-          }
-
-          visited[nextIndex] = 1
-          stack.push({ x: nextX, y: nextY })
         }
       }
 
-      if (area >= minArea) {
-        significantComponents += 1
-        if (significantComponents > 1) return true
+      components.push(component)
+    }
+  }
+
+  if (components.length < 2) return false
+
+  components.sort((a, b) => b.area - a.area)
+  const largest = components[0]!
+  const minSecondaryArea = largest.area * MIN_SECONDARY_COMPONENT_RATIO
+  const substantial = components.filter(
+    (component) => component.area >= minSecondaryArea,
+  )
+  if (substantial.length < 2) return false
+
+  const minHorizontalSeparation = width * MIN_HORIZONTAL_SEPARATION_RATIO
+  for (let i = 0; i < substantial.length; i += 1) {
+    const first = substantial[i]!
+    const firstX = first.sumX / first.area
+    for (let j = i + 1; j < substantial.length; j += 1) {
+      const second = substantial[j]!
+      const secondX = second.sumX / second.area
+      if (Math.abs(firstX - secondX) >= minHorizontalSeparation) {
+        return true
       }
     }
   }
