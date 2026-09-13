@@ -143,7 +143,7 @@ export default async function PlayerDashboardPage({
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           {organizationSlug === LOSLUNES_SLUG ? (
             <Link
-              href={orgPath(organizationSlug, `/jugador/${player.id}`)}
+              href={orgPath(organizationSlug, `/jugador/${player.id}?from=player`)}
               className="text-kelme-red hover:underline"
             >
               Ver mi carta
@@ -151,7 +151,7 @@ export default async function PlayerDashboardPage({
           ) : null}
           {organization.badgesEnabled ? (
             <Link
-              href={orgPath(organizationSlug, `/jugador/${player.id}`)}
+              href={orgPath(organizationSlug, `/jugador/${player.id}?from=player`)}
               className="text-kelme-red hover:underline"
             >
               Ver mis insignias

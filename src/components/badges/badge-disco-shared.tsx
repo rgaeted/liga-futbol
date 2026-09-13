@@ -3,9 +3,9 @@ import type { ReactNode } from 'react'
 export type BadgeDiscoSize = 'sm' | 'md' | 'lg'
 
 export const SIZE_CLASSES: Record<BadgeDiscoSize, string> = {
-  sm: 'h-10 w-10 [&_svg]:h-[18px] [&_svg]:w-[18px]',
-  md: 'h-[72px] w-[72px] [&_svg]:h-9 [&_svg]:w-9',
-  lg: 'h-20 w-20 [&_svg]:h-10 [&_svg]:w-10',
+  sm: 'h-10 w-10',
+  md: 'h-[72px] w-[72px]',
+  lg: 'h-20 w-20',
 }
 
 export const ICON_SVG: Record<string, ReactNode> = {
@@ -199,19 +199,22 @@ export function discoClasses(rarity: string, locked: boolean): string {
   }
 }
 
+const BADGE_CARD_BASE =
+  'border border-white/[0.08] bg-gradient-to-b from-[#1A1A1A] to-[#0C0C0C] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
+
 export function badgeCardClasses(rarity: string, locked: boolean, proximamente: boolean): string {
-  if (locked) return 'border-[#22382E] bg-[#12211B] opacity-40 grayscale-[0.7]'
-  if (proximamente) return 'border-[#22382E] bg-[#12211B]'
+  if (locked) return `${BADGE_CARD_BASE} opacity-45 saturate-50`
+  if (proximamente) return `${BADGE_CARD_BASE} opacity-70`
 
   switch (rarity) {
     case 'raro':
-      return 'border-[rgba(61,230,140,0.3)] bg-[#12211B]'
+      return `${BADGE_CARD_BASE} shadow-[0_0_18px_rgba(61,230,140,0.08)]`
     case 'epico':
-      return 'border-[rgba(232,200,120,0.32)] bg-[#12211B]'
+      return `${BADGE_CARD_BASE} shadow-[0_0_22px_rgba(255,107,26,0.14)]`
     case 'legendario':
-      return 'border-transparent bg-[linear-gradient(#12211B,#12211B)_padding-box,conic-gradient(from_210deg,#C79A3E,#E8C878,#FFF3D0,#E8C878,#C79A3E)_border-box] [border-width:2px]'
+      return `${BADGE_CARD_BASE} border-[#FF6B1A]/35 shadow-[0_0_26px_rgba(255,107,26,0.22)]`
     default:
-      return 'border-[#22382E] bg-[#12211B]'
+      return BADGE_CARD_BASE
   }
 }
 

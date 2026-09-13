@@ -1,13 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  discoBackClasses,
-  discoClasses,
-  ICON_SVG,
-  SIZE_CLASSES,
-  type BadgeDiscoSize,
-} from '@/components/badges/badge-disco-shared'
+import { BadgeIllustration } from '@/components/badges/BadgeIllustration'
+import { SIZE_CLASSES, type BadgeDiscoSize } from '@/components/badges/badge-disco-shared'
 
 type Props = {
   rarity: string
@@ -18,37 +13,7 @@ type Props = {
   label?: string
 }
 
-function BadgeIcon({ iconKey }: { iconKey: string }) {
-  const icon = ICON_SVG[iconKey] ?? (
-    <circle cx="12" cy="12" r="8" />
-  )
-
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="fill-none stroke-current stroke-[1.8] [stroke-linecap:round] [stroke-linejoin:round]"
-    >
-      {icon}
-    </svg>
-  )
-}
-
-function BadgeBack() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="fill-none stroke-current stroke-[1.4] opacity-70 [stroke-linecap:round] [stroke-linejoin:round]"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="9" />
-      <circle cx="12" cy="12" r="5.5" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
-
 export function BadgeDisco({
-  rarity,
   iconKey,
   locked = false,
   size = 'md',
@@ -62,7 +27,7 @@ export function BadgeDisco({
       type="button"
       title={label}
       aria-label={label ? `Insignia ${label}` : 'Insignia'}
-      className={`badge-disco-scene cursor-pointer rounded-full border-0 bg-transparent p-0 motion-reduce:cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3DE68C] ${className}`}
+      className={`badge-disco-scene ${SIZE_CLASSES[size]} cursor-pointer rounded-lg border-0 bg-transparent p-0 motion-reduce:cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF6B1A] ${className}`}
       onClick={() => {
         if (spinning) return
         if (
@@ -75,19 +40,19 @@ export function BadgeDisco({
       }}
     >
       <div
-        className={`relative [transform-style:preserve-3d] ${SIZE_CLASSES[size]} ${spinning ? 'badge-disco-spin' : ''}`}
+        className={`relative h-full w-full [transform-style:preserve-3d] ${spinning ? 'badge-disco-spin' : ''}`}
         onAnimationEnd={() => setSpinning(false)}
       >
-        <div
-          className={`badge-disco-face absolute inset-0 grid place-items-center rounded-full ${discoClasses(rarity, locked)}`}
-        >
-          <BadgeIcon iconKey={iconKey} />
+        <div className="badge-disco-face absolute inset-0">
+          <BadgeIllustration iconKey={iconKey} locked={locked} className="h-full w-full" />
         </div>
         <div
-          className={`badge-disco-face badge-disco-face-back absolute inset-0 grid place-items-center rounded-full ${discoBackClasses(rarity, locked)}`}
+          className="badge-disco-face badge-disco-face-back absolute inset-0 grid place-items-center rounded-lg bg-[#111]"
           aria-hidden
         >
-          <BadgeBack />
+          <svg viewBox="0 0 24 24" className="h-1/2 w-1/2 text-[#FF6B1A]/55" aria-hidden>
+            <circle cx={12} cy={12} r={9} fill="none" stroke="currentColor" strokeWidth={1.4} />
+          </svg>
         </div>
       </div>
     </button>

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { BadgeVitrina } from '@/components/badges/BadgeVitrina'
@@ -49,12 +50,32 @@ export async function generateMetadata({
   return { title: 'Jugador' }
 }
 
+function playerCardBackLink(
+  organizationSlug: string,
+  from: string | undefined,
+): { href: string; label: string } {
+  if (from === 'player') {
+    return {
+      href: `/${organizationSlug}/player`,
+      label: 'Volver a mi panel',
+    }
+  }
+
+  return {
+    href: `/${organizationSlug}`,
+    label: organizationSlug === LOSLUNES_SLUG ? 'Volver a Fútbol de los Lunes' : 'Volver al inicio',
+  }
+}
+
 export default async function PlayerCardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ organizationSlug: string; playerId: string }>
+  searchParams: Promise<{ from?: string }>
 }) {
   const { organizationSlug, playerId } = await params
+  const { from } = await searchParams
   const isLosLunes = organizationSlug === LOSLUNES_SLUG
   const [card, vitrina] = await Promise.all([
     isLosLunes ? getLosLunesPlayerCard(playerId) : Promise.resolve(null),
@@ -67,12 +88,28 @@ export default async function PlayerCardPage({
   if (!showCard && !showVitrina) notFound()
 
   const path = `/${organizationSlug}/jugador/${playerId}`
+  const back = playerCardBackLink(organizationSlug, from)
 
   return (
     <main
       className="min-h-screen bg-[#0B1210] px-4 py-10 text-[#EDF2EE]"
       style={{ fontFamily: 'var(--font-barlow-condensed), Helvetica Neue, sans-serif' }}
     >
+      <nav className="mx-auto mb-6 max-w-[1040px]">
+        <Link
+          href={back.href}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold uppercase tracking-[0.12em] text-[#8BA598] transition hover:text-[#3DE68C]"
+        >
+          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden>
+            <path
+              fill="currentColor"
+              d="M10.2 2.7 4.9 8l5.3 5.3 1.1-1.1L7.1 8l4.2-4.2-1.1-1.1Z"
+            />
+          </svg>
+          {back.label}
+        </Link>
+      </nav>
+
       {showCard ? (
         <>
           <div className="mx-auto max-w-xl text-center">
