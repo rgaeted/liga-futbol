@@ -234,9 +234,13 @@ export function PlayerCard({ card }: Props) {
         {earnedBadges.length > 0 ? (
           <div className="mt-2 flex flex-wrap justify-center gap-1.5">
             {earnedBadges.map((badge) => (
-              <span key={`${badge.iconKey}-${badge.name}`} title={badge.name}>
-                <BadgeDisco rarity={badge.rarity} iconKey={badge.iconKey} size="sm" />
-              </span>
+              <BadgeDisco
+                key={`${badge.iconKey}-${badge.name}`}
+                rarity={badge.rarity}
+                iconKey={badge.iconKey}
+                label={badge.name}
+                size="sm"
+              />
             ))}
           </div>
         ) : (

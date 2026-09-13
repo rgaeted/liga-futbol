@@ -1,4 +1,5 @@
-import { BadgeDisco, badgeCardClasses, badgeRarityLabel } from '@/components/badges/BadgeDisco'
+import { BadgeDisco } from '@/components/badges/BadgeDisco'
+import { badgeCardClasses, badgeRarityLabel } from '@/components/badges/badge-disco-shared'
 import type { PlayerBadgeVitrinaDto } from '@/lib/badges/query'
 import { LOSLUNES_SLUG } from '@/lib/org-brand'
 
@@ -82,6 +83,7 @@ export function BadgeVitrina({ vitrina, organizationSlug }: Props) {
                   rarity={item.rarity}
                   iconKey={item.iconKey}
                   locked={item.locked}
+                  label={item.name}
                   className="mx-auto mb-2.5"
                 />
                 <b className="block font-[family-name:var(--font-anton)] text-[15px] uppercase leading-tight tracking-[0.03em]">
