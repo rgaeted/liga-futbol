@@ -19,6 +19,7 @@ import {
 } from '@/lib/player-card-photo-errors'
 import {
   PLAYER_CARD_PALETTE,
+  PLAYER_CARD_SHIELD_CLIP_POLYGON,
   playerCardShieldPath,
 } from '@/lib/player-card-shield'
 
@@ -43,8 +44,7 @@ const STALE_RELOAD_ERROR =
   'La foto original cambió, pero no pudimos cargar la versión vigente.'
 const SOURCE_CHANGED_NOTICE =
   'La foto original cambió. Revisa la nueva vista previa antes de guardar.'
-const PREVIEW_CLIP =
-  'polygon(50% 2%, 70% 6%, 86% 5%, 98% 12%, 98% 74%, 94% 82%, 84% 90%, 50% 99.8%, 16% 90%, 6% 82%, 2% 74%, 2% 12%, 14% 5%, 30% 6%)'
+const PREVIEW_CLIP = PLAYER_CARD_SHIELD_CLIP_POLYGON
 const FOCUSABLE_SELECTOR = [
   'a[href]',
   'button:not([disabled])',

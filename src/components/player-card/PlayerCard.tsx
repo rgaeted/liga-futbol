@@ -120,29 +120,35 @@ export function PlayerCard({ card }: Props) {
         />
       </svg>
 
-      {/* Foto — recorte tipo FIFA, torso sobre el escudo */}
+      {/* Foto — recortada al escudo y contenida sobre la franja del nombre */}
       <div
-        className="pointer-events-none absolute z-[1] flex items-end justify-center overflow-hidden"
-        style={{
-          left: `${w * 0.2}px`,
-          top: `${h * 0.015}px`,
-          width: `${w * 0.8}px`,
-          height: `${h * 0.565}px`,
-        }}
+        className="pointer-events-none absolute inset-0 z-[1] overflow-hidden"
+        style={{ clipPath: `url(#${clipId})` }}
       >
         <div
-          className="absolute bottom-[4%] left-1/2 h-[62%] w-[62%] -translate-x-1/2 rounded-full"
+          className="absolute flex items-end justify-center overflow-hidden"
           style={{
-            background: 'radial-gradient(circle, rgba(61,230,140,0.18), transparent 70%)',
+            left: `${w * 0.1}px`,
+            right: `${w * 0.1}px`,
+            top: `${h * 0.015}px`,
+            bottom: `${h * 0.42}px`,
           }}
-        />
-        <PlayerCardPhoto
-          fotoUrl={player.fotoUrl}
-          fotoEsRecorte={player.fotoEsRecorte}
-          alt={`Foto de ${player.nombre}`}
-          initials={personInitials(player.nombreCorto)}
-          variant="shield"
-        />
+        >
+          <div
+            className="absolute bottom-[4%] left-1/2 h-[62%] w-[62%] -translate-x-1/2 rounded-full"
+            style={{
+              background:
+                'radial-gradient(circle, rgba(61,230,140,0.18), transparent 70%)',
+            }}
+          />
+          <PlayerCardPhoto
+            fotoUrl={player.fotoUrl}
+            fotoEsRecorte={player.fotoEsRecorte}
+            alt={`Foto de ${player.nombre}`}
+            initials={personInitials(player.nombreCorto)}
+            variant="shield"
+          />
+        </div>
       </div>
 
       {/* Posición · escudo */}

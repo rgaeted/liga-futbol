@@ -37,6 +37,10 @@ export const PLAYER_CARD_STAT_LABELS: Record<string, string> = {
 
 export const PLAYER_CARD_BASE_WIDTH = 270
 
+/** Aproximación CSS del escudo FIFA para recortar la foto en web y OG. */
+export const PLAYER_CARD_SHIELD_CLIP_POLYGON =
+  'polygon(50% 2%, 70% 6%, 86% 5%, 98% 12%, 98% 74%, 94% 82%, 84% 90%, 50% 99.8%, 16% 90%, 6% 82%, 2% 74%, 2% 12%, 14% 5%, 30% 6%)'
+
 export function playerCardShieldPath(w: number, h: number): string {
   return `M ${w * 0.5} ${h * 0.02}
     C ${w * 0.42} ${h * 0.06}, ${w * 0.3} ${h * 0.07}, ${w * 0.14} ${h * 0.05}

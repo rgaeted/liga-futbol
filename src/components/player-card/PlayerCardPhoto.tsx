@@ -48,10 +48,10 @@ export function PlayerCardPhoto({
       <img
         src={fotoUrl}
         alt={alt}
-        className={`relative z-[1] max-h-full max-w-full select-none ${
+        className={`relative z-[1] min-h-0 max-h-full max-w-full select-none ${
           fotoEsRecorte
-            ? 'h-[270px] w-auto object-contain object-bottom drop-shadow-[0_18px_28px_rgba(0,0,0,0.66)]'
-            : 'h-[245px] w-[220px] object-cover object-[center_10%] drop-shadow-[0_14px_22px_rgba(0,0,0,0.55)] [mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)]'
+            ? 'h-auto w-auto object-contain object-bottom drop-shadow-[0_18px_28px_rgba(0,0,0,0.66)]'
+            : 'h-full w-full object-cover object-[center_10%] drop-shadow-[0_14px_22px_rgba(0,0,0,0.55)] [mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)]'
         }`}
         onError={() => setFailedUrl(fotoUrl)}
       />

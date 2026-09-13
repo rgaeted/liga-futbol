@@ -2,6 +2,7 @@ import type { PlayerCardDto } from '@/lib/player-card-query'
 import {
   PLAYER_CARD_DISPLAY_FONT_OG,
   PLAYER_CARD_PALETTE as PALETTE,
+  PLAYER_CARD_SHIELD_CLIP_POLYGON,
   playerCardShieldHeight,
   playerCardShieldPath,
 } from '@/lib/player-card-shield'
@@ -60,41 +61,52 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
       <div
         style={{
           position: 'absolute',
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-          left: w * 0.2,
-          top: h * 0.015,
-          width: w * 0.8,
-          height: h * 0.565,
+          inset: 0,
           overflow: 'hidden',
+          clipPath: PLAYER_CARD_SHIELD_CLIP_POLYGON,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={fotoUrl}
-          alt=""
-          width={Math.round(w * 0.78)}
-          height={Math.round(h * 0.55)}
+        <div
           style={{
-            objectFit: fotoEsRecorte ? 'contain' : 'cover',
-            objectPosition: fotoEsRecorte ? 'center bottom' : 'center 10%',
+            position: 'absolute',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            left: w * 0.1,
+            right: w * 0.1,
+            top: h * 0.015,
+            bottom: h * 0.42,
+            overflow: 'hidden',
           }}
-        />
-        {!fotoEsRecorte ? (
-          <div
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={fotoUrl}
+            alt=""
             style={{
-              position: 'absolute',
-              display: 'flex',
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: h * 0.16,
-              background:
-                'linear-gradient(to bottom, rgba(11,18,16,0), rgba(11,18,16,0.96))',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              width: 'auto',
+              height: 'auto',
+              objectFit: fotoEsRecorte ? 'contain' : 'cover',
+              objectPosition: fotoEsRecorte ? 'center bottom' : 'center 10%',
             }}
           />
-        ) : null}
+          {!fotoEsRecorte ? (
+            <div
+              style={{
+                position: 'absolute',
+                display: 'flex',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: h * 0.16,
+                background:
+                  'linear-gradient(to bottom, rgba(11,18,16,0), rgba(11,18,16,0.96))',
+              }}
+            />
+          ) : null}
+        </div>
       </div>
 
       <div
