@@ -31,19 +31,19 @@ export function BadgeVitrina({ vitrina, organizationSlug }: Props) {
 
         <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-xs font-bold uppercase tracking-[0.08em] text-[#777]">
           <span className="inline-flex items-center gap-2">
-            <i className="inline-block h-3 w-3 rounded-[3px] bg-[#444]" />
+            <i className="inline-block h-3 w-3 rounded-full bg-[#8BA598]" />
             Común
           </span>
           <span className="inline-flex items-center gap-2">
-            <i className="inline-block h-3 w-3 rounded-[3px] bg-[#3DE68C]" />
+            <i className="inline-block h-3 w-3 rounded-full bg-[#3DE68C]" />
             Raro
           </span>
           <span className="inline-flex items-center gap-2">
-            <i className="inline-block h-3 w-3 rounded-[3px] bg-[#FF6B1A]" />
+            <i className="inline-block h-3 w-3 rounded-full bg-[#FF6B1A]" />
             Épico
           </span>
           <span className="inline-flex items-center gap-2 text-[#E8C878]">
-            <i className="inline-block h-3 w-3 rounded-[3px] bg-[#E8C878]" />
+            <i className="inline-block h-3 w-3 rounded-full bg-[#E8C878]" />
             Legendario
           </span>
         </div>

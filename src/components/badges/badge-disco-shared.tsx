@@ -167,35 +167,35 @@ export const ICON_SVG: Record<string, ReactNode> = {
 
 export function discoBackClasses(rarity: string, locked: boolean): string {
   if (locked) {
-    return 'border border-[#22382E] bg-[#141F1A] text-[#5A7268]'
+    return 'border border-[#333] bg-[radial-gradient(circle_at_50%_50%,rgba(85,85,85,0.1),#111)] text-[#555]'
   }
 
   switch (rarity) {
     case 'raro':
       return 'border border-[#1A7A4E] bg-[radial-gradient(circle_at_50%_50%,rgba(61,230,140,0.12),#0E1813)] text-[#2FA66A]'
     case 'epico':
-      return 'border border-[#9A7530] bg-[radial-gradient(circle_at_50%_50%,rgba(232,200,120,0.14),#12100C)] text-[#B89448]'
+      return 'border border-[#B85A20] bg-[radial-gradient(circle_at_50%_50%,rgba(255,107,26,0.14),#12100C)] text-[#FF6B1A]'
     case 'legendario':
-      return 'border border-[#B89448] bg-[radial-gradient(circle_at_50%_50%,rgba(232,200,120,0.22),#15110C)] text-[#8A6A28]'
+      return 'border border-[#B89448] bg-[radial-gradient(circle_at_50%_50%,rgba(232,200,120,0.22),#15110C)] text-[#E8C878]'
     default:
-      return 'border border-[#22382E] bg-[radial-gradient(circle_at_50%_50%,rgba(139,165,152,0.12),#141F1A)] text-[#5A7268]'
+      return 'border border-[#444] bg-[radial-gradient(circle_at_50%_50%,rgba(139,165,152,0.12),#141414)] text-[#8BA598]'
   }
 }
 
 export function discoClasses(rarity: string, locked: boolean): string {
   if (locked) {
-    return 'border border-[#2C4438] bg-[#1B2C24] text-[#8BA598]'
+    return 'border border-[#444] bg-[radial-gradient(circle_at_50%_35%,rgba(85,85,85,0.15),#111)] text-[#555]'
   }
 
   switch (rarity) {
     case 'raro':
       return 'border border-[#1FA968] bg-[radial-gradient(circle_at_50%_35%,rgba(61,230,140,0.25),#12241B)] text-[#3DE68C] shadow-[0_0_16px_rgba(61,230,140,0.08)]'
     case 'epico':
-      return 'border border-[#C79A3E] bg-[radial-gradient(circle_at_50%_35%,rgba(232,200,120,0.28),#1B1710)] text-[#E8C878] shadow-[0_0_16px_rgba(232,200,120,0.15)]'
+      return 'border border-[#FF6B1A] bg-[radial-gradient(circle_at_50%_35%,rgba(255,107,26,0.28),#1B120C)] text-[#FF6B1A] shadow-[0_0_16px_rgba(255,107,26,0.15)]'
     case 'legendario':
-      return 'border border-[#E8C878] bg-[radial-gradient(circle_at_50%_30%,rgba(255,243,208,0.4),rgba(232,200,120,0.15)_55%,#1B1710)] text-[#1B1710] shadow-[0_0_22px_rgba(232,200,120,0.35)] [&_svg]:stroke-[#3a2c0a]'
+      return 'border border-[#E8C878] bg-[radial-gradient(circle_at_50%_30%,rgba(255,243,208,0.4),rgba(232,200,120,0.15)_55%,#1B1710)] text-[#E8C878] shadow-[0_0_22px_rgba(232,200,120,0.35)]'
     default:
-      return 'border border-[#2C4438] bg-[#1B2C24] text-[#8BA598]'
+      return 'border border-[#8BA598] bg-[radial-gradient(circle_at_50%_35%,rgba(139,165,152,0.18),#141414)] text-[#8BA598]'
   }
 }
 
@@ -228,5 +228,21 @@ export function badgeRarityLabel(rarity: string): string {
       return 'Legendario'
     default:
       return 'Común'
+  }
+}
+
+/** Acento visual por rareza (leyenda vitrina + aro de medalla). */
+export function badgeRarityAccent(rarity: string, locked: boolean): string {
+  if (locked) return '#555555'
+
+  switch (rarity) {
+    case 'raro':
+      return '#3DE68C'
+    case 'epico':
+      return '#FF6B1A'
+    case 'legendario':
+      return '#E8C878'
+    default:
+      return '#8BA598'
   }
 }

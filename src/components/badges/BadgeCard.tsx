@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 import { BadgeIllustration } from '@/components/badges/BadgeIllustration'
-import { badgeCardClasses, badgeRarityLabel } from '@/components/badges/badge-disco-shared'
+import {
+  badgeCardClasses,
+  badgeRarityLabel,
+  discoBackClasses,
+} from '@/components/badges/badge-disco-shared'
 
 type Props = {
   iconKey: string
@@ -56,6 +60,7 @@ export function BadgeCard({
           <div className="badge-disco-face absolute inset-0">
             <BadgeIllustration
               iconKey={iconKey}
+              rarity={rarity}
               locked={locked}
               className="mx-auto h-full w-full"
             />
@@ -64,8 +69,10 @@ export function BadgeCard({
             className="badge-disco-face badge-disco-face-back absolute inset-0 grid place-items-center"
             aria-hidden
           >
-            <div className="flex h-[88px] w-full items-center justify-center rounded-lg bg-[#111]">
-              <svg viewBox="0 0 24 24" className="h-10 w-10 text-[#FF6B1A]/60" aria-hidden>
+            <div
+              className={`flex h-[88px] w-[88px] items-center justify-center rounded-full ${discoBackClasses(rarity, locked)}`}
+            >
+              <svg viewBox="0 0 24 24" className="h-10 w-10" aria-hidden>
                 <circle cx={12} cy={12} r={9} fill="none" stroke="currentColor" strokeWidth={1.4} />
                 <circle cx={12} cy={12} r={5} fill="none" stroke="currentColor" strokeWidth={1.2} />
               </svg>
