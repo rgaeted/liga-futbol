@@ -29,9 +29,22 @@ export default async function AdminPlayersPage({
   const [players, categories, teams, organization] = await Promise.all([
     db.player.findMany({
       where: { organizationId },
-      include: {
+      select: {
+        id: true,
+        personId: true,
+        dominantFoot: true,
+        primaryPosition: true,
+        secondaryPosition: true,
         person: {
-          include: { user: { select: { name: true, email: true } } },
+          select: {
+            firstName: true,
+            lastName: true,
+            updatedAt: true,
+            photoMimeType: true,
+            cardPhotoMimeType: true,
+            cardPhotoUpdatedAt: true,
+            user: { select: { name: true, email: true } },
+          },
         },
         categories: { select: { friendlyCategoryId: true } },
       },
@@ -77,6 +90,11 @@ export default async function AdminPlayersPage({
       hasAccount,
       registerPath: hasAccount ? null : playerRegisterPath(player.id, organizationSlug),
       hasPhoto: Boolean(player.person.photoMimeType),
+      hasCardPhoto: Boolean(
+        player.person.cardPhotoMimeType === 'image/png' &&
+          player.person.cardPhotoUpdatedAt,
+      ),
+      photoVersion: player.person.updatedAt.toISOString(),
       dominantFoot: player.dominantFoot,
       primaryPosition: player.primaryPosition,
       secondaryPosition: player.secondaryPosition,
@@ -124,10 +142,12 @@ export default async function AdminPlayersPage({
         </p>
       )}
       <FriendlyPlayersTable
+        organizationSlug={organizationSlug}
+        organizationName={organization?.name}
         players={filteredRows}
+        batchPlayers={rows}
         categories={categoryOptions}
         mergeOptions={mergeOptions}
-        organizationName={organization?.name}
       />
     </div>
   )

@@ -16,6 +16,7 @@ type Props = {
 export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Props) {
   const { player, estado, badgesRecientes } = card
   const enFormacion = estado === 'en_formacion'
+  const fotoEsRecorte = player.fotoEsRecorte
   const badgeCount = badgesRecientes?.length ?? 0
 
   const w = width
@@ -62,10 +63,10 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
-          left: w * 0.22,
-          top: h * 0.02,
-          width: w * 0.78,
-          height: h * 0.56,
+          left: w * 0.2,
+          top: h * 0.015,
+          width: w * 0.8,
+          height: h * 0.565,
           overflow: 'hidden',
         }}
       >
@@ -73,10 +74,27 @@ export function PlayerCardOgImage({ card, fotoUrl, escudoUrl, width = 420 }: Pro
         <img
           src={fotoUrl}
           alt=""
-          width={Math.round(w * 0.7)}
-          height={Math.round(h * 0.48)}
-          style={{ objectFit: 'cover', objectPosition: 'center 10%' }}
+          width={Math.round(w * 0.78)}
+          height={Math.round(h * 0.55)}
+          style={{
+            objectFit: fotoEsRecorte ? 'contain' : 'cover',
+            objectPosition: fotoEsRecorte ? 'center bottom' : 'center 10%',
+          }}
         />
+        {!fotoEsRecorte ? (
+          <div
+            style={{
+              position: 'absolute',
+              display: 'flex',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: h * 0.16,
+              background:
+                'linear-gradient(to bottom, rgba(11,18,16,0), rgba(11,18,16,0.96))',
+            }}
+          />
+        ) : null}
       </div>
 
       <div

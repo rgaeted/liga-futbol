@@ -173,16 +173,19 @@ model UserFormationTemplate {
 }
 
 model Person {
-  id            String   @id @default(cuid())
-  userId        String?  @unique
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  firstName     String
-  lastName      String
-  photoMimeType String?
-  photoData     Bytes?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  players          Player[]
+  id                 String   @id @default(cuid())
+  userId             String?  @unique
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  firstName          String
+  lastName           String
+  photoMimeType      String?
+  photoData          Bytes?
+  cardPhotoMimeType  String?
+  cardPhotoData      Bytes?
+  cardPhotoUpdatedAt DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  players            Player[]
 }
 
 model Organization {

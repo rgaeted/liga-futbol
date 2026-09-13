@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import {
@@ -26,6 +27,9 @@ export async function GET(
     headers: {
       'Content-Type': player.person.photoMimeType!,
       'Cache-Control': 'public, max-age=86400',
+      ETag: `"${createHash('sha256')
+        .update(player.person.photoData!)
+        .digest('hex')}"`,
     },
   })
 }
@@ -55,12 +59,22 @@ export async function POST(
 
   await db.person.update({
     where: { id: exists.personId },
-    data: { photoMimeType: mimeType, photoData: buffer },
+    data: {
+      photoMimeType: mimeType,
+      photoData: buffer,
+      cardPhotoMimeType: null,
+      cardPhotoData: null,
+      cardPhotoUpdatedAt: null,
+    },
   })
 
   await revalidateOrgAdminRosterPages(exists.organizationId)
 
-  return NextResponse.json({ ok: true })
+  const sourceEtag = `"${createHash('sha256').update(buffer).digest('hex')}"`
+  return NextResponse.json(
+    { ok: true, sourceEtag },
+    { headers: { ETag: sourceEtag } },
+  )
 }
 
 export async function DELETE(
@@ -74,7 +88,13 @@ export async function DELETE(
   const exists = access.player
   await db.person.update({
     where: { id: exists.personId },
-    data: { photoMimeType: null, photoData: null },
+    data: {
+      photoMimeType: null,
+      photoData: null,
+      cardPhotoMimeType: null,
+      cardPhotoData: null,
+      cardPhotoUpdatedAt: null,
+    },
   })
   await revalidateOrgAdminRosterPages(exists.organizationId)
   return NextResponse.json({ ok: true })

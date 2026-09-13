@@ -39,7 +39,8 @@ describe('GET /api/players/[id]/card', () => {
           nombreCorto: 'F. Opitz',
           posicion: 'DEL',
           equipo: 'Blancos',
-          fotoUrl: '/api/players/p1/photo',
+          fotoUrl: '/api/players/p1/card-photo?v=1789272367000',
+          fotoEsRecorte: true,
           escudoUrl: '/branding/loslunes-logo.png',
           premio: null,
         },
@@ -71,6 +72,14 @@ describe('GET /api/players/[id]/card', () => {
       params: Promise.resolve({ id: 'p1' }),
     })
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toMatchObject({ ovr: 86, estado: 'completa' })
+    await expect(res.json()).resolves.toMatchObject({
+      player: {
+        id: 'p1',
+        fotoUrl: '/api/players/p1/card-photo?v=1789272367000',
+        fotoEsRecorte: true,
+      },
+      ovr: 86,
+      estado: 'completa',
+    })
   })
 })

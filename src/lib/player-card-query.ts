@@ -13,7 +13,8 @@ import { getPlayerEarnedBadgesForCard } from '@/lib/badges/query'
 import { db } from '@/lib/db'
 import { APP_TIMEZONE } from '@/lib/locale'
 import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
-import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
+import { playerDisplayName } from '@/lib/person-name'
+import { playerCardPhotoUrl } from '@/lib/player-card-photo'
 
 function isoDateInAppTz(d: Date): string {
   return new Intl.DateTimeFormat('en-CA', {
@@ -32,6 +33,7 @@ export type PlayerCardDto = {
     posicion: PlayerCardPosition
     equipo: string | null
     fotoUrl: string
+    fotoEsRecorte: boolean
     escudoUrl: string
     premio: string | null
   }
@@ -67,13 +69,25 @@ export async function getLosLunesPlayerCard(
 > {
   const player = await db.player.findUnique({
     where: { id: playerId },
-    include: {
+    select: {
+      organizationId: true,
+      primaryPosition: true,
+      position: true,
       organization: { select: { slug: true, status: true, badgesEnabled: true } },
-      ...PLAYER_PERSON_NAME_INCLUDE,
+      person: {
+        select: {
+          firstName: true,
+          lastName: true,
+          cardPhotoMimeType: true,
+          cardPhotoUpdatedAt: true,
+          updatedAt: true,
+          user: { select: { name: true } },
+        },
+      },
       playerAwards: {
         orderBy: { awardedAt: 'desc' },
         take: 1,
-        include: { orgAward: { select: { name: true } } },
+        select: { orgAward: { select: { name: true } } },
       },
     },
   })
@@ -140,6 +154,9 @@ export async function getLosLunesPlayerCard(
 
   const nombre = playerDisplayName(player)
   const premio = player.playerAwards[0]?.orgAward.name ?? null
+  const fotoEsRecorte =
+    player.person.cardPhotoMimeType === 'image/png' &&
+    player.person.cardPhotoUpdatedAt != null
   const badgesRecientes = player.organization.badgesEnabled
     ? await getPlayerEarnedBadgesForCard(player.organizationId, playerId)
     : undefined
@@ -153,7 +170,11 @@ export async function getLosLunesPlayerCard(
         nombreCorto: playerCardShortName(nombre),
         posicion: card.posicion,
         equipo: window.lastSideName,
-        fotoUrl: `/api/players/${playerId}/photo`,
+        fotoUrl: playerCardPhotoUrl(
+          playerId,
+          player.person.cardPhotoUpdatedAt ?? player.person.updatedAt,
+        ),
+        fotoEsRecorte,
         escudoUrl: LOSLUNES_LOGO_PATH,
         premio,
       },

@@ -68,6 +68,9 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     method === 'POST' && pathname === '/api/players/claim'
   const isPlayerCardGet =
     (method === 'GET' || method === 'HEAD') && /^\/api\/players\/[^/]+\/card$/.test(pathname)
+  const isPlayerCardPhotoGet =
+    (method === 'GET' || method === 'HEAD') &&
+    /^\/api\/players\/[^/]+\/card-photo$/.test(pathname)
   const isTenantPublicGet =
     (method === 'GET' || method === 'HEAD') &&
     (tenantLive.test(pathname) || tenantAyuda.test(pathname))
@@ -99,7 +102,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isTenantIconGet(method, pathname) ||
     isTenantFriendlyMatchPageGet(method, pathname) ||
     isTenantPlayerCardGet(method, pathname) ||
-    isPlayerCardGet
+    isPlayerCardGet ||
+    isPlayerCardPhotoGet
   )
 }
 

@@ -170,4 +170,10 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/kelme/jugador/player-1')).toBe(true)
     expect(isPublicRequest('POST', '/loslunes/jugador/player-1')).toBe(false)
   })
+
+  it('makes only GET and HEAD player card photos public', () => {
+    expect(isPublicRequest('GET', '/api/players/player-1/card-photo')).toBe(true)
+    expect(isPublicRequest('HEAD', '/api/players/player-1/card-photo')).toBe(true)
+    expect(isPublicRequest('POST', '/api/players/player-1/card-photo')).toBe(false)
+  })
 })

@@ -14,6 +14,8 @@ import { FriendlyCategoryCheckboxes } from './FriendlyCategoryCheckboxes'
 import { PersonCareerBlock } from './PersonCareerBlock'
 import { PersonMergeDialog } from './PersonMergeDialog'
 import { CopyRegisterLinkButton } from './CopyRegisterLinkButton'
+import { PlayerCardPhotoBatchProcessor } from './PlayerCardPhotoBatchProcessor'
+import { LOSLUNES_SLUG } from '@/lib/org-brand'
 import type { DominantFoot } from '@prisma/client'
 
 export type FriendlyPlayerRow = {
@@ -25,6 +27,8 @@ export type FriendlyPlayerRow = {
   hasAccount: boolean
   registerPath: string | null
   hasPhoto: boolean
+  hasCardPhoto: boolean
+  photoVersion: string
   dominantFoot: DominantFoot | null
   primaryPosition: string | null
   secondaryPosition: string | null
@@ -35,13 +39,17 @@ type CategoryOption = { id: string; name: string }
 
 export function FriendlyPlayersTable({
   players,
+  batchPlayers,
   categories,
   mergeOptions,
+  organizationSlug,
   organizationName,
 }: {
   players: FriendlyPlayerRow[]
+  batchPlayers: FriendlyPlayerRow[]
   categories: CategoryOption[]
   mergeOptions: Array<{ personId: string; label: string }>
+  organizationSlug: string
   organizationName?: string | null
 }) {
   const router = useRouter()
@@ -111,8 +119,20 @@ export function FriendlyPlayersTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-kelme-border">
-      <table className="w-full text-left text-sm">
+    <div className="space-y-4">
+      {organizationSlug === LOSLUNES_SLUG ? (
+        <PlayerCardPhotoBatchProcessor
+          players={batchPlayers.map((player) => ({
+            id: player.id,
+            name: `${player.firstName} ${player.lastName}`.trim(),
+            hasPhoto: player.hasPhoto,
+            hasCardPhoto: player.hasCardPhoto,
+            photoVersion: player.photoVersion,
+          }))}
+        />
+      ) : null}
+      <div className="overflow-x-auto rounded-lg border border-kelme-border">
+        <table className="w-full text-left text-sm">
         <thead className="bg-kelme-surface">
           <tr>
             <th className="p-3">Foto</th>
@@ -262,7 +282,8 @@ export function FriendlyPlayersTable({
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   )
 }

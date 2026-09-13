@@ -122,12 +122,12 @@ export function PlayerCard({ card }: Props) {
 
       {/* Foto — recorte tipo FIFA, torso sobre el escudo */}
       <div
-        className="pointer-events-none absolute z-[1] flex items-end justify-center overflow-visible"
+        className="pointer-events-none absolute z-[1] flex items-end justify-center overflow-hidden"
         style={{
-          left: `${w * 0.22}px`,
-          top: `${h * 0.02}px`,
-          width: `${w * 0.78}px`,
-          height: `${h * 0.56}px`,
+          left: `${w * 0.2}px`,
+          top: `${h * 0.015}px`,
+          width: `${w * 0.8}px`,
+          height: `${h * 0.565}px`,
         }}
       >
         <div
@@ -138,7 +138,8 @@ export function PlayerCard({ card }: Props) {
         />
         <PlayerCardPhoto
           fotoUrl={player.fotoUrl}
-          alt={player.nombre}
+          fotoEsRecorte={player.fotoEsRecorte}
+          alt={`Foto de ${player.nombre}`}
           initials={personInitials(player.nombreCorto)}
           variant="shield"
         />
