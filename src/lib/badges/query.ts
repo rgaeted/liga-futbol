@@ -176,3 +176,38 @@ export async function getPlayerRecentBadges(
     name: grant.orgBadge.name,
   }))
 }
+
+/** Insignias distintas ganadas, las más recientes primero (para la carta). */
+export async function getPlayerEarnedBadgesForCard(
+  organizationId: string,
+  playerId: string,
+  limit = 12,
+): Promise<Array<{ rarity: string; iconKey: string; name: string }>> {
+  const org = await db.organization.findUnique({
+    where: { id: organizationId },
+    select: { badgesEnabled: true },
+  })
+  if (!org?.badgesEnabled) return []
+
+  const grants = await db.playerBadge.findMany({
+    where: { playerId, organizationId },
+    orderBy: { awardedAt: 'desc' },
+    include: {
+      orgBadge: { select: { id: true, name: true, rarity: true, iconKey: true } },
+    },
+  })
+
+  const seen = new Set<string>()
+  const earned: Array<{ rarity: string; iconKey: string; name: string }> = []
+  for (const grant of grants) {
+    if (seen.has(grant.orgBadge.id)) continue
+    seen.add(grant.orgBadge.id)
+    earned.push({
+      rarity: grant.orgBadge.rarity,
+      iconKey: grant.orgBadge.iconKey,
+      name: grant.orgBadge.name,
+    })
+    if (earned.length >= limit) break
+  }
+  return earned
+}

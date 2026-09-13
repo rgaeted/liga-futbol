@@ -9,7 +9,7 @@ import {
   type PlayerCardPosition,
 } from '@/lib/player-card'
 import { aggregatePlayerCardWindow } from '@/lib/player-card-window'
-import { getPlayerRecentBadges } from '@/lib/badges/query'
+import { getPlayerEarnedBadgesForCard } from '@/lib/badges/query'
 import { db } from '@/lib/db'
 import { APP_TIMEZONE } from '@/lib/locale'
 import { LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
@@ -141,7 +141,7 @@ export async function getLosLunesPlayerCard(
   const nombre = playerDisplayName(player)
   const premio = player.playerAwards[0]?.orgAward.name ?? null
   const badgesRecientes = player.organization.badgesEnabled
-    ? await getPlayerRecentBadges(player.organizationId, playerId)
+    ? await getPlayerEarnedBadgesForCard(player.organizationId, playerId)
     : undefined
 
   return {

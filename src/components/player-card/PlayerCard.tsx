@@ -1,17 +1,10 @@
 import { useId } from 'react'
-import { PLAYER_CARD_HOT_THRESHOLD } from '@/lib/player-card'
 import type { PlayerCardDto } from '@/lib/player-card-query'
 import {
-  formatPlayerCardStat,
   PLAYER_CARD_PALETTE as PALETTE,
-  PLAYER_CARD_STAT_LABELS as STAT_LABELS,
-  PLAYER_CARD_STAT_PAIRS as STAT_PAIRS,
-  playerCardGolPorPartido,
   playerCardShieldHeight,
   playerCardShieldPath,
 } from '@/lib/player-card-shield'
-
-const CARD_FONT = 'font-[family-name:var(--font-oswald)]'
 import { personInitials } from '@/lib/player-name'
 import { BadgeDisco } from '@/components/badges/BadgeDisco'
 import { PlayerCardPhoto } from '@/components/player-card/PlayerCardPhoto'
@@ -19,6 +12,8 @@ import { PlayerCardPhoto } from '@/components/player-card/PlayerCardPhoto'
 type Props = {
   card: PlayerCardDto
 }
+
+const CARD_FONT = 'font-[family-name:var(--font-oswald)]'
 
 function formationBadgeText(partidosFaltantes: number): string {
   if (partidosFaltantes === 1) {
@@ -29,10 +24,9 @@ function formationBadgeText(partidosFaltantes: number): string {
 
 export function PlayerCard({ card }: Props) {
   const uid = useId()
-  const { player, ventana, crudos, atributos, ovr, estado, partidosFaltantes, badgesRecientes } =
-    card
+  const { player, estado, partidosFaltantes, badgesRecientes } = card
   const enFormacion = estado === 'en_formacion'
-  const recentBadges = badgesRecientes?.slice(0, 4) ?? []
+  const earnedBadges = badgesRecientes ?? []
 
   const w = 310
   const h = playerCardShieldHeight(w)
@@ -126,20 +120,20 @@ export function PlayerCard({ card }: Props) {
         />
       </svg>
 
-      {/* Foto — zona superior derecha del escudo */}
+      {/* Foto — recorte tipo FIFA, torso sobre el escudo */}
       <div
-        className="absolute z-[1] flex items-end justify-center overflow-hidden"
+        className="pointer-events-none absolute z-[1] flex items-end justify-center overflow-visible"
         style={{
-          left: `${w * 0.28}px`,
-          top: `${h * 0.03}px`,
-          width: `${w * 0.7}px`,
-          height: `${h * 0.5}px`,
+          left: `${w * 0.22}px`,
+          top: `${h * 0.02}px`,
+          width: `${w * 0.78}px`,
+          height: `${h * 0.56}px`,
         }}
       >
         <div
-          className="pointer-events-none absolute bottom-[8%] h-[55%] w-[55%] rounded-full"
+          className="absolute bottom-[4%] left-1/2 h-[62%] w-[62%] -translate-x-1/2 rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(61,230,140,0.22), transparent 68%)',
+            background: 'radial-gradient(circle, rgba(61,230,140,0.18), transparent 70%)',
           }}
         />
         <PlayerCardPhoto
@@ -150,35 +144,19 @@ export function PlayerCard({ card }: Props) {
         />
       </div>
 
-      {/* OVR · posición · escudo */}
+      {/* Posición · escudo */}
       <div
         className="absolute z-10 flex flex-col items-center text-center"
         style={{
-          top: `${h * 0.1}px`,
+          top: `${h * 0.12}px`,
           left: `${w * 0.07}px`,
-          gap: `${3 * s}px`,
+          gap: `${4 * s}px`,
         }}
       >
         <div
-          className={`${CARD_FONT} leading-[0.9]`}
+          className={`rounded-md border px-2 py-0.5 ${CARD_FONT} tracking-wide`}
           style={{
-            fontSize: `${44 * s}px`,
-            color: PALETTE.num,
-            textShadow: `0 0 ${10 * s}px rgba(232,200,120,0.35)`,
-          }}
-        >
-          {ovr ?? '–'}
-        </div>
-        <div
-          className="text-[11px] font-bold tracking-[0.25em]"
-          style={{ color: PALETTE.muted }}
-        >
-          OVR
-        </div>
-        <div
-          className={`mt-0.5 rounded-md border px-2 py-px ${CARD_FONT} tracking-wide`}
-          style={{
-            fontSize: `${14 * s}px`,
+            fontSize: `${16 * s}px`,
             borderColor: 'rgba(61,230,140,0.35)',
             background: 'rgba(61,230,140,0.14)',
             color: PALETTE.text,
@@ -186,16 +164,12 @@ export function PlayerCard({ card }: Props) {
         >
           {player.posicion}
         </div>
-        <div
-          className="my-0.5 h-px w-[26px]"
-          style={{ background: `${PALETTE.muted}44` }}
-        />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={player.escudoUrl}
           alt=""
           className="object-contain drop-shadow-md"
-          style={{ width: `${28 * s}px`, height: `${28 * s}px` }}
+          style={{ width: `${32 * s}px`, height: `${32 * s}px` }}
         />
         {player.equipo ? (
           <span
@@ -239,104 +213,33 @@ export function PlayerCard({ card }: Props) {
         }}
       />
 
-      {/* Stats 2 columnas */}
+      {/* Insignias ganadas */}
       <div
-        className="absolute z-10 flex"
-        style={{
-          top: `${h * 0.625}px`,
-          left: `${w * 0.12}px`,
-          right: `${w * 0.12}px`,
-        }}
+        className="absolute z-10 px-3 text-center"
+        style={{ top: `${h * 0.62}px`, left: 0, right: 0 }}
       >
-        {[0, 1].map((col) => (
-          <div
-            key={col}
-            className="flex flex-1 flex-col items-center"
-            style={{
-              gap: `${4 * s}px`,
-              paddingLeft: col === 1 ? `${8 * s}px` : 0,
-              paddingRight: col === 0 ? `${8 * s}px` : 0,
-              borderLeft: col === 1 ? `1px solid ${PALETTE.muted}33` : undefined,
-            }}
-          >
-            {STAT_PAIRS.map((pair) => {
-              const key = pair[col]
-              const value = atributos[key]
-              const hot = value !== null && value >= PLAYER_CARD_HOT_THRESHOLD
-              return (
-                <div
-                  key={key}
-                  className="flex w-full items-baseline justify-start gap-1.5"
-                  style={{ maxWidth: `${72 * s}px` }}
-                >
-                  <span
-                    className={`min-w-[22px] ${CARD_FONT}`}
-                    style={{
-                      fontSize: `${18 * s}px`,
-                      color: hot ? PALETTE.lines : PALETTE.text,
-                    }}
-                  >
-                    {formatPlayerCardStat(value)}
-                  </span>
-                  <span
-                    className="text-[10px] font-bold tracking-[0.12em]"
-                    style={{ color: PALETTE.muted }}
-                  >
-                    {STAT_LABELS[key]}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* Badges recientes */}
-      {recentBadges.length > 0 ? (
-        <div
-          className="absolute z-10 flex justify-center gap-1.5"
-          style={{ top: `${h * 0.82}px`, left: 0, right: 0 }}
+        <span
+          className="text-[9px] font-bold uppercase tracking-[0.22em]"
+          style={{ color: PALETTE.muted }}
         >
-          {recentBadges.map((badge) => (
-            <BadgeDisco
-              key={`${badge.iconKey}-${badge.name}`}
-              rarity={badge.rarity}
-              iconKey={badge.iconKey}
-              size="sm"
-            />
-          ))}
-        </div>
-      ) : null}
-
-      {/* Pie stats */}
-      <div
-        className="absolute z-10 flex justify-between"
-        style={{
-          top: `${h * 0.875}px`,
-          left: `${w * 0.1}px`,
-          right: `${w * 0.1}px`,
-        }}
-      >
-        {[
-          { label: 'Goles 30d', value: String(crudos.goles) },
-          { label: 'Asist 30d', value: String(crudos.asistencias) },
-          { label: 'Gol/PJ', value: playerCardGolPorPartido(crudos.goles, ventana.pj) },
-        ].map(({ label, value }) => (
-          <div key={label} className="flex-1 text-center">
-            <b
-              className={`block ${CARD_FONT}`}
-              style={{ fontSize: `${15 * s}px`, color: PALETTE.num }}
-            >
-              {value}
-            </b>
-            <span
-              className="text-[8px] font-bold uppercase tracking-[0.12em]"
-              style={{ color: PALETTE.muted }}
-            >
-              {label}
-            </span>
+          Insignias
+        </span>
+        {earnedBadges.length > 0 ? (
+          <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+            {earnedBadges.map((badge) => (
+              <span key={`${badge.iconKey}-${badge.name}`} title={badge.name}>
+                <BadgeDisco rarity={badge.rarity} iconKey={badge.iconKey} size="sm" />
+              </span>
+            ))}
           </div>
-        ))}
+        ) : (
+          <p
+            className="mt-2 text-[10px] font-semibold leading-snug"
+            style={{ color: `${PALETTE.muted}cc` }}
+          >
+            Aún sin insignias en la cancha
+          </p>
+        )}
       </div>
 
       <div
