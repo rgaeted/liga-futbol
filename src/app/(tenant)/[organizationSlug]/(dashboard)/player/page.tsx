@@ -11,6 +11,7 @@ import {
   LeagueMatchList,
   UpcomingMatchesPanel,
 } from '@/components/player/PlayerMatchCards'
+import { PlayerPanelCardSection } from '@/components/player/PlayerPanelCardSection'
 import { PlayerPanelHero } from '@/components/player/PlayerPanelHero'
 import { PlayerPanelSection } from '@/components/player/PlayerPanelSection'
 import { PlayerResultsCard } from '@/components/player/PlayerResultsCard'
@@ -167,7 +168,16 @@ export default async function PlayerDashboardPage({
         card={card}
         showCardLink={showCardLink}
         showBadgesLink={showBadgesLink}
+        cardEmbedded={Boolean(card)}
       />
+
+      {card ? (
+        <PlayerPanelCardSection
+          card={card}
+          organizationSlug={organizationSlug}
+          playerId={player.id}
+        />
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <PlayerResultsCard
@@ -175,6 +185,8 @@ export default async function PlayerDashboardPage({
           results={matchResults}
           mvpCount={mvpCount}
           lastAssistLabel={lastAssistLabel}
+          playedCount={playedCount}
+          card={card}
         />
 
         <div className="flex flex-col gap-4">

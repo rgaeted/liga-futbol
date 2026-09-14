@@ -19,6 +19,7 @@ type Props = {
   card: PlayerCardDto | null
   showBadgesLink: boolean
   showCardLink: boolean
+  cardEmbedded?: boolean
 }
 
 const FORM_LABELS: Record<FormResult, string> = { W: 'V', D: 'E', L: 'D' }
@@ -42,6 +43,7 @@ export function PlayerPanelHero({
   card,
   showBadgesLink,
   showCardLink,
+  cardEmbedded = false,
 }: Props) {
   const displayPosition = card?.player.posicion ?? position ?? '—'
   const initials = personInitials(`${firstName} ${lastName}`)
@@ -98,12 +100,21 @@ export function PlayerPanelHero({
 
         <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:justify-end">
           {showCardLink ? (
-            <Link
-              href={orgPath(organizationSlug, `/jugador/${playerId}?from=player`)}
-              className="rounded-lg bg-[#C91F26] px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:bg-[#9A181E]"
-            >
-              Ver mi carta
-            </Link>
+            cardEmbedded ? (
+              <a
+                href="#mi-carta"
+                className="rounded-lg bg-[#C91F26] px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:bg-[#9A181E]"
+              >
+                Ver mi carta
+              </a>
+            ) : (
+              <Link
+                href={orgPath(organizationSlug, `/jugador/${playerId}?from=player`)}
+                className="rounded-lg bg-[#C91F26] px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:bg-[#9A181E]"
+              >
+                Ver mi carta
+              </Link>
+            )
           ) : null}
           {showBadgesLink ? (
             <Link

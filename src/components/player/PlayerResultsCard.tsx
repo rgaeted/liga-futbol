@@ -1,3 +1,4 @@
+import type { PlayerCardDto } from '@/lib/player-card-query'
 import type { PlayerMatchResults } from '@/lib/player-match-results'
 import type { PlayerOrgEventStats } from '@/lib/player-org-stats'
 import { APP_LOCALE } from '@/lib/locale'
@@ -7,9 +8,18 @@ type Props = {
   results: PlayerMatchResults
   mvpCount: number
   lastAssistLabel: string | null
+  playedCount: number
+  card?: PlayerCardDto | null
 }
 
-export function PlayerResultsCard({ stats, results, mvpCount, lastAssistLabel }: Props) {
+export function PlayerResultsCard({
+  stats,
+  results,
+  mvpCount,
+  lastAssistLabel,
+  playedCount,
+  card,
+}: Props) {
   const played = results.won + results.drawn + results.lost
   const winRate = played > 0 ? Math.round((results.won / played) * 100) : 0
   const goalsPerMatch =
@@ -19,6 +29,7 @@ export function PlayerResultsCard({ stats, results, mvpCount, lastAssistLabel }:
   const wonPct = played > 0 ? (results.won / played) * 100 : 0
   const drawnPct = played > 0 ? (results.drawn / played) * 100 : 0
   const lostPct = played > 0 ? (results.lost / played) * 100 : 0
+  const goalContributions = stats.goals + stats.assists
 
   return (
     <section className="h-full rounded-2xl border border-[#2A3A32] bg-[#121A18] p-5">
@@ -74,11 +85,65 @@ export function PlayerResultsCard({ stats, results, mvpCount, lastAssistLabel }:
         </div>
       </div>
 
+      <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <MiniStat label="Partidos" value={playedCount} />
+        <MiniStat label="G + A" value={goalContributions} hint="Goles más asistencias" />
+        {card ? (
+          <>
+            <MiniStat label="Presencias" value={card.crudos.presencias} hint="Ventana carta" />
+            <MiniStat
+              label="OVR"
+              value={card.ovr ?? '—'}
+              hint={card.estado === 'en_formacion' ? 'Carta en formación' : 'Rating carta'}
+            />
+            <MiniStat label="Racha goles" value={card.crudos.rachaGoleadora} />
+            <MiniStat label="Racha presencia" value={card.crudos.rachaPresencia} />
+            <MiniStat label="MVPs carta" value={card.crudos.mvps} hint="Ventana carta" />
+            <MiniStat
+              label="PJ ventana"
+              value={`${card.ventana.pj}/${card.ventana.minPj}`}
+              hint={`Últimos ${card.ventana.dias} días`}
+            />
+          </>
+        ) : (
+          <>
+            <MiniStat label="Ganados" value={results.won} accent="win" />
+            <MiniStat label="Empatados" value={results.drawn} />
+            <MiniStat label="Perdidos" value={results.lost} accent="loss" />
+          </>
+        )}
+      </div>
+
       <div className="mt-4 flex gap-2">
         <DisciplinePill label="Amarillas" value={stats.yellowCards} />
         <DisciplinePill label="Rojas" value={stats.redCards} />
       </div>
     </section>
+  )
+}
+
+function MiniStat({
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  label: string
+  value: number | string
+  hint?: string
+  accent?: 'win' | 'loss'
+}) {
+  const valueColor =
+    accent === 'win' ? 'text-[#3DE68C]' : accent === 'loss' ? 'text-[#E06055]' : 'text-[#E8E4D8]'
+
+  return (
+    <div className="rounded-lg border border-[#2A3A32] bg-[#0B1210] px-3 py-2.5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8A938C]">{label}</p>
+      <p className={`font-[family-name:var(--font-anton)] text-2xl leading-none ${valueColor}`}>
+        {value}
+      </p>
+      {hint ? <p className="mt-0.5 text-[10px] text-[#8A938C]/80">{hint}</p> : null}
+    </div>
   )
 }
 

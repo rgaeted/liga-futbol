@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { BadgeVitrina } from '@/components/badges/BadgeVitrina'
 import { PlayerCard } from '@/components/player-card/PlayerCard'
@@ -86,6 +86,10 @@ export default async function PlayerCardPage({
   const showVitrina = vitrina.kind === 'ok'
 
   if (!showCard && !showVitrina) notFound()
+
+  if (from === 'player' && showCard) {
+    redirect(`/${organizationSlug}/player#mi-carta`)
+  }
 
   const path = `/${organizationSlug}/jugador/${playerId}`
   const back = playerCardBackLink(organizationSlug, from)
