@@ -161,7 +161,8 @@ export default async function PlayerDashboardPage({
         position={playerWithTeam.position}
         photoUrl={photoUrl}
         playedCount={playedCount}
-        results={matchResults}
+        goals={eventStats.goals}
+        assists={eventStats.assists}
         form={form}
         card={card}
       />

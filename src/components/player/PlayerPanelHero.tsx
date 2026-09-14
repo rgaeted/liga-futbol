@@ -1,7 +1,6 @@
 import type { PlayerCardDto } from '@/lib/player-card-query'
-import type { PlayerMatchResults } from '@/lib/player-match-results'
 import type { FormResult } from '@/lib/player-form-streak'
-import { playerPanelVibe } from '@/lib/player-panel-vibe'
+import { APP_LOCALE } from '@/lib/locale'
 import { personInitials } from '@/lib/player-name'
 
 type Props = {
@@ -11,9 +10,18 @@ type Props = {
   position: string | null
   photoUrl: string | null
   playedCount: number
-  results: PlayerMatchResults
+  goals: number
+  assists: number
   form: FormResult[]
   card: PlayerCardDto | null
+}
+
+function formatPerMatch(value: number, played: number): string {
+  if (played <= 0) return '0,00'
+  return (value / played).toLocaleString(APP_LOCALE, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 const FORM_LABELS: Record<FormResult, string> = { W: 'V', D: 'E', L: 'D' }
@@ -31,13 +39,13 @@ export function PlayerPanelHero({
   position,
   photoUrl,
   playedCount,
-  results,
+  goals,
+  assists,
   form,
   card,
 }: Props) {
   const displayPosition = card?.player.posicion ?? position ?? '—'
   const initials = personInitials(`${firstName} ${lastName}`)
-  const vibe = playerPanelVibe(form, playedCount, results)
 
   return (
     <section className="rounded-2xl border border-[#2A3A32] bg-[#121A18] p-5 sm:p-6">
@@ -89,22 +97,50 @@ export function PlayerPanelHero({
           </div>
         </div>
 
-        <aside className="relative overflow-hidden rounded-xl border border-[#2A3A32] bg-[#0B1210] px-4 py-3 lg:max-w-[220px] lg:shrink-0">
-          <span
-            className="pointer-events-none absolute -right-2 -top-3 select-none text-5xl opacity-20"
-            aria-hidden
-          >
-            {vibe.emoji}
-          </span>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#3DE68C]">
-            Tu vibe
-          </p>
-          <p className="mt-1 font-[family-name:var(--font-anton)] text-lg uppercase tracking-wide text-[#E8E4D8]">
-            {vibe.title}
-          </p>
-          <p className="mt-1 text-xs leading-snug text-[#8A938C]">{vibe.subtitle}</p>
+        <aside className="grid grid-cols-2 gap-2 sm:gap-3 lg:max-w-[240px] lg:shrink-0">
+          <HeroHighlightStat
+            label="Goles"
+            value={goals}
+            perMatch={formatPerMatch(goals, playedCount)}
+            accent
+          />
+          <HeroHighlightStat
+            label="Asistencias"
+            value={assists}
+            perMatch={formatPerMatch(assists, playedCount)}
+          />
         </aside>
       </div>
     </section>
+  )
+}
+
+function HeroHighlightStat({
+  label,
+  value,
+  perMatch,
+  accent = false,
+}: {
+  label: string
+  value: number
+  perMatch: string
+  accent?: boolean
+}) {
+  return (
+    <div
+      className={`rounded-xl border bg-[#0B1210] px-2.5 py-3 text-center ${
+        accent ? 'border-[#C91F26]/50' : 'border-[#2A3A32]'
+      }`}
+    >
+      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8A938C]">{label}</p>
+      <p
+        className={`font-[family-name:var(--font-anton)] text-2xl leading-none ${
+          accent ? 'text-[#C91F26]' : 'text-[#E8E4D8]'
+        }`}
+      >
+        {value}
+      </p>
+      <p className="mt-1 text-[10px] leading-tight text-[#8A938C]">{perMatch} por partido</p>
+    </div>
   )
 }
