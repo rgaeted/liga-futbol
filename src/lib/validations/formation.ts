@@ -19,7 +19,7 @@ export const upsertMatchFormationSchema = z
     side: z.enum(['A', 'B']).optional(),
     slots: z.array(slot).default([]),
     benchPlayerIds: z.array(id).optional(),
-    slotLayout: z.record(z.string(), slotLayoutEntry).optional(),
+    slotLayout: z.record(z.string(), slotLayoutEntry).nullish(),
   })
   .superRefine((data, ctx) => {
     const hasTeam = Boolean(data.teamId)

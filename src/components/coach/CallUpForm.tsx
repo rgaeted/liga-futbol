@@ -7,12 +7,14 @@ import { FormationEditor, type FormationSavePayload } from '@/components/lineup/
 import type { SlotLayout } from '@/lib/formation-slot-layout'
 import { minCallUpSize } from '@/lib/football-format'
 import { normalizeSchemeForFormat } from '@/lib/formations'
+import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { playerDisplayName, type PlayerNameSource } from '@/lib/person-name'
 
 type Player = PlayerNameSource & {
   id: string
   jerseyNumber: number | null
   position: string | null
+  person: PlayerNameSource['person'] & { photoMimeType?: string | null }
 }
 
 export function CallUpForm({
@@ -50,6 +52,7 @@ export function CallUpForm({
       id: p.id,
       label: `#${p.jerseyNumber ?? '—'} ${playerDisplayName(p)}${p.position ? ` (${p.position})` : ''}`,
       primaryPosition: p.position,
+      photoUrl: p.person.photoMimeType ? friendlyPlayerPhotoUrl(p.id) : null,
     }))
 
   const filteredInitialSlots: Record<string, string> = {}

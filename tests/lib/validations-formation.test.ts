@@ -52,4 +52,17 @@ describe('upsertMatchFormationSchema', () => {
     })
     expect(result.success).toBe(false)
   })
+
+  it('accepts null slotLayout when positions were not customized', () => {
+    const result = upsertMatchFormationSchema.safeParse({
+      side: 'A',
+      scheme: '4-4-2',
+      slots: [{ slotKey: 'GK', playerId: 'p1' }],
+      slotLayout: null,
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.slotLayout).toBeNull()
+    }
+  })
 })

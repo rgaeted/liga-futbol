@@ -18,9 +18,38 @@ import {
   isCustomSchemeValue,
   resolveEditorSchemeSelection,
 } from '@/lib/user-formation-templates'
+import { personInitials } from '@/lib/player-name'
 import { FormationPitch } from './FormationPitch'
 import { FormationFitScore, PlayerFitBadge } from './FormationFitScore'
 import { useFormationTemplates } from './useFormationTemplates'
+
+function ListPlayerAvatar({
+  label,
+  photoUrl,
+}: {
+  label: string
+  photoUrl?: string | null
+}) {
+  if (photoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photoUrl}
+        alt=""
+        className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-kelme-border"
+      />
+    )
+  }
+
+  return (
+    <span
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-kelme-gray-100 text-xs font-semibold text-kelme-gray-600 ring-1 ring-kelme-border"
+      aria-hidden
+    >
+      {personInitials(label)}
+    </span>
+  )
+}
 
 export type EditorPlayer = {
   id: string
@@ -429,7 +458,10 @@ export function FormationEditor({
                       : 'border-kelme-border bg-kelme-surface'
                   }`}
                 >
-                  <span className="min-w-0 truncate">{p.label}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <ListPlayerAvatar label={p.label} photoUrl={p.photoUrl} />
+                    <span className="min-w-0 truncate">{p.label}</span>
+                  </span>
                   <span className="flex shrink-0 items-center gap-2 text-xs text-kelme-gray-400">
                     {fitScore !== null && <PlayerFitBadge score={fitScore} />}
                     {inPitch ? 'En cancha' : 'Banco'}

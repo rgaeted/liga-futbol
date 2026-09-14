@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { orgPath } from '@/lib/tenant-paths'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 import { parseSlotLayout } from '@/lib/match-formations'
+import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 
 function slotsFromCallUps(
   callUps: Array<{ playerId: string; slotKey: string | null }>
@@ -103,6 +104,9 @@ export default async function AdminMatchLineupPage({
                   id: c.playerId,
                   label: `#${c.player.jerseyNumber ?? '—'} ${playerDisplayName(c.player)}${c.player.position ? ` (${c.player.position})` : ''}`,
                   primaryPosition: c.player.position,
+                  photoUrl: c.player.person.photoMimeType
+                    ? friendlyPlayerPhotoUrl(c.playerId)
+                    : null,
                 }))}
             />
           )}
@@ -127,6 +131,9 @@ export default async function AdminMatchLineupPage({
                   id: c.playerId,
                   label: `#${c.player.jerseyNumber ?? '—'} ${playerDisplayName(c.player)}${c.player.position ? ` (${c.player.position})` : ''}`,
                   primaryPosition: c.player.position,
+                  photoUrl: c.player.person.photoMimeType
+                    ? friendlyPlayerPhotoUrl(c.playerId)
+                    : null,
                 }))}
             />
           )}
