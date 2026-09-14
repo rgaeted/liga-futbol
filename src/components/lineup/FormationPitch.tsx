@@ -325,10 +325,10 @@ export function FormationPitch({
     <div
       ref={pitchRef}
       className={`relative aspect-[2/3] w-full overflow-visible rounded-xl border border-emerald-900/80 ${
-        isLive ? 'shadow-inner' : 'border-emerald-800 bg-gradient-to-b from-emerald-700 to-emerald-900'
+        isLive ? 'shadow-inner' : 'border-emerald-800'
       }`}
     >
-      {isLive ? <PitchSurface /> : null}
+      <PitchSurface />
 
       <p
         className={`absolute left-2 top-2 z-20 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
