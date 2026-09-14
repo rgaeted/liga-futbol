@@ -1,15 +1,21 @@
 import Link from 'next/link'
-import { MatchStatus, type FootballFormat, type FriendlySide, type MatchType } from '@prisma/client'
-import { matchDisplayName, matchSideNames } from '@/lib/match-label'
-import { footballFormatLabel } from '@/lib/football-format'
+import { EventType, MatchStatus } from '@prisma/client'
 import { listFriendlyParticipationsForPlayerInOrg } from '@/lib/friendly-match-player-list'
-import { friendlyLineupLinkLabel } from '@/lib/match-player-links'
+import { personHasPhoto, friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
 import { LOSLUNES_SLUG } from '@/lib/org-brand'
 import { orgPath } from '@/lib/tenant-paths'
-import { MatchLiveLink } from '@/components/player/MatchLiveLink'
+import { matchSideNames } from '@/lib/match-label'
 import { PlayerAwardBadges } from '@/components/player/PlayerAwardBadges'
+import {
+  FriendlyMatchList,
+  LeagueMatchList,
+  UpcomingMatchesPanel,
+} from '@/components/player/PlayerMatchCards'
+import { PlayerPanelHero } from '@/components/player/PlayerPanelHero'
+import { PlayerPanelSection } from '@/components/player/PlayerPanelSection'
 import { PlayerResultsCard } from '@/components/player/PlayerResultsCard'
 import { requirePlayerDashboardContext } from '@/lib/player-dashboard-access'
+import { getLosLunesPlayerCard } from '@/lib/player-card-query'
 import {
   findScheduledFriendlyAttendanceWhere,
   friendlyMatchPublicPath,
@@ -21,6 +27,7 @@ import {
   serializePlayerAwardBadge,
 } from '@/lib/player-awards'
 import { computePlayerMatchResults } from '@/lib/player-match-results'
+import { computePlayerFormStreak, countPlayedMatches } from '@/lib/player-form-streak'
 import { getPlayerOrgEventStats } from '@/lib/player-org-stats'
 import { db } from '@/lib/db'
 
@@ -33,7 +40,7 @@ export default async function PlayerDashboardPage({
   const context = await requirePlayerDashboardContext(organizationSlug)
   if (!context) {
     return (
-      <p className="text-kelme-gray-900">
+      <p className="text-[#E8E4D8]">
         No tienes ficha de jugador en esta liga. Si jugaste partidos aquí, pide al administrador que
         enlace tu cuenta con tu ficha.
       </p>
@@ -42,7 +49,7 @@ export default async function PlayerDashboardPage({
 
   const { session, organizationId, player, playerWithTeam } = context
 
-  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies, organization, eventStats] =
+  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies, organization, eventStats, cardResult, lastAssistEvent] =
     await Promise.all([
       db.callUp.findMany({
         where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
@@ -79,7 +86,27 @@ export default async function PlayerDashboardPage({
         select: { badgesEnabled: true },
       }),
       getPlayerOrgEventStats(player.id),
+      organizationSlug === LOSLUNES_SLUG ? getLosLunesPlayerCard(player.id) : Promise.resolve(null),
+      db.matchEvent.findFirst({
+        where: { assistPlayerId: player.id, type: EventType.GOAL },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          match: {
+            select: {
+              sideAName: true,
+              sideBName: true,
+              matchType: true,
+              homeTeam: { select: { name: true } },
+              awayTeam: { select: { name: true } },
+            },
+          },
+        },
+      }),
     ])
+
+  const card = cardResult?.kind === 'ok' ? cardResult.card : null
+  const showCardLink = organizationSlug === LOSLUNES_SLUG
+  const showBadgesLink = organization.badgesEnabled
 
   const upcomingLeague = callUps.filter(
     (c) => c.match.status === 'SCHEDULED' || c.match.status === 'LIVE',
@@ -101,250 +128,148 @@ export default async function PlayerDashboardPage({
     friendlyParticipations,
     playerTeamId: playerWithTeam.teamId,
   })
+  const playedCount = countPlayedMatches(matchResults)
+  const recentCount = Math.min(5, playedLeague.length + playedFriendly.length)
+  const form = computePlayerFormStreak({
+    leagueCallUps: callUps,
+    friendlyParticipations,
+    playerTeamId: playerWithTeam.teamId,
+  })
+
+  const photoUrl = personHasPhoto(playerWithTeam.person)
+    ? friendlyPlayerPhotoUrl(player.id)
+    : null
+
+  const lastAssistSides = lastAssistEvent?.match
+    ? matchSideNames({
+        ...lastAssistEvent.match,
+        homeTeam: lastAssistEvent.match.homeTeam,
+        awayTeam: lastAssistEvent.match.awayTeam,
+      })
+    : null
+  const lastAssistLabel = lastAssistSides
+    ? `Última: ${lastAssistSides.home} vs ${lastAssistSides.away}`
+    : null
 
   return (
-    <div className="space-y-6 text-kelme-gray-900">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Mi panel</h1>
-          <p className="text-kelme-gray-400">
-            {playerWithTeam.person.firstName} · {playerWithTeam.team?.name ?? 'Sin equipo'}
-          </p>
-        </div>
-        <Link
-          href={orgPath(organizationSlug, '/player/profile')}
-          className="text-sm font-semibold text-kelme-red hover:underline"
-        >
-          Mi perfil →
-        </Link>
-      </header>
+    <div className="mx-auto max-w-5xl space-y-4 pb-8">
+      <PlayerPanelHero
+        organizationSlug={organizationSlug}
+        playerId={player.id}
+        firstName={playerWithTeam.person.firstName}
+        lastName={playerWithTeam.person.lastName}
+        teamName={playerWithTeam.team?.name ?? null}
+        position={playerWithTeam.position}
+        photoUrl={photoUrl}
+        playedCount={playedCount}
+        results={matchResults}
+        form={form}
+        card={card}
+        showCardLink={showCardLink}
+        showBadgesLink={showBadgesLink}
+      />
 
-      <PlayerResultsCard stats={eventStats} results={matchResults} mvpCount={mvpCount} />
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <PlayerResultsCard
+          stats={eventStats}
+          results={matchResults}
+          mvpCount={mvpCount}
+          lastAssistLabel={lastAssistLabel}
+        />
 
-      {(organizationSlug === LOSLUNES_SLUG || organization.badgesEnabled) && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1">
-          {organizationSlug === LOSLUNES_SLUG ? (
-            <Link
-              href={orgPath(organizationSlug, `/jugador/${player.id}?from=player`)}
-              className="text-kelme-red hover:underline"
-            >
-              Ver mi carta
-            </Link>
+        <div className="flex flex-col gap-4">
+          <PlayerPanelSection title="Mis premios" compact>
+            <PlayerAwardBadges
+              general={grouped.general.map((g) => g.badge)}
+              bySeason={grouped.bySeason.map((s) => ({
+                seasonName: s.seasonName,
+                awards: s.awards.map((a) => a.badge),
+              }))}
+            />
+          </PlayerPanelSection>
+
+          {scheduledFriendlies.length > 0 ? (
+            <PlayerPanelSection title="¿Quién va?" compact>
+              <div className="space-y-2">
+                {scheduledFriendlies.map((match) => {
+                  const board = toMatchAttendanceBoard(match)
+                  return (
+                    <Link
+                      key={board.matchId}
+                      href={friendlyMatchPublicPath(organizationSlug, board.matchId)}
+                      className="block rounded-xl border border-[#2A3A32] bg-[#0B1210] px-3 py-2.5 transition hover:border-[#C91F26]/40"
+                    >
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8A938C]">
+                        {board.dateLine}
+                      </p>
+                      <p className="text-sm font-semibold text-[#E8E4D8]">{board.matchLabel}</p>
+                    </Link>
+                  )
+                })}
+              </div>
+            </PlayerPanelSection>
           ) : null}
-          {organization.badgesEnabled ? (
+
+          <PlayerPanelSection title="Próximos partidos" compact>
+            <UpcomingMatchesPanel
+              hasLeague={upcomingLeague.length > 0}
+              hasFriendly={upcomingFriendly.length > 0}
+            />
+            <LeagueMatchList
+              items={upcomingLeague}
+              playerId={player.id}
+              organizationSlug={organizationSlug}
+              emptyText={
+                upcomingFriendly.length === 0 ? 'No hay partidos de liga programados.' : undefined
+              }
+            />
+            <FriendlyMatchList
+              items={upcomingFriendly}
+              organizationSlug={organizationSlug}
+              emptyText={
+                upcomingLeague.length === 0 ? 'No hay partidos amistosos programados.' : undefined
+              }
+            />
+          </PlayerPanelSection>
+        </div>
+      </div>
+
+      <PlayerPanelSection
+        title="Partidos jugados"
+        action={
+          recentCount > 0 ? (
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8A938C]">
+              {recentCount} recientes
+            </span>
+          ) : (
             <Link
-              href={orgPath(organizationSlug, `/jugador/${player.id}?from=player`)}
-              className="text-kelme-red hover:underline"
+              href={orgPath(organizationSlug, '/player/matches')}
+              className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C91F26] hover:underline"
             >
-              Ver mis insignias
+              Ver todos →
             </Link>
-          ) : null}
-        </div>
-      )}
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Mis premios</h2>
-        <PlayerAwardBadges
-          general={grouped.general.map((g) => g.badge)}
-          bySeason={grouped.bySeason.map((s) => ({
-            seasonName: s.seasonName,
-            awards: s.awards.map((a) => a.badge),
-          }))}
-        />
-      </section>
-
-      {scheduledFriendlies.length > 0 ? (
-        <div className="mb-8 space-y-3">
-          <h2 className="text-lg font-semibold">¿Quién va?</h2>
-          {scheduledFriendlies.map((match) => {
-            const board = toMatchAttendanceBoard(match)
-            return (
-              <Link
-                key={board.matchId}
-                href={friendlyMatchPublicPath(organizationSlug, board.matchId)}
-                className="block rounded-xl border border-kelme-border bg-kelme-surface px-4 py-3"
-              >
-                <p className="text-xs text-kelme-gray-500">{board.dateLine}</p>
-                <p className="font-semibold">{board.matchLabel}</p>
-              </Link>
-            )
-          })}
-        </div>
-      ) : null}
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Próximos partidos</h2>
-        <LeagueMatchList
-          items={upcomingLeague}
-          playerId={player.id}
-          organizationSlug={organizationSlug}
-          emptyText="No hay partidos de liga programados."
-        />
-        <FriendlyMatchList
-          items={upcomingFriendly}
-          organizationSlug={organizationSlug}
-          emptyText={
-            upcomingLeague.length === 0 ? 'No hay partidos amistosos programados.' : undefined
-          }
-        />
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Partidos jugados</h2>
+          )
+        }
+      >
         <LeagueMatchList
           items={playedLeague.slice(0, 5)}
           playerId={player.id}
+          playerTeamId={playerWithTeam.teamId}
           organizationSlug={organizationSlug}
+          variant="played"
           emptyText="Aún no has jugado partidos de liga."
         />
         <FriendlyMatchList
           items={playedFriendly.slice(0, 5)}
           organizationSlug={organizationSlug}
+          variant="played"
           emptyText={
             playedLeague.length === 0 && playedFriendly.length === 0
               ? 'Aún no has jugado partidos.'
               : undefined
           }
         />
-      </section>
-
-      <Link href={orgPath(organizationSlug, '/player/matches')} className="text-kelme-red hover:underline">
-        Ver todos mis partidos →
-      </Link>
+      </PlayerPanelSection>
     </div>
-  )
-}
-
-function LeagueMatchList({
-  items,
-  playerId,
-  organizationSlug,
-  emptyText,
-}: {
-  items: Array<{
-    match: {
-      id: string
-      scheduledAt: Date
-      homeTeam: { name: string } | null
-      awayTeam: { name: string } | null
-      matchType: 'LEAGUE' | 'FRIENDLY'
-      sideAName: string | null
-      sideBName: string | null
-      homeScore: number
-      awayScore: number
-      status: MatchStatus
-      teamMvps: Array<{ id: string; playerId: string | null }>
-    }
-  }>
-  playerId: string
-  organizationSlug: string
-  emptyText?: string
-}) {
-  if (items.length === 0) {
-    return emptyText ? <p className="text-kelme-gray-400">{emptyText}</p> : null
-  }
-  return (
-    <ul className="space-y-2">
-      {items.map(({ match }) => (
-        <li key={match.id} className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
-          <div className="flex justify-between gap-2">
-            <span>
-              {matchDisplayName(match)}
-              {match.teamMvps.some((mvp) => mvp.playerId === playerId) && (
-                <span className="ml-2 text-xs font-semibold text-amber-600">⭐ MVP</span>
-              )}
-            </span>
-            <span className="font-mono">
-              {match.status === 'FINISHED'
-                ? `${match.homeScore} - ${match.awayScore}`
-                : new Date(match.scheduledAt).toLocaleDateString('es-CL')}
-            </span>
-          </div>
-          <div className="mt-1">
-            <MatchLiveLink organizationSlug={organizationSlug} matchId={match.id} status={match.status} />
-          </div>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function FriendlyMatchList({
-  items,
-  organizationSlug,
-  emptyText,
-}: {
-  items: Array<{
-    id: string
-    side: FriendlySide
-    isCaptain: boolean
-    isCoach: boolean
-    match: {
-      id: string
-      matchType: MatchType
-      sideAName: string | null
-      sideBName: string | null
-      scheduledAt: Date
-      status: MatchStatus
-      homeScore: number
-      awayScore: number
-      footballFormat: FootballFormat
-      venue: string | null
-    }
-  }>
-  organizationSlug: string
-  emptyText?: string
-}) {
-  if (items.length === 0) {
-    return emptyText ? <p className="mt-2 text-kelme-gray-400">{emptyText}</p> : null
-  }
-
-  return (
-    <ul className="mt-2 space-y-2">
-      {items.map((part) => {
-        const sides = matchSideNames({
-          ...part.match,
-          homeTeam: null,
-          awayTeam: null,
-        })
-        const teamLabel = part.side === 'A' ? sides.home : sides.away
-        return (
-          <li key={part.id} className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
-            <div className="flex justify-between gap-2">
-              <span>
-                {sides.home} vs {sides.away}
-                {part.isCaptain && (
-                  <span className="ml-2 text-xs font-semibold text-kelme-gray-500">Capitán</span>
-                )}
-              </span>
-              <span className="font-mono">
-                {part.match.status === 'FINISHED'
-                  ? `${part.match.homeScore} - ${part.match.awayScore}`
-                  : new Date(part.match.scheduledAt).toLocaleDateString('es-CL')}
-              </span>
-            </div>
-            <p className="text-sm text-kelme-gray-400">
-              {teamLabel} · {footballFormatLabel(part.match.footballFormat)}
-              {part.match.venue ? ` · ${part.match.venue}` : ''}
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-3">
-              <MatchLiveLink
-                organizationSlug={organizationSlug}
-                matchId={part.match.id}
-                status={part.match.status}
-              />
-              {part.isCoach && (
-                <Link
-                  href={orgPath(organizationSlug, `/player/friendly-matches/${part.match.id}/lineup`)}
-                  className="font-ui text-xs text-kelme-red hover:underline"
-                >
-                  {friendlyLineupLinkLabel(part.match.status)} →
-                </Link>
-              )}
-            </div>
-          </li>
-        )
-      })}
-    </ul>
   )
 }
