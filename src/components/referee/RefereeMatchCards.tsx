@@ -4,8 +4,12 @@ import { matchDisplayName, matchSideNames } from '@/lib/match-label'
 import { matchStatusBadgeClass, matchStatusLabel } from '@/lib/match-status-ui'
 import { formatScheduleDateLabel, formatScheduleTimeLabel } from '@/lib/schedule-datetime'
 import { footballFormatLabel } from '@/lib/football-format'
-import { orgPath } from '@/lib/tenant-paths'
 import { MatchLiveLink } from '@/components/player/MatchLiveLink'
+import {
+  refereeMatchLinkHref,
+  refereeUpcomingActionLabel,
+  type RefereePanelViewer,
+} from '@/lib/referee-panel-links'
 
 export type RefereeMatchRow = {
   id: string
@@ -48,10 +52,12 @@ function matchMeta(match: RefereeMatchRow): string {
 export function RefereeUpcomingMatchList({
   matches,
   organizationSlug,
+  viewer = 'self',
   emptyText = 'No tienes partidos programados ni en curso.',
 }: {
   matches: RefereeMatchRow[]
   organizationSlug: string
+  viewer?: RefereePanelViewer
   emptyText?: string
 }) {
   if (matches.length === 0) {
@@ -67,7 +73,7 @@ export function RefereeUpcomingMatchList({
       {matches.map((match, index) => (
         <Link
           key={match.id}
-          href={orgPath(organizationSlug, `/referee/match/${match.id}`)}
+          href={refereeMatchLinkHref(organizationSlug, match.id, match.status, viewer)}
           className={`block rounded-xl border bg-[#0B1210] transition hover:border-[#3DE68C]/40 ${
             index === 0 ? 'border-[#3DE68C]/35 p-4' : 'border-[#2A3A32] p-3'
           }`}
@@ -93,7 +99,9 @@ export function RefereeUpcomingMatchList({
             </span>
           </div>
           {index === 0 ? (
-            <p className="mt-2 text-xs font-bold text-[#3DE68C]">Gestionar partido →</p>
+            <p className="mt-2 text-xs font-bold text-[#3DE68C]">
+              {refereeUpcomingActionLabel(viewer, match.status)}
+            </p>
           ) : null}
         </Link>
       ))}
@@ -146,10 +154,12 @@ export function RefereeMatchesHistorySection({
   title,
   matches,
   organizationSlug,
+  viewer = 'self',
 }: {
   title: string
   matches: RefereeMatchRow[]
   organizationSlug: string
+  viewer?: RefereePanelViewer
 }) {
   if (matches.length === 0) return null
 
@@ -175,16 +185,38 @@ export function RefereeMatchesHistorySection({
                 </p>
                 <p className="text-xs text-[#8A938C]">{matchStatusLabel(match.status)}</p>
                 <div className="mt-2 flex flex-col items-end gap-1">
-                  {(match.status === 'SCHEDULED' ||
+                  {viewer === 'self' &&
+                  (match.status === 'SCHEDULED' ||
                     match.status === 'LIVE' ||
-                    match.status === 'HALFTIME') && (
+                    match.status === 'HALFTIME') ? (
                     <Link
-                      href={orgPath(organizationSlug, `/referee/match/${match.id}`)}
+                      href={refereeMatchLinkHref(
+                        organizationSlug,
+                        match.id,
+                        match.status,
+                        viewer,
+                      )}
                       className="text-xs font-bold text-[#3DE68C] hover:underline"
                     >
                       Gestionar partido
                     </Link>
-                  )}
+                  ) : null}
+                  {viewer === 'admin' &&
+                  (match.status === 'SCHEDULED' ||
+                    match.status === 'LIVE' ||
+                    match.status === 'HALFTIME') ? (
+                    <Link
+                      href={refereeMatchLinkHref(
+                        organizationSlug,
+                        match.id,
+                        match.status,
+                        viewer,
+                      )}
+                      className="text-xs font-bold text-[#3DE68C] hover:underline"
+                    >
+                      {match.status === 'SCHEDULED' ? 'Ver en admin' : 'Ver en vivo'}
+                    </Link>
+                  ) : null}
                   <MatchLiveLink
                     organizationSlug={organizationSlug}
                     matchId={match.id}

@@ -74,7 +74,7 @@ function adminNavGroups(slug: string): DashboardNavGroup[] {
           href: base('/admin/referees'),
           label: 'Árbitros',
           icon: 'AR',
-          activePrefixes: [base('/admin/referees')],
+          activePrefixes: [base('/admin/referees'), base('/admin/referees/')],
         },
       ],
     },

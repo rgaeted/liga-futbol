@@ -241,13 +241,21 @@ export function RefereesDirectory({ referees, pendingReceived }: Props) {
                   ? `${formatDate(referee.nextMatch.scheduledAt)}${referee.nextMatch.venue ? ` · ${referee.nextMatch.venue}` : ''}`
                   : 'Sin partidos programados'}
               </p>
-              <button
-                type="button"
-                onClick={() => openShare(referee.userId)}
-                className="mt-3 font-ui text-sm text-kelme-red hover:underline"
-              >
-                Invitar a otra liga
-              </button>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <Link
+                  href={orgPath(`/admin/referees/${referee.userId}/panel`)}
+                  className="font-ui text-sm font-semibold text-kelme-red hover:underline"
+                >
+                  Ver panel
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => openShare(referee.userId)}
+                  className="font-ui text-sm text-kelme-red hover:underline"
+                >
+                  Invitar a otra liga
+                </button>
+              </div>
             </article>
           ))}
         </div>
