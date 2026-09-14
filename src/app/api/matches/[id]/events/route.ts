@@ -8,7 +8,7 @@ import { triggerNotificationProcessing } from '@/lib/mobile/notifications/trigge
 import { EventType, MatchStatus, MatchType } from '@prisma/client'
 import { MembershipRole } from '@/lib/membership-role'
 import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
-import { eventNeedsPlayer } from '@/lib/event-labels'
+import { eventAllowsSecondaryPlayer, eventNeedsPlayer } from '@/lib/event-labels'
 
 function isGameEvent(type: EventType) {
   return GAME_EVENT_TYPES.includes(type)
@@ -94,9 +94,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 400 }
       )
     }
-    if (data.assistPlayerId && data.type !== EventType.GOAL) {
+    if (data.assistPlayerId && !eventAllowsSecondaryPlayer(data.type)) {
       return NextResponse.json(
-        { error: 'La asistencia solo aplica en goles' },
+        { error: 'El segundo jugador solo aplica en goles y cambios' },
         { status: 400 }
       )
     }
@@ -147,12 +147,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 400 }
       )
     }
-    if (data.assistPlayerId && data.type !== EventType.GOAL) {
+    if (data.assistPlayerId && !eventAllowsSecondaryPlayer(data.type)) {
       return NextResponse.json(
-        { error: 'La asistencia solo aplica en goles' },
+        { error: 'El segundo jugador solo aplica en goles y cambios' },
         { status: 400 }
       )
     }
+  }
+
+  if (
+    data.type === EventType.SUBSTITUTION &&
+    data.playerId &&
+    data.assistPlayerId &&
+    data.playerId === data.assistPlayerId
+  ) {
+    return NextResponse.json(
+      { error: 'El jugador que sale y el que entra deben ser distintos' },
+      { status: 400 }
+    )
   }
 
   const minuteOverride = isAdmin && data.minute !== undefined ? data.minute : undefined

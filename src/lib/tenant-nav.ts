@@ -132,7 +132,15 @@ export function buildTenantNavGroups(
   if (hasMembershipRole(context.roles, Role.REFEREE)) {
     groups.push({
       label: 'Árbitro',
-      items: [{ href: base('/referee'), label: 'Mis partidos', icon: 'AR' }],
+      items: [
+        { href: base('/referee'), label: 'Mi panel', icon: 'IN', exactMatch: true },
+        {
+          href: base('/referee/matches'),
+          label: 'Mis partidos',
+          icon: 'PA',
+          activePrefixes: [base('/referee/matches')],
+        },
+      ],
     })
   }
 

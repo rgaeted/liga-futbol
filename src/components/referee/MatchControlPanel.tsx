@@ -29,7 +29,7 @@ type Props = {
   enabledEventTypes: EventType[]
 }
 
-type DetailMode = 'team' | 'player' | 'goal'
+type DetailMode = 'team' | 'player' | 'goal' | 'substitution'
 
 function toIso(value: Date | string | null | undefined): string | null {
   if (!value) return null
@@ -39,6 +39,7 @@ function toIso(value: Date | string | null | undefined): string | null {
 function getDetailMode(type: EventType): DetailMode | null {
   if (type === EventType.KICKOFF) return 'team'
   if (type === EventType.GOAL) return 'goal'
+  if (type === EventType.SUBSTITUTION) return 'substitution'
   if (eventNeedsPlayer(type)) return 'player'
   return null
 }
@@ -139,7 +140,9 @@ export function MatchControlPanel({
               ? ('B' as const)
               : undefined
           : undefined,
-      ...(type === EventType.GOAL && assistId ? { assistPlayerId: assistId } : {}),
+      ...((type === EventType.GOAL || type === EventType.SUBSTITUTION) && assistId
+        ? { assistPlayerId: assistId }
+        : {}),
     }
 
     setLoading(true)
@@ -200,6 +203,11 @@ export function MatchControlPanel({
 
   async function handleConfirmDetails(withoutAssist = false) {
     if (!pendingEvent || !selectedTeam) return
+    if (detailMode === 'substitution') {
+      if (!selectedPlayer || !selectedAssist || selectedPlayer === selectedAssist) return
+      await submitEvent(pendingEvent)
+      return
+    }
     if (detailMode === 'goal' || detailMode === 'player') {
       if (!selectedPlayer) return
       await submitEvent(pendingEvent, {
@@ -222,7 +230,11 @@ export function MatchControlPanel({
   }
 
   function canConfirmDetails() {
-    if (!selectedTeam || !selectedPlayer) return false
+    if (!selectedTeam) return false
+    if (detailMode === 'substitution') {
+      return Boolean(selectedPlayer && selectedAssist && selectedPlayer !== selectedAssist)
+    }
+    if (!selectedPlayer) return false
     return detailMode === 'player' || detailMode === 'goal'
   }
 
@@ -365,35 +377,78 @@ export function MatchControlPanel({
             </div>
           )}
 
-          {(detailMode === 'player' || detailMode === 'goal') && selectedTeam && activeTeam && (
-            <div className="space-y-2">
-              <p className="font-ui text-sm font-medium text-kelme-gray-700">Jugador</p>
-              {activeTeam.players.length === 0 ? (
-                <p className="text-sm text-kelme-gray-400">No hay jugadores en este equipo.</p>
-              ) : (
-                <ul className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-kelme-border">
-                  {activeTeam.players.map((player) => (
-                    <li key={player.id}>
-                      <button
-                        type="button"
-                        disabled={loading}
-                        onClick={() => {
-                          setSelectedPlayer(player.id)
-                          if (selectedAssist === player.id) setSelectedAssist('')
-                        }}
-                        className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
-                          selectedPlayer === player.id
-                            ? 'bg-kelme-red/10 font-semibold text-kelme-red'
-                            : 'hover:bg-kelme-gray-100'
-                        } disabled:opacity-50`}
-                      >
-                        {player.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+          {(detailMode === 'player' ||
+            detailMode === 'goal' ||
+            detailMode === 'substitution') &&
+            selectedTeam &&
+            activeTeam && (
+            <>
+              {detailMode === 'substitution' ? (
+                <div className="space-y-2">
+                  <p className="font-ui text-sm font-medium text-kelme-gray-700">Sale</p>
+                  {activeTeam.players.length === 0 ? (
+                    <p className="text-sm text-kelme-gray-400">No hay jugadores en este equipo.</p>
+                  ) : (
+                    <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-kelme-border">
+                      {activeTeam.players.map((player) => (
+                        <li key={player.id}>
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => {
+                              setSelectedAssist(player.id)
+                              if (selectedPlayer === player.id) setSelectedPlayer('')
+                            }}
+                            className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                              selectedAssist === player.id
+                                ? 'bg-kelme-red/10 font-semibold text-kelme-red'
+                                : 'hover:bg-kelme-gray-100'
+                            } disabled:opacity-50`}
+                          >
+                            {player.label}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <p className="font-ui text-sm font-medium text-kelme-gray-700">
+                  {detailMode === 'substitution' ? 'Entra' : 'Jugador'}
+                </p>
+                {activeTeam.players.length === 0 ? (
+                  <p className="text-sm text-kelme-gray-400">No hay jugadores en este equipo.</p>
+                ) : (
+                  <ul className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-kelme-border">
+                    {activeTeam.players
+                      .filter((player) =>
+                        detailMode === 'substitution' ? player.id !== selectedAssist : true
+                      )
+                      .map((player) => (
+                        <li key={player.id}>
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => {
+                              setSelectedPlayer(player.id)
+                              if (selectedAssist === player.id) setSelectedAssist('')
+                            }}
+                            className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                              selectedPlayer === player.id
+                                ? 'bg-kelme-red/10 font-semibold text-kelme-red'
+                                : 'hover:bg-kelme-gray-100'
+                            } disabled:opacity-50`}
+                          >
+                            {player.label}
+                          </button>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </div>
+            </>
           )}
 
           {detailMode === 'goal' && selectedPlayer && activeTeam && (
@@ -424,7 +479,9 @@ export function MatchControlPanel({
             </div>
           )}
 
-          {(detailMode === 'player' || detailMode === 'goal') && (
+          {(detailMode === 'player' ||
+            detailMode === 'goal' ||
+            detailMode === 'substitution') && (
             <div className="flex gap-2 pt-1">
               {detailMode === 'goal' && (
                 <button

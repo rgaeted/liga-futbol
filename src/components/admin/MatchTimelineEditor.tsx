@@ -7,6 +7,7 @@ import {
   ALL_EVENT_TYPES,
   EVENT_TYPE_LABELS,
   eventNeedsPlayer,
+  isSubstitutionEvent,
 } from '@/lib/event-labels'
 import { readApiError } from '@/lib/api-error'
 import {
@@ -55,6 +56,10 @@ type EditState = {
 
 function isGoalEvent(type: EventType) {
   return type === EventType.GOAL || type === EventType.PENALTY_GOAL || type === EventType.OWN_GOAL
+}
+
+function eventUsesSecondaryPlayer(type: EventType) {
+  return isGoalEvent(type) || isSubstitutionEvent(type)
 }
 
 function clearAssistIfInvalid<T extends {
@@ -146,7 +151,7 @@ export function MatchTimelineEditor({
             playerId: editing.playerId || null,
             side: editing.side || null,
             description: isGoalEvent(editing.type) ? editing.description || null : null,
-            ...(isGoalEvent(editing.type)
+            ...(eventUsesSecondaryPlayer(editing.type)
               ? { assistPlayerId: editing.assistPlayerId || null }
               : { assistPlayerId: null }),
           }
@@ -156,7 +161,7 @@ export function MatchTimelineEditor({
             playerId: editing.playerId || null,
             teamId: editing.teamId || null,
             description: isGoalEvent(editing.type) ? editing.description || null : null,
-            ...(isGoalEvent(editing.type)
+            ...(eventUsesSecondaryPlayer(editing.type)
               ? { assistPlayerId: editing.assistPlayerId || null }
               : { assistPlayerId: null }),
           }
@@ -211,7 +216,7 @@ export function MatchTimelineEditor({
             playerId: newEvent.playerId || undefined,
             side: newEvent.side as 'A' | 'B',
             description: newEvent.description || undefined,
-            ...(isGoalEvent(newEvent.type) && newEvent.assistPlayerId
+            ...(eventUsesSecondaryPlayer(newEvent.type) && newEvent.assistPlayerId
               ? { assistPlayerId: newEvent.assistPlayerId }
               : {}),
           }
@@ -221,7 +226,7 @@ export function MatchTimelineEditor({
             playerId: newEvent.playerId || undefined,
             teamId: newEvent.teamId || undefined,
             description: newEvent.description || undefined,
-            ...(isGoalEvent(newEvent.type) && newEvent.assistPlayerId
+            ...(eventUsesSecondaryPlayer(newEvent.type) && newEvent.assistPlayerId
               ? { assistPlayerId: newEvent.assistPlayerId }
               : {}),
           }
@@ -321,7 +326,11 @@ export function MatchTimelineEditor({
                 }}
                 className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               >
-                <option value="">Jugador (opcional)</option>
+                <option value="">
+                  {isSubstitutionEvent(newEvent.type)
+                    ? 'Entra (opcional)'
+                    : 'Jugador (opcional)'}
+                </option>
                 {newEventPlayers.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.label}
@@ -329,7 +338,7 @@ export function MatchTimelineEditor({
                 ))}
               </select>
             )}
-            {isGoalEvent(newEvent.type) && (
+            {eventUsesSecondaryPlayer(newEvent.type) && (
               <select
                 value={newEvent.assistPlayerId}
                 onChange={(e) =>
@@ -337,7 +346,11 @@ export function MatchTimelineEditor({
                 }
                 className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               >
-                <option value="">Asistencia (opcional)</option>
+                <option value="">
+                  {isSubstitutionEvent(newEvent.type)
+                    ? 'Sale (opcional)'
+                    : 'Asistencia (opcional)'}
+                </option>
                 {assistCandidates(matchType, players, {
                   teamId: newEvent.teamId,
                   side: newEvent.side,
@@ -388,7 +401,11 @@ export function MatchTimelineEditor({
                 }}
                 className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               >
-                <option value="">Jugador (opcional)</option>
+                <option value="">
+                  {isSubstitutionEvent(newEvent.type)
+                    ? 'Entra (opcional)'
+                    : 'Jugador (opcional)'}
+                </option>
                 {playersForTeamSide(matchType, players, {
                   teamId: newEvent.teamId,
                   side: newEvent.side,
@@ -399,13 +416,17 @@ export function MatchTimelineEditor({
                 ))}
               </select>
             )}
-            {isGoalEvent(newEvent.type) && (
+            {eventUsesSecondaryPlayer(newEvent.type) && (
               <select
                 value={newEvent.assistPlayerId}
                 onChange={(e) => setNewEvent({ ...newEvent, assistPlayerId: e.target.value })}
                 className="input-kelme rounded-lg px-3 py-2 md:col-span-2"
               >
-                <option value="">Asistencia (opcional)</option>
+                <option value="">
+                  {isSubstitutionEvent(newEvent.type)
+                    ? 'Sale (opcional)'
+                    : 'Asistencia (opcional)'}
+                </option>
                 {assistCandidates(matchType, players, {
                   teamId: newEvent.teamId,
                   side: newEvent.side,
@@ -542,46 +563,25 @@ export function MatchTimelineEditor({
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {isGoalEvent(editing.type) ? (
-                      matchType === 'FRIENDLY' ? (
-                        <select
-                          value={editing.assistPlayerId}
-                          onChange={(e) =>
-                            setEditing({ ...editing, assistPlayerId: e.target.value })
-                          }
-                          className="rounded border border-kelme-border px-2 py-1"
-                        >
-                          <option value="">—</option>
-                          {assistCandidates(matchType, players, {
-                            teamId: editing.teamId,
-                            side: editing.side,
-                            scorerId: editing.playerId,
-                          }).map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.label}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <select
-                          value={editing.assistPlayerId}
-                          onChange={(e) =>
-                            setEditing({ ...editing, assistPlayerId: e.target.value })
-                          }
-                          className="rounded border border-kelme-border px-2 py-1"
-                        >
-                          <option value="">—</option>
-                          {assistCandidates(matchType, players, {
-                            teamId: editing.teamId,
-                            side: editing.side,
-                            scorerId: editing.playerId,
-                          }).map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.label}
-                            </option>
-                          ))}
-                        </select>
-                      )
+                    {eventUsesSecondaryPlayer(editing.type) ? (
+                      <select
+                        value={editing.assistPlayerId}
+                        onChange={(e) =>
+                          setEditing({ ...editing, assistPlayerId: e.target.value })
+                        }
+                        className="rounded border border-kelme-border px-2 py-1"
+                      >
+                        <option value="">—</option>
+                        {assistCandidates(matchType, players, {
+                          teamId: editing.teamId,
+                          side: editing.side,
+                          scorerId: editing.playerId,
+                        }).map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.label}
+                          </option>
+                        ))}
+                      </select>
                     ) : (
                       '—'
                     )}
@@ -624,8 +624,16 @@ export function MatchTimelineEditor({
                 <tr key={event.id} className="border-b border-kelme-border">
                   <td className="px-4 py-3 font-mono">{event.minute}&apos;</td>
                   <td className="px-4 py-3">{EVENT_TYPE_LABELS[event.type]}</td>
-                  <td className="px-4 py-3">{event.playerName ?? '—'}</td>
-                  <td className="px-4 py-3">{event.assistName ?? '—'}</td>
+                  <td className="px-4 py-3">
+                    {isSubstitutionEvent(event.type) && event.playerName
+                      ? `Entra: ${event.playerName}`
+                      : (event.playerName ?? '—')}
+                  </td>
+                  <td className="px-4 py-3">
+                    {isSubstitutionEvent(event.type) && event.assistName
+                      ? `Sale: ${event.assistName}`
+                      : (event.assistName ?? '—')}
+                  </td>
                   <td className="max-w-xs px-4 py-3 text-kelme-gray-300">
                     {isGoalEvent(event.type) ? (
                       event.description ? (

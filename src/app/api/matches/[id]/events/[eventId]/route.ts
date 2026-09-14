@@ -4,6 +4,7 @@ import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { updateMatchEventSchema } from '@/lib/validations/match-event'
 import { reconcileMatchState } from '@/lib/match-reconcile'
 import { EventType } from '@prisma/client'
+import { eventAllowsSecondaryPlayer } from '@/lib/event-labels'
 import { MembershipRole } from '@/lib/membership-role'
 import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
@@ -46,14 +47,30 @@ export async function PATCH(
   const matchRecord = await db.match.findUniqueOrThrow({ where: { id: matchId } })
   const effectiveType = data.type ?? existing.type
 
-  if (data.assistPlayerId && effectiveType !== EventType.GOAL) {
+  if (data.assistPlayerId && !eventAllowsSecondaryPlayer(effectiveType)) {
     return NextResponse.json(
-      { error: 'La asistencia solo aplica en goles' },
+      { error: 'El segundo jugador solo aplica en goles y cambios' },
       { status: 400 }
     )
   }
 
-  const clearAssists = data.type !== undefined && data.type !== EventType.GOAL
+  const effectivePlayerId = data.playerId !== undefined ? data.playerId : existing.playerId
+  const effectiveAssistId =
+    data.assistPlayerId !== undefined ? data.assistPlayerId : existing.assistPlayerId
+  if (
+    effectiveType === EventType.SUBSTITUTION &&
+    effectivePlayerId &&
+    effectiveAssistId &&
+    effectivePlayerId === effectiveAssistId
+  ) {
+    return NextResponse.json(
+      { error: 'El jugador que sale y el que entra deben ser distintos' },
+      { status: 400 }
+    )
+  }
+
+  const clearAssists =
+    data.type !== undefined && !eventAllowsSecondaryPlayer(data.type)
 
   const event = await db.matchEvent.update({
     where: { id: eventId },

@@ -39,3 +39,12 @@ export const PLAYER_EVENT_TYPES: EventType[] = [
 export function eventNeedsPlayer(type: EventType) {
   return PLAYER_EVENT_TYPES.includes(type)
 }
+
+/** Segundo jugador del evento: asistencia en goles, sale en cambios. */
+export function eventAllowsSecondaryPlayer(type: EventType) {
+  return type === EventType.GOAL || type === EventType.SUBSTITUTION
+}
+
+export function isSubstitutionEvent(type: EventType) {
+  return type === EventType.SUBSTITUTION
+}

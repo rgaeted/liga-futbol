@@ -205,6 +205,52 @@ function PlayerActorAvatar({
   )
 }
 
+function SubstitutionOutLine({
+  name,
+  photoUrl,
+  premium = false,
+}: {
+  name: string
+  photoUrl?: string | null
+  premium?: boolean
+}) {
+  if (premium) {
+    return (
+      <div className="mt-1.5 flex min-w-0 items-center gap-2">
+        {photoUrl ? (
+          <div className="shrink-0 rounded-full bg-gradient-to-br from-sky-200/70 to-sky-600/30 p-px">
+            <div className="h-5 w-5 overflow-hidden rounded-full bg-[#141010]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+            </div>
+          </div>
+        ) : null}
+        <p className="min-w-0 truncate text-xs text-white/55">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-sky-400/55">
+            Sale
+          </span>{' '}
+          <span className="font-display text-sm text-white/80">{name}</span>
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-1 flex min-w-0 items-center gap-2">
+      {photoUrl ? (
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1a1a1a] ring-1 ring-white/10">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+        </div>
+      ) : null}
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/30">Sale</p>
+        <p className="truncate text-xs text-white/60">{name}</p>
+      </div>
+    </div>
+  )
+}
+
 function AssistLine({
   name,
   photoUrl,
@@ -475,6 +521,70 @@ function MilestoneCard({
   )
 }
 
+function SubstitutionCard({
+  event,
+  label,
+  side,
+  teamColor,
+  premium,
+}: {
+  event: TimelineEvent
+  label: string
+  side: 'left' | 'right'
+  teamColor?: string | null
+  premium: boolean
+}) {
+  return (
+    <EventCardFrame
+      premium={premium}
+      teamColor={teamColor}
+      side={side}
+      extra="px-3 py-2.5 sm:px-4 sm:py-3"
+    >
+      <div className="flex items-center gap-3">
+        {event.playerName ? (
+          <PlayerActorAvatar
+            name={event.playerName}
+            photoUrl={event.playerPhotoUrl}
+            size={premium ? 'md' : 'sm'}
+            premium={premium}
+          />
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <p
+            className={`font-display text-[11px] font-bold uppercase tracking-[0.14em] sm:text-xs ${
+              premium ? 'text-amber-400/75' : 'text-white/90'
+            }`}
+          >
+            {label}
+          </p>
+          {event.playerName ? (
+            <p className="mt-0.5 truncate text-[9px] font-semibold uppercase tracking-[0.14em] text-emerald-400/70">
+              Entra{' '}
+              <span
+                className={`normal-case tracking-normal ${
+                  premium
+                    ? 'font-display text-base font-semibold text-white'
+                    : 'font-ui text-sm text-white/75'
+                }`}
+              >
+                {event.playerName}
+              </span>
+            </p>
+          ) : null}
+          {event.assistName ? (
+            <SubstitutionOutLine
+              name={event.assistName}
+              photoUrl={event.assistPhotoUrl}
+              premium={premium}
+            />
+          ) : null}
+        </div>
+      </div>
+    </EventCardFrame>
+  )
+}
+
 function CompactCard({
   event,
   label,
@@ -559,6 +669,17 @@ function TimelineEventCard({
         label={label}
         side={side}
         showHalftimePhoto={showHalftimePhoto}
+        premium={premium}
+      />
+    )
+  }
+  if (event.type === 'SUBSTITUTION') {
+    return (
+      <SubstitutionCard
+        event={event}
+        label={label}
+        side={side}
+        teamColor={teamColor}
         premium={premium}
       />
     )
