@@ -16,6 +16,7 @@ import { PlayerPanelHero } from '@/components/player/PlayerPanelHero'
 import { PlayerPanelSection } from '@/components/player/PlayerPanelSection'
 import { PlayerResultsCard } from '@/components/player/PlayerResultsCard'
 import { requirePlayerDashboardContext } from '@/lib/player-dashboard-access'
+import { getPlayerBadgeVitrina } from '@/lib/badges/query'
 import { getLosLunesPlayerCard } from '@/lib/player-card-query'
 import {
   findScheduledFriendlyAttendanceWhere,
@@ -50,7 +51,7 @@ export default async function PlayerDashboardPage({
 
   const { session, organizationId, player, playerWithTeam } = context
 
-  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies, organization, eventStats, cardResult, lastAssistEvent] =
+  const [callUps, friendlyParticipations, mvpCount, playerAwards, scheduledFriendlies, organization, eventStats, cardResult, lastAssistEvent, badgeVitrina] =
     await Promise.all([
       db.callUp.findMany({
         where: { playerId: player.id, match: { matchType: 'LEAGUE' } },
@@ -103,11 +104,13 @@ export default async function PlayerDashboardPage({
           },
         },
       }),
+      getPlayerBadgeVitrina(organizationSlug, player.id),
     ])
 
   const card = cardResult?.kind === 'ok' ? cardResult.card : null
+  const vitrina = badgeVitrina?.kind === 'ok' ? badgeVitrina.vitrina : null
   const showCardLink = organizationSlug === LOSLUNES_SLUG
-  const showBadgesLink = organization.badgesEnabled
+  const showBadgesLink = organization.badgesEnabled && Boolean(vitrina)
 
   const upcomingLeague = callUps.filter(
     (c) => c.match.status === 'SCHEDULED' || c.match.status === 'LIVE',
@@ -169,6 +172,7 @@ export default async function PlayerDashboardPage({
         showCardLink={showCardLink}
         showBadgesLink={showBadgesLink}
         cardEmbedded={Boolean(card)}
+        badgesEmbedded={Boolean(card && vitrina)}
       />
 
       {card ? (
@@ -176,6 +180,7 @@ export default async function PlayerDashboardPage({
           card={card}
           organizationSlug={organizationSlug}
           playerId={player.id}
+          vitrina={vitrina}
         />
       ) : null}
 
@@ -186,7 +191,6 @@ export default async function PlayerDashboardPage({
           mvpCount={mvpCount}
           lastAssistLabel={lastAssistLabel}
           playedCount={playedCount}
-          card={card}
         />
 
         <div className="flex flex-col gap-4">

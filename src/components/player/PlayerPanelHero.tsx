@@ -20,6 +20,7 @@ type Props = {
   showBadgesLink: boolean
   showCardLink: boolean
   cardEmbedded?: boolean
+  badgesEmbedded?: boolean
 }
 
 const FORM_LABELS: Record<FormResult, string> = { W: 'V', D: 'E', L: 'D' }
@@ -44,6 +45,7 @@ export function PlayerPanelHero({
   showBadgesLink,
   showCardLink,
   cardEmbedded = false,
+  badgesEmbedded = false,
 }: Props) {
   const displayPosition = card?.player.posicion ?? position ?? '—'
   const initials = personInitials(`${firstName} ${lastName}`)
@@ -117,12 +119,21 @@ export function PlayerPanelHero({
             )
           ) : null}
           {showBadgesLink ? (
-            <Link
-              href={orgPath(organizationSlug, `/jugador/${playerId}?from=player`)}
-              className="rounded-lg border border-[#2A3A32] bg-transparent px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:border-[#8A938C]"
-            >
-              Mis insignias
-            </Link>
+            badgesEmbedded ? (
+              <a
+                href="#mis-insignias"
+                className="rounded-lg border border-[#2A3A32] bg-transparent px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:border-[#8A938C]"
+              >
+                Mis insignias
+              </a>
+            ) : (
+              <Link
+                href={orgPath(organizationSlug, `/jugador/${playerId}?from=player`)}
+                className="rounded-lg border border-[#2A3A32] bg-transparent px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:border-[#8A938C]"
+              >
+                Mis insignias
+              </Link>
+            )
           ) : null}
           <Link
             href={orgPath(organizationSlug, '/player/profile')}

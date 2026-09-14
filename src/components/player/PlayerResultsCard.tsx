@@ -1,4 +1,3 @@
-import type { PlayerCardDto } from '@/lib/player-card-query'
 import type { PlayerMatchResults } from '@/lib/player-match-results'
 import type { PlayerOrgEventStats } from '@/lib/player-org-stats'
 import { APP_LOCALE } from '@/lib/locale'
@@ -9,7 +8,14 @@ type Props = {
   mvpCount: number
   lastAssistLabel: string | null
   playedCount: number
-  card?: PlayerCardDto | null
+}
+
+function formatPerMatch(value: number, played: number): string {
+  if (played <= 0) return '0,00'
+  return (value / played).toLocaleString(APP_LOCALE, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 export function PlayerResultsCard({
@@ -18,18 +24,18 @@ export function PlayerResultsCard({
   mvpCount,
   lastAssistLabel,
   playedCount,
-  card,
 }: Props) {
   const played = results.won + results.drawn + results.lost
   const winRate = played > 0 ? Math.round((results.won / played) * 100) : 0
-  const goalsPerMatch =
-    played > 0
-      ? (stats.goals / played).toLocaleString(APP_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-      : '0,00'
+  const goalsPerMatch = formatPerMatch(stats.goals, played)
+  const assistsPerMatch = formatPerMatch(stats.assists, played)
+  const mvpsPerMatch = formatPerMatch(mvpCount, played)
+  const contributionsPerMatch = formatPerMatch(stats.goals + stats.assists, played)
+  const yellowsPerMatch = formatPerMatch(stats.yellowCards, played)
+  const redsPerMatch = formatPerMatch(stats.redCards, played)
   const wonPct = played > 0 ? (results.won / played) * 100 : 0
   const drawnPct = played > 0 ? (results.drawn / played) * 100 : 0
   const lostPct = played > 0 ? (results.lost / played) * 100 : 0
-  const goalContributions = stats.goals + stats.assists
 
   return (
     <section className="h-full rounded-2xl border border-[#2A3A32] bg-[#121A18] p-5">
@@ -38,24 +44,31 @@ export function PlayerResultsCard({
       </h2>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border-2 border-[#C91F26]/50 bg-[#0B1210] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8A938C]">Goles</p>
-          <p className="font-[family-name:var(--font-anton)] text-5xl leading-none text-[#C91F26]">
-            {stats.goals}
-          </p>
-          <p className="mt-1 text-xs text-[#8A938C]">{goalsPerMatch} por partido</p>
-        </div>
-
-        <StatBlock
+        <RateStatBlock label="Goles" value={stats.goals} perMatch={goalsPerMatch} highlight />
+        <RateStatBlock
           label="Asistencias"
           value={stats.assists}
+          perMatch={assistsPerMatch}
           hint={lastAssistLabel ?? (stats.assists > 0 ? undefined : 'Aún sin asistencias')}
         />
-        <StatBlock
+        <RateStatBlock
           label="MVPs"
           value={mvpCount}
+          perMatch={mvpsPerMatch}
           hint={mvpCount > 0 ? undefined : 'Aún sin premio MVP'}
         />
+      </div>
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <RateStatBlock
+          label="G + A"
+          value={stats.goals + stats.assists}
+          perMatch={contributionsPerMatch}
+          hint="Goles más asistencias"
+        />
+        <RateStatBlock label="Amarillas" value={stats.yellowCards} perMatch={yellowsPerMatch} />
+        <RateStatBlock label="Rojas" value={stats.redCards} perMatch={redsPerMatch} />
+        <StatBlock label="Partidos" value={playedCount} hint={`${results.won}G · ${results.drawn}E · ${results.lost}P`} />
       </div>
 
       <div className="mt-5">
@@ -84,65 +97,39 @@ export function PlayerResultsCard({
           <span className="text-[#E06055]">Perdidos {results.lost}</span>
         </div>
       </div>
-
-      <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <MiniStat label="Partidos" value={playedCount} />
-        <MiniStat label="G + A" value={goalContributions} hint="Goles más asistencias" />
-        {card ? (
-          <>
-            <MiniStat label="Presencias" value={card.crudos.presencias} hint="Ventana carta" />
-            <MiniStat
-              label="OVR"
-              value={card.ovr ?? '—'}
-              hint={card.estado === 'en_formacion' ? 'Carta en formación' : 'Rating carta'}
-            />
-            <MiniStat label="Racha goles" value={card.crudos.rachaGoleadora} />
-            <MiniStat label="Racha presencia" value={card.crudos.rachaPresencia} />
-            <MiniStat label="MVPs carta" value={card.crudos.mvps} hint="Ventana carta" />
-            <MiniStat
-              label="PJ ventana"
-              value={`${card.ventana.pj}/${card.ventana.minPj}`}
-              hint={`Últimos ${card.ventana.dias} días`}
-            />
-          </>
-        ) : (
-          <>
-            <MiniStat label="Ganados" value={results.won} accent="win" />
-            <MiniStat label="Empatados" value={results.drawn} />
-            <MiniStat label="Perdidos" value={results.lost} accent="loss" />
-          </>
-        )}
-      </div>
-
-      <div className="mt-4 flex gap-2">
-        <DisciplinePill label="Amarillas" value={stats.yellowCards} />
-        <DisciplinePill label="Rojas" value={stats.redCards} />
-      </div>
     </section>
   )
 }
 
-function MiniStat({
+function RateStatBlock({
   label,
   value,
+  perMatch,
   hint,
-  accent,
+  highlight = false,
 }: {
   label: string
-  value: number | string
+  value: number
+  perMatch: string
   hint?: string
-  accent?: 'win' | 'loss'
+  highlight?: boolean
 }) {
-  const valueColor =
-    accent === 'win' ? 'text-[#3DE68C]' : accent === 'loss' ? 'text-[#E06055]' : 'text-[#E8E4D8]'
-
   return (
-    <div className="rounded-lg border border-[#2A3A32] bg-[#0B1210] px-3 py-2.5">
-      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8A938C]">{label}</p>
-      <p className={`font-[family-name:var(--font-anton)] text-2xl leading-none ${valueColor}`}>
+    <div
+      className={`rounded-xl border bg-[#0B1210] p-4 ${
+        highlight ? 'border-2 border-[#C91F26]/50' : 'border-[#2A3A32]'
+      }`}
+    >
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8A938C]">{label}</p>
+      <p
+        className={`font-[family-name:var(--font-anton)] leading-none ${
+          highlight ? 'text-5xl text-[#C91F26]' : 'text-3xl text-[#E8E4D8]'
+        }`}
+      >
         {value}
       </p>
-      {hint ? <p className="mt-0.5 text-[10px] text-[#8A938C]/80">{hint}</p> : null}
+      <p className="mt-1 text-xs text-[#8A938C]">{perMatch} por partido</p>
+      {hint ? <p className="mt-0.5 text-xs text-[#8A938C]/80">{hint}</p> : null}
     </div>
   )
 }
@@ -153,15 +140,6 @@ function StatBlock({ label, value, hint }: { label: string; value: number; hint?
       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8A938C]">{label}</p>
       <p className="font-[family-name:var(--font-anton)] text-3xl leading-none text-[#E8E4D8]">{value}</p>
       {hint ? <p className="mt-1 text-xs text-[#8A938C]">{hint}</p> : null}
-    </div>
-  )
-}
-
-function DisciplinePill({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex-1 rounded-lg border border-[#2A3A32] bg-[#0B1210] px-3 py-2 text-center">
-      <p className="font-[family-name:var(--font-anton)] text-xl text-[#E8E4D8]">{value}</p>
-      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8A938C]">{label}</p>
     </div>
   )
 }
