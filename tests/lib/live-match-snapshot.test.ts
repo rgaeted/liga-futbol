@@ -145,6 +145,62 @@ describe('live match snapshot', () => {
     })
   })
 
+  it('serializes rosters with photos before formations exist', () => {
+    const leagueMatch = {
+      ...match,
+      callUps: [
+        {
+          playerId: 'p-home',
+          slotKey: null,
+          player: {
+            teamId: 'home',
+            person: {
+              firstName: 'Ana',
+              lastName: 'López',
+              user: null,
+              photoMimeType: 'image/jpeg',
+            },
+            team: { id: 'home' },
+          },
+        },
+        {
+          playerId: 'p-away',
+          slotKey: null,
+          player: {
+            teamId: 'away',
+            person: {
+              firstName: 'Luis',
+              lastName: 'Díaz',
+              user: null,
+              photoMimeType: null,
+            },
+            team: { id: 'away' },
+          },
+        },
+      ],
+    } as unknown as LiveMatchRecord
+
+    const snapshot = buildLiveMatchSnapshot(leagueMatch)
+
+    expect(snapshot.rosters).toHaveLength(2)
+    expect(snapshot.rosters[0]).toMatchObject({
+      label: 'Local',
+      players: [
+        {
+          playerId: 'p-home',
+          playerName: 'Ana López',
+          photoUrl: '/api/players/p-home/photo',
+        },
+      ],
+    })
+    expect(snapshot.rosters[1].players[0]).toMatchObject({
+      playerId: 'p-away',
+      playerName: 'Luis Díaz',
+      photoUrl: null,
+    })
+    expect(snapshot.formations.every((side) => side.lineup === null)).toBe(true)
+  })
+
   it('maps friendly payment status by player id', () => {
     const friendlyMatch = {
       ...match,
@@ -198,6 +254,14 @@ describe('live match snapshot', () => {
       'fp-2': false,
     })
     expect(snapshot.friendlyGalletaPlayerIds).toEqual(['fp-1'])
+    expect(snapshot.rosters[0].players).toEqual([
+      {
+        playerId: 'fp-1',
+        playerName: 'Juan Pérez',
+        photoUrl: '/api/players/fp-1/photo',
+      },
+    ])
+    expect(snapshot.rosters[1].players[0].playerName).toBe('Pedro Gómez')
   })
 
   it('includes guest organization branding on challenge friendlies', () => {

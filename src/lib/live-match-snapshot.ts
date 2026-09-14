@@ -62,6 +62,20 @@ export type LiveMatchFormation = {
   lineup: LineupView | null
 }
 
+export type LiveRosterPlayer = {
+  playerId: string
+  playerName: string
+  photoUrl: string | null
+}
+
+export type LiveRosterSide = {
+  label: string
+  crestSrc: string | null
+  color?: string
+  coachLabel: string | null
+  players: LiveRosterPlayer[]
+}
+
 export type LiveMatchSnapshot = {
   id: string
   organization: {
@@ -101,6 +115,7 @@ export type LiveMatchSnapshot = {
   dateLine: string
   weather: LiveMatchWeather | null
   formations: LiveMatchFormation[]
+  rosters: LiveRosterSide[]
 }
 
 const LIVE_MATCH_INCLUDE = {
@@ -146,6 +161,106 @@ const LIVE_MATCH_INCLUDE = {
 export type LiveMatchRecord = Prisma.MatchGetPayload<{
   include: typeof LIVE_MATCH_INCLUDE
 }>
+
+function rosterPlayerPhotoUrl(
+  playerId: string,
+  person: { photoMimeType: string | null } | null | undefined,
+): string | null {
+  return person?.photoMimeType ? friendlyPlayerPhotoUrl(playerId) : null
+}
+
+function sortRosterPlayers(players: LiveRosterPlayer[]): LiveRosterPlayer[] {
+  return [...players].sort((a, b) => a.playerName.localeCompare(b.playerName, 'es'))
+}
+
+export function buildLiveMatchRosters(input: {
+  matchType: MatchType
+  sides: { home: string; away: string }
+  homeTeamId: string | null
+  awayTeamId: string | null
+  homeCrestSrc: string | null
+  awayCrestSrc: string | null
+  homeColor: string
+  awayColor: string
+  homeCoachLabel: string | null
+  awayCoachLabel: string | null
+  callUps: LiveMatchRecord['callUps']
+  friendlyPlayers: LiveMatchRecord['friendlyPlayers']
+}): LiveRosterSide[] {
+  if (input.matchType === MatchType.FRIENDLY) {
+    const homePlayers = sortRosterPlayers(
+      input.friendlyPlayers
+        .filter((row) => row.side === 'A')
+        .map((row) => ({
+          playerId: row.playerId,
+          playerName: playerDisplayName(row.player),
+          photoUrl: rosterPlayerPhotoUrl(row.playerId, row.player.person),
+        })),
+    )
+    const awayPlayers = sortRosterPlayers(
+      input.friendlyPlayers
+        .filter((row) => row.side === 'B')
+        .map((row) => ({
+          playerId: row.playerId,
+          playerName: playerDisplayName(row.player),
+          photoUrl: rosterPlayerPhotoUrl(row.playerId, row.player.person),
+        })),
+    )
+
+    return [
+      {
+        label: input.sides.home,
+        crestSrc: input.homeCrestSrc,
+        color: input.homeColor,
+        coachLabel: input.homeCoachLabel,
+        players: homePlayers,
+      },
+      {
+        label: input.sides.away,
+        crestSrc: input.awayCrestSrc,
+        color: input.awayColor,
+        coachLabel: input.awayCoachLabel,
+        players: awayPlayers,
+      },
+    ]
+  }
+
+  const homePlayers = sortRosterPlayers(
+    input.callUps
+      .filter((callUp) => callUp.player.teamId === input.homeTeamId)
+      .map((callUp) => ({
+        playerId: callUp.playerId,
+        playerName: playerDisplayName(callUp.player),
+        photoUrl: rosterPlayerPhotoUrl(callUp.playerId, callUp.player.person),
+      })),
+  )
+  const awayPlayers = sortRosterPlayers(
+    input.callUps
+      .filter((callUp) => callUp.player.teamId === input.awayTeamId)
+      .map((callUp) => ({
+        playerId: callUp.playerId,
+        playerName: playerDisplayName(callUp.player),
+        photoUrl: rosterPlayerPhotoUrl(callUp.playerId, callUp.player.person),
+      })),
+  )
+
+  return [
+    {
+      label: input.sides.home,
+      crestSrc: input.homeCrestSrc,
+      color: input.homeColor,
+      coachLabel: input.homeCoachLabel,
+      players: homePlayers,
+    },
+    {
+      label: input.sides.away,
+      crestSrc: input.awayCrestSrc,
+      color: input.awayColor,
+      coachLabel: input.awayCoachLabel,
+      players: awayPlayers,
+    },
+  ]
+}
 
 export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapshot {
   const sides = matchSideNames(match)
@@ -390,6 +505,20 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
             ? awayCoachLabel
             : null,
     })),
+    rosters: buildLiveMatchRosters({
+      matchType: match.matchType,
+      sides,
+      homeTeamId: match.homeTeamId,
+      awayTeamId: match.awayTeamId,
+      homeCrestSrc,
+      awayCrestSrc,
+      homeColor,
+      awayColor,
+      homeCoachLabel,
+      awayCoachLabel,
+      callUps: match.callUps,
+      friendlyPlayers: match.friendlyPlayers,
+    }),
   }
 }
 

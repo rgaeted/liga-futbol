@@ -22,6 +22,7 @@ import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
 import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
+import { LiveTeamRoster } from '@/components/live/LiveTeamRoster'
 import { TeamCrest } from '@/components/TeamCrest'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 
@@ -167,6 +168,8 @@ export function LiveScoreboard({
 
   const isLive = match.status === 'LIVE'
   const hasFormations = match.formations.some((formation) => formation.lineup)
+  const hasRoster = match.rosters.some((side) => side.players.length > 0)
+  const formatLabel = footballFormatLabel(match.footballFormat)
 
   return (
     <div
@@ -196,70 +199,82 @@ export function LiveScoreboard({
           </>
         )}
 
-        {hasFormations && (
+        {(hasFormations || hasRoster) && (
           <section
             className={`mb-8 ${premium ? `${losLunesLiveCard} p-5 sm:p-6` : ''}`}
           >
-            {premium ? (
-              <div className="mb-4">
-                <LosLunesFlankedTitle>Formaciones</LosLunesFlankedTitle>
-              </div>
-            ) : (
+            {hasFormations ? (
               <>
-                <h2 className="mb-1 font-display text-sm font-bold uppercase tracking-[0.25em] text-amber-200/75">
-                  Formaciones
-                </h2>
-              </>
-            )}
-            <p
-              className={`text-center font-ui uppercase tracking-[0.2em] ${
-                premium
-                  ? 'mb-4 text-[10px] text-white/40'
-                  : 'mb-4 text-xs text-white/40'
-              }`}
-            >
-              {footballFormatLabel(match.footballFormat)}
-              {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
-              {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
-            </p>
-            <div className="grid gap-5 sm:grid-cols-2">
-              {match.formations.map((side) =>
-                side.lineup ? (
-                  <div key={side.label}>
-                    {premium ? (
-                      <>
-                        <p className="mb-2 text-center font-display text-sm font-bold uppercase tracking-wide text-white">
-                          {side.label}
-                        </p>
-                        <LosLunesDarkPitch lineup={side.lineup} />
-                      </>
-                    ) : (
-                      <FormationPitch
-                        variant="live"
-                        lineup={side.lineup}
-                        teamName={side.label}
-                        crestSrc={side.crestSrc}
-                        color={side.color}
-                        coachLabel={side.coachLabel}
-                        mvpPlayerIds={match.mvpPlayerIds}
-                        captainPlayerIds={match.captainPlayerIds}
-                        paidByPlayerId={paidByPlayerId}
-                        galletaPlayerIds={galletaPlayerIds}
-                      />
-                    )}
-                    {side.lineup.bench.length > 0 && (
-                      <p
-                        className={`mt-2 text-center text-xs ${
-                          premium ? 'text-white/35' : 'text-white/40'
-                        }`}
-                      >
-                        Banco: {side.lineup.bench.map((b) => b.playerName).join(', ')}
-                      </p>
-                    )}
+                {premium ? (
+                  <div className="mb-4">
+                    <LosLunesFlankedTitle>Formaciones</LosLunesFlankedTitle>
                   </div>
-                ) : null,
-              )}
-            </div>
+                ) : (
+                  <h2 className="mb-1 font-display text-sm font-bold uppercase tracking-[0.25em] text-amber-200/75">
+                    Formaciones
+                  </h2>
+                )}
+                <p
+                  className={`text-center font-ui uppercase tracking-[0.2em] ${
+                    premium
+                      ? 'mb-4 text-[10px] text-white/40'
+                      : 'mb-4 text-xs text-white/40'
+                  }`}
+                >
+                  {formatLabel}
+                  {paidByPlayerId ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
+                  {galletaPlayerIds && galletaPlayerIds.length > 0 ? ' · 🍪 Galleta' : ''}
+                </p>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {match.formations.map((side) =>
+                    side.lineup ? (
+                      <div key={side.label}>
+                        {premium ? (
+                          <>
+                            <p className="mb-2 text-center font-display text-sm font-bold uppercase tracking-wide text-white">
+                              {side.label}
+                            </p>
+                            <LosLunesDarkPitch lineup={side.lineup} />
+                          </>
+                        ) : (
+                          <FormationPitch
+                            variant="live"
+                            lineup={side.lineup}
+                            teamName={side.label}
+                            crestSrc={side.crestSrc}
+                            color={side.color}
+                            coachLabel={side.coachLabel}
+                            mvpPlayerIds={match.mvpPlayerIds}
+                            captainPlayerIds={match.captainPlayerIds}
+                            paidByPlayerId={paidByPlayerId}
+                            galletaPlayerIds={galletaPlayerIds}
+                          />
+                        )}
+                        {side.lineup.bench.length > 0 && (
+                          <p
+                            className={`mt-2 text-center text-xs ${
+                              premium ? 'text-white/35' : 'text-white/40'
+                            }`}
+                          >
+                            Banco: {side.lineup.bench.map((b) => b.playerName).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+              </>
+            ) : (
+              <LiveTeamRoster
+                rosters={match.rosters}
+                premium={premium}
+                footballFormatLabel={formatLabel}
+                paidByPlayerId={paidByPlayerId}
+                galletaPlayerIds={galletaPlayerIds}
+                captainPlayerIds={match.captainPlayerIds}
+                mvpPlayerIds={match.mvpPlayerIds}
+              />
+            )}
           </section>
         )}
 
