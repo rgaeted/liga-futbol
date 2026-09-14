@@ -14,7 +14,7 @@ export function BadgeVitrina({ vitrina, organizationSlug }: Props) {
       : `${vitrina.orgName} · Insignias`
 
   return (
-    <section className="mx-auto mt-12 max-w-[1040px]">
+    <section id="insignias-catalogo" className="mx-auto mt-12 max-w-[1040px] scroll-mt-24">
       <header className="mb-8 text-center">
         <p className="text-xs font-bold uppercase tracking-[0.35em] text-[#FF6B1A]">{kicker}</p>
         <h2 className="mt-1.5 font-[family-name:var(--font-anton)] text-[34px] uppercase tracking-wide text-white">

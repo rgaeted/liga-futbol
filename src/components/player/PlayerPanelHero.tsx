@@ -1,13 +1,10 @@
-import Link from 'next/link'
 import type { PlayerCardDto } from '@/lib/player-card-query'
 import type { PlayerMatchResults } from '@/lib/player-match-results'
 import type { FormResult } from '@/lib/player-form-streak'
+import { playerPanelVibe } from '@/lib/player-panel-vibe'
 import { personInitials } from '@/lib/player-name'
-import { orgPath } from '@/lib/tenant-paths'
 
 type Props = {
-  organizationSlug: string
-  playerId: string
   firstName: string
   lastName: string
   teamName: string | null
@@ -17,10 +14,6 @@ type Props = {
   results: PlayerMatchResults
   form: FormResult[]
   card: PlayerCardDto | null
-  showBadgesLink: boolean
-  showCardLink: boolean
-  cardEmbedded?: boolean
-  badgesEmbedded?: boolean
 }
 
 const FORM_LABELS: Record<FormResult, string> = { W: 'V', D: 'E', L: 'D' }
@@ -32,23 +25,19 @@ const FORM_STYLES: Record<FormResult, string> = {
 }
 
 export function PlayerPanelHero({
-  organizationSlug,
-  playerId,
   firstName,
   lastName,
   teamName,
   position,
   photoUrl,
   playedCount,
+  results,
   form,
   card,
-  showBadgesLink,
-  showCardLink,
-  cardEmbedded = false,
-  badgesEmbedded = false,
 }: Props) {
   const displayPosition = card?.player.posicion ?? position ?? '—'
   const initials = personInitials(`${firstName} ${lastName}`)
+  const vibe = playerPanelVibe(form, playedCount, results)
 
   return (
     <section className="rounded-2xl border border-[#2A3A32] bg-[#121A18] p-5 sm:p-6">
@@ -100,48 +89,21 @@ export function PlayerPanelHero({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:justify-end">
-          {showCardLink ? (
-            cardEmbedded ? (
-              <a
-                href="#mi-carta"
-                className="rounded-lg bg-[#C91F26] px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:bg-[#9A181E]"
-              >
-                Ver mi carta
-              </a>
-            ) : (
-              <Link
-                href={orgPath(organizationSlug, `/jugador/${playerId}?from=player`)}
-                className="rounded-lg bg-[#C91F26] px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:bg-[#9A181E]"
-              >
-                Ver mi carta
-              </Link>
-            )
-          ) : null}
-          {showBadgesLink ? (
-            badgesEmbedded ? (
-              <a
-                href="#mis-insignias"
-                className="rounded-lg border border-[#2A3A32] bg-transparent px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:border-[#8A938C]"
-              >
-                Mis insignias
-              </a>
-            ) : (
-              <Link
-                href={orgPath(organizationSlug, `/jugador/${playerId}?from=player`)}
-                className="rounded-lg border border-[#2A3A32] bg-transparent px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-[#E8E4D8] transition hover:border-[#8A938C]"
-              >
-                Mis insignias
-              </Link>
-            )
-          ) : null}
-          <Link
-            href={orgPath(organizationSlug, '/player/profile')}
-            className="px-2 py-2 text-xs font-semibold text-[#8A938C] transition hover:text-[#E8E4D8]"
+        <aside className="relative overflow-hidden rounded-xl border border-[#2A3A32] bg-[#0B1210] px-4 py-3 lg:max-w-[220px] lg:shrink-0">
+          <span
+            className="pointer-events-none absolute -right-2 -top-3 select-none text-5xl opacity-20"
+            aria-hidden
           >
-            Mi perfil →
-          </Link>
-        </div>
+            {vibe.emoji}
+          </span>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#3DE68C]">
+            Tu vibe
+          </p>
+          <p className="mt-1 font-[family-name:var(--font-anton)] text-lg uppercase tracking-wide text-[#E8E4D8]">
+            {vibe.title}
+          </p>
+          <p className="mt-1 text-xs leading-snug text-[#8A938C]">{vibe.subtitle}</p>
+        </aside>
       </div>
     </section>
   )

@@ -34,7 +34,13 @@ export function PlayerPanelCardSection({ card, organizationSlug, playerId, vitri
           />
         </div>
 
-        {vitrina ? <PlayerPanelBadges vitrina={vitrina} /> : null}
+        {vitrina ? (
+          <PlayerPanelBadges
+            vitrina={vitrina}
+            organizationSlug={organizationSlug}
+            playerId={playerId}
+          />
+        ) : null}
       </div>
     </PlayerPanelSection>
   )

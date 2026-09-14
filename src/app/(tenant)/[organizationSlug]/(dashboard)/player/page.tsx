@@ -109,9 +109,6 @@ export default async function PlayerDashboardPage({
 
   const card = cardResult?.kind === 'ok' ? cardResult.card : null
   const vitrina = badgeVitrina?.kind === 'ok' ? badgeVitrina.vitrina : null
-  const showCardLink = organizationSlug === LOSLUNES_SLUG
-  const showBadgesLink = organization.badgesEnabled && Boolean(vitrina)
-
   const upcomingLeague = callUps.filter(
     (c) => c.match.status === 'SCHEDULED' || c.match.status === 'LIVE',
   )
@@ -158,8 +155,6 @@ export default async function PlayerDashboardPage({
   return (
     <div className="mx-auto max-w-5xl space-y-4 pb-8">
       <PlayerPanelHero
-        organizationSlug={organizationSlug}
-        playerId={player.id}
         firstName={playerWithTeam.person.firstName}
         lastName={playerWithTeam.person.lastName}
         teamName={playerWithTeam.team?.name ?? null}
@@ -169,10 +164,6 @@ export default async function PlayerDashboardPage({
         results={matchResults}
         form={form}
         card={card}
-        showCardLink={showCardLink}
-        showBadgesLink={showBadgesLink}
-        cardEmbedded={Boolean(card)}
-        badgesEmbedded={Boolean(card && vitrina)}
       />
 
       {card ? (
