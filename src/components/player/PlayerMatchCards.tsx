@@ -182,7 +182,7 @@ export function FriendlyMatchList({
 }: {
   items: Array<{
     id: string
-    side: FriendlySide
+    side: FriendlySide | null
     isCaptain: boolean
     isCoach: boolean
     match: {
@@ -214,11 +214,25 @@ export function FriendlyMatchList({
           homeTeam: null,
           awayTeam: null,
         })
-        const teamLabel = part.side === 'A' ? sides.home : sides.away
+        const teamLabel =
+          part.side === 'A' ? sides.home : part.side === 'B' ? sides.away : 'Sin lado'
         const isFinished = part.match.status === 'FINISHED'
-        const playerScore = part.side === 'A' ? part.match.homeScore : part.match.awayScore
-        const opponentScore = part.side === 'A' ? part.match.awayScore : part.match.homeScore
-        const outcome = isFinished ? matchOutcome(playerScore, opponentScore) : null
+        const playerScore =
+          part.side === 'A'
+            ? part.match.homeScore
+            : part.side === 'B'
+              ? part.match.awayScore
+              : null
+        const opponentScore =
+          part.side === 'A'
+            ? part.match.awayScore
+            : part.side === 'B'
+              ? part.match.homeScore
+              : null
+        const outcome =
+          isFinished && playerScore != null && opponentScore != null
+            ? matchOutcome(playerScore, opponentScore)
+            : null
 
         if (variant === 'played' && isFinished) {
           return (

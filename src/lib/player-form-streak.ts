@@ -15,7 +15,7 @@ type LeagueRow = {
 }
 
 type FriendlyRow = {
-  side: FriendlySide
+  side: FriendlySide | null
   match: FinishedMatch
 }
 
@@ -65,7 +65,7 @@ export function computePlayerFormStreak(input: {
   }
 
   for (const { side, match } of input.friendlyParticipations) {
-    if (match.status !== 'FINISHED') continue
+    if (match.status !== 'FINISHED' || side == null) continue
     rows.push({ at: match.scheduledAt.getTime(), result: friendlyOutcome(side, match) })
   }
 

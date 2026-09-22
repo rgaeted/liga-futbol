@@ -268,7 +268,7 @@ type AnalyticsMatchRow = {
   awayTeam: { id: string; name: string } | null
   friendlyPlayers: Array<{
     playerId: string
-    side: FriendlySide
+    side: FriendlySide | null
     paid: boolean
     isGalleta: boolean
     isCoach: boolean

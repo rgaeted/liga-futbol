@@ -20,7 +20,7 @@ type LeagueCallUpInput = {
 }
 
 type FriendlyParticipationInput = {
-  side: FriendlySide
+  side: FriendlySide | null
   match: FinishedMatchScores
 }
 
@@ -69,7 +69,7 @@ export function computePlayerMatchResults(input: {
   }
 
   for (const { side, match } of input.friendlyParticipations) {
-    if (match.status !== 'FINISHED') continue
+    if (match.status !== 'FINISHED' || side == null) continue
     const scores = friendlyScores(side, match)
     results[outcomeFromScores(scores.playerScore, scores.opponentScore)] += 1
   }
