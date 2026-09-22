@@ -71,7 +71,9 @@ export default async function AdminMatchLineupPage({
           homeLabel={sides.home}
           awayLabel={sides.away}
           formations={match.formations}
-          participations={match.friendlyPlayers.map((p) => ({
+          participations={match.friendlyPlayers
+            .filter((p): p is typeof p & { side: 'A' | 'B' } => p.side === 'A' || p.side === 'B')
+            .map((p) => ({
             id: p.playerId,
             side: p.side,
             label: playerDisplayName(p.player),

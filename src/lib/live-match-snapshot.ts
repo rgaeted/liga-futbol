@@ -116,6 +116,8 @@ export type LiveMatchSnapshot = {
   weather: LiveMatchWeather | null
   formations: LiveMatchFormation[]
   rosters: LiveRosterSide[]
+  /** Jugadores del amistoso sin lado A/B (pool disponible). */
+  availablePlayers: LiveRosterPlayer[]
 }
 
 const LIVE_MATCH_INCLUDE = {
@@ -171,6 +173,20 @@ function rosterPlayerPhotoUrl(
 
 function sortRosterPlayers(players: LiveRosterPlayer[]): LiveRosterPlayer[] {
   return [...players].sort((a, b) => a.playerName.localeCompare(b.playerName, 'es'))
+}
+
+export function buildLiveAvailablePlayers(
+  friendlyPlayers: LiveMatchRecord['friendlyPlayers']
+): LiveRosterPlayer[] {
+  return sortRosterPlayers(
+    friendlyPlayers
+      .filter((row) => row.side == null)
+      .map((row) => ({
+        playerId: row.playerId,
+        playerName: playerDisplayName(row.player),
+        photoUrl: rosterPlayerPhotoUrl(row.playerId, row.player.person),
+      })),
+  )
 }
 
 export function buildLiveMatchRosters(input: {
@@ -280,7 +296,11 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
     })),
   )
   const friendlySideByPlayer = new Map(
-    match.friendlyPlayers.map((player) => [player.playerId, player.side])
+    match.friendlyPlayers
+      .filter((player): player is typeof player & { side: 'A' | 'B' } =>
+        player.side === 'A' || player.side === 'B'
+      )
+      .map((player) => [player.playerId, player.side])
   )
   const friendlyPaidByPlayerId = Object.fromEntries(
     match.friendlyPlayers.map((player) => [player.playerId, player.paid])
@@ -288,6 +308,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
   const friendlyGalletaPlayerIds = match.friendlyPlayers
     .filter((player) => player.isGalleta)
     .map((player) => player.playerId)
+  const availablePlayers = buildLiveAvailablePlayers(match.friendlyPlayers)
   const formationSides = buildMatchFormationSides({
     matchType: match.matchType,
     footballFormat: match.footballFormat,
@@ -519,6 +540,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
       callUps: match.callUps,
       friendlyPlayers: match.friendlyPlayers,
     }),
+    availablePlayers,
   }
 }
 

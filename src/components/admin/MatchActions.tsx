@@ -40,7 +40,12 @@ export type MatchRow = {
   sideAColor: string | null
   sideBColor: string | null
   friendlyCategoryId: string | null
-  playerSides: Array<{ playerId: string; side: 'A' | 'B'; isCaptain?: boolean; isCoach?: boolean }>
+  playerSides: Array<{
+    playerId: string
+    side: 'A' | 'B' | null
+    isCaptain?: boolean
+    isCoach?: boolean
+  }>
   hasCrestA: boolean
   hasCrestB: boolean
   refereeId: string | null
@@ -173,7 +178,7 @@ export function MatchActions({
     setSideBCoachId(next.sideBCoachId)
   }
 
-  function handleSideChange(playerId: string, side: 'A' | 'B') {
+  function handleSideChange(playerId: string, side: 'A' | 'B' | null) {
     const next = setPlayerSide({
       playerId,
       side,
@@ -255,24 +260,19 @@ export function MatchActions({
 
       const shouldSaveRoster = match.playerSides.length > 0 || convokedIds.size > 0
       if (shouldSaveRoster) {
-        if (convokedIds.size < 2) {
+        if (convokedIds.size < 1) {
           setSaving(false)
-          setError('Selecciona al menos dos jugadores convocados.')
+          setError('Selecciona al menos un jugador convocado.')
           return
         }
-        if (sideAIds.size < 1 || sideBIds.size < 1) {
+        if (sideAIds.size > 0 && (!sideACaptainId || !sideACoachId)) {
           setSaving(false)
-          setError('Selecciona al menos un jugador por lado.')
+          setError('Si asignas jugadores al lado A, elige capitán y DT.')
           return
         }
-        if (!sideACaptainId || !sideBCaptainId) {
+        if (sideBIds.size > 0 && (!sideBCaptainId || !sideBCoachId)) {
           setSaving(false)
-          setError('Debes elegir un capitán por equipo.')
-          return
-        }
-        if (!sideACoachId || !sideBCoachId) {
-          setSaving(false)
-          setError('Debes elegir un DT por equipo.')
+          setError('Si asignas jugadores al lado B, elige capitán y DT.')
           return
         }
         payload.players = rosterEntriesFromSets(
@@ -281,7 +281,8 @@ export function MatchActions({
           sideACaptainId,
           sideBCaptainId,
           sideACoachId,
-          sideBCoachId
+          sideBCoachId,
+          convokedIds
         )
       }
     }
@@ -442,6 +443,7 @@ export function MatchActions({
               onSideACoachChange={setSideACoachId}
               onSideBCoachChange={setSideBCoachId}
               attendingPlayerIds={attendingPlayerIds}
+              sidesOptional
             />
           </div>
           <div className="md:col-span-3">

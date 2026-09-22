@@ -352,7 +352,7 @@ type FeaturedMatchRow = MatchPublicRow & {
   }>
   friendlyPlayers: Array<{
     playerId: string
-    side: 'A' | 'B'
+    side: 'A' | 'B' | null
     slotKey: string | null
     player: PlayerNameSource & { person: { photoMimeType: string | null } }
   }>

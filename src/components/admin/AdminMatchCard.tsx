@@ -22,7 +22,7 @@ import { attendanceCountLabel } from '@/lib/match-attendance'
 type FriendlyPlayerRow = {
   participationId: string
   playerId: string
-  side: 'A' | 'B'
+  side: 'A' | 'B' | null
   label: string
   paid: boolean
   isGalleta: boolean
@@ -180,6 +180,7 @@ export function AdminMatchCard({
 
   const sideA = friendlyPlayers.filter((player) => player.side === 'A')
   const sideB = friendlyPlayers.filter((player) => player.side === 'B')
+  const pool = friendlyPlayers.filter((player) => player.side == null)
   const paidTotal = friendlyPlayers.filter((player) => player.paid).length
   const unpaidTotal = friendlyPlayers.length - paidTotal
   const when = scheduledAt instanceof Date ? scheduledAt : new Date(scheduledAt)
@@ -249,21 +250,34 @@ export function AdminMatchCard({
       </div>
 
       {matchType === MatchType.FRIENDLY && friendlyPlayers.length > 0 && (
-        <div className="grid gap-4 border-b border-kelme-border px-5 py-4 sm:grid-cols-2">
-          <SideColumn
-            label={`Lado A · ${sideAName}`}
-            colorClass="text-kelme-red"
-            players={sideA}
-            matchId={match.id}
-            resolvePlayerName={resolvePlayerName}
-          />
-          <SideColumn
-            label={`Lado B · ${sideBName}`}
-            colorClass="text-blue-600"
-            players={sideB}
-            matchId={match.id}
-            resolvePlayerName={resolvePlayerName}
-          />
+        <div className="space-y-4 border-b border-kelme-border px-5 py-4">
+          {pool.length > 0 ? (
+            <SideColumn
+              label="Jugadores del partido"
+              colorClass="text-kelme-gray-700"
+              players={pool}
+              matchId={match.id}
+              resolvePlayerName={resolvePlayerName}
+            />
+          ) : null}
+          {(sideA.length > 0 || sideB.length > 0) ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <SideColumn
+                label={`Lado A · ${sideAName}`}
+                colorClass="text-kelme-red"
+                players={sideA}
+                matchId={match.id}
+                resolvePlayerName={resolvePlayerName}
+              />
+              <SideColumn
+                label={`Lado B · ${sideBName}`}
+                colorClass="text-blue-600"
+                players={sideB}
+                matchId={match.id}
+                resolvePlayerName={resolvePlayerName}
+              />
+            </div>
+          ) : null}
         </div>
       )}
 

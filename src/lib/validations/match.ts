@@ -40,20 +40,12 @@ const refereeEventTypesSchema = z
 
 const rosterPlayerEntry = z.object({
   playerId: id,
-  side: z.enum(['A', 'B']),
+  side: z.enum(['A', 'B']).nullable().optional(),
   isCaptain: z.boolean().optional(),
   isCoach: z.boolean().optional(),
 })
 
 function refineFriendlyPlayers(data: { players: z.infer<typeof rosterPlayerEntry>[] }, ctx: z.RefinementCtx) {
-  const sides = new Set(data.players.map((p) => p.side))
-  if (!sides.has('A') || !sides.has('B')) {
-    ctx.addIssue({
-      code: 'custom',
-      message: 'Debe haber al menos un jugador por lado',
-      path: ['players'],
-    })
-  }
   const ids = data.players.map((p) => p.playerId)
   if (new Set(ids).size !== ids.length) {
     ctx.addIssue({
@@ -63,7 +55,9 @@ function refineFriendlyPlayers(data: { players: z.infer<typeof rosterPlayerEntry
     })
   }
   for (const side of ['A', 'B'] as const) {
-    const captains = data.players.filter((p) => p.side === side && p.isCaptain)
+    const sidePlayers = data.players.filter((p) => p.side === side)
+    if (sidePlayers.length === 0) continue
+    const captains = sidePlayers.filter((p) => p.isCaptain)
     if (captains.length !== 1) {
       ctx.addIssue({
         code: 'custom',
@@ -74,7 +68,7 @@ function refineFriendlyPlayers(data: { players: z.infer<typeof rosterPlayerEntry
         path: ['players'],
       })
     }
-    const coaches = data.players.filter((p) => p.side === side && p.isCoach)
+    const coaches = sidePlayers.filter((p) => p.isCoach)
     if (coaches.length !== 1) {
       ctx.addIssue({
         code: 'custom',
@@ -247,7 +241,7 @@ export const updateMatchSchema = z
     footballFormat: footballFormatSchema.optional(),
     sideAColor: teamColorSchema.nullable().optional(),
     sideBColor: teamColorSchema.nullable().optional(),
-    players: z.array(rosterPlayerEntry).min(2).optional(),
+    players: z.array(rosterPlayerEntry).min(1).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.players) refineFriendlyPlayers({ players: data.players }, ctx)

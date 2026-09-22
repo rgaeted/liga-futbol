@@ -160,6 +160,17 @@ function RosterSideColumn({
               >
                 {player.playerName}
               </p>
+              {paidByPlayerId && player.playerId in paidByPlayerId ? (
+                <span
+                  className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide ${
+                    paidByPlayerId[player.playerId]
+                      ? 'bg-emerald-500 text-emerald-950'
+                      : 'bg-red-600 text-white'
+                  }`}
+                >
+                  {paidByPlayerId[player.playerId] ? 'Pagó' : 'No pagó'}
+                </span>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -198,7 +209,7 @@ export function LiveTeamRoster({
       >
         {formatLabel ? `${formatLabel} · ` : ''}
         Formaciones en preparación
-        {showPaymentLegend ? ' · Borde verde: pagó · Borde rojo: no pagó' : ''}
+        {showPaymentLegend ? ' · Badge verde: pagó · Badge rojo: no pagó' : ''}
         {showGalletaLegend ? ' · 🍪 Galleta' : ''}
       </p>
       <div className="grid gap-6 sm:grid-cols-2">

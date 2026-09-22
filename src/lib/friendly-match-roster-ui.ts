@@ -46,7 +46,7 @@ export function applyInitialSplitForUnassigned(
 
 export function setPlayerSide(input: {
   playerId: string
-  side: FriendlySide
+  side: FriendlySide | null
   sideAIds: Set<string>
   sideBIds: Set<string>
   sideACaptainId: string | null
@@ -66,11 +66,18 @@ export function setPlayerSide(input: {
     sideBIds.delete(input.playerId)
     if (sideBCaptainId === input.playerId) sideBCaptainId = null
     if (sideBCoachId === input.playerId) sideBCoachId = null
-  } else {
+  } else if (input.side === 'B') {
     sideBIds.add(input.playerId)
     sideAIds.delete(input.playerId)
     if (sideACaptainId === input.playerId) sideACaptainId = null
     if (sideACoachId === input.playerId) sideACoachId = null
+  } else {
+    sideAIds.delete(input.playerId)
+    sideBIds.delete(input.playerId)
+    if (sideACaptainId === input.playerId) sideACaptainId = null
+    if (sideBCaptainId === input.playerId) sideBCaptainId = null
+    if (sideACoachId === input.playerId) sideACoachId = null
+    if (sideBCoachId === input.playerId) sideBCoachId = null
   }
 
   return { sideAIds, sideBIds, sideACaptainId, sideBCaptainId, sideACoachId, sideBCoachId }
@@ -124,10 +131,13 @@ export function rosterEntriesFromSets(
   sideACaptainId: string | null = null,
   sideBCaptainId: string | null = null,
   sideACoachId: string | null = null,
-  sideBCoachId: string | null = null
+  sideBCoachId: string | null = null,
+  poolIds: Set<string> = new Set()
 ) {
   const sideBOnly = [...sideBIds].filter((id) => !sideAIds.has(id))
   const sideAOnly = [...sideAIds]
+  const assigned = new Set([...sideAOnly, ...sideBOnly])
+  const poolOnly = [...poolIds].filter((id) => !assigned.has(id))
   return [
     ...sideAOnly.map((playerId) => ({
       playerId,
@@ -141,13 +151,19 @@ export function rosterEntriesFromSets(
       isCaptain: playerId === sideBCaptainId,
       isCoach: playerId === sideBCoachId,
     })),
+    ...poolOnly.map((playerId) => ({
+      playerId,
+      side: null as null,
+      isCaptain: false,
+      isCoach: false,
+    })),
   ]
 }
 
 export function setsFromPlayerSides(
   players: Array<{
     playerId: string
-    side: 'A' | 'B'
+    side?: 'A' | 'B' | null
     isCaptain?: boolean
     isCoach?: boolean
   }>
@@ -163,7 +179,7 @@ export function setsFromPlayerSides(
       sideAIds.add(p.playerId)
       if (p.isCaptain) sideACaptainId = p.playerId
       if (p.isCoach) sideACoachId = p.playerId
-    } else {
+    } else if (p.side === 'B') {
       sideBIds.add(p.playerId)
       if (p.isCaptain) sideBCaptainId = p.playerId
       if (p.isCoach) sideBCoachId = p.playerId

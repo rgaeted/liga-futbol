@@ -14,10 +14,12 @@ function SideToggle({
   side,
   current,
   onChange,
+  label,
 }: {
-  side: FriendlySide
-  current: FriendlySide
-  onChange: (side: FriendlySide) => void
+  side: FriendlySide | null
+  current: FriendlySide | null
+  onChange: (side: FriendlySide | null) => void
+  label: string
 }) {
   const active = current === side
   return (
@@ -31,7 +33,7 @@ function SideToggle({
       }`}
       aria-pressed={active}
     >
-      {side}
+      {label}
     </button>
   )
 }
@@ -46,12 +48,14 @@ type Props = {
   sideBCaptainId: string | null
   sideACoachId: string | null
   sideBCoachId: string | null
-  onSideChange: (playerId: string, side: FriendlySide) => void
+  onSideChange: (playerId: string, side: FriendlySide | null) => void
   onSideACaptainChange: (playerId: string | null) => void
   onSideBCaptainChange: (playerId: string | null) => void
   onSideACoachChange: (playerId: string | null) => void
   onSideBCoachChange: (playerId: string | null) => void
   attendingPlayerIds?: string[]
+  /** Si true, lados y roles son opcionales (amistoso intra). */
+  sidesOptional?: boolean
 }
 
 export function FriendlyMatchTeamAssigner({
@@ -70,6 +74,7 @@ export function FriendlyMatchTeamAssigner({
   onSideACoachChange,
   onSideBCoachChange,
   attendingPlayerIds,
+  sidesOptional = false,
 }: Props) {
   const attending = attendingPlayerIds ?? []
   const attendingSet = new Set(attending)
@@ -84,7 +89,14 @@ export function FriendlyMatchTeamAssigner({
   return (
     <div className="space-y-4">
       <fieldset className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
-        <legend className="px-1 text-sm font-medium">Equipos</legend>
+        <legend className="px-1 text-sm font-medium">
+          {sidesOptional ? 'Equipos (opcional)' : 'Equipos'}
+        </legend>
+        {sidesOptional ? (
+          <p className="mb-2 text-xs text-kelme-gray-500">
+            Puedes dejar jugadores sin lado. En vivo se listan como disponibles del partido.
+          </p>
+        ) : null}
         {sortedConvoked.length === 0 ? (
           <p className="text-sm text-kelme-gray-400">No hay jugadores convocados.</p>
         ) : (
@@ -108,17 +120,32 @@ export function FriendlyMatchTeamAssigner({
                       Va
                     </span>
                   ) : null}
+                  {sidesOptional && currentSide(p.id) == null ? (
+                    <span className="rounded-full bg-kelme-gray-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-kelme-gray-500">
+                      Sin lado
+                    </span>
+                  ) : null}
                 </div>
                 <div className="flex gap-1" role="group" aria-label={`Equipo de ${playerLabel(p)}`}>
+                  {sidesOptional ? (
+                    <SideToggle
+                      side={null}
+                      current={currentSide(p.id)}
+                      onChange={() => onSideChange(p.id, null)}
+                      label="—"
+                    />
+                  ) : null}
                   <SideToggle
                     side="A"
-                    current={currentSide(p.id) ?? 'A'}
+                    current={currentSide(p.id)}
                     onChange={() => onSideChange(p.id, 'A')}
+                    label="A"
                   />
                   <SideToggle
                     side="B"
-                    current={currentSide(p.id) ?? 'B'}
+                    current={currentSide(p.id)}
                     onChange={() => onSideChange(p.id, 'B')}
+                    label="B"
                   />
                 </div>
               </li>
@@ -131,7 +158,9 @@ export function FriendlyMatchTeamAssigner({
         <fieldset className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
           <legend className="px-1 text-sm font-medium">Lado {sideAName}</legend>
           <label className="mt-1 block text-sm">
-            <span className="mb-1 block font-medium text-kelme-gray-700">Capitán</span>
+            <span className="mb-1 block font-medium text-kelme-gray-700">
+              Capitán{sidesOptional ? ' (si hay jugadores en el lado)' : ''}
+            </span>
             <select
               value={sideACaptainId ?? ''}
               onChange={(e) => onSideACaptainChange(e.target.value || null)}
@@ -151,7 +180,9 @@ export function FriendlyMatchTeamAssigner({
             </select>
           </label>
           <label className="mt-3 block text-sm">
-            <span className="mb-1 block font-medium text-kelme-gray-700">DT (director técnico)</span>
+            <span className="mb-1 block font-medium text-kelme-gray-700">
+              DT (director técnico){sidesOptional ? ' (si hay jugadores en el lado)' : ''}
+            </span>
             <select
               value={sideACoachId ?? ''}
               onChange={(e) => onSideACoachChange(e.target.value || null)}
@@ -175,7 +206,9 @@ export function FriendlyMatchTeamAssigner({
         <fieldset className="rounded-lg border border-kelme-border bg-kelme-surface p-3">
           <legend className="px-1 text-sm font-medium">Lado {sideBName}</legend>
           <label className="mt-1 block text-sm">
-            <span className="mb-1 block font-medium text-kelme-gray-700">Capitán</span>
+            <span className="mb-1 block font-medium text-kelme-gray-700">
+              Capitán{sidesOptional ? ' (si hay jugadores en el lado)' : ''}
+            </span>
             <select
               value={sideBCaptainId ?? ''}
               onChange={(e) => onSideBCaptainChange(e.target.value || null)}
@@ -195,7 +228,9 @@ export function FriendlyMatchTeamAssigner({
             </select>
           </label>
           <label className="mt-3 block text-sm">
-            <span className="mb-1 block font-medium text-kelme-gray-700">DT (director técnico)</span>
+            <span className="mb-1 block font-medium text-kelme-gray-700">
+              DT (director técnico){sidesOptional ? ' (si hay jugadores en el lado)' : ''}
+            </span>
             <select
               value={sideBCoachId ?? ''}
               onChange={(e) => onSideBCoachChange(e.target.value || null)}

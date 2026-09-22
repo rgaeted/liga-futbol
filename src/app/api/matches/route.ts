@@ -156,7 +156,7 @@ async function createFriendlyMatch(
         data: players.map((player) => ({
           matchId: created.id,
           playerId: player.playerId,
-          side: player.side,
+          side: player.side ?? null,
           isCaptain: player.isCaptain ?? false,
           isCoach: player.isCoach ?? false,
         })),

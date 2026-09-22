@@ -26,8 +26,6 @@ import {
   footballFormatLabel,
 } from '@/lib/football-format'
 import {
-  initialSideSplit,
-  mapToSideSets,
   rosterEntriesFromSets,
   setPlayerSide,
   toggleConvocation,
@@ -142,14 +140,14 @@ function validateRoster(draft: FriendlyDraft): string | null {
     }
     return null
   }
-  if (sideAIds.size < 1 || sideBIds.size < 1) {
-    return 'Selecciona al menos un jugador por lado.'
+  if (draft.convokedIds.length < 1) {
+    return 'Selecciona al menos un jugador convocado.'
   }
-  if (!draft.sideACaptainId || !draft.sideBCaptainId) {
-    return 'Debes elegir un capitán por equipo.'
+  if (sideAIds.size > 0 && (!draft.sideACaptainId || !draft.sideACoachId)) {
+    return 'Si asignas jugadores al lado A, elige capitán y DT.'
   }
-  if (!draft.sideACoachId || !draft.sideBCoachId) {
-    return 'Debes elegir un DT por equipo.'
+  if (sideBIds.size > 0 && (!draft.sideBCaptainId || !draft.sideBCoachId)) {
+    return 'Si asignas jugadores al lado B, elige capitán y DT.'
   }
   return null
 }
@@ -298,7 +296,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
     })
   }
 
-  function handleSideChange(playerId: string, side: 'A' | 'B') {
+  function handleSideChange(playerId: string, side: 'A' | 'B' | null) {
     setError('')
     const next = setPlayerSide({
       playerId,
@@ -346,16 +344,11 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
 
   function goToTeamsPhase() {
     setError('')
-    const minimumConvoked = data.friendlyMode === 'challenge' ? 1 : 2
+    const minimumConvoked = data.friendlyMode === 'challenge' ? 1 : 1
     if (convokedIds.size < minimumConvoked) {
-      setError(
-        data.friendlyMode === 'challenge'
-          ? 'Selecciona al menos un jugador convocado.'
-          : 'Selecciona al menos dos jugadores convocados.'
-      )
+      setError('Selecciona al menos un jugador convocado.')
       return
     }
-    const split = mapToSideSets(initialSideSplit(convoked))
     if (data.friendlyMode === 'challenge') {
       patch({
         rosterPhase: 'teams',
@@ -368,10 +361,9 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
       })
       return
     }
+    // Intra: no auto-asignar lados; quedan en pool hasta que el usuario elija.
     patch({
       rosterPhase: 'teams',
-      sideAIds: [...split.sideAIds],
-      sideBIds: [...split.sideBIds],
       sideACaptainId: null,
       sideBCaptainId: null,
       sideACoachId: null,
@@ -408,11 +400,16 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
       return
     }
 
-    const rosterError = data.friendlyMode === 'challenge' ? validateRoster(data) : null
+    const rosterError =
+      data.friendlyMode === 'challenge'
+        ? validateRoster(data)
+        : data.convokedIds.length > 0
+          ? validateRoster(data)
+          : null
     if (rosterError) {
       setError(rosterError)
       setOpenStep(4)
-      patch({ rosterPhase: 'teams' })
+      patch({ rosterPhase: data.friendlyMode === 'challenge' ? 'teams' : data.rosterPhase })
       return
     }
 
@@ -467,6 +464,19 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             regionCode: data.regionCode || undefined,
             communeCode: data.communeCode || undefined,
             scheduledAt,
+            ...(convokedIds.size > 0
+              ? {
+                  players: rosterEntriesFromSets(
+                    sideAIds,
+                    sideBIds,
+                    data.sideACaptainId,
+                    data.sideBCaptainId,
+                    data.sideACoachId,
+                    data.sideBCoachId,
+                    convokedIds
+                  ),
+                }
+              : {}),
           }
 
     const result = await submitJson('/api/matches', 'POST', payload)
@@ -502,7 +512,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
 
   const rosterReady =
     data.friendlyMode === 'intra'
-      ? true
+      ? convokedIds.size >= 1 && validateRoster(data) === null
       : data.friendlyMode === 'challenge'
         ? sideAIds.size >= 1 &&
           Boolean(data.sideACaptainId) &&
@@ -741,7 +751,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
               teams={teams}
               roster={roster}
               onAddToSide={handleAddTeamToSide}
-              sideOnly={data.friendlyMode === 'challenge' ? 'A' : undefined}
+              sideOnly="A"
             />
             <FriendlyMatchConvocationPicker
               roster={roster}
@@ -754,14 +764,14 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
             />
             <button
               type="button"
-              disabled={convokedIds.size < (data.friendlyMode === 'challenge' ? 1 : 2)}
+              disabled={convokedIds.size < 1}
               onClick={goToTeamsPhase}
               className="rounded-lg bg-kelme-red px-4 py-2 font-semibold text-white hover:bg-kelme-red-dark disabled:opacity-50"
             >
               Continuar a equipos
             </button>
           </div>
-        ) : data.friendlyMode === 'challenge' ? (
+        ) : (
           <div className="space-y-4">
             <p className="text-sm text-kelme-gray-600">
               Asigna capitán y DT solo para tu lado. El visitante completa su plantel al aceptar.
@@ -790,6 +800,45 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
               Volver a convocatoria
             </button>
           </div>
+        )}
+      </WizardStep>
+      ) : (
+      <WizardStep
+        step={4}
+        title="Jugadores del partido"
+        subtitle="Convoca jugadores; lados y capitanes son opcionales"
+        isOpen={data.openStep === 4}
+        onToggle={() => setOpenStep(4)}
+      >
+        {data.rosterPhase === 'convocation' ? (
+          <div className="space-y-4">
+            <p className="text-sm text-kelme-gray-600">
+              Agrega quienes juegan. No es obligatorio definir lados ni capitanes: en vivo verás el
+              listado con quién pagó.
+            </p>
+            <FriendlyTeamBulkAdd
+              teams={teams}
+              roster={roster}
+              onAddToSide={handleAddTeamToSide}
+            />
+            <FriendlyMatchConvocationPicker
+              roster={roster}
+              convokedIds={convokedIds}
+              search={data.convocationSearch}
+              onSearchChange={(convocationSearch) => patch({ convocationSearch })}
+              onToggle={handleToggleConvocation}
+              categoryId={data.categoryId}
+              onPlayerCreated={handlePlayerCreated}
+            />
+            <button
+              type="button"
+              disabled={convokedIds.size < 1}
+              onClick={goToTeamsPhase}
+              className="rounded-lg border border-kelme-border px-4 py-2 font-semibold hover:bg-kelme-gray-100 disabled:opacity-50"
+            >
+              Asignar lados (opcional)
+            </button>
+          </div>
         ) : (
           <div className="space-y-4">
             <FriendlyMatchTeamAssigner
@@ -807,6 +856,7 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
               onSideBCaptainChange={(sideBCaptainId) => patch({ sideBCaptainId })}
               onSideACoachChange={(sideACoachId) => patch({ sideACoachId })}
               onSideBCoachChange={(sideBCoachId) => patch({ sideBCoachId })}
+              sidesOptional
             />
             <button
               type="button"
@@ -818,10 +868,6 @@ export function FriendlyMatchCreateWizard({ referees, categories, friendlyPlayer
           </div>
         )}
       </WizardStep>
-      ) : (
-        <p className="rounded-lg border border-kelme-border bg-kelme-surface px-4 py-3 text-sm text-kelme-gray-600">
-          Después de crear el partido, comparte el link de asistencia. Los equipos se arman al editar, con los que anotaron.
-        </p>
       )}
 
       <WizardStep
