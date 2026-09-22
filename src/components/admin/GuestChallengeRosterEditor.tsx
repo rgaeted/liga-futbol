@@ -73,7 +73,7 @@ export function GuestChallengeRosterEditor({
     setSideBCoachId(next.sideBCoachId)
   }
 
-  function handleSideChange(playerId: string, side: 'A' | 'B') {
+  function handleSideChange(playerId: string, side: 'A' | 'B' | null) {
     if (side !== 'B') return
     const next = setPlayerSide({
       playerId,
