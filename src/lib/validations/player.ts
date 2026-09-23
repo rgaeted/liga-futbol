@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { privacyConsentSchema } from '@/lib/validations/privacy-consent'
 
 const id = z.string().min(1)
 
@@ -45,4 +46,5 @@ export const claimPlayerSchema = z.object({
   password: z.string().min(6),
   playerId: id,
   token: z.string().min(1),
+  acceptPrivacyPolicy: privacyConsentSchema,
 })

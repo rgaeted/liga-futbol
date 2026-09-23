@@ -104,9 +104,14 @@ export function MarketingShell({
           <span>
             © {new Date().getFullYear()} {productName}
           </span>
-          <Link href={ayudaHref} className="font-bold text-[#E8E4D8] hover:text-[#8A938C]">
-            Guía de uso
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
+            <Link href="/privacidad" className="font-bold text-[#E8E4D8] hover:text-[#8A938C]">
+              Privacidad
+            </Link>
+            <Link href={ayudaHref} className="font-bold text-[#E8E4D8] hover:text-[#8A938C]">
+              Guía de uso
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

@@ -17,4 +17,4 @@ export const MOBILE_APP_PRIVACY_SECTIONS = [
   },
 ] as const
 
-export const MOBILE_APP_PRIVACY_URL = 'https://torneos-kelme.vercel.app/privacidad/app'
+export const MOBILE_APP_PRIVACY_URL = 'https://ligalab.cl/privacidad/app'

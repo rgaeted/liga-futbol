@@ -13,6 +13,7 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/login')).toBe(true)
     expect(isPublicRequest('GET', '/register')).toBe(true)
     expect(isPublicRequest('GET', '/ayuda')).toBe(true)
+    expect(isPublicRequest('GET', '/privacidad')).toBe(true)
     expect(isPublicRequest('GET', '/privacidad/app')).toBe(true)
     expect(isPublicRequest('GET', '/live/match-1')).toBe(true)
     expect(isPublicRequest('GET', '/api/auth/session')).toBe(true)

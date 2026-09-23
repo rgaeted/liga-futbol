@@ -81,7 +81,7 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     pathname.startsWith('/register') ||
     pathname.startsWith('/pricing') ||
     pathname.startsWith('/ayuda') ||
-    pathname.startsWith('/privacidad/app') ||
+    pathname.startsWith('/privacidad') ||
     pathname.startsWith('/live') ||
     pathname.startsWith('/mantenimiento') ||
     pathname.startsWith('/branding/') ||

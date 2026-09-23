@@ -55,7 +55,7 @@ describe('POST /api/players/claim', () => {
     )
   })
 
-  it('rejects claim without a personal link token', async () => {
+  it('rejects claim without privacy consent', async () => {
     const response = await POST(
       new Request('http://localhost', {
         method: 'POST',
@@ -64,6 +64,7 @@ describe('POST /api/players/claim', () => {
           email: 'juan@liga.com',
           password: 'password123',
           playerId: 'p-1',
+          token: 'signed-token',
         }),
       }),
     )
@@ -81,6 +82,7 @@ describe('POST /api/players/claim', () => {
           password: 'password123',
           playerId: 'p-1',
           token: 'signed-token',
+          acceptPrivacyPolicy: true,
         }),
       }),
     )

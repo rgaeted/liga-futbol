@@ -1,0 +1,7 @@
+export const LEGAL_SITE_URL = 'https://ligalab.cl'
+export const LEGAL_PRODUCT_NAME = 'LigaLab'
+export const LEGAL_DATA_CONTROLLER = 'LigaLab'
+export const LEGAL_PRIVACY_EMAIL = 'privacidad@ligalab.cl'
+export const LEGAL_SUPPORT_EMAIL = 'contacto@ligalab.cl'
+export const PRIVACY_POLICY_VERSION = '2026-09-23'
+export const PRIVACY_POLICY_LAST_UPDATED = '23 de septiembre de 2026'

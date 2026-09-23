@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { submitJson } from '@/components/admin/submit'
+import { PrivacyConsentField } from '@/components/legal/PrivacyConsentField'
 import { formatFriendlyPlayerLabel } from '@/lib/friendly-player-options'
 
 export type AvailablePlayer = {
@@ -28,6 +29,7 @@ export function RegisterForm({
 }: Props) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const isPersonalInvite = Boolean(lockedPlayer && claimToken)
 
   async function handleClaimSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -50,11 +52,18 @@ export function RegisterForm({
       return
     }
 
+    if (!privacyAccepted) {
+      setLoading(false)
+      setError('Debes aceptar la Política de Privacidad.')
+      return
+    }
+
     const result = await submitJson('/api/players/claim', 'POST', {
       email: String(form.get('email') ?? '').trim(),
       password,
       playerId: lockedPlayer.id,
       token: claimToken,
+      acceptPrivacyPolicy: true,
     })
 
     setLoading(false)
@@ -81,10 +90,17 @@ export function RegisterForm({
       return
     }
 
+    if (!privacyAccepted) {
+      setLoading(false)
+      setError('Debes aceptar la Política de Privacidad.')
+      return
+    }
+
     const result = await submitJson('/api/auth/register', 'POST', {
       email: String(form.get('email') ?? '').trim(),
       name: String(form.get('name') ?? '').trim(),
       password,
+      acceptPrivacyPolicy: true,
     })
 
     setLoading(false)
@@ -132,8 +148,9 @@ export function RegisterForm({
             {lockedPlayer!.categoryName ? ` — ${lockedPlayer!.categoryName}` : ''}
           </p>
         </div>
+        <PrivacyConsentField checked={privacyAccepted} onChange={setPrivacyAccepted} />
         {error ? <p className="font-ui text-sm font-semibold text-org-primary">{error}</p> : null}
-        <button type="submit" disabled={loading} className="btn-kelme w-full">
+        <button type="submit" disabled={loading || !privacyAccepted} className="btn-kelme w-full">
           {loading ? 'Creando cuenta…' : 'Crear cuenta y vincular'}
         </button>
       </form>
@@ -187,8 +204,9 @@ export function RegisterForm({
         <span className="font-semibold text-[#E8E4D8]">link personal</span> que te envía el
         administrador. Ahí se vincula tu cuenta con tu registro.
       </p>
+      <PrivacyConsentField checked={privacyAccepted} onChange={setPrivacyAccepted} />
       {error ? <p className="font-ui text-sm font-semibold text-org-primary">{error}</p> : null}
-      <button type="submit" disabled={loading} className="btn-kelme w-full">
+      <button type="submit" disabled={loading || !privacyAccepted} className="btn-kelme w-full">
         {loading ? 'Creando cuenta…' : 'Crear cuenta gratis'}
       </button>
       <p className="text-center font-ui text-xs text-[#8A938C]">

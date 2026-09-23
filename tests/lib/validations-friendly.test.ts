@@ -114,7 +114,7 @@ describe('friendly player validations', () => {
     expect(result.success).toBe(false)
   })
 
-  it('claim requires a personal link token', () => {
+  it('claim requires a personal link token and privacy consent', () => {
     const result = claimPlayerSchema.safeParse({
       email: 'nuevo@demo.cl',
       password: 'password123',
@@ -123,12 +123,13 @@ describe('friendly player validations', () => {
     expect(result.success).toBe(false)
   })
 
-  it('claim accepts a signed personal link token', () => {
+  it('claim accepts a signed personal link token with privacy consent', () => {
     const result = claimPlayerSchema.safeParse({
       email: 'nuevo@demo.cl',
       password: 'password123',
       playerId: 'p-1',
       token: 'signed-token',
+      acceptPrivacyPolicy: true,
     })
     expect(result.success).toBe(true)
   })

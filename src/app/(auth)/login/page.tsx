@@ -89,6 +89,11 @@ export default async function LoginPage({
             inviteInvalid={inviteInvalid}
           />
         </Suspense>
+        <p className="mt-6 text-center font-ui text-xs text-[#8A938C]">
+          <a href="/privacidad" className="font-semibold text-[#E8E4D8] hover:text-org-primary">
+            Política de Privacidad
+          </a>
+        </p>
       </div>
     </main>
   )

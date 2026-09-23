@@ -29,6 +29,7 @@ describe('POST /api/auth/register', () => {
           email: 'ana@demo.cl',
           name: 'Ana Soto',
           password: 'password123',
+          acceptPrivacyPolicy: true,
         }),
       }),
     )
@@ -36,12 +37,29 @@ describe('POST /api/auth/register', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ ok: true })
     expect(db.user.create).toHaveBeenCalledWith({
-      data: {
+      data: expect.objectContaining({
         email: 'ana@demo.cl',
         name: 'Ana Soto',
         passwordHash: 'hashed-password',
-      },
+        privacyPolicyVersion: '2026-09-23',
+      }),
     })
+  })
+
+  it('rejects registration without privacy consent', async () => {
+    const response = await POST(
+      new Request('http://localhost', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'ana@demo.cl',
+          name: 'Ana Soto',
+          password: 'password123',
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(400)
   })
 
   it('rejects duplicate email', async () => {
@@ -55,6 +73,7 @@ describe('POST /api/auth/register', () => {
           email: 'ana@demo.cl',
           name: 'Ana Soto',
           password: 'password123',
+          acceptPrivacyPolicy: true,
         }),
       }),
     )

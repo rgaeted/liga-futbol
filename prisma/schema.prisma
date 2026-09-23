@@ -149,6 +149,8 @@ model User {
   passwordHash     String
   name             String
   isPlatformAdmin  Boolean  @default(false)
+  privacyPolicyAcceptedAt DateTime?
+  privacyPolicyVersion    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   person           Person?

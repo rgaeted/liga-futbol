@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { privacyConsentData } from '@/lib/legal/privacy-consent'
 import { claimPlayerSchema } from '@/lib/validations/player'
 import { verifyPlayerClaimToken } from '@/lib/player-claim-token'
 import { MembershipRole } from '@/lib/membership-role'
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     }
 
     const user = await tx.user.create({
-      data: { email, passwordHash, name },
+      data: { email, passwordHash, name, ...privacyConsentData() },
     })
     await tx.person.update({ where: { id: person.id }, data: { userId: user.id } })
     await tx.organizationMembership.create({

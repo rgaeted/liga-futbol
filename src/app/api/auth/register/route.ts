@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { privacyConsentData } from '@/lib/legal/privacy-consent'
 import { registerUserSchema } from '@/lib/validations/auth-register'
 
 export async function POST(req: Request) {
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
 
   const passwordHash = await bcrypt.hash(password, 10)
   await db.user.create({
-    data: { email, passwordHash, name },
+    data: { email, passwordHash, name, ...privacyConsentData() },
   })
 
   return NextResponse.json({ ok: true })
