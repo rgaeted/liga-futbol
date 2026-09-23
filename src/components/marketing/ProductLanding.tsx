@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { BillingPlanCards } from '@/components/billing/BillingPlanCards'
+import { PricingSection } from '@/components/billing/PricingSection'
 import { MarketingShell } from '@/components/kelme/MarketingShell'
+import type { BillingPlan } from '@/lib/billing/plans'
 
 const FEATURES = [
   {
@@ -21,9 +22,15 @@ const FEATURES = [
   },
 ]
 
-export function ProductLanding() {
+type Props = {
+  isLoggedIn?: boolean
+  panelHref?: string | null
+  currentPlan?: BillingPlan | null
+}
+
+export function ProductLanding({ isLoggedIn = false, panelHref = null, currentPlan = null }: Props) {
   return (
-    <MarketingShell productName="LigaLab">
+    <MarketingShell productName="LigaLab" panelHref={panelHref} showLogin={!isLoggedIn}>
       <main className="flex-1">
         <section className="border-b border-[#2A3A32] bg-[#0B1210]">
           <div className="mx-auto max-w-5xl px-4 py-16 md:py-24">
@@ -34,36 +41,36 @@ export function ProductLanding() {
               El partido se ve de noche
             </h1>
             <p className="mt-4 max-w-xl text-lg text-[#8A938C]">
-              LigaLab opera ligas con plantel, fixture y live. Una temporada, varias categorías, un solo club.
+              LigaLab opera ligas con plantel, fixture y live. Crea tu cuenta gratis para jugar; activa
+              Club o Liga cuando quieras organizar.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/login" className="btn-kelme">
-                Ingresar
-              </Link>
-              <Link href="#planes" className="btn-kelme-outline">
-                Ver planes
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  {panelHref ? (
+                    <Link href={panelHref} className="btn-kelme">
+                      Ir al panel
+                    </Link>
+                  ) : null}
+                  <Link href="/pricing" className="btn-kelme-outline">
+                    Actualizar plan
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login?mode=register" className="btn-kelme">
+                    Crear cuenta gratis
+                  </Link>
+                  <Link href="/pricing" className="btn-kelme-outline">
+                    Ver precios
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </section>
 
-        <section id="planes" className="border-b border-[#2A3A32] bg-[#0B1210]">
-          <div className="mx-auto max-w-5xl px-4 py-16">
-            <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
-              Planes
-            </p>
-            <h2 className="mt-2 text-[22px] font-black text-[#E8E4D8]">
-              Elige cómo quieres usar LigaLab
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-[#8A938C]">
-              Jugar es gratis. Si quieres organizar equipos o ligas, elige Club o Liga. Te
-              activamos el plan desde la plataforma.
-            </p>
-            <div className="mt-8">
-              <BillingPlanCards />
-            </div>
-          </div>
-        </section>
+        <PricingSection isLoggedIn={isLoggedIn} currentPlan={currentPlan} />
 
         <section className="mx-auto max-w-5xl px-4 py-16">
           <h2 className="text-[22px] font-black text-[#E8E4D8]">

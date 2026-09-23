@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
@@ -120,7 +121,7 @@ export function AuthPanel({
             mode === 'register' ? 'bg-org-primary text-[#0B1210]' : 'text-[#8A938C] hover:text-[#E8E4D8]'
           }`}
         >
-          Crear cuenta
+          Cuenta gratis
         </button>
       </div>
 
@@ -154,6 +155,19 @@ export function AuthPanel({
           .
         </p>
       ) : null}
+      <p className="mt-4 text-center font-ui text-xs text-[#8A938C]">
+        {mode === 'register' ? (
+          <>
+            Plan <span className="font-semibold text-[#E8E4D8]">Gratis</span> para jugar y seguir
+            partidos.{' '}
+          </>
+        ) : (
+          <>¿Ya tienes cuenta gratis? Ingresa con tu email. </>
+        )}
+        <Link href="/pricing" className="font-semibold text-org-primary hover:underline">
+          Ver planes Club y Liga
+        </Link>
+      </p>
     </div>
   )
 }

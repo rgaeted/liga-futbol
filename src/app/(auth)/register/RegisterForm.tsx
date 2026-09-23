@@ -80,7 +80,7 @@ export function RegisterForm({
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="text-center">
-          <h1 className="font-display text-xl font-black text-[#E8E4D8]">Crear cuenta</h1>
+          <h1 className="font-display text-xl font-black text-[#E8E4D8]">Cuenta gratis</h1>
           <p className="mt-1 font-ui text-sm text-[#8A938C]">Reclama tu perfil de jugador</p>
         </div>
         <input name="email" type="email" placeholder="Email" required className="input-kelme" />
@@ -120,11 +120,11 @@ export function RegisterForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="text-center">
-        <h1 className="font-display text-xl font-black text-[#E8E4D8]">Crear cuenta</h1>
+        <h1 className="font-display text-xl font-black text-[#E8E4D8]">Cuenta gratis</h1>
         <p className="mt-1 font-ui text-sm text-[#8A938C]">
           {organizationName
-            ? `Elige tu nombre en ${organizationName} y crea tu acceso.`
-            : 'Elige tu perfil en la lista y crea tu acceso.'}
+            ? `Elige tu nombre en ${organizationName} y crea tu acceso de jugador.`
+            : 'Elige tu perfil en la lista y crea tu acceso de jugador.'}
         </p>
       </div>
       {inviteInvalid ? (

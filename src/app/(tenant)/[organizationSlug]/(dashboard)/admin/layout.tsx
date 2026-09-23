@@ -1,6 +1,6 @@
 ﻿import { auth, signOutAndClearOrg } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { resolvePrimaryDashboardPath } from '@/lib/membership-role'
+import { hasMembershipRole, MembershipRole, resolvePrimaryDashboardPath } from '@/lib/membership-role'
 import { orgPath } from '@/lib/tenant-paths'
 import { resolveTenantMembership, canAccessTenantArea } from '@/lib/tenant-access'
 import { buildTenantNavGroups, loadTenantNavContext, tenantRoleLabel } from '@/lib/tenant-nav'
@@ -54,6 +54,8 @@ export default async function AdminLayout({
       roleLabel={tenantRoleLabel(navContext)}
       helpHref={orgPath(organizationSlug, '/ayuda')}
       showPlatformLink={session.user.isPlatformAdmin}
+      organizationPlan={navContext.plan}
+      isOrgAdmin={hasMembershipRole(membership.roles, MembershipRole.ORG_ADMIN)}
       signOutAction={handleSignOut}
     >
       <SyncOrgCookie organizationId={membership.organizationId} />

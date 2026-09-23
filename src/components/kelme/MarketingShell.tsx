@@ -3,9 +3,10 @@ import Link from 'next/link'
 type Props = {
   children: React.ReactNode
   productName?: string
-  active?: 'home' | 'ayuda'
+  active?: 'home' | 'ayuda' | 'pricing'
   homeHref?: string
   ayudaHref?: string
+  pricingHref?: string
   loginCallback?: string
   showLogin?: boolean
   /** When set, replaces the login CTA (logged-in user with org access). */
@@ -18,6 +19,7 @@ export function MarketingShell({
   active,
   homeHref = '/',
   ayudaHref = '/kelme/ayuda',
+  pricingHref = '/pricing',
   loginCallback,
   showLogin = true,
   panelHref,
@@ -50,8 +52,18 @@ export function MarketingShell({
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link
-              href={ayudaHref}
+              href={pricingHref}
               className={`hidden rounded-xl border border-[#2A3A32] bg-transparent px-3.5 py-2.5 text-sm font-bold sm:inline-flex ${
+                active === 'pricing'
+                  ? 'text-org-primary'
+                  : 'text-[#8A938C] hover:bg-[#0B1210]'
+              }`}
+            >
+              Precios
+            </Link>
+            <Link
+              href={ayudaHref}
+              className={`hidden rounded-xl border border-[#2A3A32] bg-transparent px-3.5 py-2.5 text-sm font-bold md:inline-flex ${
                 active === 'ayuda'
                   ? 'text-org-primary'
                   : 'text-[#8A938C] hover:bg-[#0B1210]'
@@ -60,13 +72,26 @@ export function MarketingShell({
               Guía de uso
             </Link>
             {panelHref ? (
-              <Link href={panelHref} className="btn-kelme text-sm">
-                Ir al panel
-              </Link>
+              <>
+                <Link
+                  href={pricingHref}
+                  className="hidden rounded-xl border border-[#2A3A32] bg-transparent px-3.5 py-2.5 text-sm font-bold text-[#8A938C] hover:bg-[#0B1210] sm:inline-flex"
+                >
+                  Actualizar plan
+                </Link>
+                <Link href={panelHref} className="btn-kelme text-sm">
+                  Ir al panel
+                </Link>
+              </>
             ) : showAuthNav ? (
-              <Link href={loginHref} className="btn-kelme text-sm">
-                Ingresar
-              </Link>
+              <>
+                <Link href="/login?mode=register" className="btn-kelme-outline hidden text-sm sm:inline-flex">
+                  Crear cuenta gratis
+                </Link>
+                <Link href={loginHref} className="btn-kelme text-sm">
+                  Ingresar
+                </Link>
+              </>
             ) : null}
           </nav>
         </div>
