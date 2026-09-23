@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
-import { requireOrgRole } from '@/lib/auth'
+import { mapAdminOrgRouteError, mapHeroImageUploadError, requireOrgAdminForSlug } from '@/lib/admin-org-route'
 import { enforceCapability } from '@/lib/billing/enforce'
-import { editorialImageExtension, validateEditorialImage } from '@/lib/editorial/image'
+import {
+  editorialImageExtension,
+  inferEditorialImageMimeType,
+  validateEditorialImage,
+} from '@/lib/editorial/image'
 import { editorialStoragePath, uploadEditorialObject } from '@/lib/editorial/storage'
 import { editorialPublicUrl } from '@/lib/editorial/urls'
 import {
@@ -10,12 +14,15 @@ import {
   newOrgHeroImageId,
   orgHeroImageStoragePath,
 } from '@/lib/org-hero-images'
-import { MembershipRole } from '@/lib/membership-role'
 import { mapPrismaError } from '@/lib/prisma-errors'
 
-export async function GET() {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ organizationSlug: string }> },
+) {
   try {
-    const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
+    const { organizationSlug } = await params
+    const { organizationId } = await requireOrgAdminForSlug(organizationSlug)
     const gate = await enforceCapability(organizationId, 'PUBLISH_ORG_LANDING')
     if (!gate.ok) {
       return NextResponse.json({ error: gate.error }, { status: 403 })
@@ -30,14 +37,24 @@ export async function GET() {
         sortOrder: image.sortOrder,
       })),
     })
-  } catch {
+  } catch (error) {
+    const mappedOrg = mapAdminOrgRouteError(error)
+    if (mappedOrg) {
+      return NextResponse.json({ error: mappedOrg.message }, { status: mappedOrg.status })
+    }
+    const mapped = mapPrismaError(error)
+    if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ organizationSlug: string }> },
+) {
   try {
-    const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
+    const { organizationSlug } = await params
+    const { organizationId } = await requireOrgAdminForSlug(organizationSlug)
     const gate = await enforceCapability(organizationId, 'PUBLISH_ORG_LANDING')
     if (!gate.ok) {
       return NextResponse.json({ error: gate.error }, { status: 403 })
@@ -50,7 +67,10 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
-    const mimeType = file.type || 'application/octet-stream'
+    const mimeType = inferEditorialImageMimeType(
+      file.name,
+      file.type || 'application/octet-stream',
+    )
     const validation = validateEditorialImage(buffer, mimeType)
     if (!validation.ok) {
       return NextResponse.json({ error: validation.error }, { status: 400 })
@@ -83,8 +103,13 @@ export async function POST(req: Request) {
       { status: 201 },
     )
   } catch (error) {
+    const mappedOrg = mapAdminOrgRouteError(error)
+    if (mappedOrg) {
+      return NextResponse.json({ error: mappedOrg.message }, { status: mappedOrg.status })
+    }
     const mapped = mapPrismaError(error)
     if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
+    const upload = mapHeroImageUploadError(error)
+    return NextResponse.json({ error: upload.message }, { status: upload.status })
   }
 }

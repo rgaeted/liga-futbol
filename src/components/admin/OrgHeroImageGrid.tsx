@@ -23,10 +23,11 @@ export function OrgHeroImageGrid({
   const router = useRouter()
   const [images, setImages] = useState(initialImages)
   const [error, setError] = useState('')
+  const apiBase = `/api/admin/organization/${organizationSlug}/hero-images`
 
   async function reorder(nextIds: string[]) {
     setError('')
-    const result = await submitJson('/api/admin/organization/hero-images/reorder', 'PUT', {
+    const result = await submitJson(`${apiBase}/reorder`, 'PUT', {
       imageIds: nextIds,
     })
     if (!result.ok) {
@@ -55,10 +56,7 @@ export function OrgHeroImageGrid({
 
   async function removeImage(imageId: string) {
     setError('')
-    const result = await submitJson(
-      `/api/admin/organization/hero-images/${imageId}`,
-      'DELETE',
-    )
+    const result = await submitJson(`${apiBase}/${imageId}`, 'DELETE')
     if (!result.ok) {
       setError(result.message)
       return
@@ -84,7 +82,7 @@ export function OrgHeroImageGrid({
         <EditorialImageUpload
           label="Agregar foto"
           fieldName="photo"
-          uploadUrl="/api/admin/organization/hero-images"
+          uploadUrl={apiBase}
           onUploaded={() => router.refresh()}
         />
       ) : (
