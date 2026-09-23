@@ -26,7 +26,7 @@ export default async function OrganizacionesPage() {
   }
 
   if (accessible.length === 0) {
-    redirect(session.user.isPlatformAdmin ? '/plataforma' : '/login?error=sin-acceso')
+    redirect(session.user.isPlatformAdmin ? '/plataforma' : '/')
   }
 
   return (

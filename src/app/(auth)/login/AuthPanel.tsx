@@ -147,14 +147,12 @@ export function AuthPanel({
         </p>
       ) : null}
       <p className="mt-4 text-center font-ui text-xs text-[#8A938C]">
-        {mode === 'register' ? (
+        {mode === 'register' && !hasPersonalInvite ? (
           <>
-            Plan <span className="font-semibold text-[#E8E4D8]">Gratis</span> para jugar y seguir
-            partidos.{' '}
+            Plan <span className="font-semibold text-[#E8E4D8]">Gratis</span> para cualquier persona.{' '}
           </>
-        ) : (
-          <>¿Ya tienes cuenta gratis? Ingresa con tu email. </>
-        )}
+        ) : null}
+        {mode === 'login' ? <>¿No tienes cuenta? Puedes crear una gratis. </> : null}
         <Link href="/pricing" className="font-semibold text-org-primary hover:underline">
           Ver planes Club y Liga
         </Link>

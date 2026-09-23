@@ -28,7 +28,7 @@ export function resolvePostLoginPath(input: {
     }
     return '/organizaciones'
   }
-  return '/login?error=sin-acceso'
+  return '/'
 }
 
 function preferredMembershipByActivity(
