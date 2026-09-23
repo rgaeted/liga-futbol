@@ -1,3 +1,4 @@
+import { planHasCapability, type BillingPlan, type Capability } from '@/lib/billing/capabilities'
 import { db } from '@/lib/db'
 import type { MembershipRole } from '@/lib/membership-role'
 import { MembershipRole as Role, hasMembershipRole } from '@/lib/membership-role'
@@ -10,6 +11,7 @@ export type TenantNavContext = {
   hasPlayerProfile: boolean
   hasFriendlyCoachParticipations: boolean
   userAvatarUrl: string | null
+  plan: BillingPlan
 }
 
 export async function loadTenantNavContext(
@@ -17,7 +19,7 @@ export async function loadTenantNavContext(
   organizationId: string,
   roles: MembershipRole[],
 ): Promise<TenantNavContext> {
-  const [playerCount, coachPartCount, userAvatarUrl] = await Promise.all([
+  const [playerCount, coachPartCount, userAvatarUrl, org] = await Promise.all([
     db.player.count({
       where: {
         organizationId,
@@ -31,6 +33,10 @@ export async function loadTenantNavContext(
       },
     }),
     resolveUserNavAvatarUrl(userId),
+    db.organization.findUnique({
+      where: { id: organizationId },
+      select: { plan: true },
+    }),
   ])
 
   return {
@@ -39,12 +45,27 @@ export async function loadTenantNavContext(
     hasFriendlyCoachParticipations:
       coachPartCount > 0 || hasMembershipRole(roles, Role.FRIENDLY_COACH),
     userAvatarUrl,
+    plan: org?.plan ?? 'FREE',
   }
 }
 
-function adminNavGroups(slug: string): DashboardNavGroup[] {
+function adminNavItemCapability(href: string): Capability | null {
+  if (href.includes('/admin/seasons')) return 'MANAGE_SEASONS'
+  if (href.includes('/admin/content')) return 'MANAGE_LEAGUE_CONTENT'
+  if (href.includes('/admin/awards')) return 'MANAGE_LEAGUE_CONTENT'
+  if (href.includes('/admin/badges')) return 'MANAGE_LEAGUE_CONTENT'
+  return null
+}
+
+function isAdminNavItemAllowed(href: string, plan: BillingPlan): boolean {
+  const capability = adminNavItemCapability(href)
+  if (!capability) return true
+  return planHasCapability(plan, capability)
+}
+
+function adminNavGroups(slug: string, plan: BillingPlan): DashboardNavGroup[] {
   const base = (path: string) => orgPath(slug, path)
-  return [
+  const groups: DashboardNavGroup[] = [
     {
       label: 'Administración',
       items: [
@@ -106,6 +127,13 @@ function adminNavGroups(slug: string): DashboardNavGroup[] {
       items: [{ href: base('/admin/users'), label: 'Cuentas', icon: 'US' }],
     },
   ]
+
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => isAdminNavItemAllowed(item.href, plan)),
+    }))
+    .filter((group) => group.items.length > 0)
 }
 
 export function buildTenantNavGroups(
@@ -116,7 +144,7 @@ export function buildTenantNavGroups(
   const base = (path: string) => orgPath(slug, path)
 
   if (hasMembershipRole(context.roles, Role.ORG_ADMIN)) {
-    groups.push(...adminNavGroups(slug))
+    groups.push(...adminNavGroups(slug, context.plan))
   }
 
   if (hasMembershipRole(context.roles, Role.COACH)) {
