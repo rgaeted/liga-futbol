@@ -110,7 +110,12 @@ export async function setOrganizationPlan(id: string, plan: BillingPlan) {
 export async function listOrganizations() {
   return db.organization.findMany({
     orderBy: { name: 'asc' },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      status: true,
+      plan: true,
       _count: { select: { memberships: true } },
     },
   })

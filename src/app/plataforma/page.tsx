@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { listOrganizations } from '@/lib/organizations'
 import { OrganizationCreateForm } from '@/components/plataforma/OrganizationCreateForm'
+import { OrganizationPlanSelect } from '@/components/plataforma/OrganizationPlanSelect'
 import { OrganizationStatusButton } from '@/components/plataforma/OrganizationStatusButton'
 import { PlatformPageHeader, PlatformPanel, PlatformPanelInner } from '@/components/plataforma/platform-ui'
 
@@ -45,6 +46,7 @@ export default async function PlataformaPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
+                      <OrganizationPlanSelect organizationId={org.id} plan={org.plan} />
                       {org.status === 'ACTIVE' ? (
                         <>
                           <Link
