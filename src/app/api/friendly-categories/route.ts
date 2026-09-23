@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
+import { enforceCapability } from '@/lib/billing/enforce'
 import { createFriendlyCategorySchema } from '@/lib/validations/friendly-category'
 import { MembershipRole } from '@/lib/membership-role'
 
@@ -22,6 +23,12 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
+
+  const gate = await enforceCapability(organizationId, 'MANAGE_FRIENDLIES')
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: 403 })
+  }
+
   const category = await db.friendlyCategory.create({
     data: {
       organizationId,

@@ -2,6 +2,7 @@
 import { ChallengeStatus } from '@prisma/client'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
+import { enforceCreateMatch } from '@/lib/billing/enforce'
 import { formatApiError } from '@/lib/api-error'
 import {
   createMatchSchema,
@@ -321,6 +322,10 @@ export async function POST(req: Request) {
           { status: 400 }
         )
       }
+      const challengeGate = await enforceCreateMatch(organizationId, 'FRIENDLY')
+      if (!challengeGate.ok) {
+        return NextResponse.json({ error: challengeGate.error }, { status: 403 })
+      }
       return createFriendlyChallenge(organizationId, parsed.data)
     }
 
@@ -333,6 +338,12 @@ export async function POST(req: Request) {
     }
 
     const data = parsed.data
+
+    const gate = await enforceCreateMatch(organizationId, data.matchType)
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
+
     const locationFields = buildMatchLocationFields({
       regionCode: data.regionCode,
       communeCode: data.communeCode,
