@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireOrgRole } from '@/lib/auth'
+import { enforceCreateTeam } from '@/lib/billing/enforce'
 import { createTeamSchema } from '@/lib/validations/team'
 import { deriveTeamColor } from '@/lib/team-color'
 import { MembershipRole } from '@/lib/membership-role'
@@ -29,6 +30,11 @@ export async function POST(req: Request) {
   const parsed = createTeamSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const gate = await enforceCreateTeam(organizationId)
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: 403 })
   }
 
   const data = {
