@@ -54,6 +54,7 @@ function adminNavItemCapability(href: string): Capability | null {
   if (href.includes('/admin/content')) return 'MANAGE_LEAGUE_CONTENT'
   if (href.includes('/admin/awards')) return 'MANAGE_LEAGUE_CONTENT'
   if (href.includes('/admin/badges')) return 'MANAGE_LEAGUE_CONTENT'
+  if (href.includes('/admin/branding')) return 'PUBLISH_ORG_LANDING'
   return null
 }
 
@@ -75,6 +76,12 @@ function adminNavGroups(slug: string, plan: BillingPlan): DashboardNavGroup[] {
           label: 'Estadísticas',
           icon: 'ES',
           activePrefixes: [base('/admin/estadisticas')],
+        },
+        {
+          href: base('/admin/branding'),
+          label: 'Landing',
+          icon: 'LD',
+          activePrefixes: [base('/admin/branding')],
         },
       ],
     },

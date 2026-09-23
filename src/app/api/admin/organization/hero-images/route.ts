@@ -1,0 +1,90 @@
+import { NextResponse } from 'next/server'
+import { requireOrgRole } from '@/lib/auth'
+import { enforceCapability } from '@/lib/billing/enforce'
+import { editorialImageExtension, validateEditorialImage } from '@/lib/editorial/image'
+import { editorialStoragePath, uploadEditorialObject } from '@/lib/editorial/storage'
+import { editorialPublicUrl } from '@/lib/editorial/urls'
+import {
+  addOrgHeroImage,
+  listOrgHeroImages,
+  newOrgHeroImageId,
+  orgHeroImageStoragePath,
+} from '@/lib/org-hero-images'
+import { MembershipRole } from '@/lib/membership-role'
+import { mapPrismaError } from '@/lib/prisma-errors'
+
+export async function GET() {
+  try {
+    const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
+    const gate = await enforceCapability(organizationId, 'PUBLISH_ORG_LANDING')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
+
+    const images = await listOrgHeroImages(organizationId)
+    return NextResponse.json({
+      images: images.map((image) => ({
+        id: image.id,
+        storagePath: image.storagePath,
+        url: editorialPublicUrl(image.storagePath),
+        sortOrder: image.sortOrder,
+      })),
+    })
+  } catch {
+    return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
+    const gate = await enforceCapability(organizationId, 'PUBLISH_ORG_LANDING')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
+
+    const form = await req.formData()
+    const file = form.get('photo')
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: 'Debes enviar un archivo photo' }, { status: 400 })
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const mimeType = file.type || 'application/octet-stream'
+    const validation = validateEditorialImage(buffer, mimeType)
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    const imageId = newOrgHeroImageId()
+    const ext = editorialImageExtension(mimeType)
+    const storagePath = editorialStoragePath(
+      orgHeroImageStoragePath(organizationId, imageId, ext).split('/'),
+    )
+
+    await uploadEditorialObject(storagePath, buffer, mimeType)
+    const result = await addOrgHeroImage(organizationId, storagePath, mimeType)
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: 'Ya alcanzaste el máximo de fotos del hero.' },
+        { status: 400 },
+      )
+    }
+
+    return NextResponse.json(
+      {
+        image: {
+          id: result.image.id,
+          storagePath: result.image.storagePath,
+          url: editorialPublicUrl(result.image.storagePath),
+          sortOrder: result.image.sortOrder,
+        },
+      },
+      { status: 201 },
+    )
+  } catch (error) {
+    const mapped = mapPrismaError(error)
+    if (mapped) return NextResponse.json({ error: mapped.message }, { status: mapped.status })
+    return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
+  }
+}

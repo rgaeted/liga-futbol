@@ -11,6 +11,7 @@ import {
   resolveOrgBrandColors,
   resolveOrgLandingLogo,
 } from '@/lib/org-brand'
+import { resolveOrgLandingHeroImageUrls } from '@/lib/org-landing-hero'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE, type PlayerNameSource } from '@/lib/person-name'
 import { isScoringGoalEvent, SCORING_GOAL_EVENT_TYPES } from '@/lib/event-labels'
 import { tallyPlayerAwardRankings } from '@/lib/player-awards'
@@ -140,6 +141,7 @@ export type OrgPublicLanding = {
     name: string
     awards: number
   }>
+  heroImageUrls: string[]
 }
 
 const matchPublicSelect = {
@@ -497,8 +499,16 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     },
   } as const
 
-  const [liveMatches, nextMatch, scheduledFriendlies, results, scorerMatches, orgAwards, recentAwardGrants] =
-    await Promise.all([
+  const [
+    liveMatches,
+    nextMatch,
+    scheduledFriendlies,
+    results,
+    scorerMatches,
+    orgAwards,
+    recentAwardGrants,
+    heroImages,
+  ] = await Promise.all([
     db.match.findMany({
       where: {
         organizationId: org.id,
@@ -575,6 +585,11 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
         player: { include: PLAYER_PERSON_NAME_INCLUDE },
         orgAward: { select: { emoji: true, shortLabel: true, isActive: true } },
       },
+    }),
+    db.organizationHeroImage.findMany({
+      where: { organizationId: org.id },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { storagePath: true },
     }),
   ])
 
@@ -660,6 +675,10 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       })),
       5,
     ).map((row) => ({ name: row.name, awards: row.value })),
+    heroImageUrls: resolveOrgLandingHeroImageUrls(
+      org.slug,
+      heroImages.map((image) => image.storagePath),
+    ),
   }
 }
 

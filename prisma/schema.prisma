@@ -224,6 +224,20 @@ model Organization {
   playerAwards      PlayerAward[]
   orgBadges         OrgBadge[]
   playerBadges      PlayerBadge[]
+  heroImages        OrganizationHeroImage[]
+}
+
+model OrganizationHeroImage {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  storagePath    String
+  mimeType       String
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, sortOrder])
 }
 
 model RefereeProfile {
