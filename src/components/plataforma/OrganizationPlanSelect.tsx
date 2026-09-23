@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { BILLING_PLAN_LABELS, BILLING_PLANS, type BillingPlan } from '@/lib/billing/plans'
-import { platformInputClass } from '@/components/plataforma/platform-ui'
+import { BillingPlanSelect } from '@/components/billing/BillingPlanSelect'
+import type { BillingPlan } from '@/lib/billing/plans'
 
 type Props = {
   organizationId: string
@@ -22,22 +22,11 @@ export function OrganizationPlanSelect({ organizationId, plan }: Props) {
   }
 
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-[10px] font-bold uppercase tracking-wide text-[#8A938C]">
-        Plan de la empresa
-      </span>
-      <select
-        value={plan}
-        onChange={(e) => void handleChange(e.target.value as BillingPlan)}
-        className={`${platformInputClass} min-w-[120px] py-2 text-xs font-bold`}
-        aria-label="Plan de la empresa"
-      >
-        {BILLING_PLANS.map((value) => (
-          <option key={value} value={value}>
-            {BILLING_PLAN_LABELS[value]}
-          </option>
-        ))}
-      </select>
-    </label>
+    <BillingPlanSelect
+      value={plan}
+      onChange={(nextPlan) => void handleChange(nextPlan)}
+      label="Plan de la empresa"
+      className="min-w-[140px]"
+    />
   )
 }

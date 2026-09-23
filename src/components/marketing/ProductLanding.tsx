@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BillingPlanCards } from '@/components/billing/BillingPlanCards'
 import { MarketingShell } from '@/components/kelme/MarketingShell'
 
 const FEATURES = [
@@ -39,9 +40,27 @@ export function ProductLanding() {
               <Link href="/login" className="btn-kelme">
                 Ingresar
               </Link>
-              <Link href="/kelme/ayuda" className="btn-kelme-outline">
-                Guía de uso
+              <Link href="#planes" className="btn-kelme-outline">
+                Ver planes
               </Link>
+            </div>
+          </div>
+        </section>
+
+        <section id="planes" className="border-b border-[#2A3A32] bg-[#0B1210]">
+          <div className="mx-auto max-w-5xl px-4 py-16">
+            <p className="font-ui text-[11px] font-black uppercase tracking-[0.13em] text-[#8A938C]">
+              Planes
+            </p>
+            <h2 className="mt-2 text-[22px] font-black text-[#E8E4D8]">
+              Elige cómo quieres usar LigaLab
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-[#8A938C]">
+              Jugar es gratis. Si quieres organizar equipos o ligas, elige Club o Liga. Te
+              activamos el plan desde la plataforma.
+            </p>
+            <div className="mt-8">
+              <BillingPlanCards />
             </div>
           </div>
         </section>
