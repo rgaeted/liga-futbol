@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { BILLING_PLANS } from '@/lib/billing/plans'
 import { parseOrganizationSlug } from '@/lib/organization-slug'
 
 const hexColor = /^#[0-9A-Fa-f]{6}$/
@@ -27,6 +28,7 @@ export const createOrganizationSchema = z
     adminEmail: optionalEmail,
     adminName: z.string().trim().optional(),
     adminPassword: z.string().min(6).optional(),
+    plan: z.enum(BILLING_PLANS).optional(),
   })
   .superRefine((data, ctx) => {
     if (!data.adminEmail) return
@@ -43,4 +45,8 @@ export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>
 
 export const updateOrganizationStatusSchema = z.object({
   status: z.enum(['ACTIVE', 'PAUSED']),
+})
+
+export const updateOrganizationPlanSchema = z.object({
+  plan: z.enum(BILLING_PLANS),
 })

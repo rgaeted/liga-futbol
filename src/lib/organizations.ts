@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import type { BillingPlan } from '@/lib/billing/plans'
 import { MembershipRole } from '@/lib/membership-role'
 import { parseOrganizationSlug } from '@/lib/organization-slug'
 import { db } from '@/lib/db'
@@ -41,6 +42,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
         primaryColor: input.primaryColor,
         secondaryColor: input.secondaryColor,
         status: 'ACTIVE',
+        plan: input.plan ?? 'FREE',
       },
     })
 
@@ -99,6 +101,10 @@ export async function setOrganizationStatus(id: string, status: 'ACTIVE' | 'PAUS
     where: { id },
     data: { status },
   })
+}
+
+export async function setOrganizationPlan(id: string, plan: BillingPlan) {
+  return db.organization.update({ where: { id }, data: { plan } })
 }
 
 export async function listOrganizations() {

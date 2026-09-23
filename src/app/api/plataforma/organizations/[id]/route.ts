@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { requirePlatformAdmin } from '@/lib/auth'
 import { mapPrismaError } from '@/lib/prisma-errors'
-import { setOrganizationStatus } from '@/lib/organizations'
-import { updateOrganizationStatusSchema } from '@/lib/validations/organization'
+import { setOrganizationPlan, setOrganizationStatus } from '@/lib/organizations'
+import {
+  updateOrganizationPlanSchema,
+  updateOrganizationStatusSchema,
+} from '@/lib/validations/organization'
 
 export async function PATCH(
   req: Request,
@@ -11,7 +14,18 @@ export async function PATCH(
   try {
     await requirePlatformAdmin()
     const { id } = await params
-    const parsed = updateOrganizationStatusSchema.safeParse(await req.json())
+    const body = await req.json()
+
+    if ('plan' in body) {
+      const parsed = updateOrganizationPlanSchema.safeParse(body)
+      if (!parsed.success) {
+        return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+      }
+      const organization = await setOrganizationPlan(id, parsed.data.plan)
+      return NextResponse.json(organization)
+    }
+
+    const parsed = updateOrganizationStatusSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
     }
