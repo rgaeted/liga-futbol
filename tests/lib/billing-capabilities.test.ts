@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   LEAGUE_TEAM_LIMIT,
@@ -66,4 +68,14 @@ describe('assertCanCreateTeam', () => {
       error: 'El plan Liga permite hasta 50 equipos.',
     })
   })
+})
+
+it('backfills existing organizations to LEAGUE in SQL', () => {
+  const sql = readFileSync(
+    resolve('prisma/migrations/20260923120000_organization_billing_plan/migration.sql'),
+    'utf8',
+  )
+  expect(sql).toMatch(/CREATE TYPE "BillingPlan"/)
+  expect(sql).toMatch(/ADD COLUMN "plan" "BillingPlan" NOT NULL DEFAULT 'FREE'/)
+  expect(sql).toMatch(/UPDATE "Organization" SET "plan" = 'LEAGUE'/)
 })

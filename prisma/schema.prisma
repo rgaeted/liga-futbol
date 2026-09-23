@@ -19,6 +19,12 @@ enum OrganizationStatus {
   PAUSED
 }
 
+enum BillingPlan {
+  FREE
+  CLUB
+  LEAGUE
+}
+
 enum MatchStatus {
   SCHEDULED
   LIVE
@@ -196,6 +202,7 @@ model Organization {
   primaryColor     String
   secondaryColor   String
   status           OrganizationStatus @default(ACTIVE)
+  plan             BillingPlan        @default(FREE)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   memberships      OrganizationMembership[]
