@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { enforceCapability } from '@/lib/billing/enforce'
 import { createSponsor, listAdminSponsors } from '@/lib/editorial/sponsors'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { createSponsorSchema } from '@/lib/validations/editorial'
@@ -24,7 +25,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: seasonId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
     const parsed = createSponsorSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })

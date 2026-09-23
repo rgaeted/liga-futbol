@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { SeasonTeamStatus } from '@prisma/client'
 import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
+import { enforceCapability } from '@/lib/billing/enforce'
 import { db } from '@/lib/db'
 import { parseMobileEditionSlug } from '@/lib/mobile-edition-slug'
 import { mapPrismaError } from '@/lib/prisma-errors'
@@ -35,7 +36,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    await requireAdminSeason(id)
+    const { organizationId } = await requireAdminSeason(id)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
     const parsed = mobileConfigSchema.safeParse(await req.json())
     if (!parsed.success) {
       const slugIssue = parsed.error.issues.find((issue) => issue.path[0] === 'slug')

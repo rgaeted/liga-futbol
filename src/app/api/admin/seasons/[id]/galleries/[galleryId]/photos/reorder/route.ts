@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
+import { enforceCapability } from '@/lib/billing/enforce'
 import { reorderGalleryPhotos } from '@/lib/editorial/gallery-photos'
 import { mapPrismaError } from '@/lib/prisma-errors'
 import { reorderGalleryPhotosSchema } from '@/lib/validations/editorial'
@@ -10,7 +11,11 @@ export async function PUT(
 ) {
   try {
     const { id: seasonId, galleryId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
     const parsed = reorderGalleryPhotosSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })

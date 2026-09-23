@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
+import { enforceCapability } from '@/lib/billing/enforce'
 import { db } from '@/lib/db'
 import { articleCoverStoragePath } from '@/lib/editorial/articles'
 import { editorialImageExtension, validateEditorialImage } from '@/lib/editorial/image'
@@ -16,7 +17,11 @@ export async function POST(
 ) {
   try {
     const { id: seasonId, articleId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
 
     const article = await db.article.findFirst({
       where: { id: articleId, seasonId },
@@ -72,7 +77,11 @@ export async function DELETE(
 ) {
   try {
     const { id: seasonId, articleId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
 
     const article = await db.article.findFirst({
       where: { id: articleId, seasonId },
