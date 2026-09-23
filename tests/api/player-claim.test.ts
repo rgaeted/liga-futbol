@@ -12,10 +12,15 @@ vi.mock('bcryptjs', () => ({
 
 vi.mock('@/lib/db', () => ({
   db: {
-    player: { findUnique: vi.fn() },
+    player: { findUnique: vi.fn(), findMany: vi.fn().mockResolvedValue([]) },
     user: { findUnique: vi.fn() },
+    organizationMembership: { findMany: vi.fn().mockResolvedValue([]) },
     $transaction: vi.fn(),
   },
+}))
+
+vi.mock('@/lib/player-claim-token', () => ({
+  verifyPlayerClaimToken: vi.fn().mockReturnValue(true),
 }))
 
 import { db } from '@/lib/db'
@@ -50,6 +55,22 @@ describe('POST /api/players/claim', () => {
     )
   })
 
+  it('rejects claim without a personal link token', async () => {
+    const response = await POST(
+      new Request('http://localhost', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'juan@liga.com',
+          password: 'password123',
+          playerId: 'p-1',
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(400)
+  })
+
   it('links person to new user', async () => {
     const response = await POST(
       new Request('http://localhost', {
@@ -59,6 +80,7 @@ describe('POST /api/players/claim', () => {
           email: 'juan@liga.com',
           password: 'password123',
           playerId: 'p-1',
+          token: 'signed-token',
         }),
       }),
     )

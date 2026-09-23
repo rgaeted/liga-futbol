@@ -65,18 +65,12 @@ function LoginForm({
 }
 
 type Props = {
-  available?: AvailablePlayer[]
-  organizationSlug?: string | null
-  organizationName?: string | null
   lockedPlayer?: AvailablePlayer | null
   claimToken?: string | null
   inviteInvalid?: boolean
 }
 
 export function AuthPanel({
-  available = [],
-  organizationSlug = null,
-  organizationName = null,
   lockedPlayer = null,
   claimToken = null,
   inviteInvalid = false,
@@ -127,9 +121,6 @@ export function AuthPanel({
 
       {mode === 'register' ? (
         <RegisterForm
-          available={available}
-          organizationSlug={organizationSlug}
-          organizationName={organizationName}
           lockedPlayer={lockedPlayer}
           claimToken={claimToken}
           inviteInvalid={inviteInvalid}

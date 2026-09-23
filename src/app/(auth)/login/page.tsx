@@ -3,7 +3,6 @@ import { AuthPanel } from '@/app/(auth)/login/AuthPanel'
 import type { AvailablePlayer } from '@/app/(auth)/register/RegisterForm'
 import { db } from '@/lib/db'
 import { verifyPlayerClaimToken } from '@/lib/player-claim-token'
-import { organizationSlugFromPath } from '@/lib/organization-slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,8 +38,6 @@ export default async function LoginPage({
   const params = await searchParams
   const playerId = params.player ?? null
   const token = params.token ?? null
-  const registerOrgSlug =
-    params.org ?? organizationSlugFromPath(params.callbackUrl ?? null) ?? null
 
   let lockedPlayer: AvailablePlayer | null = null
   let claimToken: string | null = null
@@ -60,34 +57,6 @@ export default async function LoginPage({
       }
     } else {
       inviteInvalid = true
-    }
-  }
-
-  let available: AvailablePlayer[] = []
-  let organizationName: string | null = null
-
-  if (!lockedPlayer) {
-    if (registerOrgSlug) {
-      const org = await db.organization.findFirst({
-        where: { slug: registerOrgSlug, status: 'ACTIVE' },
-        select: { id: true, name: true },
-      })
-      if (org) {
-        organizationName = org.name
-        const rows = await db.player.findMany({
-          where: { organizationId: org.id, person: { userId: null } },
-          orderBy: [{ person: { lastName: 'asc' } }, { person: { firstName: 'asc' } }],
-          select: playerSelect,
-        })
-        available = rows.map(mapPlayer)
-      }
-    } else {
-      const rows = await db.player.findMany({
-        where: { person: { userId: null } },
-        orderBy: [{ person: { lastName: 'asc' } }, { person: { firstName: 'asc' } }],
-        select: playerSelect,
-      })
-      available = rows.map(mapPlayer)
     }
   }
 
@@ -115,9 +84,6 @@ export default async function LoginPage({
           }
         >
           <AuthPanel
-            available={available}
-            organizationSlug={registerOrgSlug}
-            organizationName={organizationName}
             lockedPlayer={lockedPlayer}
             claimToken={claimToken}
             inviteInvalid={inviteInvalid}
