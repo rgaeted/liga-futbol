@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { db } from '@/lib/db'
+import { MAX_ORG_HERO_IMAGES } from '@/lib/validations/org-hero-image'
 
-export const MAX_ORG_HERO_IMAGES = 12
+export { MAX_ORG_HERO_IMAGES }
 
 export async function listOrgHeroImages(organizationId: string) {
   return db.organizationHeroImage.findMany({

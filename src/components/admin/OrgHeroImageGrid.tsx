@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { EditorialImageUpload } from '@/components/admin/content/EditorialImageUpload'
 import { submitJson } from '@/components/admin/submit'
-import { MAX_ORG_HERO_IMAGES } from '@/lib/org-hero-images'
+import { MAX_ORG_HERO_IMAGES } from '@/lib/validations/org-hero-image'
 
 type OrgHeroImage = {
   id: string
