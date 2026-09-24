@@ -15,7 +15,7 @@
     "torneos-kelme": {
       "root": ".",
       "framework": "nextjs",
-      "buildCommand": "npm ci --include=dev && npx prisma migrate deploy && npm run build"
+      "buildCommand": "npm ci --include=dev && npx prisma migrate deploy && npx tsx scripts/copy-editorial-to-r2.ts && npm run build"
     }
   },
   "rewrites": [
