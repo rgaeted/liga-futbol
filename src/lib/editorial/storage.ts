@@ -1,6 +1,7 @@
 import 'server-only'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { editorialStorageBucket } from '@/lib/editorial/urls'
+import { deleteR2Objects, readR2Config, uploadR2Object } from '@/lib/media/r2'
 
 let adminClient: SupabaseClient | null = null
 
@@ -20,6 +21,10 @@ export async function uploadEditorialObject(
   buffer: Buffer,
   mimeType: string,
 ): Promise<void> {
+  if (readR2Config()) {
+    await uploadR2Object(path, buffer, mimeType)
+    return
+  }
   const supabase = getSupabaseAdmin()
   const { error } = await supabase.storage.from(editorialStorageBucket()).upload(path, buffer, {
     contentType: mimeType,
@@ -36,6 +41,10 @@ export async function deleteEditorialObjects(paths: string[]): Promise<void> {
   const uniquePaths = [...new Set(paths.filter(Boolean))]
   if (uniquePaths.length === 0) return
 
+  if (readR2Config()) {
+    await deleteR2Objects(uniquePaths)
+    return
+  }
   const supabase = getSupabaseAdmin()
   const { error } = await supabase.storage.from(editorialStorageBucket()).remove(uniquePaths)
   if (error) throw error

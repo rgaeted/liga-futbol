@@ -26,4 +26,12 @@ describe('editorialStoragePath', () => {
       'https://project.supabase.co/storage/v1/object/public/editorial/seasons/s1/logo.png',
     )
   })
+
+  it('prefers the R2 public base when it is configured', () => {
+    vi.stubEnv('NEXT_PUBLIC_MEDIA_BASE_URL', 'https://media.ligalab.cl/')
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://project.supabase.co')
+    expect(editorialPublicUrl('orgs/org-1/hero/a.jpg')).toBe(
+      'https://media.ligalab.cl/orgs/org-1/hero/a.jpg',
+    )
+  })
 })
