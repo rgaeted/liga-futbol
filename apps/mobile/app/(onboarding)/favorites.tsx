@@ -1,5 +1,6 @@
 import { Link } from 'expo-router'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTeamsQuery } from '@/src/api/queries'
 import { LoadingState } from '@/src/components/states/LoadingState'
 import { ErrorState } from '@/src/components/states/ErrorState'
@@ -15,7 +16,7 @@ export default function FavoritesOnboardingScreen() {
   if (error) return <ErrorState onRetry={() => void refetch()} />
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Elige tus equipos</Text>
       <Text style={styles.subtitle}>Puedes cambiarlos después desde la ficha de cada equipo.</Text>
       <ScrollView contentContainerStyle={styles.list}>
@@ -42,7 +43,7 @@ export default function FavoritesOnboardingScreen() {
           <Text style={styles.buttonLabel}>Continuar</Text>
         </Pressable>
       </Link>
-    </View>
+    </SafeAreaView>
   )
 }
 

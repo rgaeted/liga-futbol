@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet } from 'react-native'
+import { useState } from 'react'
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
 import { useHomeQuery } from '@/src/api/queries'
 import { FeaturedLiveMatch } from '@/src/components/home/FeaturedLiveMatch'
 import { HomeSection } from '@/src/components/home/HomeSection'
@@ -11,17 +12,34 @@ import { ErrorState } from '@/src/components/states/ErrorState'
 import { StaleBanner } from '@/src/components/states/StaleBanner'
 import { getRuntimeEditionConfig } from '@/src/lib/runtime-config'
 import { theme } from '@/src/theme'
+import { EditionHero } from '@/src/components/home/EditionHero'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { EmptyState } from '@/src/components/states/EmptyState'
 
 export default function HomeScreen() {
   const edition = getRuntimeEditionConfig()
-  const { data, isLoading, error, isError, refetch, isFetching } = useHomeQuery()
+  const { data, isLoading, error, isError, refetch } = useHomeQuery()
+  const [refreshing, setRefreshing] = useState(false)
+
+  async function refreshHome() {
+    setRefreshing(true)
+    try {
+      await refetch()
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   if (isLoading) return <LoadingState />
   if (error && !data) return <ErrorState onRetry={() => void refetch()} />
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+    <ScrollView
+      contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refreshHome()} tintColor={theme.primary} colors={[theme.primary]} />}>
       <AppHeader title="Inicio" subtitle={edition.shortName} />
+      <EditionHero />
       {isError && data ? <StaleBanner /> : null}
       {data?.featuredLiveMatch ? (
         <HomeSection title="En vivo">
@@ -38,6 +56,9 @@ export default function HomeScreen() {
           <MatchList matches={data.recentResults} />
         </HomeSection>
       ) : null}
+      {data && !data.featuredLiveMatch && !data.upcomingMatches.length && !data.recentResults.length ? (
+        <EmptyState title="Aún no hay partidos publicados" />
+      ) : null}
       {data?.recentArticles?.length ? (
         <HomeSection title="Noticias">
           {data.recentArticles.map((article) => (
@@ -50,8 +71,8 @@ export default function HomeScreen() {
           <SponsorList sponsors={data.sponsors} />
         </HomeSection>
       ) : null}
-      {isFetching ? <LoadingState label="Actualizando…" /> : null}
     </ScrollView>
+    </SafeAreaView>
   )
 }
 

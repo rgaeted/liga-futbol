@@ -1,5 +1,4 @@
 import Constants from 'expo-constants'
-import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native'
 import type { MobilePlatformCode } from '@liga/mobile-contracts'
 import { installationApiClient } from '../api/installation-client'
@@ -34,6 +33,10 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null
 }
 
 export async function registerForLeagueNotifications(): Promise<RegisterNotificationsResult> {
+  if (Platform.OS === 'android' && Constants.executionEnvironment === 'storeClient') {
+    return { registered: false, reason: 'no-token' }
+  }
+  const Notifications = await import('expo-notifications')
   let permission = await Notifications.getPermissionsAsync()
   if (permission.status !== 'granted') {
     const requested = await withTimeout(

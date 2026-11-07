@@ -22,6 +22,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
+  if (parsed.data.categoryId) {
+    const category = await db.friendlyCategory.findFirst({
+      where: { id: parsed.data.categoryId, organizationId },
+      select: { id: true },
+    })
+    if (!category) {
+      return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 400 })
+    }
+  }
+
   const team = await db.team.update({ where: { id }, data: parsed.data })
   return NextResponse.json(team)
 }

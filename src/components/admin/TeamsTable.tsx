@@ -13,6 +13,8 @@ import { resolveTeamColor } from '@/lib/team-color'
 export type TeamRow = {
   id: string
   name: string
+  categoryId: string | null
+  categoryName: string | null
   color: string | null
   coachId: string | null
   coachName: string | null
@@ -26,11 +28,12 @@ export type CoachOption = {
   assignedTeamId: string | null
 }
 
-export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: CoachOption[] }) {
+export function TeamsTable({ teams, coaches, categories }: { teams: TeamRow[]; coaches: CoachOption[]; categories: { id: string; name: string }[] }) {
   const router = useRouter()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [color, setColor] = useState<string | null>(null)
+  const [categoryId, setCategoryId] = useState('')
   const [coachId, setCoachId] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -39,6 +42,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
     setEditingId(team.id)
     setName(team.name)
     setColor(team.color)
+    setCategoryId(team.categoryId ?? '')
     setCoachId(team.coachId ?? '')
     setError('')
   }
@@ -50,6 +54,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
       name,
       color,
       coachId: coachId || null,
+      categoryId: categoryId || null,
     })
     setSaving(false)
     if (!result.ok) {
@@ -67,6 +72,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
           <tr>
             <th className="p-3">Escudo</th>
             <th className="p-3">Nombre</th>
+            <th className="p-3">Categoría</th>
             <th className="p-3">DT</th>
             <th className="p-3">Jugadores</th>
             <th className="p-3">Acciones</th>
@@ -103,6 +109,19 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
                       onChange={(e) => setName(e.target.value)}
                       className="w-full rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
                     />
+                  </td>
+                  <td className="p-3">
+                    <select
+                      aria-label="Categoría del equipo"
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
+                      className="rounded-lg border border-kelme-border bg-kelme-gray-100 px-2 py-1"
+                    >
+                      <option value="">Sin categoría</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>{category.name}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="p-3">
                     <select
@@ -156,6 +175,7 @@ export function TeamsTable({ teams, coaches }: { teams: TeamRow[]; coaches: Coac
                     />
                   </td>
                   <td className="p-3">{team.name}</td>
+                  <td className="p-3">{team.categoryName ?? 'Sin categoría'}</td>
                   <td className="p-3">{team.coachName ?? '—'}</td>
                   <td className="p-3">{team.playerCount}</td>
                   <td className="p-3">

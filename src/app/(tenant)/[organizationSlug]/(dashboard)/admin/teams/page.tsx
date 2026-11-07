@@ -19,10 +19,10 @@ export default async function AdminTeamsPage({
     notFound()
   }
 
-  const [teams, coachMemberships] = await Promise.all([
+  const [teams, coachMemberships, categories] = await Promise.all([
     db.team.findMany({
       where: { organizationId },
-      include: { coach: true, _count: { select: { players: true } } },
+      include: { category: { select: { name: true } }, coach: true, _count: { select: { players: true } } },
       orderBy: { name: 'asc' },
     }),
     db.organizationMembership.findMany({
@@ -34,6 +34,11 @@ export default async function AdminTeamsPage({
       },
       orderBy: { user: { name: 'asc' } },
     }),
+    db.friendlyCategory.findMany({
+      where: { organizationId },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    }),
   ])
 
   const coaches = coachMemberships.map((m) => m.user)
@@ -44,12 +49,15 @@ export default async function AdminTeamsPage({
       <p className="text-sm text-kelme-gray-400">
         Elige el color de cada equipo al editarlo; si no subes imagen, se genera un escudo automático con ese color.
       </p>
-      <TeamForm />
+      <TeamForm categories={categories} />
       <TeamsTable
+        categories={categories}
         teams={teams.map((t) => ({
           id: t.id,
           name: t.name,
           color: t.color,
+          categoryId: t.categoryId,
+          categoryName: t.category?.name ?? null,
           coachId: t.coachId,
           coachName: t.coach?.name ?? null,
           playerCount: t._count.players,

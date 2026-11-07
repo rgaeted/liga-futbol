@@ -1,4 +1,5 @@
-import * as Notifications from 'expo-notifications'
+import Constants from 'expo-constants'
+import { Platform } from 'react-native'
 import type { MobilePushData } from '@liga/mobile-contracts'
 import { getLeagueSlug } from '../lib/runtime-config'
 
@@ -26,9 +27,13 @@ export function resolveNotificationPath(data: MobilePushData | null, leagueSlug:
   return '/(tabs)'
 }
 
-export function attachNotificationResponseListener(
+export async function attachNotificationResponseListener(
   onNavigate: NotificationNavigationHandler,
-): () => void {
+): Promise<() => void> {
+  if (Platform.OS === 'android' && Constants.executionEnvironment === 'storeClient') {
+    return () => {}
+  }
+  const Notifications = await import('expo-notifications')
   const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
     const data = parsePushData(response.notification.request.content.data)
     onNavigate(resolveNotificationPath(data, getLeagueSlug()))

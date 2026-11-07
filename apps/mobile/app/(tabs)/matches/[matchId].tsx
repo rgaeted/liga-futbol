@@ -1,5 +1,6 @@
-import { useLocalSearchParams } from 'expo-router'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useMatchQuery } from '@/src/api/queries'
 import { LiveFormation } from '@/src/components/match/LiveFormation'
 import { LiveScoreboard } from '@/src/components/match/LiveScoreboard'
@@ -28,6 +29,7 @@ function MatchDetailContent({
   matchId: string
   initialMatch: NonNullable<ReturnType<typeof useMatchQuery>['data']>
 }) {
+  const router = useRouter()
   const initialSnapshot = {
     id: initialMatch.id,
     status: initialMatch.status,
@@ -50,7 +52,14 @@ function MatchDetailContent({
   const { snapshot, realtimeStatus } = useMobileLiveSnapshot({ initialSnapshot })
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+    <ScrollView contentContainerStyle={styles.content}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.replace('/(tabs)/matches')}
+        style={styles.backButton}>
+        <Text style={styles.backLabel}>← Volver a partidos</Text>
+      </Pressable>
       <AppHeader title={`${initialMatch.home.name} vs ${initialMatch.away.name}`} />
       {realtimeStatus === 'degraded' ? <StaleBanner /> : null}
       <LiveScoreboard snapshot={snapshot} />
@@ -68,12 +77,15 @@ function MatchDetailContent({
       </View>
       <LiveFormation />
     </ScrollView>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.background },
   content: { padding: 16, gap: 16 },
+  backButton: { minHeight: 48, justifyContent: 'center' },
+  backLabel: { color: theme.primary, fontWeight: '700' },
   location: { color: theme.textMuted },
   weather: { color: theme.textMuted },
   section: { marginTop: 8 },

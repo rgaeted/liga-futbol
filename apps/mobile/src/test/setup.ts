@@ -46,6 +46,19 @@ vi.mock('expo-notifications', () => ({
   addNotificationResponseReceivedListener: vi.fn(() => ({ remove: vi.fn() })),
 }))
 
+vi.mock('expo-crypto', () => ({
+  randomUUID: vi.fn(() => '11111111-1111-4111-8111-111111111111'),
+}))
+
+vi.mock('react-native-safe-area-context', async () => {
+  const { View } = await import('react-native-web')
+  return {
+    SafeAreaView: View,
+    SafeAreaProvider: View,
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  }
+})
+
 vi.mock('expo-web-browser', () => ({
   openBrowserAsync: vi.fn(async () => ({ type: 'dismiss' })),
 }))

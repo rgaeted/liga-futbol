@@ -269,6 +269,8 @@ model Team {
   crestMimeType String?
   crestData     Bytes?
   color         String?
+  categoryId    String?
+  category      FriendlyCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   coachId       String?  @unique
   coach     User?    @relation("TeamCoach", fields: [coachId], references: [id])
   players   Player[]
@@ -277,6 +279,8 @@ model Team {
   seasonTeams SeasonTeam[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
 }
 
 model Player {
@@ -359,6 +363,7 @@ model FriendlyCategory {
   description String?
   isActive    Boolean  @default(true)
   playerLinks PlayerCategory[]
+  teams       Team[]
   seasonCategories SeasonCategory[]
   matches     Match[]
   createdAt   DateTime @default(now())

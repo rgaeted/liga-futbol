@@ -15,6 +15,7 @@ export async function GET() {
   const teams = await db.team.findMany({
     where: { organizationId },
     include: {
+      category: { select: { id: true, name: true } },
       coach: { select: { id: true, name: true } },
       _count: { select: { players: true } },
     },
@@ -31,12 +32,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
+  if (parsed.data.categoryId) {
+    const category = await db.friendlyCategory.findFirst({
+      where: { id: parsed.data.categoryId, organizationId },
+      select: { id: true },
+    })
+    if (!category) {
+      return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 400 })
+    }
+  }
+
   const data = {
     organizationId,
     name: parsed.data.name,
     logoUrl: parsed.data.logoUrl || null,
     color: parsed.data.color ?? deriveTeamColor(parsed.data.name),
     coachId: parsed.data.coachId,
+    categoryId: parsed.data.categoryId,
   }
 
   const team = await db.team.create({ data })

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { isOnboardingComplete } from '../storage/onboarding'
+import { isOnboardingComplete, subscribeOnboarding } from '../storage/onboarding'
 
 export function useOnboardingGate() {
   const [ready, setReady] = useState(false)
@@ -7,14 +7,21 @@ export function useOnboardingGate() {
 
   useEffect(() => {
     let active = true
+    let changed = false
+    const unsubscribe = subscribeOnboarding((value) => {
+      changed = true
+      setCompleted(value)
+      setReady(true)
+    })
     void isOnboardingComplete().then((value) => {
-      if (active) {
+      if (active && !changed) {
         setCompleted(value)
         setReady(true)
       }
     })
     return () => {
       active = false
+      unsubscribe()
     }
   }, [])
 

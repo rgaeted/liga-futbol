@@ -5,6 +5,7 @@ import {
   mobileLeagueConfigSchema,
   mobileLiveSnapshotSchema,
   mobileMatchDetailSchema,
+  mobileMatchSummarySchema,
   mobilePaginatedSchema,
   mobileArticleSummarySchema,
   mobileGallerySummarySchema,
@@ -40,6 +41,8 @@ export function useHomeQuery() {
   return useQuery({
     queryKey: mobileQueryKeys().home,
     queryFn: () => mobileApiClient.get(mobileApiPaths().home, mobileHomeSchema),
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: 'always',
   })
 }
 
@@ -48,7 +51,7 @@ export function useMatchesQuery(filter: 'upcoming' | 'results') {
   return useQuery({
     queryKey: mobileQueryKeys().matches(filter),
     queryFn: () =>
-      mobileApiClient.get(path, mobilePaginatedSchema(mobileMatchDetailSchema)),
+      mobileApiClient.get(path, mobilePaginatedSchema(mobileMatchSummarySchema)),
   })
 }
 

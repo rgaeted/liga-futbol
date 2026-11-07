@@ -1,8 +1,8 @@
-import { QueryClientProvider } from '@tanstack/react-query'
+import { focusManager, QueryClientProvider } from '@tanstack/react-query'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
-import { AppState } from 'react-native'
+import { AppState, Platform } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useOnboardingGate } from '@/src/hooks/useOnboardingGate'
 import { createMobileQueryClient } from '@/src/lib/query-client'
@@ -15,14 +15,24 @@ function NotificationBootstrap() {
   const router = useRouter()
 
   useEffect(() => {
-    return attachNotificationResponseListener((path) => {
+    let disposed = false
+    let removeListener = () => {}
+    void attachNotificationResponseListener((path) => {
       router.push(path as never)
+    }).then((remove) => {
+      if (disposed) remove()
+      else removeListener = remove
     })
+    return () => {
+      disposed = true
+      removeListener()
+    }
   }, [router])
 
   useEffect(() => {
     void syncPendingSubscriptionsIfNeeded()
     const subscription = AppState.addEventListener('change', (state) => {
+      if (Platform.OS !== 'web') focusManager.setFocused(state === 'active')
       if (state === 'active') {
         void syncPendingSubscriptionsIfNeeded()
       }

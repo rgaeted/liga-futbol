@@ -56,7 +56,7 @@ describe('resolveNotificationPath', () => {
 })
 
 describe('attachNotificationResponseListener', () => {
-  it('routes notification taps through the navigation handler', () => {
+  it('routes notification taps through the navigation handler', async () => {
     const remove = vi.fn()
     let listener: ((response: unknown) => void) | undefined
     vi.spyOn(Notifications, 'addNotificationResponseReceivedListener').mockImplementation(
@@ -67,7 +67,7 @@ describe('attachNotificationResponseListener', () => {
     )
 
     const onNavigate = vi.fn()
-    const cleanup = attachNotificationResponseListener(onNavigate)
+    const cleanup = await attachNotificationResponseListener(onNavigate)
 
     listener?.({
       notification: {

@@ -8,6 +8,7 @@ export const createTeamSchema = z.object({
   logoUrl: z.string().url().optional().or(z.literal('')),
   color: teamColorSchema.optional(),
   coachId: id.optional(),
+  categoryId: id.nullable().optional(),
 })
 
 export const updateTeamSchema = z.object({
@@ -15,6 +16,7 @@ export const updateTeamSchema = z.object({
   logoUrl: z.string().url().nullable().optional().or(z.literal('')),
   color: teamColorSchema.nullable().optional(),
   coachId: id.nullable().optional(),
+  categoryId: id.nullable().optional(),
 })
 
 export type CreateTeamInput = z.infer<typeof createTeamSchema>

@@ -1,15 +1,13 @@
 import type { MobileSponsor } from '@liga/mobile-contracts'
 import * as WebBrowser from 'expo-web-browser'
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { theme } from '@/src/theme'
 
 export function SponsorList({ sponsors }: { sponsors: MobileSponsor[] }) {
   return (
-    <FlatList
-      data={sponsors}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <View style={styles.card}>
+    <View>
+      {sponsors.map((item) => (
+        <View key={item.id} style={styles.card}>
           {item.logoUrl ? (
             <Image source={{ uri: item.logoUrl }} style={styles.logo} accessibilityIgnoresInvertColors />
           ) : (
@@ -27,8 +25,8 @@ export function SponsorList({ sponsors }: { sponsors: MobileSponsor[] }) {
             </Pressable>
           ) : null}
         </View>
-      )}
-    />
+      ))}
+    </View>
   )
 }
 

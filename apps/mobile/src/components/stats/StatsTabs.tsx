@@ -1,6 +1,6 @@
 import type { MobileStatsResponse } from '@liga/mobile-contracts'
 import { useState } from 'react'
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { theme } from '@/src/theme'
 
 const TABS = [
@@ -33,11 +33,8 @@ export function StatsTabs({ stats }: { stats: MobileStatsResponse }) {
           </Pressable>
         ))}
       </View>
-      <FlatList
-        data={rows}
-        keyExtractor={(item) => item.rosterEntryId}
-        renderItem={({ item, index }) => (
-          <View style={styles.row}>
+      {rows.map((item, index) => (
+          <View key={item.rosterEntryId} style={styles.row}>
             <Text style={styles.rank}>{index + 1}</Text>
             <View style={styles.meta}>
               <Text style={styles.name}>{item.playerName}</Text>
@@ -45,8 +42,7 @@ export function StatsTabs({ stats }: { stats: MobileStatsResponse }) {
             </View>
             <Text style={styles.value}>{item.value}</Text>
           </View>
-        )}
-      />
+      ))}
     </View>
   )
 }
