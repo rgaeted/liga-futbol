@@ -32,9 +32,11 @@
     "db:backfill:player-memberships": "tsx scripts/backfill-player-memberships.ts",
     "db:clear:demo": "tsx prisma/clear-demo.ts",
     "db:verify:migration": "tsx scripts/verify-database-migration.ts",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "media:copy-to-r2": "tsx scripts/copy-editorial-to-r2.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1140.0",
     "@hookform/resolvers": "^5.4.0",
     "@imgly/background-removal": "^1.7.0",
     "@liga/mobile-contracts": "*",

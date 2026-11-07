@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
+import { enforceCapability } from '@/lib/billing/enforce'
 import { deleteGalleryPhoto, updateGalleryPhoto } from '@/lib/editorial/gallery-photos'
 import { bestEffortDeleteEditorialObjects } from '@/lib/editorial/storage'
 import { mapPrismaError } from '@/lib/prisma-errors'
@@ -11,7 +12,11 @@ export async function PUT(
 ) {
   try {
     const { id: seasonId, galleryId, photoId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
     const parsed = updateGalleryPhotoSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
@@ -39,7 +44,11 @@ export async function DELETE(
 ) {
   try {
     const { id: seasonId, galleryId, photoId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
     const removed = await deleteGalleryPhoto(galleryId, seasonId, photoId)
     if (!removed) {
       return NextResponse.json({ error: 'Foto no encontrada' }, { status: 404 })

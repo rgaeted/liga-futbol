@@ -1,13 +1,15 @@
 export type FriendlyRosterEntry = {
   playerId: string
-  side: 'A' | 'B'
+  side?: 'A' | 'B' | null
   isCaptain?: boolean
   isCoach?: boolean
 }
 
 export function validateFriendlyCaptains(players: FriendlyRosterEntry[]): string | null {
   for (const side of ['A', 'B'] as const) {
-    const captains = players.filter((p) => p.side === side && p.isCaptain)
+    const sidePlayers = players.filter((p) => p.side === side)
+    if (sidePlayers.length === 0) continue
+    const captains = sidePlayers.filter((p) => p.isCaptain)
     if (captains.length !== 1) {
       return side === 'A'
         ? 'Debes elegir un capitán para el equipo local (lado A)'
@@ -40,13 +42,13 @@ export type FriendlyCaptainView = {
 export function resolveFriendlyCaptains(
   participations: Array<{
     playerId: string
-    side: 'A' | 'B'
+    side: 'A' | 'B' | null
     isCaptain: boolean
     player: { person: { firstName: string; lastName: string; user: { name: string } | null } }
   }>
 ): FriendlyCaptainView[] {
   return participations
-    .filter((p) => p.isCaptain)
+    .filter((p): p is typeof p & { side: 'A' | 'B' } => p.isCaptain && (p.side === 'A' || p.side === 'B'))
     .map((p) => ({
       side: p.side,
       playerId: p.playerId,

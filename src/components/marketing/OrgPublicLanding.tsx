@@ -246,7 +246,12 @@ export function OrgPublicLanding({
       )}
 
       {isLosLunes ? (
-        <LosLunesHomeHero homeHref={`/${slug}`} panelHref={panelHref} loginHref={loginHref} />
+        <LosLunesHomeHero
+          heroImageUrls={data.heroImageUrls}
+          homeHref={`/${slug}`}
+          panelHref={panelHref}
+          loginHref={loginHref}
+        />
       ) : null}
       {isKelme ? (
         <KelmeCupHomeHero homeHref={`/${slug}`} panelHref={panelHref} loginHref={loginHref} />

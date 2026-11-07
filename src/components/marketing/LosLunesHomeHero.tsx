@@ -1,11 +1,14 @@
 import Link from 'next/link'
-import { LOSLUNES_HERO_PATH, LOSLUNES_LOGO_PATH } from '@/lib/org-brand'
+import { LosLunesHeroRotatingBackground } from '@/components/marketing/LosLunesHeroRotatingBackground'
+import { LOSLUNES_LOGO_PATH } from '@/lib/org-brand'
 
 export function LosLunesHomeHero({
+  heroImageUrls,
   homeHref,
   panelHref,
   loginHref,
 }: {
+  heroImageUrls: string[]
   homeHref: string
   panelHref?: string | null
   loginHref: string
@@ -15,12 +18,7 @@ export function LosLunesHomeHero({
 
   return (
     <section className="relative isolate min-h-[100svh] overflow-hidden bg-black">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={LOSLUNES_HERO_PATH}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover object-[72%_30%] brightness-[0.68] contrast-[1.1]"
-      />
+      <LosLunesHeroRotatingBackground images={heroImageUrls} />
 
       <svg
         className="absolute inset-0 h-full w-full"

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
@@ -64,18 +65,12 @@ function LoginForm({
 }
 
 type Props = {
-  available?: AvailablePlayer[]
-  organizationSlug?: string | null
-  organizationName?: string | null
   lockedPlayer?: AvailablePlayer | null
   claimToken?: string | null
   inviteInvalid?: boolean
 }
 
 export function AuthPanel({
-  available = [],
-  organizationSlug = null,
-  organizationName = null,
   lockedPlayer = null,
   claimToken = null,
   inviteInvalid = false,
@@ -120,15 +115,12 @@ export function AuthPanel({
             mode === 'register' ? 'bg-org-primary text-[#0B1210]' : 'text-[#8A938C] hover:text-[#E8E4D8]'
           }`}
         >
-          Crear cuenta
+          Cuenta gratis
         </button>
       </div>
 
       {mode === 'register' ? (
         <RegisterForm
-          available={available}
-          organizationSlug={organizationSlug}
-          organizationName={organizationName}
           lockedPlayer={lockedPlayer}
           claimToken={claimToken}
           inviteInvalid={inviteInvalid}
@@ -154,6 +146,17 @@ export function AuthPanel({
           .
         </p>
       ) : null}
+      <p className="mt-4 text-center font-ui text-xs text-[#8A938C]">
+        {mode === 'register' && !hasPersonalInvite ? (
+          <>
+            Plan <span className="font-semibold text-[#E8E4D8]">Gratis</span> para cualquier persona.{' '}
+          </>
+        ) : null}
+        {mode === 'login' ? <>¿No tienes cuenta? Puedes crear una gratis. </> : null}
+        <Link href="/pricing" className="font-semibold text-org-primary hover:underline">
+          Ver planes Club y Liga
+        </Link>
+      </p>
     </div>
   )
 }

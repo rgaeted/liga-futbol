@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { BillingPlanSelect } from '@/components/billing/BillingPlanSelect'
+import type { BillingPlan } from '@/lib/billing/plans'
 import {
   PlatformPanel,
   PlatformPanelInner,
@@ -55,6 +57,7 @@ export function OrganizationCreateForm() {
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY)
   const [secondaryColor, setSecondaryColor] = useState(DEFAULT_SECONDARY)
   const [assignAdmin, setAssignAdmin] = useState(false)
+  const [plan, setPlan] = useState<BillingPlan>('CLUB')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -67,6 +70,7 @@ export function OrganizationCreateForm() {
       name: String(form.get('name') ?? ''),
       primaryColor: String(form.get('primaryColor') ?? primaryColor),
       secondaryColor: String(form.get('secondaryColor') ?? secondaryColor),
+      plan,
     }
 
     if (assignAdmin) {
@@ -100,6 +104,7 @@ export function OrganizationCreateForm() {
     setPrimaryColor(DEFAULT_PRIMARY)
     setSecondaryColor(DEFAULT_SECONDARY)
     setAssignAdmin(false)
+    setPlan('CLUB')
     setLoading(false)
   }
 
@@ -110,10 +115,12 @@ export function OrganizationCreateForm() {
           <div>
             <h2 className="text-[22px] font-black text-[#E8E4D8]">Crear empresa</h2>
             <p className="mt-1 text-sm text-[#8A938C]">
-              Registra una nueva liga. Puedes asignar un administrador ahora o hacerlo después en
-              Usuarios.
+              Registra una nueva liga y elige su plan. Puedes asignar un administrador ahora o
+              hacerlo después en Usuarios.
             </p>
           </div>
+
+          <BillingPlanSelect value={plan} onChange={setPlan} />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <input name="slug" placeholder="slug (ej. liga-sur)" required className={platformInputClass} />

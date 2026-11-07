@@ -88,7 +88,9 @@ export default async function PlayerFriendlyLineupPage({
         formations={match.formations}
         editableSide={coachSide}
         readOnly={readOnly}
-        participations={match.friendlyPlayers.map((p) => ({
+        participations={match.friendlyPlayers
+          .filter((p): p is typeof p & { side: 'A' | 'B' } => p.side === 'A' || p.side === 'B')
+          .map((p) => ({
           id: p.playerId,
           side: p.side,
           label: playerDisplayName(p.player),

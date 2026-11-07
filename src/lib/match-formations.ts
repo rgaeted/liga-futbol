@@ -37,7 +37,7 @@ type LeagueCallUp = {
 
 type FriendlyParticipation = {
   playerId: string
-  side: 'A' | 'B'
+  side: 'A' | 'B' | null
   slotKey: string | null
   player: PlayerNameSource & {
     person: { photoMimeType: string | null }

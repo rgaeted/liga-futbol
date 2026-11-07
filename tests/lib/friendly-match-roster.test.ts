@@ -8,22 +8,34 @@ import {
 } from '@/lib/friendly-match-roster-ui'
 
 describe('validateFriendlyRoster', () => {
-  it('requires at least one player per side', () => {
+  it('accepts pool-only players without sides or captains', () => {
     expect(
-      validateFriendlyRoster([{ playerId: 'a', side: 'A' }])
-    ).toBe('Debe haber al menos un jugador por lado')
+      validateFriendlyRoster([
+        { playerId: 'a' },
+        { playerId: 'b', side: null },
+      ])
+    ).toBeNull()
   })
 
-  it('requires one captain per side', () => {
+  it('requires captain and coach only for sides that have players', () => {
     expect(
       validateFriendlyRoster([
         { playerId: 'a', side: 'A' },
-        { playerId: 'b', side: 'B' },
+        { playerId: 'pool' },
       ])
     ).toBe('Debes elegir un capitán para el equipo local (lado A)')
   })
 
-  it('accepts roster with captains and coaches', () => {
+  it('accepts one side assigned with captain/coach and pool players', () => {
+    expect(
+      validateFriendlyRoster([
+        { playerId: 'a', side: 'A', isCaptain: true, isCoach: true },
+        { playerId: 'pool' },
+      ])
+    ).toBeNull()
+  })
+
+  it('accepts roster with captains and coaches on both sides', () => {
     expect(
       validateFriendlyRoster([
         { playerId: 'a', side: 'A', isCaptain: true, isCoach: true },
@@ -89,6 +101,22 @@ describe('friendly roster helpers', () => {
       { playerId: 'b', side: 'B', isCaptain: true, isCoach: true },
     ])
   })
+
+  it('includes unassigned pool players without side', () => {
+    const entries = rosterEntriesFromSets(
+      new Set(),
+      new Set(),
+      null,
+      null,
+      null,
+      null,
+      new Set(['p1', 'p2'])
+    )
+    expect(entries).toEqual([
+      { playerId: 'p1', side: null, isCaptain: false, isCoach: false },
+      { playerId: 'p2', side: null, isCaptain: false, isCoach: false },
+    ])
+  })
 })
 
 describe('updateMatchSchema players', () => {
@@ -102,7 +130,14 @@ describe('updateMatchSchema players', () => {
     expect(result.success).toBe(true)
   })
 
-  it('rejects friendly roster update without captains', () => {
+  it('accepts pool-only friendly roster without sides or captains', () => {
+    const result = updateMatchSchema.safeParse({
+      players: [{ playerId: 'fp-1' }, { playerId: 'fp-2', side: null }],
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects side assignment without captains', () => {
     const result = updateMatchSchema.safeParse({
       players: [
         { playerId: 'fp-1', side: 'A' },

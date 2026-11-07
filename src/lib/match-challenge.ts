@@ -26,13 +26,18 @@ export function assertCanEditFriendlySide({
 }: {
   actorOrganizationId: string
   match: ChallengeMatch
-  side: 'A' | 'B'
+  side: 'A' | 'B' | null
 }): boolean {
   if (match.matchType !== MatchType.FRIENDLY) {
     return actorOrganizationId === match.organizationId
   }
 
   if (!match.guestOrganizationId) {
+    return actorOrganizationId === match.organizationId
+  }
+
+  // Pool sin lado: solo el anfitrión (amistoso intra o host del desafío).
+  if (side == null) {
     return actorOrganizationId === match.organizationId
   }
 
@@ -51,7 +56,7 @@ export function assertCanEditFriendlySide({
 }
 
 export function computeFriendlySideReady(
-  players: Array<{ side: 'A' | 'B'; isCaptain: boolean; isCoach: boolean }>
+  players: Array<{ side: 'A' | 'B' | null; isCaptain: boolean; isCoach: boolean }>
 ): { sideAReady: boolean; sideBReady: boolean } {
   function sideReady(side: 'A' | 'B') {
     const sidePlayers = players.filter((player) => player.side === side)
@@ -69,11 +74,14 @@ export function assertCanGoLive({
   challengeStatus,
   sideAReady,
   sideBReady,
+  isChallenge = false,
 }: {
   matchType: MatchType
   challengeStatus: ChallengeStatus
   sideAReady: boolean
   sideBReady: boolean
+  /** Desafío cross-org: exige ambos lados listos. Amistoso intra: no. */
+  isChallenge?: boolean
 }): { ok: true } | { ok: false; error: string } {
   if (matchType !== MatchType.FRIENDLY) {
     return { ok: true }
@@ -83,7 +91,7 @@ export function assertCanGoLive({
     return { ok: false, error: 'El desafío todavía no fue aceptado' }
   }
 
-  if (!sideAReady || !sideBReady) {
+  if (isChallenge && (!sideAReady || !sideBReady)) {
     return {
       ok: false,
       error: 'Ambos lados deben tener capitán, DT y al menos un jugador',

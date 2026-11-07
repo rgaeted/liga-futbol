@@ -55,19 +55,36 @@ describe('assertCanGoLive', () => {
         challengeStatus: ChallengeStatus.PENDING,
         sideAReady: true,
         sideBReady: false,
+        isChallenge: true,
       }),
     ).toEqual({ ok: false, error: 'El desafío todavía no fue aceptado' })
   })
 
-  it('allows intra-org NONE', () => {
+  it('allows intra-org NONE without sides ready', () => {
     expect(
       assertCanGoLive({
         matchType: MatchType.FRIENDLY,
         challengeStatus: ChallengeStatus.NONE,
-        sideAReady: true,
-        sideBReady: true,
+        sideAReady: false,
+        sideBReady: false,
+        isChallenge: false,
       }),
     ).toEqual({ ok: true })
+  })
+
+  it('requires both sides ready for challenges', () => {
+    expect(
+      assertCanGoLive({
+        matchType: MatchType.FRIENDLY,
+        challengeStatus: ChallengeStatus.ACCEPTED,
+        sideAReady: true,
+        sideBReady: false,
+        isChallenge: true,
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'Ambos lados deben tener capitán, DT y al menos un jugador',
+    })
   })
 })
 

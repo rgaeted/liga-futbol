@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
+import { enforceCapability } from '@/lib/billing/enforce'
 import { db } from '@/lib/db'
 import { revalidateOrgAwardPages } from '@/lib/org-awards'
 import { updateOrgAwardSchema } from '@/lib/validations/org-award'
@@ -27,6 +28,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
+  const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: 403 })
+  }
   const { id } = await params
   const parsed = updateOrgAwardSchema.safeParse(await req.json())
   if (!parsed.success) {
@@ -60,6 +65,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { organizationId } = await requireOrgRole([MembershipRole.ORG_ADMIN])
+  const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: 403 })
+  }
   const { id } = await params
 
   const existing = await db.orgAward.findUnique({

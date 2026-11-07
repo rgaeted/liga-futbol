@@ -77,7 +77,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       scheduledAt?: Date | string
       players?: Array<{
         playerId: string
-        side: 'A' | 'B'
+        side?: 'A' | 'B' | null
         isCaptain?: boolean
         isCoach?: boolean
       }>
@@ -141,11 +141,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           !assertCanEditFriendlySide({
             actorOrganizationId: organizationId,
             match: existing,
-            side: player.side,
+            side: player.side ?? null,
           })
         ) {
           return NextResponse.json(
-            { error: `No puedes editar jugadores del lado ${player.side}` },
+            {
+              error:
+                player.side == null
+                  ? 'No puedes editar jugadores sin lado asignado'
+                  : `No puedes editar jugadores del lado ${player.side}`,
+            },
             { status: 403 }
           )
         }
@@ -167,8 +172,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         const rosterPlayer = rosterPlayers.find((row) => row.id === player.playerId)
         if (!rosterPlayer) continue
         const expectedOrgId =
-          player.side === 'A' ? existing.organizationId : existing.guestOrganizationId
-        if (expectedOrgId && rosterPlayer.organizationId !== expectedOrgId) {
+          player.side === 'B' && existing.guestOrganizationId
+            ? existing.guestOrganizationId
+            : existing.organizationId
+        if (rosterPlayer.organizationId !== expectedOrgId) {
           return NextResponse.json(
             { error: 'Un jugador no pertenece a la organización de su lado' },
             { status: 400 }
@@ -180,7 +187,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (rest.status === MatchStatus.LIVE && existing.matchType === MatchType.FRIENDLY) {
       const rosterForReady = mergedPlayers
         ? mergedPlayers.map((player) => ({
-            side: player.side,
+            side: player.side ?? null,
             isCaptain: player.isCaptain ?? false,
             isCoach: player.isCoach ?? false,
           }))
@@ -196,6 +203,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         challengeStatus: existing.challengeStatus,
         sideAReady,
         sideBReady,
+        isChallenge: Boolean(existing.guestOrganizationId),
       })
       if (!liveCheck.ok) {
         return NextResponse.json({ error: liveCheck.error }, { status: 400 })

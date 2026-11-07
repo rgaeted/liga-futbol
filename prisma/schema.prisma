@@ -19,6 +19,12 @@ enum OrganizationStatus {
   PAUSED
 }
 
+enum BillingPlan {
+  FREE
+  CLUB
+  LEAGUE
+}
+
 enum MatchStatus {
   SCHEDULED
   LIVE
@@ -143,6 +149,8 @@ model User {
   passwordHash     String
   name             String
   isPlatformAdmin  Boolean  @default(false)
+  privacyPolicyAcceptedAt DateTime?
+  privacyPolicyVersion    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   person           Person?
@@ -196,6 +204,7 @@ model Organization {
   primaryColor     String
   secondaryColor   String
   status           OrganizationStatus @default(ACTIVE)
+  plan             BillingPlan        @default(FREE)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   memberships      OrganizationMembership[]
@@ -215,6 +224,20 @@ model Organization {
   playerAwards      PlayerAward[]
   orgBadges         OrgBadge[]
   playerBadges      PlayerBadge[]
+  heroImages        OrganizationHeroImage[]
+}
+
+model OrganizationHeroImage {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  storagePath    String
+  mimeType       String
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, sortOrder])
 }
 
 model RefereeProfile {
@@ -588,7 +611,7 @@ model FriendlyMatchPlayer {
   match            Match          @relation(fields: [matchId], references: [id], onDelete: Cascade)
   playerId         String
   player           Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  side             FriendlySide
+  side             FriendlySide?
   paid             Boolean        @default(false)
   isGalleta        Boolean        @default(false)
   isStarter        Boolean        @default(false)

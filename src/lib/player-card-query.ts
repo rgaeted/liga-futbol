@@ -122,10 +122,12 @@ export async function getLosLunesPlayerCard(
     scheduledAt: match.scheduledAt,
     sideAName: match.sideAName,
     sideBName: match.sideBName,
-    roster: match.friendlyPlayers.map((fp) => ({
-      playerId: fp.playerId,
-      side: fp.side as 'A' | 'B',
-    })),
+    roster: match.friendlyPlayers
+      .filter((fp): fp is typeof fp & { side: 'A' | 'B' } => fp.side === 'A' || fp.side === 'B')
+      .map((fp) => ({
+        playerId: fp.playerId,
+        side: fp.side,
+      })),
     events: match.events,
     mvpPlayerIds: match.teamMvps
       .map((m) => m.playerId)

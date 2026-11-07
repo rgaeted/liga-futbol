@@ -13,6 +13,8 @@ export function editorialStoragePath(segments: string[]): string {
 
 export function editorialPublicUrl(storagePath: string | null | undefined): string | null {
   if (!storagePath) return null
+  const mediaBase = process.env.NEXT_PUBLIC_MEDIA_BASE_URL?.replace(/\/+$/, '')
+  if (mediaBase) return `${mediaBase}/${storagePath}`
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, '')
   if (!baseUrl) return null
   return `${baseUrl}/storage/v1/object/public/${editorialStorageBucket()}/${storagePath}`

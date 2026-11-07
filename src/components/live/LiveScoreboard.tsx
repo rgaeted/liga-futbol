@@ -23,6 +23,7 @@ import { LiveTeamStaff } from '@/components/live/LiveTeamStaff'
 import { MatchClockDisplay } from '@/components/live/MatchClockDisplay'
 import { FormationPitch } from '@/components/lineup/FormationPitch'
 import { LiveTeamRoster } from '@/components/live/LiveTeamRoster'
+import { LiveAvailablePlayers } from '@/components/live/LiveAvailablePlayers'
 import { TeamCrest } from '@/components/TeamCrest'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 
@@ -168,7 +169,9 @@ export function LiveScoreboard({
 
   const isLive = match.status === 'LIVE'
   const hasFormations = match.formations.some((formation) => formation.lineup)
-  const hasRoster = match.rosters.some((side) => side.players.length > 0)
+  const hasAvailablePlayers = match.availablePlayers.length > 0
+  const hasSideRoster = match.rosters.some((side) => side.players.length > 0)
+  const hasRoster = hasSideRoster || hasAvailablePlayers
   const formatLabel = footballFormatLabel(match.footballFormat)
 
   return (
@@ -265,15 +268,27 @@ export function LiveScoreboard({
                 </div>
               </>
             ) : (
-              <LiveTeamRoster
-                rosters={match.rosters}
-                premium={premium}
-                footballFormatLabel={formatLabel}
-                paidByPlayerId={paidByPlayerId}
-                galletaPlayerIds={galletaPlayerIds}
-                captainPlayerIds={match.captainPlayerIds}
-                mvpPlayerIds={match.mvpPlayerIds}
-              />
+              <div className="space-y-8">
+                {hasAvailablePlayers ? (
+                  <LiveAvailablePlayers
+                    players={match.availablePlayers}
+                    paidByPlayerId={paidByPlayerId ?? {}}
+                    premium={premium}
+                    galletaPlayerIds={galletaPlayerIds}
+                  />
+                ) : null}
+                {hasSideRoster ? (
+                  <LiveTeamRoster
+                    rosters={match.rosters}
+                    premium={premium}
+                    footballFormatLabel={formatLabel}
+                    paidByPlayerId={paidByPlayerId}
+                    galletaPlayerIds={galletaPlayerIds}
+                    captainPlayerIds={match.captainPlayerIds}
+                    mvpPlayerIds={match.mvpPlayerIds}
+                  />
+                ) : null}
+              </div>
             )}
           </section>
         )}

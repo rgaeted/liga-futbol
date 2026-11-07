@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { privacyConsentData } from '@/lib/legal/privacy-consent'
 import { claimPlayerSchema } from '@/lib/validations/player'
 import { verifyPlayerClaimToken } from '@/lib/player-claim-token'
 import { MembershipRole } from '@/lib/membership-role'
@@ -14,9 +15,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { email, password, playerId, token, organizationSlug } = parsed.data
+  const { email, password, playerId, token } = parsed.data
 
-  if (token && !verifyPlayerClaimToken(playerId, token)) {
+  if (!verifyPlayerClaimToken(playerId, token)) {
     return NextResponse.json({ error: 'Link de registro inválido o expirado' }, { status: 403 })
   }
 
@@ -36,16 +37,6 @@ export async function POST(req: Request) {
   })
   if (!player) {
     return NextResponse.json({ error: 'Perfil no encontrado' }, { status: 404 })
-  }
-
-  if (!token && organizationSlug) {
-    const org = await db.organization.findFirst({
-      where: { slug: organizationSlug, status: 'ACTIVE' },
-      select: { id: true },
-    })
-    if (!org || player.organizationId !== org.id) {
-      return NextResponse.json({ error: 'El perfil no pertenece a esa liga' }, { status: 403 })
-    }
   }
 
   const gate = canClaimPerson(player.person.userId, null, player.person.id)
@@ -69,7 +60,7 @@ export async function POST(req: Request) {
     }
 
     const user = await tx.user.create({
-      data: { email, passwordHash, name },
+      data: { email, passwordHash, name, ...privacyConsentData() },
     })
     await tx.person.update({ where: { id: person.id }, data: { userId: user.id } })
     await tx.organizationMembership.create({

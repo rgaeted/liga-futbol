@@ -72,13 +72,22 @@ describe('resolvePostLoginPath', () => {
     ).toBe('/organizaciones')
   })
 
+  it('sends a user without active memberships to the home', () => {
+    expect(
+      resolvePostLoginPath({
+        isPlatformAdmin: false,
+        memberships: [],
+      }),
+    ).toBe('/')
+  })
+
   it('ignores paused orgs when counting memberships', () => {
     expect(
       resolvePostLoginPath({
         isPlatformAdmin: false,
         memberships: [{ slug: 'kelme', roles: [MembershipRole.ORG_ADMIN], status: 'PAUSED' }],
       }),
-    ).toBe('/login?error=sin-acceso')
+    ).toBe('/')
   })
 
   it('honors a safe tenant callback url', () => {

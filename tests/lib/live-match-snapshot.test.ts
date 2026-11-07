@@ -112,6 +112,7 @@ describe('live match snapshot', () => {
       friendlySideByPlayer: {},
       friendlyPaidByPlayerId: {},
       friendlyGalletaPlayerIds: [],
+      availablePlayers: [],
       homeScore: 2,
       awayScore: 1,
       homeTeam: { name: 'Local', color: '#CD212A', crestSrc: null },
@@ -254,6 +255,7 @@ describe('live match snapshot', () => {
       'fp-2': false,
     })
     expect(snapshot.friendlyGalletaPlayerIds).toEqual(['fp-1'])
+    expect(snapshot.availablePlayers).toEqual([])
     expect(snapshot.rosters[0].players).toEqual([
       {
         playerId: 'fp-1',
@@ -262,6 +264,47 @@ describe('live match snapshot', () => {
       },
     ])
     expect(snapshot.rosters[1].players[0].playerName).toBe('Pedro Gómez')
+  })
+
+  it('lists unassigned friendly players as availablePlayers', () => {
+    const friendlyMatch = {
+      ...match,
+      matchType: MatchType.FRIENDLY,
+      homeTeamId: null,
+      awayTeamId: null,
+      sideAName: 'Blancos',
+      sideBName: 'Negros',
+      friendlyPlayers: [
+        {
+          playerId: 'fp-pool',
+          side: null,
+          slotKey: null,
+          paid: false,
+          isGalleta: false,
+          isCaptain: false,
+          isCoach: false,
+          player: {
+            person: {
+              firstName: 'Camila',
+              lastName: 'Ríos',
+              user: null,
+              photoMimeType: null,
+            },
+          },
+        },
+      ],
+    } as unknown as LiveMatchRecord
+
+    const snapshot = buildLiveMatchSnapshot(friendlyMatch)
+
+    expect(snapshot.availablePlayers).toEqual([
+      {
+        playerId: 'fp-pool',
+        playerName: 'Camila Ríos',
+        photoUrl: null,
+      },
+    ])
+    expect(snapshot.rosters.every((side) => side.players.length === 0)).toBe(true)
   })
 
   it('includes guest organization branding on challenge friendlies', () => {

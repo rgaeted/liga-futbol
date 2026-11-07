@@ -73,11 +73,13 @@ export default async function AdminMatchTimelinePage({
   let players: { id: string; label: string; teamId?: string | null; side?: 'A' | 'B' }[] = []
 
   if (match.matchType === MatchType.FRIENDLY) {
-    players = match.friendlyPlayers.map((p) => ({
-      id: p.playerId,
-      label: playerDisplayName(p.player),
-      side: p.side,
-    }))
+    players = match.friendlyPlayers
+      .filter((p): p is typeof p & { side: 'A' | 'B' } => p.side === 'A' || p.side === 'B')
+      .map((p) => ({
+        id: p.playerId,
+        label: playerDisplayName(p.player),
+        side: p.side,
+      }))
   } else if (match.homeTeamId && match.awayTeamId) {
     players = await getLeaguePlayers(match.id, match.homeTeamId, match.awayTeamId)
   }

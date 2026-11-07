@@ -1,6 +1,15 @@
 export const MAX_EDITORIAL_IMAGE_BYTES = 2 * 1024 * 1024
 export const ALLOWED_EDITORIAL_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
+export function inferEditorialImageMimeType(fileName: string, mimeType: string): string {
+  if (ALLOWED_EDITORIAL_MIME_TYPES.has(mimeType)) return mimeType
+  const lower = fileName.toLowerCase()
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg'
+  if (lower.endsWith('.png')) return 'image/png'
+  if (lower.endsWith('.webp')) return 'image/webp'
+  return mimeType
+}
+
 export function validateEditorialImage(
   buffer: Buffer,
   mimeType: string,

@@ -81,7 +81,7 @@ export function teamMvpPlayerIds(views: TeamMvpSideView[]): string[] {
 export async function assertMvpInMatchRoster(
   db: {
     callUp: { findFirst: (args: object) => Promise<{ id: string } | null> }
-    friendlyMatchPlayer: { findFirst: (args: object) => Promise<{ id: string; side: string } | null> }
+    friendlyMatchPlayer: { findFirst: (args: object) => Promise<{ id: string; side: string | null } | null> }
     player: { findFirst: (args: object) => Promise<{ id: string } | null> }
   },
   match: {

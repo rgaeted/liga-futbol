@@ -1,12 +1,14 @@
 'use client'
 
 import Link from 'next/link'
+import { UpgradePlanBanner } from '@/components/billing/UpgradePlanBanner'
 import { DashboardAppShell } from '@/components/dashboard/DashboardAppShell'
 import {
   flatNavToGroup,
   type DashboardNavGroup,
 } from '@/components/dashboard/dashboard-ui'
 import { OrganizationSwitcher } from '@/components/tenant/OrganizationSwitcher'
+import type { BillingPlan } from '@/lib/billing/plans'
 
 type NavItem = { href: string; label: string; icon?: string }
 
@@ -21,6 +23,8 @@ type Props = {
   roleLabel: string
   helpHref?: string
   showPlatformLink?: boolean
+  organizationPlan?: BillingPlan
+  isOrgAdmin?: boolean
   signOutAction: () => Promise<void>
   children: React.ReactNode
 }
@@ -36,6 +40,8 @@ export function DashboardShell({
   roleLabel,
   helpHref,
   showPlatformLink = false,
+  organizationPlan,
+  isOrgAdmin = false,
   signOutAction,
   children,
 }: Props) {
@@ -64,6 +70,14 @@ export function DashboardShell({
               Plataforma
             </Link>
           ) : null}
+          {organizationPlan && organizationPlan !== 'LEAGUE' ? (
+            <Link
+              href="/pricing"
+              className="hidden rounded-xl border border-[#2A3A32] bg-transparent px-3.5 py-2.5 text-sm font-bold text-[#E8E4D8] hover:bg-[#0B1210] sm:inline-flex"
+            >
+              Actualizar plan
+            </Link>
+          ) : null}
           {helpHref ? (
             <Link
               href={helpHref}
@@ -75,6 +89,9 @@ export function DashboardShell({
         </>
       }
     >
+      {organizationPlan ? (
+        <UpgradePlanBanner plan={organizationPlan} isOrgAdmin={isOrgAdmin} />
+      ) : null}
       {children}
     </DashboardAppShell>
   )

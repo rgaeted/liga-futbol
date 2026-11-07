@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { mapAdminSeasonRouteError, requireAdminSeason } from '@/lib/admin-season-route'
+import { enforceCapability } from '@/lib/billing/enforce'
 import {
   addGalleryPhoto,
   galleryPhotoStoragePath,
@@ -40,7 +41,11 @@ export async function POST(
 ) {
   try {
     const { id: seasonId, galleryId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
     const form = await req.formData()
     const file = form.get('photo')
     if (!(file instanceof File)) {

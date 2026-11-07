@@ -21,9 +21,12 @@ describe('mobile app privacy policy', () => {
   })
 
   it('exposes a public page route wired to the shared content', () => {
-    const page = read('src/app/privacidad/app/page.tsx')
+    const appPage = read('src/app/privacidad/app/page.tsx')
+    const mainPage = read('src/app/privacidad/page.tsx')
 
-    expect(page).toContain('MOBILE_APP_PRIVACY_SECTIONS')
-    expect(page).toContain('Privacidad de la app móvil')
+    expect(appPage).toContain('MOBILE_APP_PRIVACY_SECTIONS')
+    expect(appPage).toContain('Privacidad de la app móvil')
+    expect(mainPage).toContain('PLATFORM_PRIVACY_SECTIONS')
+    expect(mainPage).toContain('Política de Privacidad')
   })
 })

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { enforceCapability } from '@/lib/billing/enforce'
 import { deleteSponsor, updateSponsor } from '@/lib/editorial/sponsors'
 import { bestEffortDeleteEditorialObjects } from '@/lib/editorial/storage'
 import { mapPrismaError } from '@/lib/prisma-errors'
@@ -11,7 +12,11 @@ export async function PUT(
 ) {
   try {
     const { id: seasonId, sponsorId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
     const parsed = updateSponsorSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
@@ -39,7 +44,11 @@ export async function DELETE(
 ) {
   try {
     const { id: seasonId, sponsorId } = await params
-    await requireAdminSeason(seasonId)
+    const { organizationId } = await requireAdminSeason(seasonId)
+    const gate = await enforceCapability(organizationId, 'MANAGE_LEAGUE_CONTENT')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 403 })
+    }
     const removed = await deleteSponsor(seasonId, sponsorId)
     if (!removed) {
       return NextResponse.json({ error: 'Patrocinador no encontrado' }, { status: 404 })
