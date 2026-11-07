@@ -17,35 +17,31 @@ export const anton = Anton({
 export const barlowCondensed = Barlow_Condensed({
   variable: '--font-barlow-condensed',
   subsets: ['latin'],
-  weight: ['400', '600', '700'],
+  weight: '700',
 })
 
 export const oswald = Oswald({
   variable: '--font-oswald',
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
 })
 
 export const manrope = Manrope({
   variable: '--font-manrope',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
 })
 
 export const ibmPlexMono = IBM_Plex_Mono({
   variable: '--font-ibm-plex-mono',
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  weight: '400',
 })
 
 export const playfair = Playfair_Display({
   variable: '--font-playfair',
   subsets: ['latin'],
-  weight: ['700', '800', '900'],
 })
 
 export const caveat = Caveat({
   variable: '--font-caveat',
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
 })

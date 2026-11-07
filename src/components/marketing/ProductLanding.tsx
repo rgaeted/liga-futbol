@@ -8,16 +8,22 @@ const PATHS = [
     plan: 'Gratis',
     title: 'Jugar',
     text: 'Ves el marcador sin cuenta. Con una cuenta gratis entras como jugador, DT o árbitro.',
+    image: '/branding/portada-partido.jpg',
+    alt: 'Dos jugadores disputando la pelota en un partido de noche',
   },
   {
     plan: 'Club',
     title: 'El plantel',
     text: 'Varios equipos, amistosos entre clubes y la página pública del club.',
+    image: '/branding/portada-plantel.jpg',
+    alt: 'Plantel amateur posando en la cancha, de noche',
   },
   {
     plan: 'Liga',
     title: 'La temporada',
     text: 'Fixture oficial, partidos entre clubes y el vivo de toda la fecha.',
+    image: '/branding/portada-banda.jpg',
+    alt: 'Árbitro y gente en la banda de una cancha de barrio',
   },
 ] as const
 
@@ -85,8 +91,17 @@ export function ProductLanding({ isLoggedIn = false, panelHref = null, currentPl
   return (
     <MarketingShell productName="LigaLab" panelHref={panelHref} showLogin={!isLoggedIn}>
       <main className="flex-1">
-        <section className="border-b border-[#2A3A32] bg-[#0B1210]">
-          <div className="mx-auto grid max-w-5xl items-end gap-10 px-4 py-14 md:grid-cols-[1.35fr_0.75fr] md:py-20">
+        <section className="relative isolate overflow-hidden border-b border-[#2A3A32]">
+          <img
+            src="/branding/portada-cancha.jpg"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-[center_40%]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-b from-[#0B1210]/92 via-[#0B1210]/78 to-[#0B1210]/60 md:bg-gradient-to-r md:from-[#0B1210] md:via-[#0B1210]/84 md:to-[#0B1210]/45"
+          />
+          <div className="relative mx-auto grid max-w-5xl items-end gap-10 px-4 py-14 md:grid-cols-[1.35fr_0.75fr] md:py-20">
             <div>
               <p className="font-ui text-[11px] font-black uppercase tracking-[0.16em] text-org-primary">
                 El partido se ve de noche
@@ -131,15 +146,24 @@ export function ProductLanding({ isLoggedIn = false, panelHref = null, currentPl
             {PATHS.map((path) => (
               <article
                 key={path.plan}
-                className="border-b border-[#2A3A32] px-4 py-6 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0"
+                className="border-b border-[#2A3A32] last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0"
               >
-                <p className="font-data text-[11px] uppercase tracking-[0.14em] text-org-primary">
-                  {path.plan}
-                </p>
-                <h2 className="font-display mt-2 text-3xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
-                  {path.title}
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-[#8A938C]">{path.text}</p>
+                <div className="relative h-52">
+                  <img
+                    src={path.image}
+                    alt={path.alt}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </div>
+                <div className="px-4 py-6">
+                  <p className="font-data text-[11px] uppercase tracking-[0.14em] text-org-primary">
+                    {path.plan}
+                  </p>
+                  <h2 className="font-display mt-2 text-3xl font-semibold uppercase tracking-wide text-[#E8E4D8]">
+                    {path.title}
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[#8A938C]">{path.text}</p>
+                </div>
               </article>
             ))}
           </div>
