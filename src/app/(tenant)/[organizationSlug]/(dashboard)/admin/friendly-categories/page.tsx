@@ -25,10 +25,10 @@ export default async function AdminFriendlyCategoriesPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold">Categorías amistosas</h1>
+      <h1 className="font-display text-2xl font-bold">Categorías</h1>
       <p className="text-sm text-kelme-gray-400">
-        Cada categoría agrupa jugadores y partidos amistosos. Un jugador puede pertenecer a
-        varias categorías.
+        Crea y edita las categorías de tu organización para asignarlas a equipos, jugadores
+        y partidos. Un jugador puede pertenecer a varias categorías.
       </p>
       <FriendlyCategoryForm />
       <FriendlyCategoriesTable

@@ -89,6 +89,7 @@ function adminNavGroups(slug: string, plan: BillingPlan): DashboardNavGroup[] {
       label: 'Competición',
       items: [
         { href: base('/admin/teams'), label: 'Equipos', icon: 'EQ' },
+        { href: base('/admin/friendly-categories'), label: 'Categorías', icon: 'CA' },
         { href: base('/admin/players'), label: 'Jugadores', icon: 'JU' },
         { href: base('/admin/awards'), label: 'Premios', icon: 'PR' },
         { href: base('/admin/badges'), label: 'Insignias', icon: 'IG' },
@@ -96,7 +97,7 @@ function adminNavGroups(slug: string, plan: BillingPlan): DashboardNavGroup[] {
           href: base('/admin/matches'),
           label: 'Partidos',
           icon: 'PA',
-          activePrefixes: [base('/admin/matches'), base('/admin/friendly-categories')],
+          activePrefixes: [base('/admin/matches')],
         },
         {
           href: base('/admin/referees'),
