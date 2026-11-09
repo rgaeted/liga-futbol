@@ -14,5 +14,8 @@
   "devDependencies": {
     "typescript": "^5",
     "vitest": "^4.1.9"
+  },
+  "scripts": {
+    "test": "vitest run"
   }
 }

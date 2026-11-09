@@ -15,7 +15,7 @@ vi.mock('@/lib/db', () => ({
       delete: vi.fn(),
     },
     organization: {
-      findUniqueOrThrow: vi.fn(),
+      findUniqueOrThrow: vi.fn().mockResolvedValue({ plan: 'LEAGUE' }),
     },
   },
 }))
@@ -113,6 +113,7 @@ describe('PATCH /api/org-badges/settings', () => {
 
   it('calls setOrgBadgesEnabled when enabling', async () => {
     vi.mocked(db.organization.findUniqueOrThrow).mockResolvedValue({
+      plan: 'LEAGUE',
       badgesEnabled: true,
     } as never)
 

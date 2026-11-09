@@ -3,22 +3,33 @@ import { PUT } from '@/app/api/admin/seasons/[id]/sponsors/[sponsorId]/route'
 
 vi.mock('server-only', () => ({}))
 
+vi.mock('@/lib/db', () => ({
+  db: {
+    season: { findUnique: vi.fn().mockResolvedValue({ organizationId: 'org-1' }) },
+    organization: { findUniqueOrThrow: vi.fn().mockResolvedValue({ plan: 'LEAGUE' }) },
+  },
+}))
+
 vi.mock('@/lib/auth', () => ({
-  requireRole: vi.fn(),
+  requireOrgRole: vi.fn(),
 }))
 
 vi.mock('@/lib/editorial/sponsors', () => ({
   updateSponsor: vi.fn(),
 }))
 
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole } from '@/lib/auth'
 import { updateSponsor } from '@/lib/editorial/sponsors'
 
 describe('admin sponsors routes', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns 404 for cross-season sponsor updates', async () => {
-    vi.mocked(requireRole).mockResolvedValue({ user: { id: 'admin-1' } } as never)
+    vi.mocked(requireOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: 'ORG_ADMIN',
+      session: { user: { id: 'admin-1' } },
+    } as never)
     vi.mocked(updateSponsor).mockResolvedValue(null)
     const response = await PUT(
       new Request('http://localhost', {
@@ -32,7 +43,11 @@ describe('admin sponsors routes', () => {
   })
 
   it('returns 400 for invalid date interval', async () => {
-    vi.mocked(requireRole).mockResolvedValue({ user: { id: 'admin-1' } } as never)
+    vi.mocked(requireOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: 'ORG_ADMIN',
+      session: { user: { id: 'admin-1' } },
+    } as never)
     const response = await PUT(
       new Request('http://localhost', {
         method: 'PUT',
@@ -48,7 +63,11 @@ describe('admin sponsors routes', () => {
   })
 
   it('accepts blank website as null', async () => {
-    vi.mocked(requireRole).mockResolvedValue({ user: { id: 'admin-1' } } as never)
+    vi.mocked(requireOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: 'ORG_ADMIN',
+      session: { user: { id: 'admin-1' } },
+    } as never)
     vi.mocked(updateSponsor).mockResolvedValue({ id: 'sponsor-b', websiteUrl: null } as never)
     const response = await PUT(
       new Request('http://localhost', {

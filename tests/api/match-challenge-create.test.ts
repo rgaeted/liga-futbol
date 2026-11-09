@@ -10,7 +10,7 @@ vi.mock('@/lib/db', () => ({
   db: {
     friendlyCategory: { findUnique: vi.fn() },
     player: { findMany: vi.fn() },
-    organization: { findUnique: vi.fn() },
+    organization: { findUnique: vi.fn(), findUniqueOrThrow: vi.fn().mockResolvedValue({ plan: 'LEAGUE' }) },
     $transaction: vi.fn(),
   },
 }))

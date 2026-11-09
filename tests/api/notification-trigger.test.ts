@@ -1,4 +1,5 @@
-import { EventType, MatchStatus, MatchType, Role } from '@prisma/client'
+import { EventType, MatchStatus, MatchType } from '@prisma/client'
+import { MembershipRole } from '@/lib/membership-role'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -19,7 +20,8 @@ vi.mock('@/lib/mobile/notifications/process-outbox', () => ({
 }))
 
 vi.mock('@/lib/auth', () => ({
-  requireRole: vi.fn(),
+  requireOrgRole: vi.fn(),
+  requireMatchOrgRole: vi.fn(),
 }))
 
 vi.mock('@/lib/db', () => ({
@@ -46,7 +48,7 @@ vi.mock('@/lib/mobile/notifications/enqueue', () => ({
   safeEnqueueMatchNotification: vi.fn(),
 }))
 
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole, requireMatchOrgRole } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { registerMatchEvent } from '@/lib/match-events'
 import { POST as postMatchEvent } from '@/app/api/matches/[id]/events/route'
@@ -88,18 +90,25 @@ describe('triggerNotificationProcessing', () => {
 describe('match mutation triggers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(requireRole).mockResolvedValue({
-      user: { id: 'admin-1', role: Role.ADMIN },
+    vi.mocked(requireOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: MembershipRole.ORG_ADMIN,
+      session: { user: { id: 'admin-1' } },
     } as never)
   })
 
   it('schedules notification processing after a successful league event POST', async () => {
-    vi.mocked(db.match.findUniqueOrThrow).mockResolvedValue({
-      id: 'match-1',
-      matchType: MatchType.LEAGUE,
-      refereeId: 'admin-1',
-      refereeEventTypes: [EventType.GOAL],
-      status: MatchStatus.LIVE,
+    vi.mocked(requireMatchOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: MembershipRole.ORG_ADMIN,
+      session: { user: { id: 'admin-1' } },
+      match: {
+        id: 'match-1',
+        matchType: MatchType.LEAGUE,
+        refereeId: 'admin-1',
+        refereeEventTypes: [EventType.GOAL],
+        status: MatchStatus.LIVE,
+      },
     } as never)
     vi.mocked(registerMatchEvent).mockResolvedValue({
       event: { id: 'event-1' },
@@ -120,15 +129,17 @@ describe('match mutation triggers', () => {
   })
 
   it('does not schedule processing when event POST is rejected', async () => {
-    vi.mocked(requireRole).mockResolvedValue({
-      user: { id: 'ref-1', role: Role.REFEREE },
-    } as never)
-    vi.mocked(db.match.findUniqueOrThrow).mockResolvedValue({
-      id: 'match-1',
-      matchType: MatchType.LEAGUE,
-      refereeId: 'ref-1',
-      refereeEventTypes: [EventType.GOAL],
-      status: MatchStatus.SCHEDULED,
+    vi.mocked(requireMatchOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: MembershipRole.REFEREE,
+      session: { user: { id: 'ref-1' } },
+      match: {
+        id: 'match-1',
+        matchType: MatchType.LEAGUE,
+        refereeId: 'ref-1',
+        refereeEventTypes: [EventType.GOAL],
+        status: MatchStatus.SCHEDULED,
+      },
     } as never)
 
     const response = await postMatchEvent(
@@ -147,6 +158,9 @@ describe('match mutation triggers', () => {
   it('schedules notification processing after a successful league match PUT', async () => {
     vi.mocked(db.match.findUnique).mockResolvedValue({
       id: 'match-1',
+      organizationId: 'org-1',
+      guestOrganizationId: null,
+      challengeStatus: 'NONE',
       matchType: MatchType.LEAGUE,
       status: MatchStatus.SCHEDULED,
       seasonId: 'season-1',
@@ -162,13 +176,13 @@ describe('match mutation triggers', () => {
     vi.mocked(db.$transaction).mockImplementation(async (callback) =>
       callback({
         match: {
-          update: vi.fn().mockResolvedValue({
-            id: 'match-1',
-            matchType: MatchType.LEAGUE,
-            status: MatchStatus.LIVE,
-            seasonId: 'season-1',
-          }),
-        },
+            update: vi.fn().mockResolvedValue({
+              id: 'match-1',
+              matchType: MatchType.LEAGUE,
+              status: MatchStatus.LIVE,
+              seasonId: 'season-1',
+            }),
+          },
       } as never),
     )
 

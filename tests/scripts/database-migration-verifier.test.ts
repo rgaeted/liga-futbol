@@ -251,7 +251,7 @@ describe('validateVerificationEnvironment', () => {
     ).toEqual({
       neonUrl:
         'postgresql://source:not-a-secret@neon.example.test:5432/app',
-      supabasePreviewUrl:
+      supabaseTargetUrl:
         'postgresql://target:not-a-secret@preview.example.test:5432/postgres',
       reportPath,
     })

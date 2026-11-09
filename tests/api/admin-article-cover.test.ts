@@ -4,11 +4,13 @@ import { POST } from '@/app/api/admin/seasons/[id]/articles/[articleId]/cover/ro
 vi.mock('server-only', () => ({}))
 
 vi.mock('@/lib/auth', () => ({
-  requireRole: vi.fn(),
+  requireOrgRole: vi.fn(),
 }))
 
 vi.mock('@/lib/db', () => ({
   db: {
+    season: { findUnique: vi.fn().mockResolvedValue({ organizationId: 'org-1' }) },
+    organization: { findUniqueOrThrow: vi.fn().mockResolvedValue({ plan: 'LEAGUE' }) },
     article: {
       findFirst: vi.fn(),
       update: vi.fn(),
@@ -22,7 +24,7 @@ vi.mock('@/lib/editorial/storage', () => ({
   editorialStoragePath: (segments: string[]) => segments.join('/'),
 }))
 
-import { requireRole } from '@/lib/auth'
+import { requireOrgRole } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { uploadEditorialObject } from '@/lib/editorial/storage'
 
@@ -37,7 +39,7 @@ describe('admin article cover route', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns 401 without admin role', async () => {
-    vi.mocked(requireRole).mockRejectedValue(new Error('Unauthorized'))
+    vi.mocked(requireOrgRole).mockRejectedValue(new Error('Unauthorized'))
     const response = await POST(imageRequest(), {
       params: Promise.resolve({ id: 'season-1', articleId: 'article-1' }),
     })
@@ -45,7 +47,11 @@ describe('admin article cover route', () => {
   })
 
   it('returns 400 for invalid mime type', async () => {
-    vi.mocked(requireRole).mockResolvedValue({ user: { id: 'admin-1' } } as never)
+    vi.mocked(requireOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: 'ORG_ADMIN',
+      session: { user: { id: 'admin-1' } },
+    } as never)
     vi.mocked(db.article.findFirst).mockResolvedValue({ id: 'article-1', coverStoragePath: null } as never)
     const file = new File([new Uint8Array([1])], 'cover.gif', { type: 'image/gif' })
     const form = new FormData()
@@ -58,7 +64,11 @@ describe('admin article cover route', () => {
   })
 
   it('uploads a valid cover image', async () => {
-    vi.mocked(requireRole).mockResolvedValue({ user: { id: 'admin-1' } } as never)
+    vi.mocked(requireOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: 'ORG_ADMIN',
+      session: { user: { id: 'admin-1' } },
+    } as never)
     vi.mocked(db.article.findFirst).mockResolvedValue({ id: 'article-1', coverStoragePath: null } as never)
     vi.mocked(uploadEditorialObject).mockResolvedValue(undefined)
     const response = await POST(imageRequest(), {

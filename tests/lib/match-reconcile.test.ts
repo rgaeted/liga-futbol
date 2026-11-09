@@ -1,6 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { computeScoresFromEvents } from '@/lib/match-reconcile'
 import { EventType, MatchType } from '@prisma/client'
+
+vi.mock('server-only', () => ({}))
 
 describe('computeScoresFromEvents', () => {
   it('counts league goals by team', () => {

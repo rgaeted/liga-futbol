@@ -26,12 +26,17 @@ vi.mock('@/lib/supabase-realtime-server', () => ({
   publishMatchInvalidation: vi.fn(),
 }))
 
+vi.mock('@/lib/revalidate-org-public-pages', () => ({
+  revalidateOrgPublicLandingForMatch: vi.fn(),
+}))
+
 vi.mock('@/lib/mobile/notifications/enqueue', () => ({
   safeEnqueueMatchNotification: vi.fn(),
 }))
 
 import { db } from '@/lib/db'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
+import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
 
 const baseMatch = {
   id: 'match-1',
@@ -89,7 +94,7 @@ describe('registerMatchEvent notifications', () => {
     } as never)
     vi.mocked(db.matchEvent.create).mockResolvedValue({
       id: 'event-goal',
-      player: { user: { name: 'Juan' } },
+      player: { person: { firstName: 'Juan', lastName: '', user: { name: 'Juan' } } },
     } as never)
     const updated = mockUpdatedMatch({ homeScore: 1 })
 
@@ -119,6 +124,7 @@ describe('registerMatchEvent notifications', () => {
       kind: NotificationKind.MATCH_FINISH,
       match: expect.objectContaining({ status: MatchStatus.FINISHED }),
     })
+    expect(revalidateOrgPublicLandingForMatch).toHaveBeenCalledWith('match-1')
   })
 
   it('does not enqueue halftime events', async () => {

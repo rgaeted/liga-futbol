@@ -197,7 +197,7 @@ describe('friendly match validations', () => {
     expect(result.success).toBe(true)
   })
 
-  it('rejects friendly without a player on side B', () => {
+  it('rejects an assigned side without a captain and coach', () => {
     const result = createMatchSchema.safeParse({
       matchType: 'FRIENDLY',
       friendlyCategoryId: 'cat-1',
@@ -212,6 +212,7 @@ describe('friendly match validations', () => {
   it('still accepts league match without matchType (default LEAGUE)', () => {
     const result = createMatchSchema.safeParse({
       seasonId: 'demo-season-2026',
+      seasonCategoryId: 'season-category-1',
       homeTeamId: 'demo-team-norte',
       awayTeamId: 'demo-team-sur',
       scheduledAt: new Date().toISOString(),
@@ -228,7 +229,7 @@ describe('friendly match validations', () => {
 })
 
 describe('friendly challenge validations', () => {
-  it('intra-org schema still fails without side B', () => {
+  it('allows an intra-org roster with only side A assigned', () => {
     const result = createMatchSchema.safeParse({
       matchType: 'FRIENDLY',
       friendlyCategoryId: 'cat-1',
@@ -239,7 +240,12 @@ describe('friendly challenge validations', () => {
         { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
       ],
     })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+    if (result.success && result.data.matchType === 'FRIENDLY') {
+      expect(result.data.players).toEqual([
+        { playerId: 'fp-1', side: 'A', isCaptain: true, isCoach: true },
+      ])
+    }
   })
 
   it('challenge schema succeeds with only side A captain and DT', () => {

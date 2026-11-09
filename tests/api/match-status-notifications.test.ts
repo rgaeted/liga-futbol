@@ -14,6 +14,14 @@ vi.mock('@/lib/mobile/notifications/trigger-process', () => ({
   triggerNotificationProcessing: vi.fn(),
 }))
 
+vi.mock('@/lib/revalidate-org-public-pages', () => ({
+  revalidateOrgPublicLandingForMatch: vi.fn(),
+}))
+
+vi.mock('@/lib/supabase-realtime-server', () => ({
+  publishMatchInvalidation: vi.fn(),
+}))
+
 vi.mock('@/lib/db', () => ({
   db: {
     match: {
@@ -26,6 +34,8 @@ vi.mock('@/lib/db', () => ({
 
 import { db } from '@/lib/db'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
+import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
+import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
 
 const existingMatch = {
   id: 'match-1',
@@ -110,5 +120,7 @@ describe('PUT /api/matches/[id] notifications', () => {
       kind: NotificationKind.MATCH_FINISH,
       match: expect.objectContaining({ status: MatchStatus.FINISHED }),
     })
+    expect(publishMatchInvalidation).toHaveBeenCalledWith('match-1')
+    expect(revalidateOrgPublicLandingForMatch).toHaveBeenCalledWith('match-1')
   })
 })

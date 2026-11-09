@@ -10,7 +10,7 @@ import { db } from '@/lib/db'
 vi.mock('@/lib/db', () => ({
   db: {
     player: { findMany: vi.fn() },
-    organizationMembership: { findUnique: vi.fn() },
+    organizationMembership: { findUnique: vi.fn(), update: vi.fn() },
     user: { findUnique: vi.fn() },
     person: { update: vi.fn() },
   },
@@ -49,7 +49,7 @@ describe('coachesFromRoster', () => {
 
 describe('coachPlayerIdsForUser', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   it('returns linked player ids when person is tied to the user', async () => {
@@ -102,7 +102,10 @@ describe('coachPlayerIdsForUser', () => {
     vi.mocked(db.player.findMany)
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ id: 'player-roger', personId: 'person-roger' }] as never)
+      .mockResolvedValueOnce([{ organizationId: 'org-kelme' }] as never)
+      .mockResolvedValueOnce([{ organizationId: 'org-kelme' }] as never)
     vi.mocked(db.organizationMembership.findUnique).mockResolvedValue({
+      id: 'membership-1',
       roles: ['FRIENDLY_COACH'],
     } as never)
     vi.mocked(db.user.findUnique).mockResolvedValue({
@@ -116,6 +119,10 @@ describe('coachPlayerIdsForUser', () => {
     expect(db.person.update).toHaveBeenCalledWith({
       where: { id: 'person-roger' },
       data: { userId: 'user-1' },
+    })
+    expect(db.organizationMembership.update).toHaveBeenCalledWith({
+      where: { id: 'membership-1' },
+      data: { roles: ['FRIENDLY_COACH', 'PLAYER'] },
     })
   })
 })

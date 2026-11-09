@@ -27,7 +27,7 @@ describe('admin content workspace', () => {
 
   it('scopes content pages by season query param', () => {
     expect(read('src/components/admin/content/ContentSeasonBar.tsx')).toContain("params.set('season'")
-    expect(read('src/app/(dashboard)/admin/content/page.tsx')).toContain('ContentSeasonBar')
+    expect(read('src/app/(tenant)/[organizationSlug]/(dashboard)/admin/content/page.tsx')).toContain('ContentSeasonBar')
   })
 
   it('uploads edition logo through admin mobile logo route', () => {

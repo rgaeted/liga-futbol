@@ -21,6 +21,7 @@ vi.mock('@/lib/admin-season-route', () => ({
 
 vi.mock('@/lib/db', () => ({
   db: {
+    organization: { findUniqueOrThrow: vi.fn().mockResolvedValue({ plan: 'LEAGUE' }) },
     seasonMobileConfig: {
       findUnique: vi.fn(),
       upsert: vi.fn(),

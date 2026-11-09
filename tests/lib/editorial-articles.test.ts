@@ -9,6 +9,7 @@ import { applyPublishTransition } from '@/lib/editorial/publication'
 
 vi.mock('@/lib/db', () => ({
   db: {
+    season: { findUnique: vi.fn().mockResolvedValue({ organizationId: 'org-1' }) },
     article: {
       create: vi.fn(),
       findFirst: vi.fn(),
