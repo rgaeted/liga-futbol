@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { KelmePawMark } from '@/components/marketing/KelmeCupBrush'
 import {
   KELME_CUP,
-  KELME_CUP_HUDDLE_PATH,
+  KELME_CUP_HERO_PATH,
   KELME_CUP_SHIELD_PATH,
 } from '@/lib/org-brand'
 
@@ -120,12 +120,12 @@ export function KelmeCupHomeHero({
       <div className="relative overflow-hidden bg-[#0a1f44] pb-28 sm:pb-32">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={KELME_CUP_HUDDLE_PATH}
-          alt="Jugadores de la Kelme Cup en ronda antes del partido"
-          className="absolute inset-0 -z-10 h-full w-full object-cover object-[70%_35%]"
+          src={KELME_CUP_HERO_PATH}
+          alt="Jugadores de la Kelme Cup abrazados frente al volcán"
+          className="absolute inset-y-0 right-0 -z-10 h-full w-full object-cover object-[60%_30%] lg:w-[68%]"
         />
         <div
-          className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(6,24,58,0.92)_0%,rgba(6,24,58,0.7)_38%,rgba(6,24,58,0.1)_75%),linear-gradient(180deg,rgba(6,24,58,0.25),transparent_30%)]"
+          className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#0a1f44_0%,#0a1f44_30%,rgba(10,31,68,0.55)_52%,rgba(10,31,68,0)_75%)] max-lg:bg-[linear-gradient(180deg,rgba(10,31,68,0.85),rgba(10,31,68,0.55)_60%,rgba(10,31,68,0.35))]"
           aria-hidden
         />
 
