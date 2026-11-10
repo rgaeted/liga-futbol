@@ -117,7 +117,7 @@ export function KelmeCupHomeHero({
 
   return (
     <section className="relative isolate bg-[#f4f9ff] text-[#123a6b]">
-      <div className="relative overflow-hidden bg-[#0a1f44] pb-28 sm:pb-32">
+      <div className="relative isolate overflow-hidden bg-[#0a1f44] pb-28 sm:pb-32">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={KELME_CUP_HERO_PATH}
