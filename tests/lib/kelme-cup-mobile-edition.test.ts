@@ -36,7 +36,7 @@ describe('kelme cup mobile edition identity', () => {
 
   it('builds flyer-aligned description and scaffold source', () => {
     expect(kelmeCupMobileDescription()).toBe(
-      'Torneo infantil de fútbol en Los Lagos. Domingo 25 de octubre, Canchas Colegio Puerto Varas, desde 9:00 a 14:00 horas.',
+      'Torneo infantil de fútbol en Los Lagos. 15 y 22 de noviembre de 2026, Canchas Colegio Puerto Varas, 9:00 a 14:00 horas.',
     )
     const source = buildEditionConfigSource(kelmeCupMobileScaffoldConfig('season-cup-1'))
     expect(source).toContain("slug: 'kelme-cup-los-lagos-2026'")
