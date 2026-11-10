@@ -30,6 +30,7 @@ export default async function SeasonMobileAdminPage({
       where: { organizationId },
       orderBy: { name: 'asc' },
       include: {
+        category: { select: { id: true, name: true } },
         players: {
           include: {
             ...PLAYER_PERSON_NAME_INCLUDE,
@@ -68,6 +69,8 @@ export default async function SeasonMobileAdminPage({
     teamId: team.id,
     name: team.name,
     color: team.color,
+    categoryId: team.category?.id ?? null,
+    categoryName: team.category?.name ?? null,
     players: team.players.map((p) => ({
       id: p.id,
       name: playerDisplayName(p),

@@ -12,6 +12,8 @@ type TeamEnrollment = {
   teamId: string
   name: string
   color: string | null
+  categoryId?: string | null
+  categoryName?: string | null
   players: PlayerOption[]
   selectedPlayerIds: string[]
 }
@@ -41,7 +43,18 @@ export function SeasonTeamsEditor({
               checked={selectedTeamIds.includes(team.teamId)}
               onChange={() => onToggleTeam(team.teamId)}
             />
-            <span>{team.name}</span>
+            <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+              <span>{team.name}</span>
+              {team.categoryName ? (
+                <span className="rounded-full bg-kelme-gray-100 px-2 py-0.5 text-xs font-semibold text-kelme-gray-600">
+                  {team.categoryName}
+                </span>
+              ) : (
+                <span className="rounded-full border border-dashed border-kelme-border px-2 py-0.5 text-xs text-kelme-gray-500">
+                  Sin categoría
+                </span>
+              )}
+            </span>
           </label>
         ))}
       </div>

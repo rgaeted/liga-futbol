@@ -22,6 +22,7 @@ export default async function NewSeasonPage({
       where: { organizationId },
       orderBy: { name: 'asc' },
       include: {
+        category: { select: { id: true, name: true } },
         players: {
           include: {
             ...PLAYER_PERSON_NAME_INCLUDE,
@@ -45,6 +46,8 @@ export default async function NewSeasonPage({
         teamId: team.id,
         name: team.name,
         color: team.color,
+        categoryId: team.category?.id ?? null,
+        categoryName: team.category?.name ?? null,
         players: team.players.map((player) => ({
           id: player.id,
           name: playerDisplayName(player),
