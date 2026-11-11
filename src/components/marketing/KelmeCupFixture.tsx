@@ -285,7 +285,7 @@ export function KelmeCupFixture({ view }: { view: FixtureView }) {
           </p>
         ) : null}
 
-        <h3 className="mt-10 font-display text-[22px] font-bold uppercase tracking-[-0.02em] text-[#0B3D8F]">
+        <h3 id="posiciones" className="mt-10 scroll-mt-24 font-display text-[22px] font-bold uppercase tracking-[-0.02em] text-[#0B3D8F]">
           Tablas de posiciones
         </h3>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">

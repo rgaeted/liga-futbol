@@ -148,6 +148,12 @@ export function KelmeCupHomeHero({
               >
                 Kelme Cup
               </a>
+              <a href="#fixture" className="hidden text-[17px] font-semibold text-white/90 hover:text-white md:inline">
+                Partidos
+              </a>
+              <a href="#posiciones" className="hidden text-[17px] font-semibold text-white/90 hover:text-white md:inline">
+                Posiciones
+              </a>
               <Link
                 href={ctaHref}
                 className="inline-flex items-center gap-2 rounded-xl border border-white/80 px-4 py-2 text-[15px] font-semibold text-white"
@@ -182,6 +188,13 @@ export function KelmeCupHomeHero({
               <span aria-hidden>⚽</span> {KELME_CUP.subtitle}
             </p>
             <p className="mt-4 text-base italic text-white/90 sm:text-lg">{KELME_CUP.values}</p>
+            <a
+              href="#fixture"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-base font-bold text-[#0a1f44] shadow-[0_10px_24px_rgba(0,0,0,0.3)] transition hover:bg-[#e6f1fe]"
+            >
+              Ver partidos y resultados
+              <span aria-hidden>↓</span>
+            </a>
           </div>
         </div>
       </div>
