@@ -5,6 +5,7 @@ import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
 import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { LosLunesResults } from '@/components/marketing/LosLunesResults'
 import { KelmeCupHomeHero } from '@/components/marketing/KelmeCupHomeHero'
+import { KelmeCupFixture } from '@/components/marketing/KelmeCupFixture'
 import { KelmeCupInvite } from '@/components/marketing/KelmeCupInvite'
 import { KelmeCupMatchBoard } from '@/components/marketing/KelmeCupMatchBoard'
 import { KelmeCupResults } from '@/components/marketing/KelmeCupResults'
@@ -13,7 +14,8 @@ import { TeamCrest } from '@/components/TeamCrest'
 import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
 import { KELME_CUP, KELME_CUP_SHIELD_PATH, KELME_SLUG, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { matchStatusLabel } from '@/lib/match-status-ui'
-import { formatLandingPerMatchRate, type OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
+import type { FixtureView } from '@/lib/kelme-fixture/view'
+import { formatLandingPerMatchRate,type OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
 
 function FeaturedCrest({
   name,
@@ -123,9 +125,11 @@ function RankingCard({
 export function OrgPublicLanding({
   data,
   panelHref = null,
+  kelmeFixture = null,
 }: {
   data: OrgPublicLandingData
   panelHref?: string | null
+  kelmeFixture?: FixtureView | null
 }) {
   const { organization, featured, nextMatch, results, form, scorers, assists, goalsPerMatch, assistsPerMatch, awards } = data
   const slug = organization.slug
@@ -258,6 +262,7 @@ export function OrgPublicLanding({
       ) : null}
 
       <main>
+        {isKelme && kelmeFixture ? <KelmeCupFixture view={kelmeFixture} /> : null}
         {isKelme ? <KelmeCupInvite /> : null}
         <section className={customLanding ? 'pb-7 pt-8' : 'pb-7 pt-[54px] max-sm:pt-8'}>
           <div className="mx-auto w-[min(1180px,calc(100%-32px))]">

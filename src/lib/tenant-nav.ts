@@ -1,4 +1,5 @@
 import { planHasCapability, type BillingPlan, type Capability } from '@/lib/billing/capabilities'
+import { KELME_SLUG } from '@/lib/org-brand'
 import { db } from '@/lib/db'
 import type { MembershipRole } from '@/lib/membership-role'
 import { MembershipRole as Role, hasMembershipRole } from '@/lib/membership-role'
@@ -111,6 +112,9 @@ function adminNavGroups(slug: string, plan: BillingPlan): DashboardNavGroup[] {
       label: 'Liga',
       items: [
         { href: base('/admin/seasons'), label: 'Temporadas', icon: 'TE' },
+        ...(slug === KELME_SLUG
+          ? [{ href: base('/admin/fixture'), label: 'Fixture', icon: 'FX' }]
+          : []),
         {
           href: base('/admin/challenges'),
           label: 'Desafíos',

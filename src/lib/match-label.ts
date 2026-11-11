@@ -26,8 +26,8 @@ export function matchSideNames(match: MatchLabelInput): { home: string; away: st
     }
   }
   return {
-    home: match.homeTeam?.name ?? 'Local',
-    away: match.awayTeam?.name ?? 'Visitante',
+    home: match.homeTeam?.name ?? match.sideAName ?? 'Local',
+    away: match.awayTeam?.name ?? match.sideBName ?? 'Visitante',
   }
 }
 

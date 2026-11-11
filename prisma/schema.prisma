@@ -33,6 +33,20 @@ enum MatchStatus {
   CANCELLED
 }
 
+enum MatchPhase {
+  GROUP
+  LEAGUE
+  FINAL
+  THIRD_PLACE
+  FIFTH_PLACE
+}
+
+enum MatchDecidedBy {
+  REGULAR_TIME
+  PENALTIES
+  ADMINISTRATIVE
+}
+
 enum EventType {
   GOAL
   PENALTY_GOAL
@@ -225,6 +239,7 @@ model Organization {
   orgBadges         OrgBadge[]
   playerBadges      PlayerBadge[]
   heroImages        OrganizationHeroImage[]
+  fixtureAuditLogs FixtureAuditLog[]
 }
 
 model OrganizationHeroImage {
@@ -350,7 +365,10 @@ model Season {
   endDate        DateTime
   footballFormat FootballFormat @default(FUTBOL_11)
   isActive       Boolean        @default(true)
+  /// Configuración del fixture automático (política de empates en definiciones y orden manual aprobado).
+  fixtureConfig  Json?
   matches        Match[]
+  fixtureAuditLogs FixtureAuditLog[]
   mobileConfig   SeasonMobileConfig?
   seasonTeams    SeasonTeam[]
   seasonCategories SeasonCategory[]
@@ -513,6 +531,19 @@ model Match {
   weatherCode        Int?
   weatherLabel       String?
   weatherFetchedAt   DateTime?
+  /// Fixture automático: código del partido (M01..M15), único por temporada.
+  fixtureCode  String?
+  phase        MatchPhase?
+  groupCode    String?
+  court        Int?
+  endsAt       DateTime?
+  /// Cupo de clasificación pendiente, formato "A:1" (1.º del Grupo A).
+  homeSlot     String?
+  awaySlot     String?
+  decidedBy    MatchDecidedBy?
+  penaltyHome  Int?
+  penaltyAway  Int?
+  fixtureAuditLogs FixtureAuditLog[]
   status       MatchStatus @default(SCHEDULED)
   homeScore    Int         @default(0)
   awayScore    Int         @default(0)
@@ -534,8 +565,29 @@ model Match {
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 
+  @@unique([seasonId, fixtureCode])
   @@index([guestOrganizationId, challengeStatus])
   @@index([seasonCategoryId])
+}
+
+model FixtureAuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  seasonId       String
+  season         Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  matchId        String?
+  match          Match?   @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  userId         String?
+  /// RESULT, STATUS, AUTO_ASSIGN, RANKING, CONFIG, TEAM_RENAME
+  action         String
+  reason         String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime @default(now())
+
+  @@index([seasonId, createdAt])
+  @@index([matchId])
 }
 
 model MatchFormation {
@@ -681,6 +733,8 @@ model SeasonTeam {
   crestData      Bytes?
   status         SeasonTeamStatus @default(REGISTERED)
   sortOrder      Int              @default(0)
+  /// Grupo dentro de la categoría (A/B) para torneos con fase de grupos.
+  groupCode      String?
   rosterEntries     SeasonRosterEntry[]
   teamSubscriptions TeamSubscription[]
   notificationOutbox NotificationOutbox[]
