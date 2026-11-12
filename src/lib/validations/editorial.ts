@@ -1,14 +1,16 @@
-import { EditorialStatus, SponsorPlacement } from '@prisma/client'
+import { EditorialStatus, SponsorPlacement, SponsorTier } from '@prisma/client'
 import { z } from 'zod'
 
 const isoDateSchema = z.string().datetime({ offset: true })
 
 export const editorialStatusSchema = z.nativeEnum(EditorialStatus)
 export const sponsorPlacementSchema = z.nativeEnum(SponsorPlacement)
+export const sponsorTierSchema = z.nativeEnum(SponsorTier)
 
 const optionalUrlSchema = z
   .string()
   .url('URL inválida')
+  .refine((value) => /^https?:\/\//i.test(value), 'La URL debe comenzar con http:// o https://')
   .optional()
   .nullable()
   .or(z.literal('').transform(() => null))
@@ -53,6 +55,11 @@ const sponsorBaseSchema = z.object({
   name: z.string().min(1).max(120),
   websiteUrl: optionalUrlSchema,
   placement: sponsorPlacementSchema.optional(),
+  tier: sponsorTierSchema.optional(),
+  tagline: z.string().max(140).optional().nullable().or(z.literal('').transform(() => null)),
+  ctaLabel: z.string().max(40).optional().nullable().or(z.literal('').transform(() => null)),
+  ctaUrl: optionalUrlSchema,
+  showOnLanding: z.boolean().optional(),
   startsAt: isoDateSchema.optional().nullable(),
   endsAt: isoDateSchema.optional().nullable(),
   isActive: z.boolean().optional(),
@@ -74,6 +81,12 @@ export const updateSponsorSchema = sponsorBaseSchema.partial().superRefine((data
   }
 })
 
+export const sponsorAssignmentSchema = z.object({
+  target: z.string().regex(/^(court:([1-9]\d?)|phase:(FINAL|THIRD_PLACE|FIFTH_PLACE))$/),
+  sponsorId: z.string().min(1).nullable(),
+})
+
+export type SponsorAssignmentInput = z.infer<typeof sponsorAssignmentSchema>
 export type CreateGalleryPhotoInput = z.infer<typeof createGalleryPhotoSchema>
 export type UpdateGalleryPhotoInput = z.infer<typeof updateGalleryPhotoSchema>
 export type CreateArticleInput = z.infer<typeof createArticleSchema>

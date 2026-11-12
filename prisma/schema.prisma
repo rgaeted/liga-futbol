@@ -108,6 +108,11 @@ enum EditorialStatus {
   PUBLISHED
 }
 
+enum SponsorTier {
+  MAIN
+  OFFICIAL
+}
+
 enum SponsorPlacement {
   HOME
   SPONSORS_PAGE
@@ -158,25 +163,25 @@ enum RefereeShareInviteStatus {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  email            String   @unique
-  passwordHash     String
-  name             String
-  isPlatformAdmin  Boolean  @default(false)
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  passwordHash            String
+  name                    String
+  isPlatformAdmin         Boolean                  @default(false)
   privacyPolicyAcceptedAt DateTime?
   privacyPolicyVersion    String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  person           Person?
-  coachedTeam      Team?    @relation("TeamCoach")
-  refereeMatches   Match[]  @relation("MatchReferee")
-  articles         Article[]
-  memberships      OrganizationMembership[]
-  refereeProfile         RefereeProfile?
-  refereeShareInvites    RefereeShareInvite[] @relation("RefereeShareReferee")
-  refereeShareInvitesSent RefereeShareInvite[] @relation("RefereeShareInvitedBy")
-  formationTemplates     UserFormationTemplate[]
-  playerAwardsGranted    PlayerAward[] @relation("PlayerAwardGrantedBy")
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  person                  Person?
+  coachedTeam             Team?                    @relation("TeamCoach")
+  refereeMatches          Match[]                  @relation("MatchReferee")
+  articles                Article[]
+  memberships             OrganizationMembership[]
+  refereeProfile          RefereeProfile?
+  refereeShareInvites     RefereeShareInvite[]     @relation("RefereeShareReferee")
+  refereeShareInvitesSent RefereeShareInvite[]     @relation("RefereeShareInvitedBy")
+  formationTemplates      UserFormationTemplate[]
+  playerAwardsGranted     PlayerAward[]            @relation("PlayerAwardGrantedBy")
 }
 
 model UserFormationTemplate {
@@ -195,9 +200,9 @@ model UserFormationTemplate {
 }
 
 model Person {
-  id                 String   @id @default(cuid())
-  userId             String?  @unique
-  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id                 String    @id @default(cuid())
+  userId             String?   @unique
+  user               User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   firstName          String
   lastName           String
   photoMimeType      String?
@@ -205,41 +210,41 @@ model Person {
   cardPhotoMimeType  String?
   cardPhotoData      Bytes?
   cardPhotoUpdatedAt DateTime?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
   players            Player[]
 }
 
 model Organization {
-  id               String             @id @default(cuid())
-  slug             String             @unique
-  name             String
-  logoStoragePath  String?
-  primaryColor     String
-  secondaryColor   String
-  status           OrganizationStatus @default(ACTIVE)
-  plan             BillingPlan        @default(FREE)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  memberships      OrganizationMembership[]
-  seasons          Season[]
-  teams            Team[]
-  matches          Match[]
-  guestMatches     Match[] @relation("MatchGuestOrg")
+  id                 String                   @id @default(cuid())
+  slug               String                   @unique
+  name               String
+  logoStoragePath    String?
+  primaryColor       String
+  secondaryColor     String
+  status             OrganizationStatus       @default(ACTIVE)
+  plan               BillingPlan              @default(FREE)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  memberships        OrganizationMembership[]
+  seasons            Season[]
+  teams              Team[]
+  matches            Match[]
+  guestMatches       Match[]                  @relation("MatchGuestOrg")
   friendlyCategories FriendlyCategory[]
-  players          Player[]
-  articles         Article[]
-  galleries        Gallery[]
-  sponsors         Sponsor[]
-  refereeSharesFrom RefereeShareInvite[] @relation("RefereeShareFrom")
-  refereeSharesTo   RefereeShareInvite[] @relation("RefereeShareTo")
-  badgesEnabled     Boolean  @default(false)
-  orgAwards         OrgAward[]
-  playerAwards      PlayerAward[]
-  orgBadges         OrgBadge[]
-  playerBadges      PlayerBadge[]
-  heroImages        OrganizationHeroImage[]
-  fixtureAuditLogs FixtureAuditLog[]
+  players            Player[]
+  articles           Article[]
+  galleries          Gallery[]
+  sponsors           Sponsor[]
+  refereeSharesFrom  RefereeShareInvite[]     @relation("RefereeShareFrom")
+  refereeSharesTo    RefereeShareInvite[]     @relation("RefereeShareTo")
+  badgesEnabled      Boolean                  @default(false)
+  orgAwards          OrgAward[]
+  playerAwards       PlayerAward[]
+  orgBadges          OrgBadge[]
+  playerBadges       PlayerBadge[]
+  heroImages         OrganizationHeroImage[]
+  fixtureAuditLogs   FixtureAuditLog[]
 }
 
 model OrganizationHeroImage {
@@ -299,151 +304,152 @@ model OrganizationMembership {
 }
 
 model Team {
-  id            String   @id @default(cuid())
+  id             String            @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name          String
-  logoUrl       String?
-  crestMimeType String?
-  crestData     Bytes?
-  color         String?
-  categoryId    String?
-  category      FriendlyCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  coachId       String?  @unique
-  coach     User?    @relation("TeamCoach", fields: [coachId], references: [id])
-  players   Player[]
-  homeMatches Match[] @relation("HomeTeam")
-  awayMatches Match[] @relation("AwayTeam")
-  seasonTeams SeasonTeam[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  logoUrl        String?
+  crestMimeType  String?
+  crestData      Bytes?
+  color          String?
+  categoryId     String?
+  category       FriendlyCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  coachId        String?           @unique
+  coach          User?             @relation("TeamCoach", fields: [coachId], references: [id])
+  players        Player[]
+  homeMatches    Match[]           @relation("HomeTeam")
+  awayMatches    Match[]           @relation("AwayTeam")
+  seasonTeams    SeasonTeam[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
   @@index([categoryId])
 }
 
 model Player {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  personId       String
-  person         Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
-  teamId         String?
-  team           Team?        @relation(fields: [teamId], references: [id])
-  jerseyNumber   Int?
-  position       String?
-  dominantFoot        DominantFoot?
-  primaryPosition     String?
-  secondaryPosition   String?
-  goals          Int          @default(0)
-  assists        Int          @default(0)
-  yellowCards    Int          @default(0)
-  redCards       Int          @default(0)
-  callUps        CallUp[]
-  evaluations    PlayerEvaluation[]
-  matchEvents    MatchEvent[]
-  goalAssists    MatchEvent[] @relation("GoalAssists")
-  teamMvps       MatchTeamMvp[]
-  seasonRosterEntries SeasonRosterEntry[]
-  categories          PlayerCategory[]
+  id                     String                @id @default(cuid())
+  organizationId         String
+  organization           Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  personId               String
+  person                 Person                @relation(fields: [personId], references: [id], onDelete: Cascade)
+  teamId                 String?
+  team                   Team?                 @relation(fields: [teamId], references: [id])
+  jerseyNumber           Int?
+  position               String?
+  dominantFoot           DominantFoot?
+  primaryPosition        String?
+  secondaryPosition      String?
+  goals                  Int                   @default(0)
+  assists                Int                   @default(0)
+  yellowCards            Int                   @default(0)
+  redCards               Int                   @default(0)
+  callUps                CallUp[]
+  evaluations            PlayerEvaluation[]
+  matchEvents            MatchEvent[]
+  goalAssists            MatchEvent[]          @relation("GoalAssists")
+  teamMvps               MatchTeamMvp[]
+  seasonRosterEntries    SeasonRosterEntry[]
+  categories             PlayerCategory[]
   friendlyParticipations FriendlyMatchPlayer[]
   attendances            MatchAttendance[]
   playerAwards           PlayerAward[]
   playerBadges           PlayerBadge[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
 
   @@unique([personId, organizationId])
   @@index([organizationId])
 }
 
 model Season {
-  id             String         @id @default(cuid())
-  organizationId String
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  startDate      DateTime
-  endDate        DateTime
-  footballFormat FootballFormat @default(FUTBOL_11)
-  isActive       Boolean        @default(true)
+  id                  String               @id @default(cuid())
+  organizationId      String
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                String
+  startDate           DateTime
+  endDate             DateTime
+  footballFormat      FootballFormat       @default(FUTBOL_11)
+  isActive            Boolean              @default(true)
   /// Configuración del fixture automático (política de empates en definiciones y orden manual aprobado).
-  fixtureConfig  Json?
-  matches        Match[]
-  fixtureAuditLogs FixtureAuditLog[]
-  mobileConfig   SeasonMobileConfig?
-  seasonTeams    SeasonTeam[]
-  seasonCategories SeasonCategory[]
-  articles              Article[]
-  galleries             Gallery[]
-  sponsors              Sponsor[]
-  mobileInstallations   MobileInstallation[]
-  notificationOutbox    NotificationOutbox[]
-  playerAwards          PlayerAward[]
-  createdAt             DateTime       @default(now())
+  fixtureConfig       Json?
+  matches             Match[]
+  fixtureAuditLogs    FixtureAuditLog[]
+  mobileConfig        SeasonMobileConfig?
+  seasonTeams         SeasonTeam[]
+  seasonCategories    SeasonCategory[]
+  articles            Article[]
+  galleries           Gallery[]
+  sponsors            Sponsor[]
+  sponsorAssignments  SponsorAssignment[]
+  mobileInstallations MobileInstallation[]
+  notificationOutbox  NotificationOutbox[]
+  playerAwards        PlayerAward[]
+  createdAt           DateTime             @default(now())
 }
 
 model SeasonCategory {
-  id         String   @id @default(cuid())
-  seasonId   String
-  season     Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  categoryId String
-  category   FriendlyCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  sortOrder  Int      @default(0)
+  id          String           @id @default(cuid())
+  seasonId    String
+  season      Season           @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    FriendlyCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  sortOrder   Int              @default(0)
   seasonTeams SeasonTeam[]
   matches     Match[]
-  createdAt  DateTime @default(now())
+  createdAt   DateTime         @default(now())
 
   @@unique([seasonId, categoryId])
   @@index([seasonId, sortOrder])
 }
 
 model FriendlyCategory {
-  id          String   @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  isActive    Boolean  @default(true)
-  playerLinks PlayerCategory[]
-  teams       Team[]
+  id               String           @id @default(cuid())
+  organizationId   String
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  isActive         Boolean          @default(true)
+  playerLinks      PlayerCategory[]
+  teams            Team[]
   seasonCategories SeasonCategory[]
-  matches     Match[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  matches          Match[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
 
 model OrgAward {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
   shortLabel     String
   emoji          String
   description    String?
   accentColor    String?
-  sortOrder      Int      @default(0)
-  isActive       Boolean  @default(true)
+  sortOrder      Int           @default(0)
+  isActive       Boolean       @default(true)
   playerAwards   PlayerAward[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([organizationId, sortOrder])
 }
 
 model PlayerAward {
-  id              String   @id @default(cuid())
+  id              String       @id @default(cuid())
   organizationId  String
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   playerId        String
-  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player          Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
   orgAwardId      String
-  orgAward        OrgAward @relation(fields: [orgAwardId], references: [id], onDelete: Restrict)
+  orgAward        OrgAward     @relation(fields: [orgAwardId], references: [id], onDelete: Restrict)
   seasonId        String?
-  season          Season?  @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  season          Season?      @relation(fields: [seasonId], references: [id], onDelete: SetNull)
   note            String?
-  awardedAt       DateTime @default(now())
+  awardedAt       DateTime     @default(now())
   awardedByUserId String?
-  awardedBy       User?    @relation("PlayerAwardGrantedBy", fields: [awardedByUserId], references: [id], onDelete: SetNull)
-  createdAt       DateTime @default(now())
+  awardedBy       User?        @relation("PlayerAwardGrantedBy", fields: [awardedByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime     @default(now())
 
   @@unique([playerId, orgAwardId, seasonId])
   @@index([playerId, awardedAt])
@@ -451,9 +457,9 @@ model PlayerAward {
 }
 
 model OrgBadge {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   predicateId    String
   name           String
   description    String
@@ -461,29 +467,29 @@ model OrgBadge {
   rarity         String
   iconKey        String
   thresholds     Json
-  isActive       Boolean  @default(true)
-  sortOrder      Int      @default(0)
+  isActive       Boolean       @default(true)
+  sortOrder      Int           @default(0)
   playerBadges   PlayerBadge[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@unique([organizationId, predicateId])
   @@index([organizationId, sortOrder])
 }
 
 model PlayerBadge {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   playerId       String
-  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player         Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
   orgBadgeId     String
-  orgBadge       OrgBadge @relation(fields: [orgBadgeId], references: [id], onDelete: Restrict)
+  orgBadge       OrgBadge     @relation(fields: [orgBadgeId], references: [id], onDelete: Restrict)
   matchId        String
-  match          Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  match          Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
   context        String
   awardedAt      DateTime
-  createdAt      DateTime @default(now())
+  createdAt      DateTime     @default(now())
 
   @@unique([playerId, orgBadgeId, matchId])
   @@index([playerId, awardedAt])
@@ -492,78 +498,78 @@ model PlayerBadge {
 }
 
 model Match {
-  id           String      @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  matchType    MatchType   @default(LEAGUE)
-  seasonId     String?
-  season       Season?     @relation(fields: [seasonId], references: [id])
-  seasonCategoryId String?
-  seasonCategory   SeasonCategory? @relation(fields: [seasonCategoryId], references: [id], onDelete: Restrict)
-  homeTeamId   String?
-  homeTeam     Team?       @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeamId   String?
-  awayTeam     Team?       @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  sideAName    String?
-  sideBName    String?
-  sideACrestMimeType String?
-  sideACrestData     Bytes?
-  sideBCrestMimeType String?
-  sideBCrestData     Bytes?
-  sideAColor         String?
-  sideBColor         String?
-  friendlyCategoryId String?
-  friendlyCategory   FriendlyCategory? @relation(fields: [friendlyCategoryId], references: [id])
-  footballFormat     FootballFormat    @default(FUTBOL_11)
-  refereeId    String?
-  referee      User?       @relation("MatchReferee", fields: [refereeId], references: [id])
-  scheduledAt  DateTime
-  venue        String?
-  regionCode   String?
-  regionName   String?
-  communeCode  String?
-  communeName  String?
-  communeLat   Float?
-  communeLon   Float?
-  weatherTempC       Float?
-  weatherHumidityPct Int?
-  weatherWindKmh     Float?
-  weatherCode        Int?
-  weatherLabel       String?
-  weatherFetchedAt   DateTime?
+  id                  String                @id @default(cuid())
+  organizationId      String
+  organization        Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  matchType           MatchType             @default(LEAGUE)
+  seasonId            String?
+  season              Season?               @relation(fields: [seasonId], references: [id])
+  seasonCategoryId    String?
+  seasonCategory      SeasonCategory?       @relation(fields: [seasonCategoryId], references: [id], onDelete: Restrict)
+  homeTeamId          String?
+  homeTeam            Team?                 @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId          String?
+  awayTeam            Team?                 @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  sideAName           String?
+  sideBName           String?
+  sideACrestMimeType  String?
+  sideACrestData      Bytes?
+  sideBCrestMimeType  String?
+  sideBCrestData      Bytes?
+  sideAColor          String?
+  sideBColor          String?
+  friendlyCategoryId  String?
+  friendlyCategory    FriendlyCategory?     @relation(fields: [friendlyCategoryId], references: [id])
+  footballFormat      FootballFormat        @default(FUTBOL_11)
+  refereeId           String?
+  referee             User?                 @relation("MatchReferee", fields: [refereeId], references: [id])
+  scheduledAt         DateTime
+  venue               String?
+  regionCode          String?
+  regionName          String?
+  communeCode         String?
+  communeName         String?
+  communeLat          Float?
+  communeLon          Float?
+  weatherTempC        Float?
+  weatherHumidityPct  Int?
+  weatherWindKmh      Float?
+  weatherCode         Int?
+  weatherLabel        String?
+  weatherFetchedAt    DateTime?
   /// Fixture automático: código del partido (M01..M15), único por temporada.
-  fixtureCode  String?
-  phase        MatchPhase?
-  groupCode    String?
-  court        Int?
-  endsAt       DateTime?
+  fixtureCode         String?
+  phase               MatchPhase?
+  groupCode           String?
+  court               Int?
+  endsAt              DateTime?
   /// Cupo de clasificación pendiente, formato "A:1" (1.º del Grupo A).
-  homeSlot     String?
-  awaySlot     String?
-  decidedBy    MatchDecidedBy?
-  penaltyHome  Int?
-  penaltyAway  Int?
-  fixtureAuditLogs FixtureAuditLog[]
-  status       MatchStatus @default(SCHEDULED)
-  homeScore    Int         @default(0)
-  awayScore    Int         @default(0)
+  homeSlot            String?
+  awaySlot            String?
+  decidedBy           MatchDecidedBy?
+  penaltyHome         Int?
+  penaltyAway         Int?
+  fixtureAuditLogs    FixtureAuditLog[]
+  status              MatchStatus           @default(SCHEDULED)
+  homeScore           Int                   @default(0)
+  awayScore           Int                   @default(0)
   clockStartedAt      DateTime?
   secondHalfStartedAt DateTime?
   halftimeAt          DateTime?
-  refereeEventTypes   EventType[] @default([])
-  events       MatchEvent[]
-  callUps      CallUp[]
-  friendlyPlayers FriendlyMatchPlayer[]
-  attendances  MatchAttendance[]
-  formations   MatchFormation[]
+  refereeEventTypes   EventType[]           @default([])
+  events              MatchEvent[]
+  callUps             CallUp[]
+  friendlyPlayers     FriendlyMatchPlayer[]
+  attendances         MatchAttendance[]
+  formations          MatchFormation[]
   teamMvps            MatchTeamMvp[]
   playerBadges        PlayerBadge[]
   notificationOutbox  NotificationOutbox[]
   guestOrganizationId String?
-  guestOrganization   Organization? @relation("MatchGuestOrg", fields: [guestOrganizationId], references: [id], onDelete: Restrict)
-  challengeStatus     ChallengeStatus @default(NONE)
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  guestOrganization   Organization?         @relation("MatchGuestOrg", fields: [guestOrganizationId], references: [id], onDelete: Restrict)
+  challengeStatus     ChallengeStatus       @default(NONE)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 
   @@unique([seasonId, fixtureCode])
   @@index([guestOrganizationId, challengeStatus])
@@ -571,20 +577,20 @@ model Match {
 }
 
 model FixtureAuditLog {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   seasonId       String
-  season         Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  season         Season       @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   matchId        String?
-  match          Match?   @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  match          Match?       @relation(fields: [matchId], references: [id], onDelete: SetNull)
   userId         String?
   /// RESULT, STATUS, AUTO_ASSIGN, RANKING, CONFIG, TEAM_RENAME
   action         String
   reason         String?
   before         Json?
   after          Json?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime     @default(now())
 
   @@index([seasonId, createdAt])
   @@index([matchId])
@@ -606,21 +612,21 @@ model MatchFormation {
 }
 
 model MatchEvent {
-  id          String    @id @default(cuid())
-  matchId     String
-  match       Match     @relation(fields: [matchId], references: [id])
-  type        EventType
-  minute      Int
-  playerId    String?
-  player      Player?   @relation(fields: [playerId], references: [id])
-  assistPlayerId   String?
-  assistPlayer     Player?         @relation("GoalAssists", fields: [assistPlayerId], references: [id])
-  side             FriendlySide?
-  teamId      String?
-  description String?
+  id                 String               @id @default(cuid())
+  matchId            String
+  match              Match                @relation(fields: [matchId], references: [id])
+  type               EventType
+  minute             Int
+  playerId           String?
+  player             Player?              @relation(fields: [playerId], references: [id])
+  assistPlayerId     String?
+  assistPlayer       Player?              @relation("GoalAssists", fields: [assistPlayerId], references: [id])
+  side               FriendlySide?
+  teamId             String?
+  description        String?
   metadata           Json?
   notificationOutbox NotificationOutbox[]
-  createdAt          DateTime  @default(now())
+  createdAt          DateTime             @default(now())
 }
 
 model CallUp {
@@ -658,20 +664,20 @@ model PlayerCategory {
 }
 
 model FriendlyMatchPlayer {
-  id               String         @id @default(cuid())
-  matchId          String
-  match            Match          @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  playerId         String
-  player           Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  side             FriendlySide?
-  paid             Boolean        @default(false)
-  isGalleta        Boolean        @default(false)
-  isStarter        Boolean        @default(false)
-  isCaptain        Boolean        @default(false)
-  isCoach          Boolean        @default(false)
-  slotKey          String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id        String        @id @default(cuid())
+  matchId   String
+  match     Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    Player        @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  side      FriendlySide?
+  paid      Boolean       @default(false)
+  isGalleta Boolean       @default(false)
+  isStarter Boolean       @default(false)
+  isCaptain Boolean       @default(false)
+  isCoach   Boolean       @default(false)
+  slotKey   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@unique([matchId, playerId])
 }
@@ -689,73 +695,73 @@ model MatchAttendance {
 }
 
 model MatchTeamMvp {
-  id               String       @id @default(cuid())
-  matchId          String
-  match            Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  side             MatchMvpSide
-  playerId         String?
-  player           Player?      @relation(fields: [playerId], references: [id], onDelete: SetNull)
-  photoMimeType    String?
-  photoData        Bytes?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  id            String       @id @default(cuid())
+  matchId       String
+  match         Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  side          MatchMvpSide
+  playerId      String?
+  player        Player?      @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  photoMimeType String?
+  photoData     Bytes?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@unique([matchId, side])
 }
 
 model SeasonMobileConfig {
-  seasonId         String   @id
-  season           Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  slug             String   @unique
-  displayName      String
-  shortName        String?
-  description      String?
-  logoStoragePath  String?
-  primaryColor     String?
-  secondaryColor   String?
-  isPublished      Boolean  @default(false)
-  publishedAt      DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  seasonId        String    @id
+  season          Season    @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  slug            String    @unique
+  displayName     String
+  shortName       String?
+  description     String?
+  logoStoragePath String?
+  primaryColor    String?
+  secondaryColor  String?
+  isPublished     Boolean   @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model SeasonTeam {
-  id             String           @id @default(cuid())
-  seasonId       String
-  season         Season           @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  seasonCategoryId String?
-  seasonCategory SeasonCategory?  @relation(fields: [seasonCategoryId], references: [id], onDelete: Restrict)
-  teamId         String
-  team           Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  displayName    String
-  color          String?
-  crestMimeType  String?
-  crestData      Bytes?
-  status         SeasonTeamStatus @default(REGISTERED)
-  sortOrder      Int              @default(0)
+  id                 String               @id @default(cuid())
+  seasonId           String
+  season             Season               @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  seasonCategoryId   String?
+  seasonCategory     SeasonCategory?      @relation(fields: [seasonCategoryId], references: [id], onDelete: Restrict)
+  teamId             String
+  team               Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  displayName        String
+  color              String?
+  crestMimeType      String?
+  crestData          Bytes?
+  status             SeasonTeamStatus     @default(REGISTERED)
+  sortOrder          Int                  @default(0)
   /// Grupo dentro de la categoría (A/B) para torneos con fase de grupos.
-  groupCode      String?
-  rosterEntries     SeasonRosterEntry[]
-  teamSubscriptions TeamSubscription[]
+  groupCode          String?
+  rosterEntries      SeasonRosterEntry[]
+  teamSubscriptions  TeamSubscription[]
   notificationOutbox NotificationOutbox[]
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 
   @@unique([seasonCategoryId, teamId])
   @@index([seasonId, status])
 }
 
 model SeasonRosterEntry {
-  id            String             @id @default(cuid())
-  seasonTeamId  String
-  seasonTeam    SeasonTeam         @relation(fields: [seasonTeamId], references: [id], onDelete: Cascade)
-  playerId      String
-  player        Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  jerseyNumber  Int?
-  position      String?
-  status        SeasonRosterStatus @default(ACTIVE)
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+  id           String             @id @default(cuid())
+  seasonTeamId String
+  seasonTeam   SeasonTeam         @relation(fields: [seasonTeamId], references: [id], onDelete: Cascade)
+  playerId     String
+  player       Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  jerseyNumber Int?
+  position     String?
+  status       SeasonRosterStatus @default(ACTIVE)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
   @@unique([seasonTeamId, playerId])
   @@index([seasonTeamId, status])
@@ -818,26 +824,59 @@ model GalleryPhoto {
 }
 
 model Sponsor {
-  id                String           @id @default(cuid())
+  id                String               @id @default(cuid())
   organizationId    String
-  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   seasonId          String
-  season            Season           @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  season            Season               @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   name              String
   logoStoragePath   String?
   logoMimeType      String?
   bannerStoragePath String?
   bannerMimeType    String?
   websiteUrl        String?
-  placement         SponsorPlacement @default(SPONSORS_PAGE)
+  placement         SponsorPlacement     @default(SPONSORS_PAGE)
+  tier              SponsorTier          @default(OFFICIAL)
+  tagline           String?
+  ctaLabel          String?
+  ctaUrl            String?
+  showOnLanding     Boolean              @default(false)
+  assignments       SponsorAssignment[]
+  monthlyStats      SponsorMonthlyStat[]
   startsAt          DateTime?
   endsAt            DateTime?
-  isActive          Boolean          @default(true)
-  sortOrder         Int              @default(0)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  isActive          Boolean              @default(true)
+  sortOrder         Int                  @default(0)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
 
   @@index([seasonId, isActive, sortOrder])
+}
+
+/// Qué presenta cada auspiciador en una temporada: una cancha o una fase de definición.
+model SponsorAssignment {
+  id        String   @id @default(cuid())
+  seasonId  String
+  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  sponsorId String
+  sponsor   Sponsor  @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  /// "court:<n>" o "phase:FINAL|THIRD_PLACE|FIFTH_PLACE"
+  target    String
+  createdAt DateTime @default(now())
+
+  @@unique([seasonId, target])
+  @@index([sponsorId])
+}
+
+/// Vistas y clics por auspiciador y mes (mes = día 1 en America/Santiago). Sin datos personales.
+model SponsorMonthlyStat {
+  sponsorId String
+  sponsor   Sponsor  @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  month     DateTime
+  views     Int      @default(0)
+  clicks    Int      @default(0)
+
+  @@id([sponsorId, month])
 }
 
 model MobileInstallation {
@@ -859,56 +898,56 @@ model MobileInstallation {
 
 model TeamSubscription {
   installationId   String
-  installation       MobileInstallation @relation(fields: [installationId], references: [id], onDelete: Cascade)
-  seasonTeamId       String
-  seasonTeam         SeasonTeam         @relation(fields: [seasonTeamId], references: [id], onDelete: Cascade)
-  notifyMatchStart   Boolean            @default(true)
-  notifyGoals        Boolean            @default(true)
-  notifyFinal        Boolean            @default(true)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  installation     MobileInstallation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  seasonTeamId     String
+  seasonTeam       SeasonTeam         @relation(fields: [seasonTeamId], references: [id], onDelete: Cascade)
+  notifyMatchStart Boolean            @default(true)
+  notifyGoals      Boolean            @default(true)
+  notifyFinal      Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@id([installationId, seasonTeamId])
   @@index([seasonTeamId])
 }
 
 model NotificationOutbox {
-  id            String                   @id @default(cuid())
-  seasonId      String
-  season        Season                   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  matchId       String
-  match         Match                    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  kind          NotificationKind
-  seasonTeamId  String?
-  seasonTeam    SeasonTeam?              @relation(fields: [seasonTeamId], references: [id], onDelete: SetNull)
-  matchEventId  String?
-  matchEvent    MatchEvent?              @relation(fields: [matchEventId], references: [id], onDelete: SetNull)
-  payload       Json
-  status        NotificationOutboxStatus @default(PENDING)
-  dedupeKey     String                   @unique
-  attempts      Int                      @default(0)
-  nextRetryAt   DateTime?
-  lastError     String?
-  deliveries    NotificationDelivery[]
-  createdAt     DateTime                 @default(now())
-  updatedAt     DateTime                 @updatedAt
+  id           String                   @id @default(cuid())
+  seasonId     String
+  season       Season                   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  matchId      String
+  match        Match                    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  kind         NotificationKind
+  seasonTeamId String?
+  seasonTeam   SeasonTeam?              @relation(fields: [seasonTeamId], references: [id], onDelete: SetNull)
+  matchEventId String?
+  matchEvent   MatchEvent?              @relation(fields: [matchEventId], references: [id], onDelete: SetNull)
+  payload      Json
+  status       NotificationOutboxStatus @default(PENDING)
+  dedupeKey    String                   @unique
+  attempts     Int                      @default(0)
+  nextRetryAt  DateTime?
+  lastError    String?
+  deliveries   NotificationDelivery[]
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
 
   @@index([status, nextRetryAt])
   @@index([seasonId, matchId])
 }
 
 model NotificationDelivery {
-  id              String                     @id @default(cuid())
-  outboxId        String
-  outbox          NotificationOutbox         @relation(fields: [outboxId], references: [id], onDelete: Cascade)
-  installationId  String
-  installation    MobileInstallation         @relation(fields: [installationId], references: [id], onDelete: Cascade)
-  status          NotificationDeliveryStatus @default(PENDING)
-  expoTicketId    String?
-  attempts        Int                        @default(0)
-  lastError       String?
-  createdAt       DateTime                   @default(now())
-  updatedAt       DateTime                   @updatedAt
+  id             String                     @id @default(cuid())
+  outboxId       String
+  outbox         NotificationOutbox         @relation(fields: [outboxId], references: [id], onDelete: Cascade)
+  installationId String
+  installation   MobileInstallation         @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  status         NotificationDeliveryStatus @default(PENDING)
+  expoTicketId   String?
+  attempts       Int                        @default(0)
+  lastError      String?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
 
   @@unique([outboxId, installationId])
   @@index([installationId, status])
