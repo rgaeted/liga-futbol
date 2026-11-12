@@ -72,6 +72,27 @@ const CATEGORY_THEME: Record<CategoryCode, { bar: string; badge: string; dot: st
   '2019-2018': { bar: 'bg-[#f08a24]', badge: 'bg-[#fff0dd] text-[#9a4a05]', dot: 'bg-[#f08a24]' },
 }
 
+/** Cada cancha tiene un color fijo para ubicarla de inmediato. */
+const COURT_COLORS: Record<number, string> = {
+  1: '#16a37f',
+  2: '#7a5af8',
+  3: '#d9485f',
+  4: '#0e8fb3',
+}
+
+const courtColor = (court: number) => COURT_COLORS[court] ?? '#4d6790'
+
+function CourtPill({ court }: { court: number }) {
+  return (
+    <span
+      className="rounded-full px-2.5 py-1 text-[11px] font-extrabold tracking-[0.08em] text-white"
+      style={{ backgroundColor: courtColor(court) }}
+    >
+      Cancha {court}
+    </span>
+  )
+}
+
 /** Cada equipo conserva el mismo color en todas las tarjetas. */
 const TEAM_COLORS = ['#1A7AE8', '#16a37f', '#d9485f', '#7a5af8', '#e08a00', '#0e9ab3', '#c2410c', '#4d6790']
 
@@ -154,8 +175,9 @@ function MatchCard({ match }: { match: FixtureViewMatch }) {
     >
       <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${theme.bar}`} />
       <header className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#4d6790]">
-        <span>
-          {match.timeLabel} · Cancha {match.court}
+        <span className="flex items-center gap-2">
+          {match.timeLabel}
+          <CourtPill court={match.court} />
         </span>
         <span className={`rounded-full px-2.5 py-1 text-[10px] ${STATUS_STYLES[match.status]}`}>
           {STATUS_LABELS[match.status]}
@@ -326,7 +348,14 @@ export function KelmeCupFixture({ view }: { view: FixtureView }) {
             </Chip>
             {courts.map((value) => (
               <Chip key={value} active={court === String(value)} onClick={() => setCourt(String(value))}>
-                {value}
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-2.5 rounded-full ring-1 ring-white/70"
+                    style={{ backgroundColor: courtColor(value) }}
+                  />
+                  {value}
+                </span>
               </Chip>
             ))}
           </FilterRow>
@@ -362,6 +391,12 @@ export function KelmeCupFixture({ view }: { view: FixtureView }) {
             <li key={code} className="flex items-center gap-2">
               <span aria-hidden className={`h-3 w-3 rounded-full ${CATEGORY_THEME[code].dot}`} />
               Categoría {categoryLabel(code)}
+            </li>
+          ))}
+          {courts.map((value) => (
+            <li key={`court-${value}`} className="flex items-center gap-2">
+              <span aria-hidden className="h-3 w-3 rounded" style={{ backgroundColor: courtColor(value) }} />
+              Cancha {value}
             </li>
           ))}
         </ul>
