@@ -16,10 +16,11 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/editorial/sponsors', () => ({
   updateSponsor: vi.fn(),
+  setSponsorAssignment: vi.fn(),
 }))
 
 import { requireOrgRole } from '@/lib/auth'
-import { updateSponsor } from '@/lib/editorial/sponsors'
+import { setSponsorAssignment, updateSponsor } from '@/lib/editorial/sponsors'
 
 describe('admin sponsors routes', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -83,5 +84,47 @@ describe('admin sponsors routes', () => {
       'sponsor-b',
       expect.objectContaining({ websiteUrl: null }),
     )
+  })
+})
+
+describe('PUT /api/admin/seasons/[id]/sponsors/assignments', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  async function put(body: unknown) {
+    const { PUT: putAssignment } = await import('@/app/api/admin/seasons/[id]/sponsors/assignments/route')
+    return putAssignment(
+      new Request('http://localhost', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
+      { params: Promise.resolve({ id: 'season-a' }) },
+    )
+  }
+
+  const asAdmin = () =>
+    vi.mocked(requireOrgRole).mockResolvedValue({
+      organizationId: 'org-1',
+      role: 'ORG_ADMIN',
+      session: { user: { id: 'admin-1' } },
+    } as never)
+
+  it('rechaza un target inválido con 400', async () => {
+    asAdmin()
+    expect((await put({ target: 'cancha:1', sponsorId: 'x' })).status).toBe(400)
+  })
+
+  it('responde 404 si el auspiciador no es de la temporada', async () => {
+    asAdmin()
+    vi.mocked(setSponsorAssignment).mockResolvedValue('not_found')
+    expect((await put({ target: 'court:1', sponsorId: 'x' })).status).toBe(404)
+  })
+
+  it('guarda la asignación', async () => {
+    asAdmin()
+    vi.mocked(setSponsorAssignment).mockResolvedValue('ok')
+    const res = await put({ target: 'court:1', sponsorId: 'x' })
+    expect(res.status).toBe(200)
+    expect(setSponsorAssignment).toHaveBeenCalledWith('season-a', { target: 'court:1', sponsorId: 'x' })
   })
 })

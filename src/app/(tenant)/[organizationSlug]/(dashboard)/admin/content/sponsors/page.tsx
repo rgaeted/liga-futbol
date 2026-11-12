@@ -1,7 +1,9 @@
 import { redirect, notFound } from 'next/navigation'
 import { ContentSeasonBar } from '@/components/admin/content/ContentSeasonBar'
+import { SponsorAssignments } from '@/components/admin/content/SponsorAssignments'
 import { SponsorForm, SponsorsTable } from '@/components/admin/content/SponsorsTable'
 import { db } from '@/lib/db'
+import { listSponsorAssignmentSlots, listSponsorStats } from '@/lib/editorial/sponsors'
 import { orgPath } from '@/lib/tenant-paths'
 import { requireOrganizationId } from '@/lib/tenant-access'
 
@@ -36,6 +38,14 @@ export default async function AdminSponsorsPage({
       })
     : []
 
+  const [slots, stats] = selectedSeasonId
+    ? await Promise.all([
+        listSponsorAssignmentSlots(selectedSeasonId),
+        listSponsorStats(selectedSeasonId, new Date()),
+      ])
+    : [[], {}]
+  const emptyStats = { current: { views: 0, clicks: 0 }, previous: { views: 0, clicks: 0 } }
+
   const editing = query.edit
     ? sponsors.find((sponsor) => sponsor.id === query.edit)
     : null
@@ -63,6 +73,11 @@ export default async function AdminSponsorsPage({
                       : '',
                     endsAt: editing.endsAt ? editing.endsAt.toISOString().slice(0, 16) : '',
                     isActive: editing.isActive,
+                    tier: editing.tier,
+                    showOnLanding: editing.showOnLanding,
+                    tagline: editing.tagline ?? '',
+                    ctaLabel: editing.ctaLabel ?? '',
+                    ctaUrl: editing.ctaUrl ?? '',
                   }
                 : undefined
             }
@@ -73,10 +88,19 @@ export default async function AdminSponsorsPage({
               id: sponsor.id,
               name: sponsor.name,
               placement: sponsor.placement,
+              tier: sponsor.tier,
+              showOnLanding: sponsor.showOnLanding,
               isActive: sponsor.isActive,
               startsAt: sponsor.startsAt?.toISOString() ?? null,
               endsAt: sponsor.endsAt?.toISOString() ?? null,
+              stats: stats[sponsor.id] ?? emptyStats,
             }))}
+          />
+          <SponsorAssignments
+            key={slots.map((slot) => `${slot.target}:${slot.sponsorId ?? ''}`).join('|')}
+            seasonId={selectedSeasonId}
+            slots={slots}
+            sponsors={sponsors.map((sponsor) => ({ id: sponsor.id, name: sponsor.name }))}
           />
         </>
       ) : null}
