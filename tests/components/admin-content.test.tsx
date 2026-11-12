@@ -17,7 +17,7 @@ describe('admin content workspace', () => {
   it('uses fetch uploads in EditorialImageUpload', () => {
     expect(read('src/components/admin/content/EditorialImageUpload.tsx')).toContain('fetch(uploadUrl')
     expect(read('src/components/admin/content/EditorialImageUpload.tsx')).toContain(
-      'accept="image/jpeg,image/png,image/webp"',
+      "const ACCEPTED_TYPES = 'image/jpeg,image/png,image/webp'",
     )
   })
 
