@@ -73,6 +73,12 @@ export type OrgPublicLanding = {
     time: string
     home: string
     away: string
+    /** Escudo de cada lado (null si no tiene) y su color, para dibujar el enfrentamiento. */
+    homeCrestSrc: string | null
+    awayCrestSrc: string | null
+    homeColor: string
+    awayColor: string
+    court: number | null
     sidesReady: boolean
   } | null
   attendances: Array<{
@@ -157,6 +163,17 @@ const matchPublicSelect = {
   sideBName: true,
   homeTeam: { select: { name: true } },
   awayTeam: { select: { name: true } },
+} as const
+
+const nextMatchSelect = {
+  ...matchPublicSelect,
+  court: true,
+  sideAColor: true,
+  sideBColor: true,
+  sideACrestMimeType: true,
+  sideBCrestMimeType: true,
+  homeTeam: { select: { id: true, name: true, color: true, crestMimeType: true, updatedAt: true } },
+  awayTeam: { select: { id: true, name: true, color: true, crestMimeType: true, updatedAt: true } },
 } as const
 
 type MatchPublicRow = {
@@ -309,7 +326,7 @@ function toLiveMatch(match: MatchPublicRow): OrgPublicLanding['live'][number] {
   }
 }
 
-function toNextMatch(match: MatchPublicRow): OrgPublicLanding['nextMatch'] {
+export function toNextMatch(match: NextMatchRow): OrgPublicLanding['nextMatch'] {
   const sides = matchSideNames(match)
   return {
     id: match.id,
@@ -320,6 +337,11 @@ function toNextMatch(match: MatchPublicRow): OrgPublicLanding['nextMatch'] {
     time: formatScheduleTimeLabel(match.scheduledAt),
     home: sides.home,
     away: sides.away,
+    homeCrestSrc: landingSideCrest(match, 'home'),
+    awayCrestSrc: landingSideCrest(match, 'away'),
+    homeColor: landingSideColor(match, 'home', sides.home),
+    awayColor: landingSideColor(match, 'away', sides.away),
+    court: match.court,
     sidesReady: sidesAreReady(sides.home, sides.away),
   }
 }
@@ -361,16 +383,34 @@ type FeaturedMatchRow = MatchPublicRow & {
   teamMvps?: Array<{ player: Parameters<typeof playerDisplayName>[0] | null }>
 }
 
-function landingSideCrest(match: FeaturedMatchRow, side: 'home' | 'away'): string | null {
+type SideSource = Pick<
+  FeaturedMatchRow,
+  'id' | 'matchType' | 'sideAColor' | 'sideBColor' | 'sideACrestMimeType' | 'sideBCrestMimeType'
+> & {
+  homeTeam: TeamSideRow | null
+  awayTeam: TeamSideRow | null
+}
+
+type TeamSideRow = {
+  id: string
+  name: string
+  color: string | null
+  crestMimeType: string | null
+  updatedAt?: Date
+}
+
+type NextMatchRow = MatchPublicRow & SideSource & { court: number | null }
+
+function landingSideCrest(match: SideSource, side: 'home' | 'away'): string | null {
   if (match.matchType === MatchType.FRIENDLY) {
     const mime = side === 'home' ? match.sideACrestMimeType : match.sideBCrestMimeType
     return mime ? matchSideCrestUrl(match.id, side === 'home' ? 'A' : 'B') : null
   }
   const team = side === 'home' ? match.homeTeam : match.awayTeam
-  return team?.crestMimeType ? teamCrestUrl(team.id) : null
+  return team?.crestMimeType ? teamCrestUrl(team.id, team.updatedAt) : null
 }
 
-function landingSideColor(match: FeaturedMatchRow, side: 'home' | 'away', name: string): string {
+function landingSideColor(match: SideSource, side: 'home' | 'away', name: string): string {
   const stored =
     match.matchType === MatchType.FRIENDLY
       ? side === 'home'
@@ -477,8 +517,8 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     sideBCrestMimeType: true,
     homeTeamId: true,
     awayTeamId: true,
-    homeTeam: { select: { id: true, name: true, color: true, crestMimeType: true } },
-    awayTeam: { select: { id: true, name: true, color: true, crestMimeType: true } },
+    homeTeam: { select: { id: true, name: true, color: true, crestMimeType: true, updatedAt: true } },
+    awayTeam: { select: { id: true, name: true, color: true, crestMimeType: true, updatedAt: true } },
     formations: true,
     callUps: {
       include: {
@@ -524,7 +564,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
         scheduledAt: { gte: now },
       },
       orderBy: { scheduledAt: 'asc' },
-      select: matchPublicSelect,
+      select: nextMatchSelect,
     }),
     db.match.findMany({
       where: findScheduledFriendlyAttendanceWhere(org.id, now),

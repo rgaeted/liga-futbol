@@ -11,6 +11,7 @@ import {
   tallyRecentScorers,
   teamKitColorFromName,
   teamToneFromName,
+  toNextMatch,
 } from '@/lib/org-public-landing'
 
 describe('tallyRecentScorers', () => {
@@ -247,5 +248,39 @@ describe('public landing payload keys', () => {
     const raw = JSON.stringify(fixture)
     expect(raw).not.toMatch(/paid/i)
     expect(raw).not.toMatch(/email/i)
+  })
+})
+
+describe('toNextMatch con escudos', () => {
+  const base = {
+    id: 'm1',
+    matchType: 'LEAGUE' as const,
+    status: 'SCHEDULED' as const,
+    scheduledAt: new Date('2026-11-15T12:00:00Z'),
+    venue: 'Canchas Colegio Puerto Varas',
+    communeName: null,
+    homeScore: 0,
+    awayScore: 0,
+    sideAName: null,
+    sideBName: null,
+    court: 1,
+    sideAColor: null,
+    sideBColor: null,
+    sideACrestMimeType: null,
+    sideBCrestMimeType: null,
+  }
+
+  it('entrega escudo versionado, color y cancha de cada equipo', () => {
+    const next = toNextMatch({
+      ...base,
+      homeTeam: { id: 'h1', name: 'Amiguitos', color: '#16A34A', crestMimeType: 'image/png', updatedAt: new Date(1700000000000) },
+      awayTeam: { id: 'a1', name: 'Palestino', color: '#CD212A', crestMimeType: null, updatedAt: new Date(1700000000000) },
+    })!
+    expect(next.court).toBe(1)
+    expect(next.homeCrestSrc).toBe('/api/teams/h1/crest?v=1700000000000')
+    expect(next.awayCrestSrc).toBeNull()
+    expect(next.homeColor.toLowerCase()).toBe('#16a34a')
+    expect(next.awayColor.toLowerCase()).toBe('#cd212a')
+    expect(next.home).toBe('Amiguitos')
   })
 })

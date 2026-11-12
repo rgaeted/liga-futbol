@@ -549,16 +549,54 @@ export function OrgPublicLanding({
                     {nextMatch.dateLine}
                     {nextMatch.sidesReady ? '' : ' · Fecha en preparación'}
                   </p>
-                  <h3 className="mt-2 font-display text-[31px] font-semibold uppercase leading-none tracking-[-0.04em]">
-                    {nextMatch.sidesReady
-                      ? `${nextMatch.home} vs ${nextMatch.away}`
-                      : 'El próximo partido se juega.'}
-                  </h3>
-                  <p className={`mt-2 max-w-[560px] ${isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'}`}>
-                    {nextMatch.sidesReady
-                      ? `${nextMatch.venue} · ${nextMatch.time}`
-                      : 'Los equipos todavía no están publicados. Cuando queden confirmados, este bloque muestra los lados y la sede.'}
-                  </p>
+                  {nextMatch.sidesReady ? (
+                    <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 max-sm:gap-2">
+                      <div className="flex flex-col items-center gap-2 text-center">
+                        <div className="h-20 w-20 max-sm:h-14 max-sm:w-14">
+                          <TeamCrest
+                            name={nextMatch.home}
+                            src={nextMatch.homeCrestSrc}
+                            color={nextMatch.homeColor}
+                            size="lg"
+                            fit="contain"
+                            className="!h-full !w-full"
+                          />
+                        </div>
+                        <p className="font-display text-xl font-semibold uppercase leading-tight tracking-[-0.02em] max-sm:text-base">
+                          {nextMatch.home}
+                        </p>
+                      </div>
+                      <span
+                        className={`font-display text-2xl font-bold italic ${isKelme ? 'text-[#1A7AE8]' : 'text-[#9ca59f]'}`}
+                      >
+                        VS
+                      </span>
+                      <div className="flex flex-col items-center gap-2 text-center">
+                        <div className="h-20 w-20 max-sm:h-14 max-sm:w-14">
+                          <TeamCrest
+                            name={nextMatch.away}
+                            src={nextMatch.awayCrestSrc}
+                            color={nextMatch.awayColor}
+                            size="lg"
+                            fit="contain"
+                            className="!h-full !w-full"
+                          />
+                        </div>
+                        <p className="font-display text-xl font-semibold uppercase leading-tight tracking-[-0.02em] max-sm:text-base">
+                          {nextMatch.away}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="mt-2 font-display text-[31px] font-semibold uppercase leading-none tracking-[-0.04em]">
+                        El próximo partido se juega.
+                      </h3>
+                      <p className={`mt-2 max-w-[560px] ${isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'}`}>
+                        Los equipos todavía no están publicados. Cuando queden confirmados, este bloque muestra los lados y la sede.
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 content-start gap-2.5 max-[420px]:grid-cols-1">
                   <div
@@ -597,9 +635,10 @@ export function OrgPublicLanding({
                   </div>
                   <div
                     className={
-                      isKelme
+                      `col-span-2 max-[420px]:col-span-1 ${isKelme
                         ? 'rounded-xl border border-[#1A7AE8]/15 bg-[#eef6ff] p-3.5'
                         : 'rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5'
+                    }`
                     }
                   >
                     <small
@@ -609,25 +648,14 @@ export function OrgPublicLanding({
                     >
                       Cancha
                     </small>
-                    <strong className="mt-1.5 block text-sm">{nextMatch.venue}</strong>
-                  </div>
-                  <div
-                    className={
-                      isKelme
-                        ? 'rounded-xl border border-[#1A7AE8]/15 bg-[#eef6ff] p-3.5'
-                        : 'rounded-xl border border-[#252a27] bg-[#0e110f] p-3.5'
-                    }
-                  >
-                    <small
-                      className={`block text-[10px] uppercase tracking-[0.1em] ${
-                        isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'
-                      }`}
-                    >
-                      Equipos
-                    </small>
                     <strong className="mt-1.5 block text-sm">
-                      {nextMatch.sidesReady ? nextMatch.label : 'En preparación'}
+                      {nextMatch.court != null ? `Cancha ${nextMatch.court}` : nextMatch.venue}
                     </strong>
+                    {nextMatch.court != null ? (
+                      <span className={`mt-0.5 block text-xs ${isKelme ? 'text-[#4d6790]' : 'text-[#9ca59f]'}`}>
+                        {nextMatch.venue}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </div>
