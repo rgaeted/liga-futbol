@@ -79,6 +79,10 @@ export type OrgPublicLanding = {
     homeColor: string
     awayColor: string
     court: number | null
+    /** Categoría del partido (p. ej. "2017–2016"), si la temporada tiene categorías. */
+    category: string | null
+    /** Solo en definiciones: "Final", "3.er puesto" o "5.º puesto". */
+    phaseLabel: string | null
     sidesReady: boolean
   } | null
   attendances: Array<{
@@ -168,6 +172,8 @@ const matchPublicSelect = {
 const nextMatchSelect = {
   ...matchPublicSelect,
   court: true,
+  phase: true,
+  seasonCategory: { select: { category: { select: { name: true } } } },
   sideAColor: true,
   sideBColor: true,
   sideACrestMimeType: true,
@@ -342,6 +348,8 @@ export function toNextMatch(match: NextMatchRow): OrgPublicLanding['nextMatch'] 
     homeColor: landingSideColor(match, 'home', sides.home),
     awayColor: landingSideColor(match, 'away', sides.away),
     court: match.court,
+    category: match.seasonCategory?.category.name.replace('-', '–') ?? null,
+    phaseLabel: (match.phase && DEFINITION_PHASE_LABELS[match.phase]) || null,
     sidesReady: sidesAreReady(sides.home, sides.away),
   }
 }
@@ -399,7 +407,18 @@ type TeamSideRow = {
   updatedAt?: Date
 }
 
-type NextMatchRow = MatchPublicRow & SideSource & { court: number | null }
+type NextMatchRow = MatchPublicRow &
+  SideSource & {
+    court: number | null
+    phase: string | null
+    seasonCategory: { category: { name: string } } | null
+  }
+
+const DEFINITION_PHASE_LABELS: Record<string, string> = {
+  FINAL: 'Final',
+  THIRD_PLACE: '3.er puesto',
+  FIFTH_PLACE: '5.º puesto',
+}
 
 function landingSideCrest(match: SideSource, side: 'home' | 'away'): string | null {
   if (match.matchType === MatchType.FRIENDLY) {

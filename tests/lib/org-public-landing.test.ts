@@ -264,6 +264,8 @@ describe('toNextMatch con escudos', () => {
     sideAName: null,
     sideBName: null,
     court: 1,
+    phase: null,
+    seasonCategory: { category: { name: '2017-2016' } },
     sideAColor: null,
     sideBColor: null,
     sideACrestMimeType: null,
@@ -277,10 +279,25 @@ describe('toNextMatch con escudos', () => {
       awayTeam: { id: 'a1', name: 'Palestino', color: '#CD212A', crestMimeType: null, updatedAt: new Date(1700000000000) },
     })!
     expect(next.court).toBe(1)
+    expect(next.category).toBe('2017–2016')
+    expect(next.phaseLabel).toBeNull()
     expect(next.homeCrestSrc).toBe('/api/teams/h1/crest?v=1700000000000')
     expect(next.awayCrestSrc).toBeNull()
     expect(next.homeColor.toLowerCase()).toBe('#16a34a')
     expect(next.awayColor.toLowerCase()).toBe('#cd212a')
     expect(next.home).toBe('Amiguitos')
+  })
+
+  it('indica la fase solo en las definiciones y tolera partidos sin categoría', () => {
+    const final = toNextMatch({
+      ...base,
+      phase: 'FINAL',
+      seasonCategory: null,
+      homeTeam: null,
+      awayTeam: null,
+    })!
+    expect(final.category).toBeNull()
+    expect(final.phaseLabel).toBe('Final')
+    expect(toNextMatch({ ...base, phase: 'GROUP', homeTeam: null, awayTeam: null })!.phaseLabel).toBeNull()
   })
 })

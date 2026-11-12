@@ -553,6 +553,28 @@ export function OrgPublicLanding({
                     {nextMatch.dateLine}
                     {nextMatch.sidesReady ? '' : ' · Fecha en preparación'}
                   </p>
+                  {nextMatch.category || nextMatch.phaseLabel ? (
+                    <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.1em]">
+                      {nextMatch.category ? (
+                        <span
+                          className={`rounded-full px-3 py-1 ${
+                            isKelme ? 'bg-[#e6f1fe] text-[#0B3D8F]' : 'bg-[#232824] text-[#f4f5f2]'
+                          }`}
+                        >
+                          Categoría {nextMatch.category}
+                        </span>
+                      ) : null}
+                      {nextMatch.phaseLabel ? (
+                        <span
+                          className={`rounded-full px-3 py-1 ${
+                            isKelme ? 'bg-[#eef1f6] text-[#4d6790]' : 'bg-[#232824] text-[#9ca59f]'
+                          }`}
+                        >
+                          {nextMatch.phaseLabel}
+                        </span>
+                      ) : null}
+                    </p>
+                  ) : null}
                   {nextMatch.sidesReady ? (
                     <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 max-sm:gap-2">
                       <div className="flex flex-col items-center gap-2 text-center">
