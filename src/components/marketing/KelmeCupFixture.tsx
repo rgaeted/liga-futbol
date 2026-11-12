@@ -7,6 +7,8 @@ import type {
   FixtureViewTable,
 } from '@/lib/kelme-fixture/view'
 import type { CategoryCode, FixtureStatus } from '@/lib/kelme-fixture/types'
+import { SponsorMark } from '@/components/marketing/sponsors/SponsorMark'
+import { courtTarget, phaseTarget, type LandingSponsor } from '@/lib/sponsors/landing'
 
 const STATUS_LABELS: Record<FixtureStatus, string> = {
   SCHEDULED: 'Programado',
@@ -82,15 +84,26 @@ const COURT_COLORS: Record<number, string> = {
 
 const courtColor = (court: number) => COURT_COLORS[court] ?? '#4d6790'
 
-function CourtPill({ court }: { court: number }) {
+function CourtPill({ court, sponsor }: { court: number; sponsor?: LandingSponsor }) {
   return (
     <span
-      className="rounded-full px-2.5 py-1 text-[11px] font-extrabold tracking-[0.08em] text-white"
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-extrabold tracking-[0.08em] text-white"
       style={{ backgroundColor: courtColor(court) }}
     >
       Cancha {court}
+      {sponsor ? ` · ${sponsor.name}` : null}
+      {sponsor?.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={sponsor.logoUrl} alt="" className="h-4 w-auto rounded-sm bg-white/90 object-contain px-0.5" />
+      ) : null}
     </span>
   )
+}
+
+const PRESENTED_BY: Partial<Record<FixtureViewMatch['phase'], string>> = {
+  FINAL: 'Final presentada por',
+  THIRD_PLACE: '3.er puesto presentado por',
+  FIFTH_PLACE: '5.º puesto presentado por',
 }
 
 /** Cada equipo conserva el mismo color en todas las tarjetas. */
@@ -170,7 +183,15 @@ function TeamRow({
   )
 }
 
-function MatchCard({ match }: { match: FixtureViewMatch }) {
+function MatchCard({
+  match,
+  courtSponsor,
+  phaseSponsor,
+}: {
+  match: FixtureViewMatch
+  courtSponsor?: LandingSponsor
+  phaseSponsor?: LandingSponsor
+}) {
   const showScore = match.status === 'FINAL' || match.status === 'IN_PROGRESS'
   const decisive = match.phase === 'FINAL'
   const hasPenalties = match.penaltyHome != null && match.penaltyAway != null
@@ -188,7 +209,7 @@ function MatchCard({ match }: { match: FixtureViewMatch }) {
       <header className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#4d6790]">
         <span className="flex items-center gap-2">
           {match.timeLabel}
-          <CourtPill court={match.court} />
+          <CourtPill court={match.court} sponsor={courtSponsor} />
         </span>
         <span className={`rounded-full px-2.5 py-1 text-[10px] ${STATUS_STYLES[match.status]}`}>
           {STATUS_LABELS[match.status]}
@@ -198,6 +219,13 @@ function MatchCard({ match }: { match: FixtureViewMatch }) {
         <span className={`rounded-full px-2.5 py-0.5 ${theme.badge}`}>{categoryLabel(match.category)}</span>
         <span className="rounded-full bg-[#eef1f6] px-2.5 py-0.5 text-[#4d6790]">{match.phaseLabel}</span>
       </p>
+
+      {phaseSponsor && PRESENTED_BY[match.phase] ? (
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#4d6790]">
+          {PRESENTED_BY[match.phase]}
+          <SponsorMark sponsor={phaseSponsor} logoClassName="h-6" textClassName="text-sm text-[#0B3D8F]" />
+        </p>
+      ) : null}
 
       <div className="mt-3 space-y-2 text-[15px] font-semibold text-[#123a6b]">
         <TeamRow side={match.home} goals={match.homeGoals} showScore={showScore} won={homeWon} />
@@ -273,7 +301,14 @@ function StandingsCard({ table }: { table: FixtureViewTable }) {
   )
 }
 
-export function KelmeCupFixture({ view }: { view: FixtureView }) {
+export function KelmeCupFixture({
+  view,
+  sponsorsByTarget = {},
+}: {
+  view: FixtureView
+  /** Auspiciador que presenta cada cancha o definición ("court:1", "phase:FINAL"). */
+  sponsorsByTarget?: Record<string, LandingSponsor>
+}) {
   const [category, setCategory] = useState<string>(ALL)
   const [group, setGroup] = useState<string>(ALL)
   const [time, setTime] = useState<string>(ALL)
@@ -422,7 +457,16 @@ export function KelmeCupFixture({ view }: { view: FixtureView }) {
         ) : (
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((match) => (
-              <MatchCard key={match.id} match={match} />
+              <MatchCard
+                key={match.id}
+                match={match}
+                courtSponsor={sponsorsByTarget[courtTarget(match.court)]}
+                phaseSponsor={
+                  match.phase === 'FINAL' || match.phase === 'THIRD_PLACE' || match.phase === 'FIFTH_PLACE'
+                    ? sponsorsByTarget[phaseTarget(match.phase)]
+                    : undefined
+                }
+              />
             ))}
           </div>
         )}

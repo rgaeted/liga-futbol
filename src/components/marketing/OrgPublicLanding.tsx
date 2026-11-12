@@ -14,7 +14,11 @@ import { TeamCrest } from '@/components/TeamCrest'
 import { AWARDS_LOCKER_BG } from '@/lib/award-covers'
 import { KELME_CUP, KELME_CUP_SHIELD_PATH, KELME_SLUG, LOSLUNES_LOGO_PATH, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { matchStatusLabel } from '@/lib/match-status-ui'
+import { SponsorCards } from '@/components/marketing/sponsors/SponsorCards'
+import { SponsorStrip } from '@/components/marketing/sponsors/SponsorStrip'
+import { SponsorViewBeacon } from '@/components/marketing/sponsors/SponsorViewBeacon'
 import type { FixtureView } from '@/lib/kelme-fixture/view'
+import type { LandingSponsors } from '@/lib/sponsors/landing'
 import { formatLandingPerMatchRate,type OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
 
 function FeaturedCrest({
@@ -126,10 +130,12 @@ export function OrgPublicLanding({
   data,
   panelHref = null,
   kelmeFixture = null,
+  sponsors = null,
 }: {
   data: OrgPublicLandingData
   panelHref?: string | null
   kelmeFixture?: FixtureView | null
+  sponsors?: LandingSponsors | null
 }) {
   const { organization, featured, nextMatch, results, form, scorers, assists, goalsPerMatch, assistsPerMatch, awards } = data
   const slug = organization.slug
@@ -150,6 +156,8 @@ export function OrgPublicLanding({
   const isLosLunes = slug === LOSLUNES_SLUG
   const isKelme = slug === KELME_SLUG
   const customLanding = isLosLunes || isKelme
+  const fixtureSponsors =
+    sponsors && kelmeFixture && sponsors.seasonId === kelmeFixture.seasonId ? sponsors.byTarget : null
 
   return (
     <div
@@ -261,8 +269,23 @@ export function OrgPublicLanding({
         <KelmeCupHomeHero homeHref={`/${slug}`} panelHref={panelHref} loginHref={loginHref} />
       ) : null}
 
+      {sponsors ? <SponsorStrip sponsors={sponsors} tone={isKelme ? 'kelme' : 'org'} /> : null}
+      {sponsors ? (
+        <SponsorViewBeacon
+          organizationSlug={slug}
+          sponsorIds={[
+            ...sponsors.main.map((sponsor) => sponsor.id),
+            ...sponsors.official.map((sponsor) => sponsor.id),
+            ...(fixtureSponsors ? Object.values(fixtureSponsors).map((sponsor) => sponsor.id) : []),
+          ]}
+        />
+      ) : null}
+
       <main>
-        {isKelme && kelmeFixture ? <KelmeCupFixture view={kelmeFixture} /> : null}
+        {isKelme && kelmeFixture ? (
+          <KelmeCupFixture view={kelmeFixture} sponsorsByTarget={fixtureSponsors ?? {}} />
+        ) : null}
+        {sponsors && isKelme ? <SponsorCards sponsors={sponsors} tone="kelme" /> : null}
         {isKelme ? <KelmeCupInvite /> : null}
         <section className={customLanding ? 'pb-7 pt-8' : 'pb-7 pt-[54px] max-sm:pt-8'}>
           <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
@@ -776,6 +799,7 @@ export function OrgPublicLanding({
             </div>
           </section>
         ) : null}
+        {sponsors && !isKelme ? <SponsorCards sponsors={sponsors} tone="org" /> : null}
       </main>
 
       <footer

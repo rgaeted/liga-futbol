@@ -58,3 +58,9 @@ export async function getLandingSponsors(
     now,
   })
 }
+
+/** Igual que `getLandingSponsors`, partiendo del slug de la organización. */
+export async function getLandingSponsorsBySlug(slug: string): Promise<LandingSponsors | null> {
+  const organization = await db.organization.findUnique({ where: { slug }, select: { id: true } })
+  return organization ? getLandingSponsors(organization.id) : null
+}
