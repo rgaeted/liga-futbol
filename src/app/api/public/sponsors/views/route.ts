@@ -21,7 +21,12 @@ export async function POST(req: Request) {
 
   const { organizationSlug, sponsorIds } = parsed.data
   const sponsors = await db.sponsor.findMany({
-    where: { id: { in: sponsorIds }, season: { organization: { slug: organizationSlug } } },
+    where: {
+      id: { in: sponsorIds },
+      season: { organization: { slug: organizationSlug } },
+      // Solo los que el landing realmente puede mostrar: en la franja o presentando cancha/final.
+      OR: [{ showOnLanding: true }, { assignments: { some: {} } }],
+    },
     select: { id: true, isActive: true, startsAt: true, endsAt: true },
   })
   const now = new Date()

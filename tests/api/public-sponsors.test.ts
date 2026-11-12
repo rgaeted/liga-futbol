@@ -97,6 +97,15 @@ describe('vistas de auspiciadores', () => {
     expect(db.sponsorMonthlyStat.upsert.mock.calls[0][0].where.sponsorId_month.sponsorId).toBe('propio')
   })
 
+  it('solo considera auspiciadores que se muestran en el landing o presentan una cancha', async () => {
+    db.sponsor.findMany.mockResolvedValue([])
+    await views({ organizationSlug: 'kelme', sponsorIds: ['a'] })
+    expect(db.sponsor.findMany.mock.calls[0][0].where.OR).toEqual([
+      { showOnLanding: true },
+      { assignments: { some: {} } },
+    ])
+  })
+
   it('rechaza más de 20 ids', async () => {
     const res = await views({ organizationSlug: 'kelme', sponsorIds: Array.from({ length: 21 }, (_, i) => `s${i}`) })
     expect(res.status).toBe(400)

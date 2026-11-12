@@ -157,7 +157,7 @@ export function OrgPublicLanding({
   const isKelme = slug === KELME_SLUG
   const customLanding = isLosLunes || isKelme
   const fixtureSponsors =
-    sponsors && kelmeFixture && sponsors.seasonId === kelmeFixture.seasonId ? sponsors.byTarget : null
+    sponsors && kelmeFixture ? (sponsors.byTargetBySeason[kelmeFixture.seasonId] ?? null) : null
 
   return (
     <div

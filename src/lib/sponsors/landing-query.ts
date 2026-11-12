@@ -54,7 +54,7 @@ export async function getLandingSponsors(
   return buildLandingSponsors({
     seasonId,
     sponsors,
-    assignments: assignments.filter((assignment) => assignment.seasonId === seasonId),
+    assignments,
     now,
   })
 }

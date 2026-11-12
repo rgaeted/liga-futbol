@@ -4,6 +4,7 @@ import { SponsorAssignments } from '@/components/admin/content/SponsorAssignment
 import { SponsorForm, SponsorsTable } from '@/components/admin/content/SponsorsTable'
 import { db } from '@/lib/db'
 import { listSponsorAssignmentSlots, listSponsorStats } from '@/lib/editorial/sponsors'
+import { resolveSelectedSeasonId } from '@/lib/sponsors/season-select'
 import { orgPath } from '@/lib/tenant-paths'
 import { requireOrganizationId } from '@/lib/tenant-access'
 
@@ -26,7 +27,7 @@ export default async function AdminSponsorsPage({
     where: { organizationId },
     orderBy: { startDate: 'desc' },
   })
-  const selectedSeasonId = query.season ?? seasons[0]?.id ?? null
+  const selectedSeasonId = resolveSelectedSeasonId(seasons, query.season)
   if (!selectedSeasonId && seasons.length > 0) {
     redirect(orgPath(organizationSlug, `/admin/content/sponsors?season=${seasons[0].id}`))
   }

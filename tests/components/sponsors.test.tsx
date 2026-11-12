@@ -36,7 +36,7 @@ const SPONSORS: LandingSponsors = {
     sponsor({ id: 'of1', name: 'Café Oficial', tagline: '10 % para jugadores', ctaLabel: 'Escríbenos', hasCta: true }),
     sponsor({ id: 'of2', name: 'Sin Boton' }),
   ],
-  byTarget: {},
+  byTargetBySeason: {},
 }
 
 describe('SponsorStrip', () => {

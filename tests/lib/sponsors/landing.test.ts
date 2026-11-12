@@ -71,7 +71,7 @@ describe('buildLandingSponsors', () => {
     expect(buildLandingSponsors({ seasonId: 's1', now: NOW, assignments: [], sponsors: [row({ id: 'a', showOnLanding: false })] })).toBeNull()
   })
 
-  it('byTarget excluye auspiciadores vencidos pero admite los que no están en la franja', () => {
+  it('byTargetBySeason separa por temporada, excluye vencidos y admite los que no están en la franja', () => {
     const result = buildLandingSponsors({
       seasonId: 's1',
       now: NOW,
@@ -81,13 +81,37 @@ describe('buildLandingSponsors', () => {
         row({ id: 'franja' }),
       ],
       assignments: [
-        { target: 'court:1', sponsorId: 'vigente' },
-        { target: 'court:2', sponsorId: 'vencido' },
-        { target: 'phase:FINAL', sponsorId: 'vigente' },
+        { seasonId: 's1', target: 'court:1', sponsorId: 'vigente' },
+        { seasonId: 's1', target: 'court:2', sponsorId: 'vencido' },
+        { seasonId: 's1', target: 'phase:FINAL', sponsorId: 'vigente' },
       ],
     })!
-    expect(Object.keys(result.byTarget).sort()).toEqual(['court:1', 'phase:FINAL'])
+    expect(Object.keys(result.byTargetBySeason.s1).sort()).toEqual(['court:1', 'phase:FINAL'])
     expect(result.main.concat(result.official).map((s) => s.id)).toEqual(['franja'])
+  })
+
+  it('las asignaciones de otra temporada siguen disponibles aunque la franja use una distinta', () => {
+    const result = buildLandingSponsors({
+      seasonId: 'nueva',
+      now: NOW,
+      sponsors: [
+        row({ id: 'franja', seasonId: 'nueva' }),
+        row({ id: 'cancha', seasonId: 'fixture', showOnLanding: false }),
+      ],
+      assignments: [{ seasonId: 'fixture', target: 'court:1', sponsorId: 'cancha' }],
+    })!
+    expect(result.official.map((x) => x.id)).toEqual(['franja'])
+    expect(result.byTargetBySeason.fixture['court:1'].id).toBe('cancha')
+  })
+
+  it('no marca enlaces que no sean http(s) como disponibles', () => {
+    const result = buildLandingSponsors({
+      seasonId: 's1',
+      now: NOW,
+      assignments: [],
+      sponsors: [row({ id: 'a', websiteUrl: 'javascript:alert(1)', ctaUrl: 'ftp://x' })],
+    })!
+    expect(result.official[0]).toMatchObject({ hasWebsite: false, hasCta: false })
   })
 
   it('marca hasCta y hasWebsite según los enlaces guardados', () => {

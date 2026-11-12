@@ -16,8 +16,8 @@ export type LandingSponsors = {
   seasonId: string
   main: LandingSponsor[]
   official: LandingSponsor[]
-  /** target ("court:1", "phase:FINAL") → auspiciador que lo presenta. */
-  byTarget: Record<string, LandingSponsor>
+  /** temporada → target ("court:1", "phase:FINAL") → auspiciador que lo presenta. */
+  byTargetBySeason: Record<string, Record<string, LandingSponsor>>
 }
 
 export type SponsorRowForLanding = {
@@ -45,6 +45,8 @@ export const phaseTarget = (phase: DefinitionPhase) => `phase:${phase}`
 export const sponsorClickHref = (sponsorId: string, to: 'cta' | 'web') =>
   `/api/public/sponsors/${sponsorId}/click?to=${to}`
 
+const isHttpUrl = (url: string | null): boolean => url != null && /^https?:\/\//i.test(url)
+
 const inStrip = (row: SponsorRowForLanding, now: Date) =>
   row.showOnLanding && isSponsorPubliclyVisible(row, now)
 
@@ -68,8 +70,8 @@ function toLanding(row: SponsorRowForLanding): LandingSponsor {
     logoUrl: editorialPublicUrl(row.logoStoragePath),
     tagline: row.tagline,
     ctaLabel: row.ctaLabel,
-    hasCta: !!row.ctaUrl,
-    hasWebsite: !!row.websiteUrl,
+    hasCta: isHttpUrl(row.ctaUrl),
+    hasWebsite: isHttpUrl(row.websiteUrl),
   }
 }
 
@@ -79,23 +81,25 @@ const byOrder = (a: SponsorRowForLanding, b: SponsorRowForLanding) =>
 export function buildLandingSponsors(input: {
   seasonId: string
   sponsors: SponsorRowForLanding[]
-  assignments: Array<{ target: string; sponsorId: string }>
+  assignments: Array<{ seasonId: string; target: string; sponsorId: string }>
   now: Date
 }): LandingSponsors | null {
-  const season = input.sponsors.filter((row) => row.seasonId === input.seasonId)
-  const visibleInStrip = season.filter((row) => inStrip(row, input.now)).sort(byOrder)
+  const visibleInStrip = input.sponsors
+    .filter((row) => row.seasonId === input.seasonId && inStrip(row, input.now))
+    .sort(byOrder)
   const visibleById = new Map(
-    season.filter((row) => isSponsorPubliclyVisible(row, input.now)).map((row) => [row.id, row]),
+    input.sponsors.filter((row) => isSponsorPubliclyVisible(row, input.now)).map((row) => [row.id, row]),
   )
 
-  const byTarget: Record<string, LandingSponsor> = {}
+  const byTargetBySeason: Record<string, Record<string, LandingSponsor>> = {}
   for (const assignment of input.assignments) {
     const row = visibleById.get(assignment.sponsorId)
-    if (row) byTarget[assignment.target] = toLanding(row)
+    if (!row || row.seasonId !== assignment.seasonId) continue
+    ;(byTargetBySeason[assignment.seasonId] ??= {})[assignment.target] = toLanding(row)
   }
 
   const main = visibleInStrip.filter((row) => row.tier === 'MAIN').map(toLanding)
   const official = visibleInStrip.filter((row) => row.tier !== 'MAIN').map(toLanding)
-  if (main.length === 0 && official.length === 0 && Object.keys(byTarget).length === 0) return null
-  return { seasonId: input.seasonId, main, official, byTarget }
+  if (main.length === 0 && official.length === 0 && Object.keys(byTargetBySeason).length === 0) return null
+  return { seasonId: input.seasonId, main, official, byTargetBySeason }
 }
