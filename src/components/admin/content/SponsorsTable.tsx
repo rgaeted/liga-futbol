@@ -99,6 +99,7 @@ export function SponsorForm({
   }
 }) {
   const router = useRouter()
+  const orgPath = useOrgPath()
   const [name, setName] = useState(initial?.name ?? '')
   const [websiteUrl, setWebsiteUrl] = useState(initial?.websiteUrl ?? '')
   const [placement, setPlacement] = useState(initial?.placement ?? 'HOME')
@@ -129,16 +130,37 @@ export function SponsorForm({
       ctaLabel: ctaLabel || null,
       ctaUrl: ctaUrl || null,
     }
-    const result = sponsorId
-      ? await submitJson(`/api/admin/seasons/${seasonId}/sponsors/${sponsorId}`, 'PUT', payload)
-      : await submitJson(`/api/admin/seasons/${seasonId}/sponsors`, 'POST', payload)
-    setSaving(false)
-    if (!result.ok) {
-      setError(result.message)
+    if (sponsorId) {
+      const result = await submitJson(`/api/admin/seasons/${seasonId}/sponsors/${sponsorId}`, 'PUT', payload)
+      setSaving(false)
+      if (!result.ok) {
+        setError(result.message)
+        return
+      }
+      router.push(orgPath(`/admin/content/sponsors?season=${seasonId}`))
+      router.refresh()
       return
     }
-    router.push(`/admin/content/sponsors?season=${seasonId}`)
-    router.refresh()
+
+    // Recién creado: se abre su edición para que se pueda subir el logo de inmediato.
+    try {
+      const response = await fetch(`/api/admin/seasons/${seasonId}/sponsors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await response.json().catch(() => null)
+      setSaving(false)
+      if (!response.ok || !data?.sponsor?.id) {
+        setError(typeof data?.error === 'string' ? data.error : `Error ${response.status}`)
+        return
+      }
+      router.push(orgPath(`/admin/content/sponsors?season=${seasonId}&edit=${data.sponsor.id}`))
+      router.refresh()
+    } catch {
+      setSaving(false)
+      setError('No se pudo conectar con el servidor')
+    }
   }
 
   return (

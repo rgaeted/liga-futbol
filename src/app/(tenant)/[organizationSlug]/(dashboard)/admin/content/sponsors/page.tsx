@@ -1,9 +1,11 @@
 import { redirect, notFound } from 'next/navigation'
 import { ContentSeasonBar } from '@/components/admin/content/ContentSeasonBar'
 import { SponsorAssignments } from '@/components/admin/content/SponsorAssignments'
+import { SponsorLogoUpload } from '@/components/admin/content/SponsorLogoUpload'
 import { SponsorForm, SponsorsTable } from '@/components/admin/content/SponsorsTable'
 import { db } from '@/lib/db'
 import { listSponsorAssignmentSlots, listSponsorStats } from '@/lib/editorial/sponsors'
+import { editorialPublicUrl } from '@/lib/editorial/urls'
 import { resolveSelectedSeasonId } from '@/lib/sponsors/season-select'
 import { orgPath } from '@/lib/tenant-paths'
 import { requireOrganizationId } from '@/lib/tenant-access'
@@ -83,6 +85,18 @@ export default async function AdminSponsorsPage({
                 : undefined
             }
           />
+          {editing ? (
+            <SponsorLogoUpload
+              key={`${editing.id}:${editing.updatedAt.getTime()}`}
+              seasonId={selectedSeasonId}
+              sponsorId={editing.id}
+              logoUrl={
+                editing.logoStoragePath
+                  ? `${editorialPublicUrl(editing.logoStoragePath)}?v=${editing.updatedAt.getTime()}`
+                  : null
+              }
+            />
+          ) : null}
           <SponsorsTable
             seasonId={selectedSeasonId}
             sponsors={sponsors.map((sponsor) => ({

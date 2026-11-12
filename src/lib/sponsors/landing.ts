@@ -35,6 +35,8 @@ export type SponsorRowForLanding = {
   showOnLanding: boolean
   sortOrder: number
   seasonId: string
+  /** Versiona la URL del logo: al reemplazarlo se ve el nuevo y no la copia en caché. */
+  updatedAt?: Date | null
 }
 
 export type DefinitionPhase = 'FINAL' | 'THIRD_PLACE' | 'FIFTH_PLACE'
@@ -62,12 +64,17 @@ export function pickLandingSeasonId(
   return null
 }
 
+function versionedLogoUrl(row: SponsorRowForLanding): string | null {
+  const url = editorialPublicUrl(row.logoStoragePath)
+  return url && row.updatedAt ? `${url}?v=${row.updatedAt.getTime()}` : url
+}
+
 function toLanding(row: SponsorRowForLanding): LandingSponsor {
   return {
     id: row.id,
     name: row.name,
     tier: row.tier,
-    logoUrl: editorialPublicUrl(row.logoStoragePath),
+    logoUrl: versionedLogoUrl(row),
     tagline: row.tagline,
     ctaLabel: row.ctaLabel,
     hasCta: isHttpUrl(row.ctaUrl),

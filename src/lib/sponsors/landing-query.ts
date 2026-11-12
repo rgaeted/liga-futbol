@@ -21,6 +21,7 @@ const SPONSOR_SELECT = {
   showOnLanding: true,
   sortOrder: true,
   seasonId: true,
+  updatedAt: true,
 } as const
 
 /** Auspiciadores que el landing de una organización debe mostrar, o null si no hay ninguno. */

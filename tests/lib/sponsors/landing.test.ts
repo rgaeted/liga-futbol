@@ -125,6 +125,22 @@ describe('buildLandingSponsors', () => {
   })
 })
 
+describe('logo del auspiciador', () => {
+  it('versiona la URL del logo con updatedAt para no mostrar la copia anterior', () => {
+    const result = buildLandingSponsors({
+      seasonId: 's1',
+      now: NOW,
+      assignments: [],
+      sponsors: [
+        row({ id: 'a', logoStoragePath: 'seasons/s1/sponsors/a/logo.png', updatedAt: new Date(1700000000000) }),
+        row({ id: 'b', logoStoragePath: 'seasons/s1/sponsors/b/logo.png' }),
+      ],
+    })!
+    expect(result.official[0].logoUrl).toBe('https://media.test/seasons/s1/sponsors/a/logo.png?v=1700000000000')
+    expect(result.official[1].logoUrl).toBe('https://media.test/seasons/s1/sponsors/b/logo.png')
+  })
+})
+
 describe('helpers de enlace', () => {
   it('arma targets y href de clic', () => {
     expect(courtTarget(3)).toBe('court:3')

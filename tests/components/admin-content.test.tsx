@@ -30,6 +30,20 @@ describe('admin content workspace', () => {
     expect(read('src/app/(tenant)/[organizationSlug]/(dashboard)/admin/content/page.tsx')).toContain('ContentSeasonBar')
   })
 
+  it('uploads and removes the sponsor logo through the admin sponsor logo route', () => {
+    const upload = read('src/components/admin/content/SponsorLogoUpload.tsx')
+    expect(upload).toContain('/api/admin/seasons/${seasonId}/sponsors/${sponsorId}/logo')
+    expect(upload).toContain('fieldName="logo"')
+    expect(upload).toContain('deleteUrl')
+  })
+
+  it('shows the logo upload when editing a sponsor and goes to edit after creating one', () => {
+    const page = read('src/app/(tenant)/[organizationSlug]/(dashboard)/admin/content/sponsors/page.tsx')
+    expect(page).toContain('SponsorLogoUpload')
+    expect(page).toContain('editing')
+    expect(read('src/components/admin/content/SponsorsTable.tsx')).toContain('edit=${')
+  })
+
   it('uploads edition logo through admin mobile logo route', () => {
     expect(read('src/components/admin/content/MobileEditionLogoUpload.tsx')).toContain(
       '/api/admin/seasons/${seasonId}/mobile/logo',
