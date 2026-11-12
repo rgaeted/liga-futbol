@@ -20,6 +20,8 @@ export type TeamRow = {
   coachName: string | null
   playerCount: number
   hasCrest: boolean
+  /** Cambia al subir un escudo nuevo (fuerza a recargar la imagen). */
+  crestVersion: number
 }
 
 export type CoachOption = {
@@ -90,14 +92,14 @@ export function TeamsTable({ teams, coaches, categories }: { teams: TeamRow[]; c
                         value={color}
                         onChange={setColor}
                         hasCrest={team.hasCrest}
-                        crestSrc={teamCrestUrl(team.id)}
+                        crestSrc={teamCrestUrl(team.id, team.crestVersion)}
                       />
                       <CrestUploadField
                         label="Imagen del escudo (opcional)"
                         name={name}
                         color={resolveTeamColor(color, name)}
                         uploadUrl={`/api/teams/${team.id}/crest`}
-                        previewUrl={teamCrestUrl(team.id)}
+                        previewUrl={teamCrestUrl(team.id, team.crestVersion)}
                         hasCrest={team.hasCrest}
                         onUpdated={() => router.refresh()}
                       />
@@ -169,7 +171,7 @@ export function TeamsTable({ teams, coaches, categories }: { teams: TeamRow[]; c
                   <td className="p-3">
                     <TeamCrest
                       name={team.name}
-                      src={team.hasCrest ? teamCrestUrl(team.id) : null}
+                      src={team.hasCrest ? teamCrestUrl(team.id, team.crestVersion) : null}
                       color={resolveTeamColor(team.color, team.name)}
                       size="sm"
                     />

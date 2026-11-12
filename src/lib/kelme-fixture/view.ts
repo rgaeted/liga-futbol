@@ -21,7 +21,7 @@ export type FixtureSnapshot = {
   seasonId: string
   seasonName: string
   config: FixtureConfig
-  teams: Array<FixtureTeam & { color: string | null }>
+  teams: Array<FixtureTeam & { color: string | null; crestUrl: string | null }>
   matches: Array<FixtureMatch & { updatedAt: Date }>
 }
 
@@ -30,6 +30,8 @@ export type FixtureViewSide = {
   name: string
   /** Color del equipo configurado en la administración (hex), si existe. */
   color: string | null
+  /** Escudo del equipo; si es null se muestra solo su color. */
+  crestUrl: string | null
   /** `true` cuando el participante aún depende de la clasificación. */
   pending: boolean
 }
@@ -56,7 +58,11 @@ export type FixtureViewMatch = {
   updatedAt: string
 }
 
-export type FixtureViewRow = StandingRow & { name: string; color: string | null }
+export type FixtureViewRow = StandingRow & {
+  name: string
+  color: string | null
+  crestUrl: string | null
+}
 
 export type FixtureViewTable = {
   key: TableKey
@@ -91,12 +97,19 @@ function sideFor(
   slot: FixtureMatch['homeSlot'],
   names: Map<string, string>,
   colors: Map<string, string | null>,
+  crests: Map<string, string | null>,
 ): FixtureViewSide {
   if (teamId) {
-    return { teamId, name: names.get(teamId) ?? 'Equipo', color: colors.get(teamId) ?? null, pending: false }
+    return {
+      teamId,
+      name: names.get(teamId) ?? 'Equipo',
+      color: colors.get(teamId) ?? null,
+      crestUrl: crests.get(teamId) ?? null,
+      pending: false,
+    }
   }
-  if (slot) return { teamId: null, name: `Por definir (${slotLabel(slot)})`, color: null, pending: true }
-  return { teamId: null, name: 'Por definir', color: null, pending: true }
+  if (slot) return { teamId: null, name: `Por definir (${slotLabel(slot)})`, color: null, crestUrl: null, pending: true }
+  return { teamId: null, name: 'Por definir', color: null, crestUrl: null, pending: true }
 }
 
 export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
@@ -104,6 +117,7 @@ export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
   const state = recalculateFixture({ teams: snapshot.teams, matches: snapshot.matches, config })
   const names = new Map(snapshot.teams.map((team) => [team.id, team.name]))
   const colors = new Map(snapshot.teams.map((team) => [team.id, team.color]))
+  const crests = new Map(snapshot.teams.map((team) => [team.id, team.crestUrl]))
 
   const matches: FixtureViewMatch[] = [...snapshot.matches]
     .sort((a, b) => a.startAt.getTime() - b.startAt.getTime() || a.court - b.court)
@@ -119,8 +133,8 @@ export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
       startAt: m.startAt.toISOString(),
       endAt: m.endAt.toISOString(),
       timeLabel: `${formatScheduleTimeLabel(m.startAt)}–${formatScheduleTimeLabel(m.endAt)}`,
-      home: sideFor(m.homeTeamId, m.homeSlot, names, colors),
-      away: sideFor(m.awayTeamId, m.awaySlot, names, colors),
+      home: sideFor(m.homeTeamId, m.homeSlot, names, colors, crests),
+      away: sideFor(m.awayTeamId, m.awaySlot, names, colors, crests),
       homeGoals: m.homeGoals,
       awayGoals: m.awayGoals,
       status: m.status,
@@ -135,6 +149,7 @@ export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
       ...row,
       name: names.get(row.teamId) ?? 'Equipo',
       color: colors.get(row.teamId) ?? null,
+      crestUrl: crests.get(row.teamId) ?? null,
     }))
 
   const { A, B, league } = state.standings

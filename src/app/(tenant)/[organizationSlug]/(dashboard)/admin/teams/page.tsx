@@ -62,6 +62,7 @@ export default async function AdminTeamsPage({
           coachName: t.coach?.name ?? null,
           playerCount: t._count.players,
           hasCrest: teamHasCrest(t),
+          crestVersion: t.updatedAt.getTime(),
         }))}
         coaches={coaches.map((c) => ({
           id: c.id,

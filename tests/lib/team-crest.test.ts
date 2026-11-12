@@ -20,6 +20,11 @@ describe('team crest helpers', () => {
     expect(teamCrestUrl('team-1')).toBe('/api/teams/team-1/crest')
   })
 
+  it('agrega la versión a la URL para que un escudo nuevo no use la copia vieja del navegador', () => {
+    expect(teamCrestUrl('team-1', new Date(1700000000000))).toBe('/api/teams/team-1/crest?v=1700000000000')
+    expect(teamCrestUrl('team-1', null)).toBe('/api/teams/team-1/crest')
+  })
+
   it('detects stored crest', () => {
     expect(teamHasCrest({ crestMimeType: 'image/png', crestData: Buffer.from([1]) })).toBe(true)
     expect(teamHasCrest({ crestMimeType: null, crestData: null })).toBe(false)

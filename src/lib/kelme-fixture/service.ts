@@ -1,5 +1,6 @@
 import { MatchDecidedBy, MatchStatus, Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
+import { teamCrestUrl } from '@/lib/team-crest'
 import { parseSlot, slotLabel } from './definition'
 import { planDefinitions, type DefinitionState } from './definitions'
 import { recalculateFixture } from './engine'
@@ -81,7 +82,7 @@ export async function loadFixtureSnapshot(seasonId: string, client: Tx = db): Pr
       where: { seasonId },
       orderBy: { sortOrder: 'asc' },
       include: {
-        team: { select: { id: true, name: true, color: true } },
+        team: { select: { id: true, name: true, color: true, crestMimeType: true, updatedAt: true } },
         seasonCategory: { select: { category: { select: { name: true } } } },
       },
     }),
@@ -103,6 +104,7 @@ export async function loadFixtureSnapshot(seasonId: string, client: Tx = db): Pr
       group,
       sortOrder: st.sortOrder,
       color: st.color ?? st.team.color,
+      crestUrl: st.team.crestMimeType ? teamCrestUrl(st.team.id, st.team.updatedAt) : null,
     })
   }
 

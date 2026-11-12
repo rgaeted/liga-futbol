@@ -6,24 +6,32 @@ import { teamHasCrest } from '@/lib/team-crest'
 import { MembershipRole } from '@/lib/membership-role'
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const team = await db.team.findUnique({
+  const meta = await db.team.findUnique({
     where: { id },
-    select: { crestMimeType: true, crestData: true },
+    select: { crestMimeType: true, updatedAt: true },
   })
+  if (!meta || !meta.crestMimeType) {
+    return new NextResponse(null, { status: 404 })
+  }
 
-  if (!team || !teamHasCrest(team)) {
+  // El navegador revalida cada vez: si el escudo no cambió responde 304 sin leer la imagen.
+  const etag = `"${meta.updatedAt.getTime()}"`
+  const headers = { 'Cache-Control': 'public, max-age=0, must-revalidate', ETag: etag }
+  if (req.headers.get('if-none-match') === etag) {
+    return new NextResponse(null, { status: 304, headers })
+  }
+
+  const team = await db.team.findUnique({ where: { id }, select: { crestData: true } })
+  if (!team || !teamHasCrest({ crestMimeType: meta.crestMimeType, crestData: team.crestData })) {
     return new NextResponse(null, { status: 404 })
   }
 
   return new NextResponse(team.crestData, {
-    headers: {
-      'Content-Type': team.crestMimeType!,
-      'Cache-Control': 'public, max-age=86400',
-    },
+    headers: { ...headers, 'Content-Type': meta.crestMimeType },
   })
 }
 
