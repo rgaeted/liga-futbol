@@ -2,18 +2,7 @@ import { SponsorPlacement } from '@prisma/client'
 import { db } from '@/lib/db'
 import type { CreateSponsorInput, UpdateSponsorInput } from '@/lib/validations/editorial'
 
-type SponsorVisibility = {
-  isActive: boolean
-  startsAt: Date | null
-  endsAt: Date | null
-}
-
-export function isSponsorPubliclyVisible(sponsor: SponsorVisibility, now: Date): boolean {
-  if (!sponsor.isActive) return false
-  if (sponsor.startsAt && now < sponsor.startsAt) return false
-  if (sponsor.endsAt && now > sponsor.endsAt) return false
-  return true
-}
+export { isSponsorPubliclyVisible } from '@/lib/sponsors/visibility'
 
 export async function listAdminSponsors(seasonId: string) {
   return db.sponsor.findMany({
