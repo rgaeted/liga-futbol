@@ -66,19 +66,93 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
   )
 }
 
+/** Cada categoría tiene su propio color para reconocerla de un vistazo. */
+const CATEGORY_THEME: Record<CategoryCode, { bar: string; badge: string; dot: string }> = {
+  '2017-2016': { bar: 'bg-[#1A7AE8]', badge: 'bg-[#e6f1fe] text-[#0B3D8F]', dot: 'bg-[#1A7AE8]' },
+  '2019-2018': { bar: 'bg-[#f08a24]', badge: 'bg-[#fff0dd] text-[#9a4a05]', dot: 'bg-[#f08a24]' },
+}
+
+/** Cada equipo conserva el mismo color en todas las tarjetas. */
+const TEAM_COLORS = ['#1A7AE8', '#16a37f', '#d9485f', '#7a5af8', '#e08a00', '#0e9ab3', '#c2410c', '#4d6790']
+
+function teamColor(name: string) {
+  let hash = 0
+  for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  return TEAM_COLORS[hash % TEAM_COLORS.length]
+}
+
+function teamInitials(name: string) {
+  const words = name.split(/\s+/).filter(Boolean)
+  return (words.length > 1 ? words[0][0] + words[1][0] : name.slice(0, 2)).toUpperCase()
+}
+
+function TeamBadge({ name, pending }: { name: string; pending: boolean }) {
+  if (pending) {
+    return (
+      <span
+        aria-hidden
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-dashed border-[#4d6790]/50 text-[11px] font-extrabold text-[#4d6790]"
+      >
+        ?
+      </span>
+    )
+  }
+  return (
+    <span
+      aria-hidden
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-extrabold text-white"
+      style={{ backgroundColor: teamColor(name) }}
+    >
+      {teamInitials(name)}
+    </span>
+  )
+}
+
+function TeamRow({
+  side,
+  goals,
+  showScore,
+  won,
+}: {
+  side: { name: string; pending: boolean }
+  goals: number
+  showScore: boolean
+  won: boolean
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="flex min-w-0 items-center gap-2.5">
+        <TeamBadge name={side.name} pending={side.pending} />
+        <span
+          className={`truncate ${side.pending ? 'italic text-[#4d6790]' : won ? 'font-extrabold text-[#0a1f44]' : ''}`}
+        >
+          {side.name}
+        </span>
+      </span>
+      <strong
+        className={`font-display text-xl ${won ? 'rounded-md bg-[#0B3D8F] px-2 text-white' : 'text-[#0B3D8F]'}`}
+      >
+        {showScore ? goals : '–'}
+      </strong>
+    </div>
+  )
+}
+
 function MatchCard({ match }: { match: FixtureViewMatch }) {
   const showScore = match.status === 'FINAL' || match.status === 'IN_PROGRESS'
   const decisive = match.phase === 'FINAL'
   const hasPenalties = match.penaltyHome != null && match.penaltyAway != null
   const homeWon = match.status === 'FINAL' && match.homeGoals > match.awayGoals
   const awayWon = match.status === 'FINAL' && match.awayGoals > match.homeGoals
+  const theme = CATEGORY_THEME[match.category]
 
   return (
     <article
-      className={`rounded-2xl border bg-white p-4 shadow-[0_8px_20px_rgba(26,122,232,0.06)] ${
+      className={`relative overflow-hidden rounded-2xl border bg-white p-4 pl-5 shadow-[0_8px_20px_rgba(26,122,232,0.06)] ${
         decisive ? 'border-[#1A7AE8] ring-2 ring-[#1A7AE8]/20' : 'border-[#1A7AE8]/20'
       }`}
     >
+      <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${theme.bar}`} />
       <header className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#4d6790]">
         <span>
           {match.timeLabel} · Cancha {match.court}
@@ -87,23 +161,14 @@ function MatchCard({ match }: { match: FixtureViewMatch }) {
           {STATUS_LABELS[match.status]}
         </span>
       </header>
-      <p className="mt-1 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#1A7AE8]">
-        {categoryLabel(match.category)} · {match.phaseLabel}
+      <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.1em]">
+        <span className={`rounded-full px-2.5 py-0.5 ${theme.badge}`}>{categoryLabel(match.category)}</span>
+        <span className="rounded-full bg-[#eef1f6] px-2.5 py-0.5 text-[#4d6790]">{match.phaseLabel}</span>
       </p>
 
-      <div className="mt-3 space-y-1.5 text-[15px] font-semibold text-[#123a6b]">
-        <div className="flex items-center justify-between gap-3">
-          <span className={match.home.pending ? 'italic text-[#4d6790]' : homeWon ? 'font-extrabold' : ''}>
-            {match.home.name}
-          </span>
-          <strong className="font-display text-xl text-[#0B3D8F]">{showScore ? match.homeGoals : '–'}</strong>
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          <span className={match.away.pending ? 'italic text-[#4d6790]' : awayWon ? 'font-extrabold' : ''}>
-            {match.away.name}
-          </span>
-          <strong className="font-display text-xl text-[#0B3D8F]">{showScore ? match.awayGoals : '–'}</strong>
-        </div>
+      <div className="mt-3 space-y-2 text-[15px] font-semibold text-[#123a6b]">
+        <TeamRow side={match.home} goals={match.homeGoals} showScore={showScore} won={homeWon} />
+        <TeamRow side={match.away} goals={match.awayGoals} showScore={showScore} won={awayWon} />
       </div>
       {hasPenalties ? (
         <p className="mt-2 text-xs font-semibold text-[#4d6790]">
@@ -178,9 +243,19 @@ export function KelmeCupFixture({ view }: { view: FixtureView }) {
   const [time, setTime] = useState<string>(ALL)
   const [court, setCourt] = useState<string>(ALL)
   const [status, setStatus] = useState<string>(ALL)
+  const [club, setClub] = useState<string>(ALL)
 
   const times = useMemo(
     () => [...new Map(view.matches.map((m) => [m.startAt, m.timeLabel.split('–')[0]])).entries()],
+    [view.matches],
+  )
+  const clubs = useMemo(
+    () =>
+      [
+        ...new Set(
+          view.matches.flatMap((m) => [m.home, m.away]).filter((side) => !side.pending).map((side) => side.name),
+        ),
+      ].sort((a, b) => a.localeCompare(b, 'es-CL')),
     [view.matches],
   )
   const courts = useMemo(
@@ -195,7 +270,8 @@ export function KelmeCupFixture({ view }: { view: FixtureView }) {
         (group === 'DEF' ? m.phase !== 'GROUP' && m.phase !== 'LEAGUE' : m.group === group)) &&
       (time === ALL || m.startAt === time) &&
       (court === ALL || String(m.court) === court) &&
-      (status === ALL || m.status === status),
+      (status === ALL || m.status === status) &&
+      (club === ALL || m.home.name === club || m.away.name === club),
   )
 
   const final = view.matches.find((m) => m.phase === 'FINAL')
@@ -254,6 +330,21 @@ export function KelmeCupFixture({ view }: { view: FixtureView }) {
               </Chip>
             ))}
           </FilterRow>
+          <FilterRow label="Club">
+            <select
+              aria-label="Filtrar por club"
+              value={club}
+              onChange={(event) => setClub(event.target.value)}
+              className="rounded-full border border-[#1A7AE8]/25 bg-white px-3 py-1.5 text-[13px] font-bold text-[#0B3D8F]"
+            >
+              <option value={ALL}>Todos los clubes</option>
+              {clubs.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </FilterRow>
           <FilterRow label="Estado">
             <Chip active={status === ALL} onClick={() => setStatus(ALL)}>
               Todos
@@ -265,6 +356,15 @@ export function KelmeCupFixture({ view }: { view: FixtureView }) {
             ))}
           </FilterRow>
         </div>
+
+        <ul className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] font-bold text-[#4d6790]">
+          {(Object.keys(CATEGORY_THEME) as CategoryCode[]).map((code) => (
+            <li key={code} className="flex items-center gap-2">
+              <span aria-hidden className={`h-3 w-3 rounded-full ${CATEGORY_THEME[code].dot}`} />
+              Categoría {categoryLabel(code)}
+            </li>
+          ))}
+        </ul>
 
         {filtered.length === 0 ? (
           <p className="mt-5 rounded-2xl border border-dashed border-[#1A7AE8]/30 bg-white p-6 text-center text-sm font-semibold text-[#4d6790]">

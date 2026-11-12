@@ -1,4 +1,5 @@
-import { slotLabel, PHASE_LABELS } from './definition'
+import { FIXTURE_MATCH_MINUTES, fixtureStartAt, slotLabel, PHASE_LABELS } from './definition'
+import { operationalAlerts, validateSchedule } from './schedule'
 import { recalculateFixture, type FixtureTeam } from './engine'
 import type { StandingRow } from './standings'
 import {
@@ -40,6 +41,7 @@ export type FixtureViewMatch = {
   group: GroupCode | null
   court: number
   startAt: string
+  endAt: string
   timeLabel: string
   home: FixtureViewSide
   away: FixtureViewSide
@@ -78,6 +80,8 @@ export type FixtureView = {
     conflict: { codes: string[]; message: string } | null
   }
   positions: Array<{ position: number; teamId: string; name: string; tied: boolean }>
+  /** Problemas del calendario (solapamientos, duración, cierre) y avisos operativos. */
+  schedule: { issues: string[]; alerts: string[] }
 }
 
 function sideFor(
@@ -108,6 +112,7 @@ export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
       group: m.group,
       court: m.court,
       startAt: m.startAt.toISOString(),
+      endAt: m.endAt.toISOString(),
       timeLabel: `${formatScheduleTimeLabel(m.startAt)}–${formatScheduleTimeLabel(m.endAt)}`,
       home: sideFor(m.homeTeamId, m.homeSlot, names),
       away: sideFor(m.awayTeamId, m.awaySlot, names),
@@ -158,6 +163,23 @@ export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
     },
   ]
 
+  const scheduleMatches = snapshot.matches.map((m) => ({
+    code: m.code,
+    court: m.court,
+    startAt: m.startAt,
+    endAt: m.endAt,
+    homeTeamId: m.homeTeamId,
+    awayTeamId: m.awayTeamId,
+    phase: m.phase,
+  }))
+  const schedule = {
+    issues: validateSchedule(scheduleMatches, {
+      matchMinutes: FIXTURE_MATCH_MINUTES,
+      latestEnd: fixtureStartAt({ startTime: '12:00' }),
+    }),
+    alerts: operationalAlerts(scheduleMatches, names),
+  }
+
   return {
     seasonId: snapshot.seasonId,
     seasonName: snapshot.seasonName,
@@ -174,5 +196,6 @@ export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
       ...p,
       name: names.get(p.teamId) ?? 'Equipo',
     })),
+    schedule,
   }
 }

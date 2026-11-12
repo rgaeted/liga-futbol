@@ -31,6 +31,7 @@ const ACTION_LABELS: Record<string, string> = {
   RANKING: 'Desempate manual',
   CONFIG: 'Configuración',
   TEAM_RENAME: 'Nombre de equipo',
+  SCHEDULE: 'Reprogramación',
 }
 
 const inputClass =
@@ -115,6 +116,28 @@ export function FixtureAdmin({
         >
           {notice.text}
         </p>
+      ) : null}
+
+      {view.schedule.issues.length > 0 ? (
+        <div role="alert" className="space-y-1 rounded-lg border border-red-500/50 p-4 text-sm">
+          <p className="font-semibold text-red-400">El calendario tiene problemas</p>
+          <ul className="list-disc pl-5">
+            {view.schedule.issues.map((issue) => (
+              <li key={issue}>{issue}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {view.schedule.alerts.length > 0 ? (
+        <div role="note" className="space-y-1 rounded-lg border border-amber-500/50 p-4 text-sm">
+          <p className="font-semibold text-amber-400">Alertas operativas</p>
+          <ul className="list-disc pl-5">
+            {view.schedule.alerts.map((alert) => (
+              <li key={alert}>{alert}</li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
       {view.definitions.conflict ? (
