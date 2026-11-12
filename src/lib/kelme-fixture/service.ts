@@ -98,7 +98,7 @@ export async function loadFixtureSnapshot(seasonId: string, client: Tx = db): Pr
     const group = st.groupCode === 'A' || st.groupCode === 'B' ? (st.groupCode as GroupCode) : null
     teams.push({
       id: st.team.id,
-      name: (st.displayName || st.team.name).trim(),
+      name: (st.team.name || st.displayName || '').trim(),
       category,
       group,
       sortOrder: st.sortOrder,
