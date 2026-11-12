@@ -28,6 +28,8 @@ export type FixtureSnapshot = {
 export type FixtureViewSide = {
   teamId: string | null
   name: string
+  /** Color del equipo configurado en la administración (hex), si existe. */
+  color: string | null
   /** `true` cuando el participante aún depende de la clasificación. */
   pending: boolean
 }
@@ -88,10 +90,13 @@ function sideFor(
   teamId: string | null,
   slot: FixtureMatch['homeSlot'],
   names: Map<string, string>,
+  colors: Map<string, string | null>,
 ): FixtureViewSide {
-  if (teamId) return { teamId, name: names.get(teamId) ?? 'Equipo', pending: false }
-  if (slot) return { teamId: null, name: `Por definir (${slotLabel(slot)})`, pending: true }
-  return { teamId: null, name: 'Por definir', pending: true }
+  if (teamId) {
+    return { teamId, name: names.get(teamId) ?? 'Equipo', color: colors.get(teamId) ?? null, pending: false }
+  }
+  if (slot) return { teamId: null, name: `Por definir (${slotLabel(slot)})`, color: null, pending: true }
+  return { teamId: null, name: 'Por definir', color: null, pending: true }
 }
 
 export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
@@ -114,8 +119,8 @@ export function buildFixtureView(snapshot: FixtureSnapshot): FixtureView {
       startAt: m.startAt.toISOString(),
       endAt: m.endAt.toISOString(),
       timeLabel: `${formatScheduleTimeLabel(m.startAt)}–${formatScheduleTimeLabel(m.endAt)}`,
-      home: sideFor(m.homeTeamId, m.homeSlot, names),
-      away: sideFor(m.awayTeamId, m.awaySlot, names),
+      home: sideFor(m.homeTeamId, m.homeSlot, names, colors),
+      away: sideFor(m.awayTeamId, m.awaySlot, names, colors),
       homeGoals: m.homeGoals,
       awayGoals: m.awayGoals,
       status: m.status,

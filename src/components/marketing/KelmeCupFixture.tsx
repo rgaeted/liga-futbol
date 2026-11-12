@@ -107,7 +107,17 @@ function teamInitials(name: string) {
   return (words.length > 1 ? words[0][0] + words[1][0] : name.slice(0, 2)).toUpperCase()
 }
 
-function TeamBadge({ name, pending }: { name: string; pending: boolean }) {
+/** Usa el color configurado del equipo; si no tiene, uno estable según su nombre. */
+function resolveTeamColor(name: string, color?: string | null) {
+  return color && /^#[0-9a-f]{6}$/i.test(color.trim()) ? color.trim() : teamColor(name)
+}
+
+function readableOn(hex: string) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+  return r * 0.299 + g * 0.587 + b * 0.114 > 160 ? '#0a1f44' : '#ffffff'
+}
+
+function TeamBadge({ name, pending, color }: { name: string; pending: boolean; color?: string | null }) {
   if (pending) {
     return (
       <span
@@ -118,11 +128,12 @@ function TeamBadge({ name, pending }: { name: string; pending: boolean }) {
       </span>
     )
   }
+  const background = resolveTeamColor(name, color)
   return (
     <span
       aria-hidden
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-extrabold text-white"
-      style={{ backgroundColor: teamColor(name) }}
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-extrabold ring-1 ring-black/10"
+      style={{ backgroundColor: background, color: readableOn(background) }}
     >
       {teamInitials(name)}
     </span>
@@ -135,7 +146,7 @@ function TeamRow({
   showScore,
   won,
 }: {
-  side: { name: string; pending: boolean }
+  side: { name: string; pending: boolean; color: string | null }
   goals: number
   showScore: boolean
   won: boolean
@@ -143,7 +154,7 @@ function TeamRow({
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="flex min-w-0 items-center gap-2.5">
-        <TeamBadge name={side.name} pending={side.pending} />
+        <TeamBadge name={side.name} pending={side.pending} color={side.color} />
         <span
           className={`truncate ${side.pending ? 'italic text-[#4d6790]' : won ? 'font-extrabold text-[#0a1f44]' : ''}`}
         >
@@ -229,7 +240,10 @@ function StandingsCard({ table }: { table: FixtureViewTable }) {
               <tr key={row.teamId} className="border-t border-[#1A7AE8]/10 text-center">
                 <td className="py-2 text-left font-bold">{row.tied ? `${row.rank}*` : row.rank}</td>
                 <td className="py-2 text-left font-semibold">
-                  {row.name}
+                  <span className="inline-flex items-center gap-2">
+                    <TeamBadge name={row.name} pending={false} color={row.color} />
+                    {row.name}
+                  </span>
                   {showCross && CROSS_LABELS[row.rank] ? (
                     <span className="ml-2 rounded-full bg-[#e6f1fe] px-2 py-0.5 text-[10px] font-extrabold uppercase text-[#0B3D8F]">
                       {row.rank === 1 ? 'Clasificado · ' : ''}
