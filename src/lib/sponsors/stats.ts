@@ -38,5 +38,5 @@ export function resolveClickTarget(
   to: 'cta' | 'web',
 ): string | null {
   const ordered = to === 'cta' ? [sponsor.ctaUrl, sponsor.websiteUrl] : [sponsor.websiteUrl, sponsor.ctaUrl]
-  return ordered.find((url): url is string => !!url) ?? null
+  return ordered.find((url): url is string => !!url && /^https?:\/\//i.test(url)) ?? null
 }

@@ -31,6 +31,13 @@ describe('proxy policy', () => {
     expect(isPublicRequest('POST', '/api/players/claim')).toBe(true)
   })
 
+  it('treats sponsor click and view routes as public', () => {
+    expect(isPublicRequest('GET', '/api/public/sponsors/abc/click')).toBe(true)
+    expect(isPublicRequest('POST', '/api/public/sponsors/views')).toBe(true)
+    expect(isPublicRequest('DELETE', '/api/public/sponsors/views')).toBe(false)
+    expect(isPublicRequest('POST', '/api/public/sponsors/abc/click')).toBe(false)
+  })
+
   it('treats tenant live and help routes as public', () => {
     expect(isPublicRequest('GET', '/kelme/live/match-1')).toBe(true)
     expect(isPublicRequest('GET', '/kelme/ayuda')).toBe(true)

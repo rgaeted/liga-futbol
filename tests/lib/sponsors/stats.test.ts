@@ -29,6 +29,8 @@ describe('resolveClickTarget', () => {
     expect(resolveClickTarget({ ctaUrl: 'https://wa.me/1', websiteUrl: 'https://x.cl' }, 'cta')).toBe('https://wa.me/1')
     expect(resolveClickTarget({ ctaUrl: null, websiteUrl: 'https://x.cl' }, 'cta')).toBe('https://x.cl')
     expect(resolveClickTarget({ ctaUrl: null, websiteUrl: null }, 'cta')).toBeNull()
+    expect(resolveClickTarget({ ctaUrl: 'javascript:alert(1)', websiteUrl: 'https://x.cl' }, 'cta')).toBe('https://x.cl')
+    expect(resolveClickTarget({ ctaUrl: 'javascript:alert(1)', websiteUrl: null }, 'cta')).toBeNull()
     expect(resolveClickTarget({ ctaUrl: 'https://wa.me/1', websiteUrl: 'https://x.cl' }, 'web')).toBe('https://x.cl')
     expect(resolveClickTarget({ ctaUrl: 'https://wa.me/1', websiteUrl: null }, 'web')).toBe('https://wa.me/1')
   })
