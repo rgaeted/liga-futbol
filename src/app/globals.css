@@ -179,3 +179,13 @@ body {
 .text-org-primary {
   color: var(--org-primary);
 }
+
+/* Landing de la Kelme Cup: Barlow Condensed para títulos e Inter para el texto. */
+.kelme-type,
+.kelme-type .font-ui {
+  font-family: var(--font-inter), Inter, sans-serif;
+}
+
+.kelme-type .font-display {
+  font-family: var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
+}

@@ -155,7 +155,7 @@ export function OrgPublicLanding({
     <div
       className={
         isKelme
-          ? 'min-h-screen bg-[#f4f9ff] text-[#123a6b]'
+          ? 'kelme-type min-h-screen bg-[#f4f9ff] text-[#123a6b]'
           : isLosLunes
             ? 'min-h-screen bg-black text-[#f4f5f2]'
             : 'min-h-screen bg-[#0b0d0c] text-[#f4f5f2] [background:radial-gradient(circle_at_50%_-10%,color-mix(in_srgb,var(--org-primary)_7%,transparent),transparent_28%),#0b0d0c]'

@@ -3,6 +3,7 @@ import {
   Barlow_Condensed,
   Caveat,
   IBM_Plex_Mono,
+  Inter,
   Manrope,
   Oswald,
   Playfair_Display,
@@ -17,7 +18,13 @@ export const anton = Anton({
 export const barlowCondensed = Barlow_Condensed({
   variable: '--font-barlow-condensed',
   subsets: ['latin'],
-  weight: '700',
+  weight: ['500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
+})
+
+export const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
 })
 
 export const oswald = Oswald({

@@ -177,20 +177,19 @@ export function KelmeCupHomeHero({
               <PinIcon className="h-6 w-6 text-[#1A9CF0]" />
               {KELME_CUP.region}
             </p>
-            <p className="mt-3 flex items-center gap-3 text-lg italic text-white/90 sm:text-xl">
-              <span className="h-0.5 w-10 shrink-0 bg-[#1A9CF0]" aria-hidden />
+            <p className="mt-4 border-l-4 border-[#4b9deb] pl-3 text-[13px] font-extrabold uppercase tracking-[0.19em] text-[#87c4ff]">
               {KELME_CUP.kicker}
             </p>
-            <h1 className="mt-3 font-ui text-[clamp(48px,8.5vw,92px)] font-extrabold italic leading-[0.95] tracking-[-0.03em]">
-              Kelme <span className="text-[#1A9CF0]">Cup</span>
+            <h1 className="mt-4 font-display text-[clamp(80px,11vw,160px)] font-black uppercase italic leading-[0.83] tracking-[-0.035em] [text-shadow:0_2px_15px_rgba(7,16,32,0.4)]">
+              Kelme <span className="block tracking-[0.005em] text-[#4b9deb]">Cup</span>
             </h1>
-            <p className="mt-5 inline-flex items-center gap-3 rounded-full bg-[#1A9CF0] px-5 py-2.5 text-lg font-bold italic text-[#06183a] sm:text-2xl">
-              <span aria-hidden>⚽</span> {KELME_CUP.subtitle}
+            <p className="mt-6 font-display text-[clamp(28px,3.5vw,48px)] font-bold uppercase leading-none tracking-[0.035em]">
+              {KELME_CUP.subtitle}
             </p>
-            <p className="mt-4 text-base italic text-white/90 sm:text-lg">{KELME_CUP.values}</p>
+            <p className="mt-5 text-sm font-bold uppercase tracking-[0.125em] text-[#d8e4f7]">{KELME_CUP.values}</p>
             <a
               href="#fixture"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-base font-bold text-[#0a1f44] shadow-[0_10px_24px_rgba(0,0,0,0.3)] transition hover:bg-[#e6f1fe]"
+              className="mt-7 inline-flex items-center gap-4 rounded-[4px] bg-white px-6 py-4 text-sm font-extrabold uppercase tracking-[0.04em] text-[#10244d] shadow-[0_10px_30px_rgba(0,0,0,0.2)] transition hover:-translate-y-0.5"
             >
               Ver partidos y resultados
               <span aria-hidden>↓</span>

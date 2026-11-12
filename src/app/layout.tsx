@@ -5,6 +5,7 @@ import {
   barlowCondensed,
   caveat,
   ibmPlexMono,
+  inter,
   manrope,
   oswald,
   playfair,
@@ -40,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="es-CL"
-      className={`${oswald.variable} ${manrope.variable} ${ibmPlexMono.variable} ${playfair.variable} ${caveat.variable} ${anton.variable} ${barlowCondensed.variable} h-full antialiased`}
+      className={`${oswald.variable} ${manrope.variable} ${ibmPlexMono.variable} ${playfair.variable} ${caveat.variable} ${anton.variable} ${barlowCondensed.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
