@@ -35,6 +35,8 @@ describe('proxy policy', () => {
     expect(isPublicRequest('GET', '/api/public/sponsors/abc/click')).toBe(true)
     expect(isPublicRequest('POST', '/api/public/sponsors/views')).toBe(true)
     expect(isPublicRequest('DELETE', '/api/public/sponsors/views')).toBe(false)
+    expect(isPublicRequest('GET', '/api/public/fixture/kelme/export')).toBe(true)
+    expect(isPublicRequest('POST', '/api/public/fixture/kelme/export')).toBe(false)
     expect(isPublicRequest('POST', '/api/public/sponsors/abc/click')).toBe(false)
   })
 

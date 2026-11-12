@@ -313,8 +313,11 @@ function StandingsCard({ table }: { table: FixtureViewTable }) {
 export function KelmeCupFixture({
   view,
   sponsorsByTarget = {},
+  exportHref,
 }: {
   view: FixtureView
+  /** Descarga del fixture en Excel; si falta, no se muestra el botón. */
+  exportHref?: string
   /** Auspiciador que presenta cada cancha o definición ("court:1", "phase:FINAL"). */
   sponsorsByTarget?: Record<string, LandingSponsor>
 }) {
@@ -360,9 +363,21 @@ export function KelmeCupFixture({
     <section id="fixture" className="scroll-mt-24 bg-[#f4f9ff] py-8 text-[#123a6b]">
       <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
         <p className="font-script text-2xl text-[#1A7AE8]">Domingo 15 de noviembre</p>
-        <h2 className="mt-1 font-display text-[28px] font-bold uppercase tracking-[-0.03em] text-[#0B3D8F]">
-          Fixture y resultados
-        </h2>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-[28px] font-bold uppercase tracking-[-0.03em] text-[#0B3D8F]">
+            Fixture y resultados
+          </h2>
+          {exportHref ? (
+            <a
+              href={exportHref}
+              download
+              className="inline-flex items-center gap-2 rounded-lg border border-[#1A7AE8]/40 bg-white px-4 py-2 text-[13px] font-extrabold uppercase tracking-[0.06em] text-[#0B3D8F] transition hover:border-[#1A7AE8] hover:bg-[#e6f1fe]"
+            >
+              <span aria-hidden>↓</span>
+              Exportar a Excel
+            </a>
+          ) : null}
+        </div>
 
         <div className="mt-5 space-y-2.5 rounded-2xl border border-[#1A7AE8]/20 bg-white p-4">
           <FilterRow label="Categoría">

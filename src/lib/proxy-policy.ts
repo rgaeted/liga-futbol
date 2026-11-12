@@ -73,6 +73,8 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     /^\/api\/players\/[^/]+\/card-photo$/.test(pathname)
   const isSponsorClickGet =
     method === 'GET' && /^\/api\/public\/sponsors\/[^/]+\/click$/.test(pathname)
+  const isFixtureExportGet =
+    method === 'GET' && /^\/api\/public\/fixture\/[^/]+\/export$/.test(pathname)
   const isSponsorViewsPost =
     method === 'POST' && pathname === '/api/public/sponsors/views'
   const isTenantPublicGet =
@@ -110,6 +112,7 @@ export function isPublicRequest(method: string, pathname: string): boolean {
     isPlayerCardGet ||
     isPlayerCardPhotoGet ||
     isSponsorClickGet ||
+    isFixtureExportGet ||
     isSponsorViewsPost
   )
 }

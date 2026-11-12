@@ -283,7 +283,11 @@ export function OrgPublicLanding({
 
       <main>
         {isKelme && kelmeFixture ? (
-          <KelmeCupFixture view={kelmeFixture} sponsorsByTarget={fixtureSponsors ?? {}} />
+          <KelmeCupFixture
+            view={kelmeFixture}
+            sponsorsByTarget={fixtureSponsors ?? {}}
+            exportHref={`/api/public/fixture/${slug}/export`}
+          />
         ) : null}
         {sponsors && isKelme ? <SponsorCards sponsors={sponsors} tone="kelme" /> : null}
         {isKelme ? <KelmeCupInvite /> : null}

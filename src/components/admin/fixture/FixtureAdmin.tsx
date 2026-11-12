@@ -44,9 +44,11 @@ const ghostButtonClass =
 export function FixtureAdmin({
   initialView,
   initialAudit,
+  exportHref,
 }: {
   initialView: FixtureView
   initialAudit: AuditEntry[]
+  exportHref: string
 }) {
   const router = useRouter()
   const [view, setView] = useState(initialView)
@@ -97,12 +99,21 @@ export function FixtureAdmin({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-2xl font-bold">Fixture · {view.seasonName}</h1>
-        <p className="mt-1 text-sm text-kelme-gray-600">
-          Carga resultados, revisa las tablas y los cruces de definición se arman solos cuando los
-          dos grupos terminan.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold">Fixture · {view.seasonName}</h1>
+          <p className="mt-1 text-sm text-kelme-gray-600">
+            Carga resultados, revisa las tablas y los cruces de definición se arman solos cuando los
+            dos grupos terminan.
+          </p>
+        </div>
+        <a
+          href={exportHref}
+          download
+          className="rounded-xl border border-kelme-border px-4 py-2 text-sm font-semibold hover:bg-[#121A18]"
+        >
+          Exportar a Excel
+        </a>
       </div>
 
       {notice ? (

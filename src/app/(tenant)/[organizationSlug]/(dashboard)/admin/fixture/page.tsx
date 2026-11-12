@@ -38,5 +38,9 @@ export default async function AdminFixturePage({
 
   const [view, audit] = await Promise.all([getFixtureView(seasonId), listFixtureAudit(seasonId)])
 
-  return <FixtureAdmin initialView={view} initialAudit={audit} />
+  return <FixtureAdmin
+      initialView={view}
+      initialAudit={audit}
+      exportHref={`/api/public/fixture/${organizationSlug}/export`}
+    />
 }
