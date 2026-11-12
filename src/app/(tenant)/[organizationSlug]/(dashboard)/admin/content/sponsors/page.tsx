@@ -63,6 +63,7 @@ export default async function AdminSponsorsPage({
       {selectedSeasonId ? (
         <>
           <SponsorForm
+            key={editing ? `${editing.id}:${editing.updatedAt.getTime()}` : 'nuevo'}
             seasonId={selectedSeasonId}
             sponsorId={editing?.id}
             initial={

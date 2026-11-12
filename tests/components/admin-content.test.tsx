@@ -44,6 +44,11 @@ describe('admin content workspace', () => {
     expect(read('src/components/admin/content/SponsorsTable.tsx')).toContain('edit=${')
   })
 
+  it('remounts the sponsor form per sponsor so editing loads that sponsor data', () => {
+    const page = read('src/app/(tenant)/[organizationSlug]/(dashboard)/admin/content/sponsors/page.tsx')
+    expect(page).toMatch(/<SponsorForm[^>]*key={/)
+  })
+
   it('uploads edition logo through admin mobile logo route', () => {
     expect(read('src/components/admin/content/MobileEditionLogoUpload.tsx')).toContain(
       '/api/admin/seasons/${seasonId}/mobile/logo',
