@@ -7,10 +7,11 @@ export function KelmeCupInvite() {
       <div className="mx-auto w-[min(1180px,calc(100%-32px))] rounded-[24px] border border-[#1A7AE8]/20 bg-white p-6 shadow-[0_12px_32px_rgba(26,122,232,0.08)] sm:p-8">
         <div className="grid gap-5 md:grid-cols-[1.1fr_0.9fr] md:items-center">
           <div>
-            <p className="font-script text-2xl font-semibold text-[#1A7AE8] sm:text-[28px]">
+            <p className="border-l-4 border-[#4b9deb] pl-3 text-[13px] font-extrabold uppercase tracking-[0.19em] text-[#1A7AE8]">Inscripciones abiertas</p>
+            <p className="mt-3 font-display text-[clamp(30px,4vw,44px)] font-black uppercase italic leading-[0.95] tracking-[-0.02em] text-[#0B3D8F]">
               ¿Tu club o colegio se suma?
             </p>
-            <p className="mt-1 text-sm text-[#2c4a73]">
+            <p className="mt-2 text-sm text-[#2c4a73]">
               Cupos limitados por categoría — confirma tu equipo a la brevedad.
             </p>
             <p className="mt-3 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-[#0B3D8F]">
@@ -40,7 +41,7 @@ export function KelmeCupInvite() {
         </div>
       </div>
 
-      <p className="mx-auto mt-6 flex w-[min(1180px,calc(100%-32px))] items-center justify-end gap-2 font-script text-xl text-[#123a6b] sm:text-2xl">
+      <p className="mx-auto mt-6 flex w-[min(1180px,calc(100%-32px))] items-center justify-end gap-2 font-display text-lg font-extrabold uppercase italic tracking-[0.04em] text-[#123a6b] sm:text-xl">
         ¡Nos vemos en la cancha!
         <KelmePawMark className="h-6 w-6 text-[#111]" />
         <span className="font-display text-sm font-bold uppercase tracking-[0.16em]">Kelme</span>

@@ -13,7 +13,7 @@ export function KelmeCupResults({ results, slug }: { results: Result[]; slug: st
   return (
     <section id="resultados" className="scroll-mt-24 bg-[#f4f9ff] py-8 text-[#123a6b]">
       <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
-        <p className="font-script text-2xl text-[#1A7AE8]">Resultados</p>
+        <p className="border-l-4 border-[#4b9deb] pl-3 text-[13px] font-extrabold uppercase tracking-[0.19em] text-[#1A7AE8]">Resultados</p>
         <h2 className="mt-1 font-display text-[28px] font-bold uppercase tracking-[-0.03em] text-[#0B3D8F]">
           Últimos partidos
         </h2>
