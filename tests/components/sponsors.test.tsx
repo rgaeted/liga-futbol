@@ -64,6 +64,23 @@ describe('SponsorCards', () => {
     expect(html).toContain('/api/public/sponsors/of1/click?to=cta')
     expect(html).not.toContain('/api/public/sponsors/of2/click?to=cta')
   })
+
+  it('muestra el nombre de cada auspiciador aunque tenga logo y destaca al principal', () => {
+    const withLogos: LandingSponsors = {
+      ...SPONSORS,
+      main: [sponsor({ id: 'main', name: 'Ferretería Principal', tier: 'MAIN', logoUrl: '/main.png' })],
+      official: [sponsor({ id: 'of1', name: 'Glaciares en Patagonia', logoUrl: '/of1.png' })],
+    }
+    const text = renderToStaticMarkup(<SponsorCards sponsors={withLogos} tone="kelme" />)
+    expect(text).toContain('Auspiciador principal')
+    expect(text).toContain('>Ferretería Principal<')
+    expect(text).toContain('>Glaciares en Patagonia<')
+    expect(text).toContain('/main.png')
+  })
+
+  it('reparte los auspiciadores oficiales en todo el ancho, sea cual sea su cantidad', () => {
+    expect(html).toContain('auto-fit')
+  })
 })
 
 function fixtureMatch(overrides: Partial<FixtureViewMatch> & { id: string }): FixtureViewMatch {
