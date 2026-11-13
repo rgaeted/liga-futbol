@@ -78,8 +78,14 @@ describe('SponsorCards', () => {
     expect(text).toContain('/main.png')
   })
 
-  it('reparte los auspiciadores oficiales en todo el ancho, sea cual sea su cantidad', () => {
-    expect(html).toContain('auto-fit')
+  it('muestra una valla por auspiciador con un único enlace dentro del marco', () => {
+    expect(html.match(/<article/g)).toHaveLength(3)
+    expect(html).toContain('Socio del torneo')
+    // Sin botón propio, la valla ofrece "Conoce a …" hacia el sitio web.
+    expect(html).toContain('Conoce a Sin Boton')
+    expect(html).toContain('/api/public/sponsors/of2/click?to=web')
+    expect(html.match(/<a /g)).toHaveLength(3)
+    expect(html).toMatch(/rel="[^"]*noreferrer[^"]*"/)
   })
 })
 
