@@ -15,7 +15,7 @@ import {
 import { useLiveMatchSnapshot } from '@/hooks/useLiveMatchSnapshot'
 import { sortTimelineEvents } from '@/lib/match-timeline-sort'
 import { footballFormatLabel } from '@/lib/football-format'
-import { LOSLUNES_SLUG } from '@/lib/org-brand'
+import { KELME_SLUG, LOSLUNES_SLUG } from '@/lib/org-brand'
 import { MatchType } from '@prisma/client'
 import type { LiveMatchSnapshot } from '@/lib/live-match-snapshot'
 import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
@@ -160,6 +160,7 @@ export function LiveScoreboard({
   })
 
   const premium = organizationSlug === LOSLUNES_SLUG
+  const kelme = organizationSlug === KELME_SLUG
 
   const paidByPlayerId =
     match.matchType === MatchType.FRIENDLY ? match.friendlyPaidByPlayerId : undefined
@@ -184,10 +185,20 @@ export function LiveScoreboard({
   return (
     <div
       className={`relative min-h-screen ${
-        premium ? 'bg-[#050403] text-white' : 'bg-[#0B1210] text-[#E8E4D8]'
+        premium
+          ? 'bg-[#050403] text-white'
+          : kelme
+            ? 'kelme-live kelme-type'
+            : 'bg-[#0B1210] text-[#E8E4D8]'
       }`}
     >
       {premium ? <LosLunesPageBackdrop /> : null}
+      {kelme ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_85%_0%,rgba(26,156,240,0.32),transparent_55%),radial-gradient(circle_at_0%_30%,rgba(26,122,232,0.22),transparent_50%)]"
+        />
+      ) : null}
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-8">
         {organizationSlug ? (

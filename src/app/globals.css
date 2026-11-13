@@ -189,3 +189,32 @@ body {
 .kelme-type .font-display {
   font-family: var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
 }
+
+/*
+ * En vivo de la Kelme Cup: mismos colores y tipografías que el landing.
+ * Los componentes del en vivo usan las variables de paleta (--night, --turf, --line, --flood, --mist)
+ * y sus equivalentes en hexadecimal; aquí se reemplazan por el azul marino del hero del landing.
+ */
+.kelme-live {
+  --night: #0a1f44;
+  --turf: #123a6b;
+  --line: #2f5f9e;
+  --flood: #f4f9ff;
+  --mist: #a9c4e8;
+  --org-primary: #4b9deb;
+  --color-kelme-live-bg: #0a1f44;
+  --color-kelme-live-surface: #123a6b;
+  --color-kelme-surface: #123a6b;
+  --color-kelme-border: #2f5f9e;
+  --color-org-primary: #4b9deb;
+  background-color: #0a1f44;
+  color: #f4f9ff;
+}
+
+.kelme-live .bg-\[\#0B1210\] { background-color: #0a1f44; }
+.kelme-live .bg-\[\#121A18\] { background-color: #123a6b; }
+.kelme-live .border-\[\#2A3A32\] { border-color: #2f5f9e; }
+.kelme-live .text-\[\#E8E4D8\] { color: #f4f9ff; }
+.kelme-live .text-\[\#8A938C\] { color: #a9c4e8; }
+.kelme-live .bg-\[\#8A938C\] { background-color: #a9c4e8; }
+.kelme-live .text-amber-200\/75 { color: #87c4ff; }
