@@ -146,6 +146,11 @@ describe('live match snapshot', () => {
     })
   })
 
+  it('incluye el número de cancha del partido', () => {
+    expect(buildLiveMatchSnapshot({ ...match, court: 3 }).court).toBe(3)
+    expect(buildLiveMatchSnapshot({ ...match, court: null }).court).toBeNull()
+  })
+
   it('serializes rosters with photos before formations exist', () => {
     const leagueMatch = {
       ...match,

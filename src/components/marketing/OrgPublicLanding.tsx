@@ -523,7 +523,7 @@ export function OrgPublicLanding({
           </div>
         </section>
 
-        {nextMatch ? (
+        {nextMatch && !isKelme ? (
           <section className="py-[26px]">
             <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
               <div className="mb-4">

@@ -111,6 +111,8 @@ export type LiveMatchSnapshot = {
   homeCoachLabel: string | null
   awayCoachLabel: string | null
   venue: string | null
+  /** Número de cancha del partido (fixtures por canchas), si lo tiene. */
+  court: number | null
   locationLabel: string | null
   dateLine: string
   weather: LiveMatchWeather | null
@@ -501,6 +503,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
     homeCoachLabel,
     awayCoachLabel,
     venue: match.venue,
+    court: match.court,
     locationLabel: formatChileLocation(match.regionName, match.communeName),
     dateLine: formatLandingCardDate(match.scheduledAt),
     weather,
