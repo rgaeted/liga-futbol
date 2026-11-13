@@ -1,3 +1,4 @@
+import { getCourtSponsor } from '@/lib/sponsors/landing-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FootballFormat, MatchStatus, MatchType } from '@prisma/client'
 import { db } from '@/lib/db'
@@ -7,6 +8,7 @@ import {
   type LiveMatchRecord,
 } from '@/lib/live-match-snapshot'
 
+vi.mock('@/lib/sponsors/landing-query', () => ({ getCourtSponsor: vi.fn() }))
 vi.mock('@/lib/db', () => ({
   db: { match: { findUnique: vi.fn() } },
 }))
@@ -144,6 +146,29 @@ describe('live match snapshot', () => {
         windKmh: 9,
       },
     })
+  })
+
+  it('incluye al auspiciador de la cancha solo si el partido tiene temporada y cancha', async () => {
+    vi.mocked(getCourtSponsor).mockResolvedValue({
+      id: 's',
+      name: 'Ferretería X',
+      tier: 'OFFICIAL',
+      logoUrl: '/x.png',
+      tagline: null,
+      ctaLabel: null,
+      hasCta: false,
+      hasWebsite: true,
+    })
+    vi.mocked(db.match.findUnique).mockResolvedValue({ ...match, seasonId: 'season-1', court: 2 } as never)
+    const withSponsor = await getLiveMatchSnapshot('match-1')
+    expect(getCourtSponsor).toHaveBeenCalledWith('season-1', 2)
+    expect(withSponsor?.courtSponsor).toEqual({ name: 'Ferretería X', logoUrl: '/x.png' })
+
+    vi.mocked(getCourtSponsor).mockClear()
+    vi.mocked(db.match.findUnique).mockResolvedValue({ ...match, seasonId: 'season-1', court: null } as never)
+    const withoutCourt = await getLiveMatchSnapshot('match-1')
+    expect(getCourtSponsor).not.toHaveBeenCalled()
+    expect(withoutCourt?.courtSponsor).toBeNull()
   })
 
   it('incluye el número de cancha del partido', () => {

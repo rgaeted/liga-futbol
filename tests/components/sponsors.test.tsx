@@ -4,6 +4,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { LiveMatchContextBar } from '@/components/live/LiveMatchContextBar'
 import { KelmeCupFixture } from '@/components/marketing/KelmeCupFixture'
 import { SponsorCards } from '@/components/marketing/sponsors/SponsorCards'
 import { SponsorStrip } from '@/components/marketing/sponsors/SponsorStrip'
@@ -158,6 +159,27 @@ describe('KelmeCupFixture con auspiciadores', () => {
     expect(plain).not.toContain('presentad')
     expect(plain).not.toContain('undefined')
     expect(plain).toContain('Cancha 1')
+  })
+})
+
+describe('LiveMatchContextBar con auspiciador de cancha', () => {
+  it('muestra "Cancha presentada por" con el nombre y el logo', () => {
+    const html = renderToStaticMarkup(
+      <LiveMatchContextBar
+        venue="Cancha 1 · Colegio"
+        locationLabel={null}
+        weather={null}
+        courtSponsor={{ name: 'Ferretería X', logoUrl: '/x.png' }}
+      />,
+    ).replace(/<!-- -->/g, '')
+    expect(html).toContain('Cancha presentada por')
+    expect(html).toContain('Ferretería X')
+    expect(html).toContain('/x.png')
+  })
+
+  it('no muestra nada de auspicio sin auspiciador', () => {
+    const html = renderToStaticMarkup(<LiveMatchContextBar venue="Cancha 1" locationLabel={null} weather={null} />)
+    expect(html).not.toContain('presentada por')
   })
 })
 

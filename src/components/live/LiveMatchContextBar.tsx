@@ -92,6 +92,8 @@ function ContextPill({
   icon: ReactNode
   children: ReactNode
   premium?: boolean
+  /** Auspiciador que da nombre a la cancha. */
+  courtSponsor?: { name: string; logoUrl: string | null } | null
 }) {
   return (
     <span
@@ -112,10 +114,12 @@ type Props = {
   locationLabel: string | null
   weather: LiveMatchWeather | null
   premium?: boolean
+  /** Auspiciador que da nombre a la cancha. */
+  courtSponsor?: { name: string; logoUrl: string | null } | null
 }
 
-export function LiveMatchContextBar({ venue, locationLabel, weather, premium = false }: Props) {
-  const hasLocation = Boolean(venue || locationLabel)
+export function LiveMatchContextBar({ venue, locationLabel, weather, premium = false, courtSponsor = null }: Props) {
+  const hasLocation = Boolean(venue || locationLabel || courtSponsor)
   const hasWeather = weather !== null
 
   if (!hasLocation && !hasWeather) return null
@@ -152,6 +156,16 @@ export function LiveMatchContextBar({ venue, locationLabel, weather, premium = f
                 ) : null}
                 {venue && locationLabel ? <span className="text-[#8A938C]/60"> · </span> : null}
                 {locationLabel ? <span>{locationLabel}</span> : null}
+              {courtSponsor ? (
+                <span className="mt-1 flex items-center justify-center gap-2 text-xs text-[#8A938C] sm:mt-0 sm:ml-3 sm:inline-flex">
+                  Cancha presentada por
+                  {courtSponsor.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={courtSponsor.logoUrl} alt="" className="h-6 w-auto rounded bg-white/90 object-contain px-1" />
+                  ) : null}
+                  <span className="font-display font-semibold text-[#E8E4D8]">{courtSponsor.name}</span>
+                </span>
+              ) : null}
               </p>
             </div>
           )}

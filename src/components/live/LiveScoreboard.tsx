@@ -198,6 +198,7 @@ export function LiveScoreboard({
               venue={[match.court ? `Cancha ${match.court}` : null, match.venue].filter(Boolean).join(' · ') || null}
               locationLabel={match.locationLabel}
               weather={match.weather}
+              courtSponsor={match.courtSponsor}
             />
           </>
         )}

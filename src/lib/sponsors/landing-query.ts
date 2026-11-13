@@ -1,7 +1,9 @@
 import { db } from '@/lib/db'
 import {
   buildLandingSponsors,
+  courtTarget,
   pickLandingSeasonId,
+  type LandingSponsor,
   type LandingSponsors,
   type SponsorRowForLanding,
 } from '@/lib/sponsors/landing'
@@ -64,4 +66,25 @@ export async function getLandingSponsors(
 export async function getLandingSponsorsBySlug(slug: string): Promise<LandingSponsors | null> {
   const organization = await db.organization.findUnique({ where: { slug }, select: { id: true } })
   return organization ? getLandingSponsors(organization.id) : null
+}
+
+/** Auspiciador que da nombre a una cancha de la temporada (p. ej. en la página en vivo), si lo hay y está vigente. */
+export async function getCourtSponsor(
+  seasonId: string,
+  court: number,
+  now: Date = new Date(),
+): Promise<LandingSponsor | null> {
+  const target = courtTarget(court)
+  const assignment = await db.sponsorAssignment.findFirst({
+    where: { seasonId, target },
+    select: { seasonId: true, target: true, sponsorId: true },
+  })
+  if (!assignment) return null
+  const sponsor: SponsorRowForLanding | null = await db.sponsor.findFirst({
+    where: { id: assignment.sponsorId, seasonId },
+    select: SPONSOR_SELECT,
+  })
+  if (!sponsor) return null
+  const result = buildLandingSponsors({ seasonId, sponsors: [sponsor], assignments: [assignment], now })
+  return result?.byTargetBySeason[seasonId]?.[target] ?? null
 }

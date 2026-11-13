@@ -1,6 +1,7 @@
 import { MatchType, type FootballFormat, type Prisma } from '@prisma/client'
 import { editorialPublicUrl } from '@/lib/editorial/urls'
 import { db } from '@/lib/db'
+import { getCourtSponsor } from '@/lib/sponsors/landing-query'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 import { formatChileLocation } from '@/lib/chile-locations'
 import {
@@ -113,6 +114,8 @@ export type LiveMatchSnapshot = {
   venue: string | null
   /** Número de cancha del partido (fixtures por canchas), si lo tiene. */
   court: number | null
+  /** Auspiciador que da nombre a la cancha, si la cancha tiene uno asignado. */
+  courtSponsor: { name: string; logoUrl: string | null } | null
   locationLabel: string | null
   dateLine: string
   weather: LiveMatchWeather | null
@@ -504,6 +507,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
     awayCoachLabel,
     venue: match.venue,
     court: match.court,
+    courtSponsor: null,
     locationLabel: formatChileLocation(match.regionName, match.communeName),
     dateLine: formatLandingCardDate(match.scheduledAt),
     weather,
@@ -557,5 +561,10 @@ export async function getLiveMatchSnapshot(
   })
   if (!match) return null
   if (organizationSlug && match.organization.slug !== organizationSlug) return null
-  return buildLiveMatchSnapshot(match)
+  const snapshot = buildLiveMatchSnapshot(match)
+  if (match.seasonId && match.court) {
+    const sponsor = await getCourtSponsor(match.seasonId, match.court)
+    if (sponsor) snapshot.courtSponsor = { name: sponsor.name, logoUrl: sponsor.logoUrl }
+  }
+  return snapshot
 }
