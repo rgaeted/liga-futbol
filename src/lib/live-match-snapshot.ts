@@ -114,6 +114,8 @@ export type LiveMatchSnapshot = {
   venue: string | null
   /** Número de cancha del partido (fixtures por canchas), si lo tiene. */
   court: number | null
+  /** Categoría del partido (p. ej. "2017-2016"), si la tiene. */
+  categoryName: string | null
   /** Auspiciador que da nombre a la cancha, si la cancha tiene uno asignado. */
   courtSponsor: { name: string; logoUrl: string | null } | null
   locationLabel: string | null
@@ -131,6 +133,8 @@ const LIVE_MATCH_INCLUDE = {
   homeTeam: { include: { coach: { select: { name: true } } } },
   awayTeam: { include: { coach: { select: { name: true } } } },
   formations: true,
+  seasonCategory: { select: { category: { select: { name: true } } } },
+  friendlyCategory: { select: { name: true } },
   callUps: {
     include: {
       player: {
@@ -507,6 +511,7 @@ export function buildLiveMatchSnapshot(match: LiveMatchRecord): LiveMatchSnapsho
     awayCoachLabel,
     venue: match.venue,
     court: match.court,
+    categoryName: match.seasonCategory?.category.name ?? match.friendlyCategory?.name ?? null,
     courtSponsor: null,
     locationLabel: formatChileLocation(match.regionName, match.communeName),
     dateLine: formatLandingCardDate(match.scheduledAt),

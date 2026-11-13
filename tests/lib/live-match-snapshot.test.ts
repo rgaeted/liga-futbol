@@ -171,6 +171,14 @@ describe('live match snapshot', () => {
     expect(withoutCourt?.courtSponsor).toBeNull()
   })
 
+  it('incluye la categoría del partido (de la temporada o amistosa)', () => {
+    const fromSeason = { ...match, seasonCategory: { category: { name: '2017-2016' } } } as never
+    expect(buildLiveMatchSnapshot(fromSeason).categoryName).toBe('2017-2016')
+    const friendly = { ...match, seasonCategory: null, friendlyCategory: { name: 'Sub-10' } } as never
+    expect(buildLiveMatchSnapshot(friendly).categoryName).toBe('Sub-10')
+    expect(buildLiveMatchSnapshot({ ...match, seasonCategory: null, friendlyCategory: null } as never).categoryName).toBeNull()
+  })
+
   it('incluye el número de cancha del partido', () => {
     expect(buildLiveMatchSnapshot({ ...match, court: 3 }).court).toBe(3)
     expect(buildLiveMatchSnapshot({ ...match, court: null }).court).toBeNull()

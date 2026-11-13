@@ -59,6 +59,13 @@ function DefaultScoreboardBody({
 }) {
   return (
     <>
+      {match.categoryName ? (
+        <p className="mb-2 text-center">
+          <span className="inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1 font-ui text-xs font-bold uppercase tracking-[0.18em] text-[#E8E4D8]">
+            Categoría {match.categoryName.replace('-', '–')}
+          </span>
+        </p>
+      ) : null}
       <p className="mb-2 text-center font-ui text-sm uppercase tracking-widest text-org-primary">
         {isLive ? (
           <span className="live-pulse inline-flex items-center gap-2">

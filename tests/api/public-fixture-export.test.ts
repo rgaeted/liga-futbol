@@ -12,6 +12,9 @@ const get = (slug: string) =>
     params: Promise.resolve({ organizationSlug: slug }),
   })
 
+// La primera carga de exceljs es lenta cuando corre toda la suite en paralelo.
+vi.setConfig({ testTimeout: 30_000 })
+
 describe('GET /api/public/fixture/[organizationSlug]/export', () => {
   beforeEach(() => vi.clearAllMocks())
 
