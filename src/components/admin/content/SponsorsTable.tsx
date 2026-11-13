@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { SponsorLogoUpload } from '@/components/admin/content/SponsorLogoUpload'
 import { submitJson } from '@/components/admin/submit'
 import { useOrgPath } from '@/hooks/useOrgPath'
 
@@ -16,18 +17,33 @@ type SponsorRow = {
   startsAt: string | null
   endsAt: string | null
   stats: { current: { views: number; clicks: number }; previous: { views: number; clicks: number } }
+  /** Logo con versión (o null si no tiene). */
+  logoUrl: string | null
 }
 
 export function SponsorsTable({
   seasonId,
   sponsors,
+  selectedId = null,
 }: {
   seasonId: string
   sponsors: SponsorRow[]
+  /** Auspiciador que se está editando, para marcarlo en la lista. */
+  selectedId?: string | null
 }) {
   const orgPath = useOrgPath()
   return (
-    <div className="overflow-hidden rounded-lg border border-kelme-border">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-lg font-semibold">Patrocinadores de la temporada</h2>
+        <Link
+          href={orgPath(`/admin/content/sponsors?season=${seasonId}#editor`)}
+          className="rounded-xl bg-org-primary px-4 py-2 text-sm font-extrabold text-[#E8E4D8] transition hover:brightness-110"
+        >
+          + Nuevo patrocinador
+        </Link>
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-kelme-border">
       <table className="min-w-full text-sm">
         <thead className="bg-kelme-gray-100">
           <tr>
@@ -43,12 +59,26 @@ export function SponsorsTable({
         </thead>
         <tbody>
           {sponsors.map((sponsor) => (
-            <tr key={sponsor.id} className="border-t border-kelme-border">
+            <tr
+              key={sponsor.id}
+              aria-current={sponsor.id === selectedId ? 'true' : undefined}
+              className={`border-t border-kelme-border ${
+                sponsor.id === selectedId ? 'bg-[color:var(--org-primary)]/10' : ''
+              }`}
+            >
               <td className="p-3">
                 <Link
-                  href={orgPath(`/admin/content/sponsors?season=${seasonId}&edit=${sponsor.id}`)}
-                  className="text-kelme-red hover:underline"
+                  href={orgPath(`/admin/content/sponsors?season=${seasonId}&edit=${sponsor.id}#editor`)}
+                  className="flex items-center gap-3 text-kelme-red hover:underline"
                 >
+                  <span className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-kelme-border bg-[#0B1210] text-[10px] text-[#8A938C]">
+                    {sponsor.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={sponsor.logoUrl} alt="" className="h-full w-full object-contain p-0.5" />
+                    ) : (
+                      'Sin logo'
+                    )}
+                  </span>
                   {sponsor.name}
                 </Link>
               </td>
@@ -73,6 +103,7 @@ export function SponsorsTable({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -81,9 +112,12 @@ export function SponsorForm({
   seasonId,
   sponsorId,
   initial,
+  logoUrl = null,
 }: {
   seasonId: string
   sponsorId?: string
+  /** Logo actual (con versión) del auspiciador que se edita. */
+  logoUrl?: string | null
   initial?: {
     name: string
     websiteUrl: string
@@ -164,10 +198,27 @@ export function SponsorForm({
   }
 
   return (
-    <section className="space-y-4 rounded-lg border border-kelme-border p-4">
-      <h2 className="font-display text-lg font-semibold">
-        {sponsorId ? 'Editar patrocinador' : 'Nuevo patrocinador'}
-      </h2>
+    <section id="editor" className="scroll-mt-24 space-y-4 rounded-lg border border-kelme-border p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-lg font-semibold">
+          {sponsorId ? `Editando: ${initial?.name ?? ''}` : 'Nuevo patrocinador'}
+        </h2>
+        {sponsorId ? (
+          <Link
+            href={orgPath(`/admin/content/sponsors?season=${seasonId}`)}
+            className="rounded-lg border border-kelme-border px-3 py-1.5 text-sm font-semibold hover:bg-[#121A18]"
+          >
+            Cerrar
+          </Link>
+        ) : null}
+      </div>
+      {sponsorId ? (
+        <SponsorLogoUpload seasonId={seasonId} sponsorId={sponsorId} logoUrl={logoUrl} />
+      ) : (
+        <p className="rounded-lg border border-dashed border-kelme-border p-3 text-sm text-[#8A938C]">
+          Guarda el patrocinador para poder subir su logo.
+        </p>
+      )}
       <label className="block space-y-1 text-sm">
         <span>Nombre</span>
         <input

@@ -1,7 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { ContentSeasonBar } from '@/components/admin/content/ContentSeasonBar'
 import { SponsorAssignments } from '@/components/admin/content/SponsorAssignments'
-import { SponsorLogoUpload } from '@/components/admin/content/SponsorLogoUpload'
 import { SponsorForm, SponsorsTable } from '@/components/admin/content/SponsorsTable'
 import { db } from '@/lib/db'
 import { listSponsorAssignmentSlots, listSponsorStats } from '@/lib/editorial/sponsors'
@@ -9,6 +8,12 @@ import { editorialPublicUrl } from '@/lib/editorial/urls'
 import { resolveSelectedSeasonId } from '@/lib/sponsors/season-select'
 import { orgPath } from '@/lib/tenant-paths'
 import { requireOrganizationId } from '@/lib/tenant-access'
+
+/** Logo del auspiciador con versión, para que un logo reemplazado se vea de inmediato. */
+function sponsorLogoUrl(sponsor: { logoStoragePath: string | null; updatedAt: Date }): string | null {
+  const url = editorialPublicUrl(sponsor.logoStoragePath)
+  return url ? `${url}?v=${sponsor.updatedAt.getTime()}` : null
+}
 
 export default async function AdminSponsorsPage({
   params,
@@ -62,10 +67,27 @@ export default async function AdminSponsorsPage({
       />
       {selectedSeasonId ? (
         <>
+          <SponsorsTable
+            seasonId={selectedSeasonId}
+            selectedId={editing?.id ?? null}
+            sponsors={sponsors.map((sponsor) => ({
+              id: sponsor.id,
+              name: sponsor.name,
+              placement: sponsor.placement,
+              tier: sponsor.tier,
+              showOnLanding: sponsor.showOnLanding,
+              isActive: sponsor.isActive,
+              startsAt: sponsor.startsAt?.toISOString() ?? null,
+              endsAt: sponsor.endsAt?.toISOString() ?? null,
+              stats: stats[sponsor.id] ?? emptyStats,
+              logoUrl: sponsorLogoUrl(sponsor),
+            }))}
+          />
           <SponsorForm
-            key={editing ? `${editing.id}:${editing.updatedAt.getTime()}` : 'nuevo'}
+            key={editing?.id ?? 'nuevo'}
             seasonId={selectedSeasonId}
             sponsorId={editing?.id}
+            logoUrl={editing ? sponsorLogoUrl(editing) : null}
             initial={
               editing
                 ? {
@@ -85,32 +107,6 @@ export default async function AdminSponsorsPage({
                   }
                 : undefined
             }
-          />
-          {editing ? (
-            <SponsorLogoUpload
-              key={`${editing.id}:${editing.updatedAt.getTime()}`}
-              seasonId={selectedSeasonId}
-              sponsorId={editing.id}
-              logoUrl={
-                editing.logoStoragePath
-                  ? `${editorialPublicUrl(editing.logoStoragePath)}?v=${editing.updatedAt.getTime()}`
-                  : null
-              }
-            />
-          ) : null}
-          <SponsorsTable
-            seasonId={selectedSeasonId}
-            sponsors={sponsors.map((sponsor) => ({
-              id: sponsor.id,
-              name: sponsor.name,
-              placement: sponsor.placement,
-              tier: sponsor.tier,
-              showOnLanding: sponsor.showOnLanding,
-              isActive: sponsor.isActive,
-              startsAt: sponsor.startsAt?.toISOString() ?? null,
-              endsAt: sponsor.endsAt?.toISOString() ?? null,
-              stats: stats[sponsor.id] ?? emptyStats,
-            }))}
           />
           <SponsorAssignments
             key={slots.map((slot) => `${slot.target}:${slot.sponsorId ?? ''}`).join('|')}

@@ -17,7 +17,7 @@ export function SponsorLogoUpload({
   const url = `/api/admin/seasons/${seasonId}/sponsors/${sponsorId}/logo`
 
   return (
-    <section className="space-y-2 rounded-lg border border-kelme-border p-4">
+    <div className="space-y-2">
       <EditorialImageUpload
         label="Logo del auspiciador"
         fieldName="logo"
@@ -29,6 +29,6 @@ export function SponsorLogoUpload({
       <p className="text-xs text-kelme-gray-600">
         JPG, PNG o WebP. Se ve mejor un logo con fondo transparente o blanco.
       </p>
-    </section>
+    </div>
   )
 }

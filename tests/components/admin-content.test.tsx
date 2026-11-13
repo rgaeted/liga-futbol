@@ -39,8 +39,8 @@ describe('admin content workspace', () => {
 
   it('shows the logo upload when editing a sponsor and goes to edit after creating one', () => {
     const page = read('src/app/(tenant)/[organizationSlug]/(dashboard)/admin/content/sponsors/page.tsx')
-    expect(page).toContain('SponsorLogoUpload')
-    expect(page).toContain('editing')
+    expect(page).toContain('logoUrl={editing')
+    expect(read('src/components/admin/content/SponsorsTable.tsx')).toContain('SponsorLogoUpload')
     expect(read('src/components/admin/content/SponsorsTable.tsx')).toContain('edit=${')
   })
 
