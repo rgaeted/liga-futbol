@@ -14,12 +14,13 @@ const TONES = {
     boardMain:
       'border-[#6aa9ff] bg-[#f9fbff] text-[#0d2349] shadow-[inset_0_0_0_5px_#d8e8ff,0_0_44px_rgba(67,141,240,0.55)]',
     diagonal: 'bg-[linear-gradient(115deg,transparent_0%,rgba(67,141,240,0.10)_100%)]',
-    logoBox: 'bg-[#f2f4f7]',
+    logoRing: 'ring-white',
+    logoFallback: 'bg-[#0B3D8F] text-white',
+    arrow: 'bg-[#1e5bbb] text-white shadow-lg',
     meta: 'text-[#2462a8]',
     name: 'text-[#0d2349]',
     text: 'text-[#0B3D8F]',
     tagline: 'text-[#4a5a75]',
-    button: 'bg-[#1e5bbb] text-white hover:bg-[#0B3D8F] focus-visible:outline-[#1e5bbb]',
     footer: 'text-[#aac2e7]',
   },
   org: {
@@ -31,42 +32,18 @@ const TONES = {
     board: 'border-[#2a302d] bg-[#161917] text-[#f4f5f2]',
     boardMain: 'border-[var(--org-primary)] bg-[#161917] text-[#f4f5f2] shadow-[0_0_30px_rgba(255,255,255,0.08)]',
     diagonal: 'bg-[linear-gradient(115deg,transparent_0%,rgba(255,255,255,0.04)_100%)]',
-    logoBox: 'bg-[#0e110f]',
+    logoRing: 'ring-[#2a302d]',
+    logoFallback: 'bg-[#0e110f] text-[#f4f5f2]',
+    arrow: 'bg-org-primary text-[#0a0c0b]',
     meta: 'text-[#9ca59f]',
     name: 'text-[#f4f5f2]',
     text: 'text-[#f4f5f2]',
     tagline: 'text-[#9ca59f]',
-    button: 'bg-org-primary text-[#0a0c0b] hover:brightness-110 focus-visible:outline-[var(--org-primary)]',
     footer: 'text-[#9ca59f]',
   },
 } as const
 
-/** Botón dentro de la valla: el del auspiciador si lo configuró, o "Conoce a …" hacia su sitio web. */
-function BoardLink({ sponsor, className }: { sponsor: LandingSponsor; className: string }) {
-  let to: 'cta' | 'web'
-  let label: string
-  if (sponsor.hasCta && sponsor.ctaLabel) {
-    to = 'cta'
-    label = sponsor.ctaLabel
-  } else if (sponsor.hasWebsite) {
-    to = 'web'
-    label = `Conoce a ${sponsor.name}`
-  } else {
-    return null
-  }
-  return (
-    <a
-      href={sponsorClickHref(sponsor.id, to)}
-      target="_blank"
-      rel="sponsored noopener noreferrer"
-      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-extrabold uppercase tracking-[0.05em] transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 active:translate-y-0 ${className}`}
-    >
-      {label}
-      <span aria-hidden>↗</span>
-    </a>
-  )
-}
-
+/** Valla completa clicable: un único enlace por auspiciador (su botón configurado o su sitio web). */
 function Billboard({
   sponsor,
   tone,
@@ -77,24 +54,25 @@ function Billboard({
   featured: boolean
 }) {
   const styles = TONES[tone]
-  return (
-    <article
-      className={`relative isolate grid items-center gap-5 overflow-hidden rounded-2xl border-2 p-5 sm:p-6 md:min-h-[190px] md:grid-cols-[minmax(200px,240px)_1fr_auto] md:gap-8 md:px-8 ${
-        featured ? styles.boardMain : styles.board
-      }`}
-    >
+  const to = sponsor.hasCta ? 'cta' : sponsor.hasWebsite ? 'web' : null
+  const label = sponsor.hasCta && sponsor.ctaLabel ? sponsor.ctaLabel : `Conoce a ${sponsor.name}`
+
+  const content = (
+    <>
       <div className={`pointer-events-none absolute inset-0 -z-10 ${styles.diagonal}`} aria-hidden />
-      <div className={`flex h-36 items-center justify-center rounded-xl p-4 sm:h-40 ${styles.logoBox}`}>
+      <div className="flex items-center justify-center">
         {sponsor.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={sponsor.logoUrl}
             alt={sponsor.name}
             loading="lazy"
-            className={`h-28 w-auto max-w-full object-contain sm:h-32 ${tone === 'kelme' ? 'mix-blend-multiply' : ''}`}
+            className={`h-36 w-auto max-w-full rounded-2xl object-contain shadow-[0_10px_26px_rgba(8,23,53,0.28)] ring-4 transition duration-300 group-hover:scale-[1.03] sm:h-40 ${styles.logoRing}`}
           />
         ) : (
-          <span className={`font-display text-3xl font-black uppercase italic tracking-wide ${styles.text}`}>
+          <span
+            className={`flex h-36 w-full items-center justify-center rounded-2xl px-4 text-center font-display text-3xl font-black uppercase italic tracking-wide sm:h-40 ${styles.logoFallback}`}
+          >
             {sponsor.name}
           </span>
         )}
@@ -114,10 +92,40 @@ function Billboard({
           <p className={`text-base font-semibold leading-snug sm:text-lg ${styles.tagline}`}>{sponsor.tagline}</p>
         ) : null}
       </div>
-      <BoardLink sponsor={sponsor} className={`w-full md:w-auto ${styles.button}`} />
+      {to ? (
+        <span
+          aria-hidden
+          className={`hidden h-14 w-14 items-center justify-center justify-self-end rounded-full text-2xl font-bold transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 md:flex ${styles.arrow}`}
+        >
+          ↗
+        </span>
+      ) : null}
+    </>
+  )
+
+  const layout = `relative isolate grid items-center gap-5 overflow-hidden rounded-2xl border-2 p-5 sm:p-6 md:min-h-[190px] md:grid-cols-[minmax(200px,240px)_1fr_auto] md:gap-8 md:px-8 ${
+    featured ? styles.boardMain : styles.board
+  }`
+
+  return (
+    <article>
+      {to ? (
+        <a
+          href={sponsorClickHref(sponsor.id, to)}
+          target="_blank"
+          rel="sponsored noopener noreferrer"
+          aria-label={label}
+          className={`group transition duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${layout}`}
+        >
+          {content}
+        </a>
+      ) : (
+        <div className={layout}>{content}</div>
+      )}
     </article>
   )
 }
+
 
 /** Sección "Nuestros auspiciadores": una valla LED horizontal por auspiciador, con logo, nombre, lema y botón dentro del marco. */
 export function SponsorCards({ sponsors, tone }: { sponsors: LandingSponsors; tone: SponsorTone }) {
