@@ -196,10 +196,12 @@ function MatchCard({
   match,
   courtSponsor,
   phaseSponsor,
+  liveHref,
 }: {
   match: FixtureViewMatch
   courtSponsor?: LandingSponsor
   phaseSponsor?: LandingSponsor
+  liveHref?: string
 }) {
   const showScore = match.status === 'FINAL' || match.status === 'IN_PROGRESS'
   const decisive = match.phase === 'FINAL'
@@ -212,8 +214,16 @@ function MatchCard({
     <article
       className={`relative overflow-hidden rounded-2xl border bg-white p-4 pl-5 shadow-[0_8px_20px_rgba(26,122,232,0.06)] ${
         decisive ? 'border-[#1A7AE8] ring-2 ring-[#1A7AE8]/20' : 'border-[#1A7AE8]/20'
-      }`}
+      } ${liveHref ? 'transition hover:-translate-y-0.5 hover:border-[#1A7AE8] hover:shadow-[0_12px_26px_rgba(26,122,232,0.18)]' : ''}`}
     >
+      {liveHref ? (
+        // Enlace que cubre toda la tarjeta; los enlaces internos (auspiciador) quedan por encima.
+        <a
+          href={liveHref}
+          aria-label={`Ver en vivo: ${match.home.name} vs ${match.away.name}`}
+          className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A7AE8]"
+        />
+      ) : null}
       <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${theme.bar}`} />
       <header className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#4d6790]">
         <span className="flex items-center gap-2">
@@ -230,7 +240,7 @@ function MatchCard({
       </p>
 
       {phaseSponsor && PRESENTED_BY[match.phase] ? (
-        <p className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#4d6790]">
+        <p className="relative z-20 mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#4d6790]">
           {PRESENTED_BY[match.phase]}
           <SponsorMark sponsor={phaseSponsor} logoClassName="h-6" textClassName="text-sm text-[#0B3D8F]" />
         </p>
@@ -243,6 +253,11 @@ function MatchCard({
       {hasPenalties ? (
         <p className="mt-2 text-xs font-semibold text-[#4d6790]">
           Penales {match.penaltyHome}–{match.penaltyAway}
+        </p>
+      ) : null}
+      {liveHref ? (
+        <p aria-hidden className="mt-3 text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#1A7AE8]">
+          {match.status === 'IN_PROGRESS' ? 'Ver en vivo' : 'Ver partido'} →
         </p>
       ) : null}
     </article>
@@ -314,8 +329,11 @@ export function KelmeCupFixture({
   view,
   sponsorsByTarget = {},
   exportHref,
+  liveHrefBase,
 }: {
   view: FixtureView
+  /** Base de la página en vivo (p. ej. "/kelme/live"); cada partido enlaza a `${base}/${id}`. */
+  liveHrefBase?: string
   /** Descarga del fixture en Excel; si falta, no se muestra el botón. */
   exportHref?: string
   /** Auspiciador que presenta cada cancha o definición ("court:1", "phase:FINAL"). */
@@ -484,6 +502,7 @@ export function KelmeCupFixture({
               <MatchCard
                 key={match.id}
                 match={match}
+                liveHref={liveHrefBase ? `${liveHrefBase}/${match.id}` : undefined}
                 courtSponsor={sponsorsByTarget[courtTarget(match.court)]}
                 phaseSponsor={
                   match.phase === 'FINAL' || match.phase === 'THIRD_PLACE' || match.phase === 'FIFTH_PLACE'

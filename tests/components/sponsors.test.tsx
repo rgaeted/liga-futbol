@@ -146,6 +146,13 @@ describe('KelmeCupFixture con auspiciadores', () => {
     expect(text).toContain('Radio Z')
   })
 
+  it('enlaza cada partido a su página en vivo, y sin base no hay enlaces', () => {
+    const linked = renderToStaticMarkup(<KelmeCupFixture view={view} liveHrefBase="/kelme/live" />)
+    for (const id of ['m1', 'm2', 'm3', 'm4']) expect(linked).toContain(`href="/kelme/live/${id}"`)
+    expect(linked).toContain('aria-label="Ver en vivo: Local vs Visita"')
+    expect(renderToStaticMarkup(<KelmeCupFixture view={view} />)).not.toContain('/live/')
+  })
+
   it('no muestra textos de auspicio cuando no hay auspiciadores ni "undefined"', () => {
     const plain = renderToStaticMarkup(<KelmeCupFixture view={view} />).replace(/<!-- -->/g, '')
     expect(plain).not.toContain('presentad')

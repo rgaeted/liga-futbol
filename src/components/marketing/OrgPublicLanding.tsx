@@ -287,6 +287,7 @@ export function OrgPublicLanding({
             view={kelmeFixture}
             sponsorsByTarget={fixtureSponsors ?? {}}
             exportHref={`/api/public/fixture/${slug}/export`}
+            liveHrefBase={`/${slug}/live`}
           />
         ) : null}
         {sponsors && isKelme ? <SponsorCards sponsors={sponsors} tone="kelme" /> : null}
