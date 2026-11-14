@@ -28,7 +28,7 @@ export default async function AdminTeamsPage({
         coach: true,
         _count: { select: { players: true } },
         players: {
-          select: { id: true, person: { select: { firstName: true, lastName: true } } },
+          select: { id: true, jerseyNumber: true, person: { select: { firstName: true, lastName: true } } },
           orderBy: { person: { firstName: 'asc' } },
         },
       },
@@ -70,7 +70,11 @@ export default async function AdminTeamsPage({
           coachId: t.coachId,
           coachName: t.coach?.name ?? null,
           playerCount: t._count.players,
-          players: t.players.map((player) => ({ id: player.id, name: playerDisplayName(player.person) })),
+          players: t.players.map((player) => ({
+            id: player.id,
+            name: playerDisplayName(player.person),
+            jerseyNumber: player.jerseyNumber,
+          })),
           hasCrest: teamHasCrest(t),
           crestVersion: t.updatedAt.getTime(),
         }))}

@@ -46,6 +46,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
   }
 
+  const targetTeamId = playerFields.teamId !== undefined ? playerFields.teamId : existing.teamId
+  if (playerFields.jerseyNumber != null && targetTeamId) {
+    const taken = await db.player.findFirst({
+      where: { teamId: targetTeamId, jerseyNumber: playerFields.jerseyNumber, id: { not: id } },
+      select: { id: true },
+    })
+    if (taken) {
+      return NextResponse.json(
+        { error: `El dorsal ${playerFields.jerseyNumber} ya lo usa otro jugador del equipo` },
+        { status: 409 },
+      )
+    }
+  }
+
   const player = await db.$transaction(async (tx) => {
     if (firstName !== undefined || lastName !== undefined) {
       await tx.person.update({
@@ -61,6 +75,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       data: playerFields,
       include: playerInclude,
     })
+    if (playerFields.jerseyNumber !== undefined) {
+      // La plantilla de temporada guarda su propia copia del dorsal: se mantiene sincronizada.
+      await tx.seasonRosterEntry.updateMany({
+        where: { playerId: id, status: 'ACTIVE' },
+        data: { jerseyNumber: playerFields.jerseyNumber },
+      })
+    }
     if (categoryIds !== undefined) {
       await setPlayerCategories(id, categoryIds, tx)
     }

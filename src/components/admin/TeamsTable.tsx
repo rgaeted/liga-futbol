@@ -20,7 +20,7 @@ export type TeamRow = {
   coachName: string | null
   playerCount: number
   /** Jugadores del equipo (para desplegar la lista en la tabla). */
-  players: { id: string; name: string }[]
+  players: { id: string; name: string; jerseyNumber: number | null }[]
   hasCrest: boolean
   /** Cambia al subir un escudo nuevo (fuerza a recargar la imagen). */
   crestVersion: number
@@ -30,6 +30,59 @@ export type CoachOption = {
   id: string
   name: string
   assignedTeamId: string | null
+}
+
+function PlayerJerseyRow({ player }: { player: TeamRow['players'][number] }) {
+  const router = useRouter()
+  const [value, setValue] = useState(player.jerseyNumber?.toString() ?? '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const dirty = value !== (player.jerseyNumber?.toString() ?? '')
+
+  async function save() {
+    const number = value.trim() === '' ? null : Number(value)
+    if (number !== null && (!Number.isInteger(number) || number < 1 || number > 99)) {
+      setError('Dorsal entre 1 y 99')
+      return
+    }
+    setSaving(true)
+    setError('')
+    const result = await submitJson(`/api/players/${player.id}`, 'PUT', { jerseyNumber: number })
+    setSaving(false)
+    if (!result.ok) {
+      setError(result.message)
+      return
+    }
+    router.refresh()
+  }
+
+  return (
+    <li className="flex flex-wrap items-center gap-2">
+      <input
+        type="number"
+        min={1}
+        max={99}
+        inputMode="numeric"
+        aria-label={`Dorsal de ${player.name}`}
+        placeholder="N°"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="w-14 rounded-md border border-kelme-border bg-kelme-gray-100 px-1.5 py-0.5 text-center"
+      />
+      <span>{player.name}</span>
+      {dirty ? (
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="rounded-md bg-kelme-red px-1.5 py-0.5 font-semibold text-white disabled:opacity-50"
+        >
+          Guardar
+        </button>
+      ) : null}
+      {error ? <span className="text-kelme-red">{error}</span> : null}
+    </li>
+  )
 }
 
 export function TeamsTable({ teams, coaches, categories }: { teams: TeamRow[]; coaches: CoachOption[]; categories: { id: string; name: string }[] }) {
@@ -189,7 +242,7 @@ export function TeamsTable({ teams, coaches, categories }: { teams: TeamRow[]; c
                         </summary>
                         <ul className="mt-2 space-y-0.5 text-xs text-kelme-gray-400">
                           {team.players.map((player) => (
-                            <li key={player.id}>{player.name}</li>
+                            <PlayerJerseyRow key={player.id} player={player} />
                           ))}
                         </ul>
                       </details>

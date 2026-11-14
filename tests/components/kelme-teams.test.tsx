@@ -19,9 +19,12 @@ describe('KelmeCupTeams', () => {
     const html = renderToStaticMarkup(
       <KelmeCupTeams
         teams={[
-          team({ teamId: 'a', name: '21 de Mayo', players: ['Fabian N.', 'Lucas M.'] }),
+          team({ teamId: 'a', name: '21 de Mayo', players: [
+              { name: 'Lucas M.', jerseyNumber: 10 },
+              { name: 'Fabian N.', jerseyNumber: null },
+            ] }),
           team({ teamId: 'b', name: 'Palestino', players: [] }),
-          team({ teamId: 'c', name: 'Dinamo', category: '2019-2018', players: ['Ana P.'] }),
+          team({ teamId: 'c', name: 'Dinamo', category: '2019-2018', players: [{ name: 'Ana P.', jerseyNumber: 1 }] }),
         ]}
       />,
     ).replace(/<!-- -->/g, '')
@@ -29,6 +32,8 @@ describe('KelmeCupTeams', () => {
     expect(html).toContain('Categoría 2017–2016')
     expect(html).toContain('Categoría 2019–2018')
     expect(html).toContain('Fabian N.')
+    expect(html).toContain('aria-label="Dorsal 10"')
+    expect(html).toContain('aria-label="Sin dorsal"')
     expect(html).toContain('2 jugadores')
     expect(html).toContain('Nómina por confirmar')
   })

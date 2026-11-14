@@ -64,8 +64,14 @@ export function KelmeCupTeams({ teams }: { teams: TeamRoster[] }) {
                     {team.players.length > 0 ? (
                       <ul className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[14px] font-semibold text-[#123a6b]">
                         {team.players.map((player, index) => (
-                          <li key={`${player}-${index}`} className="truncate">
-                            {player}
+                          <li key={`${player.name}-${index}`} className="flex items-center gap-2 truncate">
+                            <span
+                              className="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md bg-[#0B3D8F] px-1 text-[12px] font-extrabold text-white"
+                              aria-label={player.jerseyNumber != null ? `Dorsal ${player.jerseyNumber}` : 'Sin dorsal'}
+                            >
+                              {player.jerseyNumber ?? '–'}
+                            </span>
+                            <span className="truncate">{player.name}</span>
                           </li>
                         ))}
                       </ul>

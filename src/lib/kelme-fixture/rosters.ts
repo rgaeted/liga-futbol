@@ -9,8 +9,8 @@ export type TeamRoster = {
   category: string
   color: string | null
   crestUrl: string | null
-  /** Jugadores activos como "Nombre I." (según cómo estén guardados). */
-  players: string[]
+  /** Jugadores activos: nombre tal como está guardado y dorsal (si tiene). */
+  players: { name: string; jerseyNumber: number | null }[]
 }
 
 export function playerDisplayName(person: { firstName: string; lastName: string }): string {
@@ -30,7 +30,11 @@ export async function getFixtureRosters(seasonId: string): Promise<TeamRoster[]>
         seasonCategory: { select: { sortOrder: true, category: { select: { name: true } } } },
         rosterEntries: {
           where: { status: SeasonRosterStatus.ACTIVE },
-          include: { player: { select: { person: { select: { firstName: true, lastName: true } } } } },
+          include: {
+            player: {
+              select: { jerseyNumber: true, person: { select: { firstName: true, lastName: true } } },
+            },
+          },
         },
       },
     })
@@ -47,8 +51,15 @@ export async function getFixtureRosters(seasonId: string): Promise<TeamRoster[]>
         color: st.color ?? st.team.color,
         crestUrl: st.team.crestMimeType ? teamCrestUrl(st.team.id, st.team.updatedAt) : null,
         players: st.rosterEntries
-          .map((entry) => playerDisplayName(entry.player.person))
-          .sort((a, b) => a.localeCompare(b, 'es-CL')),
+          .map((entry) => ({
+            name: playerDisplayName(entry.player.person),
+            jerseyNumber: entry.jerseyNumber ?? entry.player.jerseyNumber ?? null,
+          }))
+          .sort(
+            (a, b) =>
+              (a.jerseyNumber ?? Infinity) - (b.jerseyNumber ?? Infinity) ||
+              a.name.localeCompare(b.name, 'es-CL'),
+          ),
       }))
   } catch (error) {
     console.warn('[kelme-fixture] no se pudieron cargar las plantillas', error)
