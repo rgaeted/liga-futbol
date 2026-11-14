@@ -32,6 +32,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
   }
 
+  const newName = parsed.data.name?.trim()
+  if (newName) {
+    // El nombre dentro de cada temporada (app móvil, posiciones) debe seguir al del equipo.
+    const [team] = await db.$transaction([
+      db.team.update({ where: { id }, data: parsed.data }),
+      db.seasonTeam.updateMany({ where: { teamId: id }, data: { displayName: newName } }),
+    ])
+    return NextResponse.json(team)
+  }
   const team = await db.team.update({ where: { id }, data: parsed.data })
   return NextResponse.json(team)
 }
