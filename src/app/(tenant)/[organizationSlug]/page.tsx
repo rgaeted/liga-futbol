@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { OrgPublicLanding } from '@/components/marketing/OrgPublicLanding'
 import { OrgPublicLandingRefresh } from '@/components/marketing/OrgPublicLandingRefresh'
+import { getFixtureRosters } from '@/lib/kelme-fixture/rosters'
 import { getPublicFixtureView } from '@/lib/kelme-fixture/service'
 import { getLandingSponsorsBySlug } from '@/lib/sponsors/landing-query'
 import { KELME_SLUG } from '@/lib/org-brand'
@@ -22,6 +23,7 @@ export default async function OrgLandingPage({
     getLandingSponsorsBySlug(organizationSlug).catch(() => null),
   ])
   if (!data) notFound()
+  const kelmeRosters = kelmeFixture ? await getFixtureRosters(kelmeFixture.seasonId) : []
 
   return (
     <OrgPublicLandingRefresh data={data}>
@@ -29,6 +31,7 @@ export default async function OrgLandingPage({
         data={data}
         panelHref={panelHref}
         kelmeFixture={kelmeFixture}
+        kelmeRosters={kelmeRosters}
         sponsors={sponsors}
       />
     </OrgPublicLandingRefresh>

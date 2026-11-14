@@ -19,6 +19,8 @@ export type TeamRow = {
   coachId: string | null
   coachName: string | null
   playerCount: number
+  /** Jugadores del equipo (para desplegar la lista en la tabla). */
+  players: { id: string; name: string }[]
   hasCrest: boolean
   /** Cambia al subir un escudo nuevo (fuerza a recargar la imagen). */
   crestVersion: number
@@ -179,7 +181,22 @@ export function TeamsTable({ teams, coaches, categories }: { teams: TeamRow[]; c
                   <td className="p-3">{team.name}</td>
                   <td className="p-3">{team.categoryName ?? 'Sin categoría'}</td>
                   <td className="p-3">{team.coachName ?? '—'}</td>
-                  <td className="p-3">{team.playerCount}</td>
+                  <td className="p-3 align-top">
+                    {team.players.length > 0 ? (
+                      <details>
+                        <summary className="cursor-pointer font-semibold text-org-primary">
+                          {team.playerCount} {team.playerCount === 1 ? 'jugador' : 'jugadores'}
+                        </summary>
+                        <ul className="mt-2 space-y-0.5 text-xs text-kelme-gray-400">
+                          {team.players.map((player) => (
+                            <li key={player.id}>{player.name}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : (
+                      team.playerCount
+                    )}
+                  </td>
                   <td className="p-3">
                     <span className="inline-flex items-center gap-2">
                       <button

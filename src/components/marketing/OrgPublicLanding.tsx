@@ -6,6 +6,8 @@ import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { LosLunesResults } from '@/components/marketing/LosLunesResults'
 import { KelmeCupHomeHero } from '@/components/marketing/KelmeCupHomeHero'
 import { KelmeCupFixture } from '@/components/marketing/KelmeCupFixture'
+import { KelmeCupTeams } from '@/components/marketing/KelmeCupTeams'
+import type { TeamRoster } from '@/lib/kelme-fixture/rosters'
 import { KelmeCupInvite } from '@/components/marketing/KelmeCupInvite'
 import { KelmeCupMatchBoard } from '@/components/marketing/KelmeCupMatchBoard'
 import { KelmeCupResults } from '@/components/marketing/KelmeCupResults'
@@ -130,11 +132,13 @@ export function OrgPublicLanding({
   data,
   panelHref = null,
   kelmeFixture = null,
+  kelmeRosters = [],
   sponsors = null,
 }: {
   data: OrgPublicLandingData
   panelHref?: string | null
   kelmeFixture?: FixtureView | null
+  kelmeRosters?: TeamRoster[]
   sponsors?: LandingSponsors | null
 }) {
   const { organization, featured, nextMatch, results, form, scorers, assists, goalsPerMatch, assistsPerMatch, awards } = data
@@ -290,6 +294,7 @@ export function OrgPublicLanding({
             liveHrefBase={`/${slug}/live`}
           />
         ) : null}
+        {isKelme ? <KelmeCupTeams teams={kelmeRosters} /> : null}
         {sponsors && isKelme ? <SponsorCards sponsors={sponsors} tone="kelme" /> : null}
         {isKelme ? <KelmeCupInvite /> : null}
         <section className={customLanding ? 'pb-7 pt-8' : 'pb-7 pt-[54px] max-sm:pt-8'}>

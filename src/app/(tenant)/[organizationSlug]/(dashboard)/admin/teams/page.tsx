@@ -5,6 +5,7 @@ import { requireOrganizationId } from '@/lib/tenant-access'
 import { TeamForm } from '@/components/admin/TeamForm'
 import { TeamsTable } from '@/components/admin/TeamsTable'
 import { teamHasCrest } from '@/lib/team-crest'
+import { playerDisplayName } from '@/lib/kelme-fixture/rosters'
 
 export default async function AdminTeamsPage({
   params,
@@ -22,7 +23,15 @@ export default async function AdminTeamsPage({
   const [teams, coachMemberships, categories] = await Promise.all([
     db.team.findMany({
       where: { organizationId },
-      include: { category: { select: { name: true } }, coach: true, _count: { select: { players: true } } },
+      include: {
+        category: { select: { name: true } },
+        coach: true,
+        _count: { select: { players: true } },
+        players: {
+          select: { id: true, person: { select: { firstName: true, lastName: true } } },
+          orderBy: { person: { firstName: 'asc' } },
+        },
+      },
       orderBy: { name: 'asc' },
     }),
     db.organizationMembership.findMany({
@@ -61,6 +70,7 @@ export default async function AdminTeamsPage({
           coachId: t.coachId,
           coachName: t.coach?.name ?? null,
           playerCount: t._count.players,
+          players: t.players.map((player) => ({ id: player.id, name: playerDisplayName(player.person) })),
           hasCrest: teamHasCrest(t),
           crestVersion: t.updatedAt.getTime(),
         }))}
