@@ -4,58 +4,75 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { matchDisplayName } from '@/lib/match-label'
 import { matchStatusLabel } from '@/lib/match-status-ui'
-import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 export default async function CoachDashboardPage() {
   const session = await auth()
   if (!session) redirect('/login')
 
-  const team = await db.team.findUnique({
+  // Un DT puede dirigir varios equipos (uno por categoría).
+  const teams = await db.team.findMany({
     where: { coachId: session.user.id },
     include: {
-      players: { include: PLAYER_PERSON_NAME_INCLUDE },
+      category: { select: { name: true } },
+      _count: { select: { players: true } },
     },
+    orderBy: { name: 'asc' },
   })
 
-  if (!team) {
+  if (teams.length === 0) {
     return <p>No tienes un equipo asignado.</p>
   }
 
   const matches = await db.match.findMany({
     where: {
       matchType: 'LEAGUE',
-      OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }],
+      OR: [
+        { homeTeamId: { in: teams.map((team) => team.id) } },
+        { awayTeamId: { in: teams.map((team) => team.id) } },
+      ],
     },
     include: { homeTeam: true, awayTeam: true },
     orderBy: { scheduledAt: 'asc' },
   })
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold">{team.name}</h1>
-      <p className="text-kelme-gray-400">{team.players.length} jugadores en plantilla</p>
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Partidos</h2>
-        <div className="space-y-3">
-          {matches.map((match) => (
-            <Link
-              key={match.id}
-              href={`/coach/callups/${match.id}`}
-              className="block rounded-xl border border-kelme-border bg-kelme-surface p-4 hover:border-kelme-red"
-            >
-              <p className="font-semibold">
-                {matchDisplayName(match)}
+    <div className="space-y-8">
+      {teams.map((team) => {
+        const teamMatches = matches.filter(
+          (match) => match.homeTeamId === team.id || match.awayTeamId === team.id,
+        )
+        return (
+          <div key={team.id} className="space-y-6">
+            <div>
+              <h1 className="font-display text-2xl font-bold">{team.name}</h1>
+              <p className="text-kelme-gray-400">
+                {team.category?.name ? `Categoría ${team.category.name} · ` : ''}
+                {team._count.players} jugadores en plantilla
               </p>
-              <p className="text-sm text-kelme-gray-400">
-                {match.scheduledAt.toLocaleString('es-CL')} · {matchStatusLabel(match.status)}
-              </p>
-            </Link>
-          ))}
-          {matches.length === 0 && (
-            <p className="text-kelme-gray-400">No hay partidos programados.</p>
-          )}
-        </div>
-      </section>
+            </div>
+            <section>
+              <h2 className="mb-3 text-lg font-semibold">Partidos</h2>
+              <div className="space-y-3">
+                {teamMatches.map((match) => (
+                  <Link
+                    key={match.id}
+                    href={`/coach/callups/${match.id}`}
+                    className="block rounded-xl border border-kelme-border bg-kelme-surface p-4 hover:border-kelme-red"
+                  >
+                    <p className="font-semibold">{matchDisplayName(match)}</p>
+                    <p className="text-sm text-kelme-gray-400">
+                      {match.scheduledAt.toLocaleString('es-CL')} · {matchStatusLabel(match.status)}
+                    </p>
+                  </Link>
+                ))}
+                {teamMatches.length === 0 && (
+                  <p className="text-kelme-gray-400">No hay partidos programados.</p>
+                )}
+              </div>
+            </section>
+          </div>
+        )
+      })}
     </div>
   )
 }

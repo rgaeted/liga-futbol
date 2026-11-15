@@ -17,7 +17,7 @@ export async function GET() {
           email: true,
           name: true,
           createdAt: true,
-          coachedTeam: { select: { id: true } },
+          coachedTeams: { select: { id: true }, take: 1 },
           person: {
             select: {
               players: {
@@ -47,7 +47,7 @@ export async function GET() {
       createdAt: m.user.createdAt,
       roleTags: resolveUserRoleTags({
         roles: m.roles,
-        hasCoachedTeam: Boolean(m.user.coachedTeam),
+        hasCoachedTeam: m.user.coachedTeams.length > 0,
         hasLeagueTeam: Boolean(m.user.person?.players.some((p) => p.teamId)),
         hasFriendlyProfile: Boolean(m.user.person?.players.length),
         isFriendlyCoach: Boolean(

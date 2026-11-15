@@ -175,10 +175,11 @@ export async function PUT(
       return NextResponse.json({ error: 'Equipo no pertenece al partido' }, { status: 400 })
     }
     if (role === MembershipRole.COACH) {
-      const team = await db.team.findFirst({
-        where: { coachId: session.user.id, organizationId },
+      const ownsTeam = await db.team.findFirst({
+        where: { id: data.teamId, coachId: session.user.id, organizationId },
+        select: { id: true },
       })
-      if (!team || team.id !== data.teamId) {
+      if (!ownsTeam) {
         return NextResponse.json({ error: 'Solo puedes editar tu equipo' }, { status: 403 })
       }
     }

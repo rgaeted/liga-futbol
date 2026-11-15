@@ -38,7 +38,7 @@ export default async function AdminTeamsPage({
       where: { organizationId, roles: { has: MembershipRole.COACH } },
       include: {
         user: {
-          select: { id: true, name: true, coachedTeam: { select: { id: true } } },
+          select: { id: true, name: true },
         },
       },
       orderBy: { user: { name: 'asc' } },
@@ -81,7 +81,6 @@ export default async function AdminTeamsPage({
         coaches={coaches.map((c) => ({
           id: c.id,
           name: c.name,
-          assignedTeamId: c.coachedTeam?.id ?? null,
         }))}
       />
     </div>

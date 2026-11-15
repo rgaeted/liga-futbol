@@ -6,6 +6,7 @@ import { matchDisplayName } from '@/lib/match-label'
 import { footballFormatLabel } from '@/lib/football-format'
 import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 import { parseSlotLayout } from '@/lib/match-formations'
+import { coachTeamIdsInMatch } from '@/lib/coach-teams'
 
 function slotsFromCallUps(
   callUps: Array<{ playerId: string; slotKey: string | null }>
@@ -26,17 +27,10 @@ export default async function CoachCallUpPage({
   if (!session) redirect('/login')
 
   const { matchId } = await params
-  const team = await db.team.findUnique({
-    where: { coachId: session.user.id },
-    include: {
-      players: {
-        include: PLAYER_PERSON_NAME_INCLUDE,
-        orderBy: { jerseyNumber: 'asc' },
-      },
-    },
-  })
-
-  if (!team) redirect('/coach')
+  const coachTeamIds = (
+    await db.team.findMany({ where: { coachId: session.user.id }, select: { id: true } })
+  ).map((t) => t.id)
+  if (coachTeamIds.length === 0) redirect('/coach')
 
   const match = await db.match.findUnique({
     where: { id: matchId },
@@ -45,9 +39,19 @@ export default async function CoachCallUpPage({
 
   if (!match) notFound()
   if (match.matchType === 'FRIENDLY') notFound()
-  if (match.homeTeamId !== team.id && match.awayTeamId !== team.id) {
-    redirect('/coach')
-  }
+  // Un DT puede dirigir varios equipos: se cita al que juega este partido.
+  const [teamId] = coachTeamIdsInMatch(coachTeamIds, match)
+  if (!teamId) redirect('/coach')
+
+  const team = await db.team.findUniqueOrThrow({
+    where: { id: teamId },
+    include: {
+      players: {
+        include: PLAYER_PERSON_NAME_INCLUDE,
+        orderBy: { jerseyNumber: 'asc' },
+      },
+    },
+  })
 
   const callUps = await db.callUp.findMany({
     where: { matchId, player: { teamId: team.id } },

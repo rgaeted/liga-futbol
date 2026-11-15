@@ -29,7 +29,6 @@ export type TeamRow = {
 export type CoachOption = {
   id: string
   name: string
-  assignedTeamId: string | null
 }
 
 function PlayerJerseyRow({ player }: { player: TeamRow['players'][number] }) {
@@ -188,13 +187,8 @@ export function TeamsTable({ teams, coaches, categories }: { teams: TeamRow[]; c
                     >
                       <option value="">Sin DT</option>
                       {coaches.map((c) => (
-                        <option
-                          key={c.id}
-                          value={c.id}
-                          disabled={c.assignedTeamId !== null && c.assignedTeamId !== team.id}
-                        >
+                        <option key={c.id} value={c.id}>
                           {c.name}
-                          {c.assignedTeamId && c.assignedTeamId !== team.id ? ' (asignado)' : ''}
                         </option>
                       ))}
                     </select>

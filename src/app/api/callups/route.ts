@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { requireOrgRole, assertSameOrganization } from '@/lib/auth'
 import { minCallUpSize } from '@/lib/football-format'
 import { MembershipRole } from '@/lib/membership-role'
+import { coachTeamIdsInMatch } from '@/lib/coach-teams'
 import { PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
 const callUpSchema = z.object({
@@ -68,17 +69,28 @@ export async function POST(req: Request) {
     )
   }
 
-  let teamIdFilter: string | undefined
+  let teamIdFilter: string[] | undefined
   if (role === MembershipRole.COACH) {
-    const team = await db.team.findFirst({
+    const coachTeams = await db.team.findMany({
       where: { coachId: session.user.id, organizationId },
+      select: { id: true },
     })
-    if (!team) {
+    if (coachTeams.length === 0) {
       return NextResponse.json({ error: 'No tienes equipo asignado' }, { status: 403 })
     }
-    teamIdFilter = team.id
+    // Un DT puede dirigir varios equipos: solo cita en los que juegan este partido.
+    teamIdFilter = coachTeamIdsInMatch(
+      coachTeams.map((team) => team.id),
+      match,
+    )
+    if (teamIdFilter.length === 0) {
+      return NextResponse.json(
+        { error: 'Ninguno de tus equipos juega este partido' },
+        { status: 403 },
+      )
+    }
     const teamPlayers = await db.player.findMany({
-      where: { teamId: team.id, id: { in: playerIds } },
+      where: { teamId: { in: teamIdFilter }, id: { in: playerIds } },
     })
     if (teamPlayers.length !== playerIds.length) {
       return NextResponse.json({ error: 'Jugadores inválidos para tu equipo' }, { status: 403 })
@@ -90,7 +102,7 @@ export async function POST(req: Request) {
       where: {
         matchId,
         ...(teamIdFilter
-          ? { player: { teamId: teamIdFilter } }
+          ? { player: { teamId: { in: teamIdFilter } } }
           : { playerId: { in: playerIds } }),
       },
     })
