@@ -218,3 +218,25 @@ body {
 .kelme-live .text-\[\#8A938C\] { color: #a9c4e8; }
 .kelme-live .bg-\[\#8A938C\] { background-color: #a9c4e8; }
 .kelme-live .text-amber-200\/75 { color: #87c4ff; }
+
+/* Cronología del en vivo de Kelme: fondos casi negros y dorados -> azul de la copa. */
+.kelme-live .bg-\[\#050505\],
+.kelme-live .bg-\[\#050403\] { background-color: #0c2756; }
+.kelme-live .bg-\[\#0a0a0a\] { background-color: #0f2f5e; }
+.kelme-live .bg-\[\#101010\]\/90 { background-color: rgb(18 58 107 / 0.9); }
+.kelme-live .bg-\[\#0c0c0c\] { background-color: #123a6b; }
+.kelme-live .bg-\[\#121010\],
+.kelme-live .bg-\[\#141010\],
+.kelme-live .bg-\[\#1a1a1a\],
+.kelme-live .bg-\[\#0a1210\],
+.kelme-live .bg-\[\#101418\],
+.kelme-live .bg-\[\#0a0806\] { background-color: #0a1f44; }
+.kelme-live .bg-black\/80 { background-color: rgb(10 31 68 / 0.85); }
+.kelme-live .bg-black\/70 { background-color: rgb(10 31 68 / 0.75); }
+.kelme-live .bg-black\/50 { background-color: rgb(10 31 68 / 0.6); }
+.kelme-live .border-amber-400\/25,
+.kelme-live .border-amber-400\/20 { border-color: rgb(75 157 235 / 0.35); }
+.kelme-live .border-amber-300\/70 { border-color: rgb(135 196 255 / 0.7); }
+.kelme-live .text-\[\#f5c842\] { color: #87c4ff; }
+.kelme-live .text-amber-100\/90 { color: #dcecff; }
+.kelme-live .ring-amber-400\/25 { --tw-ring-color: rgb(75 157 235 / 0.35); }
