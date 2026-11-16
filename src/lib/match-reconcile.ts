@@ -1,6 +1,7 @@
 import { EventType, MatchType, type MatchEvent } from '@prisma/client'
 import { syncBadgesForFinishedMatch } from '@/lib/badges/persist'
 import { db } from '@/lib/db'
+import { syncDefinitionsForMatch } from '@/lib/kelme-fixture/service'
 import { isScoringGoalEvent, SCORING_GOAL_EVENT_TYPES } from '@/lib/event-labels'
 import { revalidateOrgPublicLandingForMatch } from '@/lib/revalidate-org-public-pages'
 import { publishMatchInvalidation } from '@/lib/supabase-realtime-server'
@@ -96,6 +97,7 @@ export async function reconcileMatchState(matchId: string, affectedPlayerIds: st
   await publishMatchInvalidation(matchId)
 
   if (match.status === 'FINISHED') {
+    await syncDefinitionsForMatch(matchId)
     await revalidateOrgPublicLandingForMatch(matchId)
     await syncBadgesForFinishedMatch(matchId)
   }

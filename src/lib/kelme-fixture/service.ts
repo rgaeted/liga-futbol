@@ -238,6 +238,25 @@ async function runSerializable<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
   }
 }
 
+/**
+ * Llena los cruces de definición (final, 3.er y 5.º puesto) cuando termina un partido de grupo,
+ * sin importar por dónde se cerró (en vivo, edición del partido o pantalla del fixture).
+ * Nunca lanza: un fallo aquí no debe impedir cerrar el partido.
+ */
+export async function syncDefinitionsForMatch(matchId: string): Promise<void> {
+  try {
+    const match = await db.match.findUnique({
+      where: { id: matchId },
+      select: { organizationId: true, seasonId: true, fixtureCode: true, phase: true },
+    })
+    if (!match?.seasonId || !match.fixtureCode || match.phase !== 'GROUP') return
+    const ctx = { organizationId: match.organizationId, seasonId: match.seasonId, userId: null }
+    await runSerializable((tx) => syncDefinitions(tx, ctx))
+  } catch (error) {
+    console.warn('[kelme-fixture] no se pudieron actualizar los cruces', error)
+  }
+}
+
 export type SaveResultInput = {
   organizationId: string
   seasonId: string

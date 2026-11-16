@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { syncDefinitionsForMatch } from '@/lib/kelme-fixture/service'
 import { requireOrgRole } from '@/lib/auth'
 import { updateMatchSchema, updateGuestChallengeRosterSchema } from '@/lib/validations/match'
 import { syncFriendlyMatchRoster } from '@/lib/friendly-match-roster'
@@ -269,6 +270,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const becameFinished =
       existing.status !== MatchStatus.FINISHED && match.status === MatchStatus.FINISHED
     if (becameFinished) {
+      await syncDefinitionsForMatch(id)
       await publishMatchInvalidation(id)
       await revalidateOrgPublicLandingForMatch(id)
     }

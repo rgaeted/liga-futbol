@@ -6,6 +6,7 @@ import type { CreateMatchEventInput } from '@/lib/validations/match-event'
 import { getMatchMinute } from '@/lib/match-clock'
 import { isScoringGoalEvent } from '@/lib/event-labels'
 import { syncLeaguePlayerStats } from '@/lib/match-reconcile'
+import { syncDefinitionsForMatch } from '@/lib/kelme-fixture/service'
 import { safeEnqueueMatchNotification } from '@/lib/mobile/notifications/enqueue'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 
@@ -119,6 +120,7 @@ export async function registerMatchEvent(
   await publishMatchInvalidation(matchId)
 
   if (input.type === EventType.FULLTIME) {
+    await syncDefinitionsForMatch(matchId)
     await revalidateOrgPublicLandingForMatch(matchId)
   }
 
