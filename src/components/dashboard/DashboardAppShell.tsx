@@ -70,7 +70,7 @@ export function DashboardAppShell({
         </div>
 
         <div className="flex items-center gap-2.5">
-          {topActions}
+          <div className="hidden items-center gap-2.5 lg:flex">{topActions}</div>
           <div className="flex items-center gap-2.5 border-l border-[#2A3A32] pl-2.5 sm:pl-3">
             {userPhotoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -114,6 +114,11 @@ export function DashboardAppShell({
           sidebarOpen ? 'translate-x-0' : '-translate-x-[102%] lg:translate-x-0'
         }`}
       >
+        {topActions ? (
+          <div className="mb-5 flex items-center gap-2.5 border-b border-[#2A3A32] px-1 pb-5 lg:hidden">
+            {topActions}
+          </div>
+        ) : null}
         {navGroups.map((group) => (
           <div key={group.label} className="mb-5">
             <div className="px-2.5 pb-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#8A938C]">
