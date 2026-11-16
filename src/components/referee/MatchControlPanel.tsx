@@ -168,6 +168,21 @@ export function MatchControlPanel({
     setLoading(false)
   }
 
+  async function handleReopen() {
+    if (!window.confirm('¿Reanudar el partido? Volverá a estar en vivo con el marcador actual.')) return
+    setLoading(true)
+    setActionError('')
+    const res = await fetch(`/api/matches/${matchId}/reopen`, { method: 'POST' })
+    if (!res.ok) {
+      setActionError(await readApiError(res, 'No se pudo reanudar el partido'))
+      setLoading(false)
+      return
+    }
+    const data = await res.json()
+    if (data.match) updateFromMatchResponse(data.match)
+    setLoading(false)
+  }
+
   function handleEventClick(type: EventType) {
     if (instantEvents.includes(type)) {
       void submitEvent(type)
@@ -514,6 +529,16 @@ export function MatchControlPanel({
           <p className="mt-1 text-sm text-kelme-gray-400">
             Registra los MVPs del partido abajo si aún no lo hiciste.
           </p>
+          {status === 'FINISHED' ? (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void handleReopen()}
+              className="mt-4 w-full rounded-xl border border-kelme-border py-3 text-sm font-bold text-kelme-gray-900 disabled:opacity-50"
+            >
+              ↺ Reanudar partido
+            </button>
+          ) : null}
         </div>
       ) : (
         <div className="space-y-4">
