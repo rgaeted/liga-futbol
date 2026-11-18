@@ -43,7 +43,8 @@ export function JerseyEditor({ matchId, teamName, players, onChange }: Props) {
 
     const clearDraft = () =>
       setDrafts((prev) => {
-        const { [player.id]: _removed, ...rest } = prev
+        const rest = { ...prev }
+        delete rest[player.id]
         return rest
       })
 
