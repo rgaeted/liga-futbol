@@ -8,11 +8,20 @@ import { EVENT_TYPE_LABELS, eventNeedsPlayer } from '@/lib/event-labels'
 import { readApiError } from '@/lib/api-error'
 import { oppositeKickoffSide, type KickoffSide } from '@/lib/match-kickoff'
 import { refereePanelEvents, REFEREE_CONTROL_EVENT_TYPES } from '@/lib/match-referee-events'
+import { JerseyEditor } from '@/components/referee/JerseyEditor'
+import { effectiveJersey, jerseyLabel } from '@/lib/match-jerseys'
 import { matchStatusLabel } from '@/lib/match-status-ui'
 import type { TeamMvpSideView } from '@/lib/match-mvp'
 import type { SerializableClockState } from '@/hooks/useMatchClock'
 
-type RosterPlayer = { id: string; label: string }
+type RosterPlayer = {
+  id: string
+  label: string
+  /** Dorsal asignado para este partido. */
+  jersey: number | null
+  /** Dorsal permanente del jugador (respaldo). */
+  permanentJersey: number | null
+}
 type SideRoster = { id: string; name: string; players: RosterPlayer[] }
 
 type Props = {
@@ -47,8 +56,8 @@ function getDetailMode(type: EventType): DetailMode | null {
 export function MatchControlPanel({
   matchId,
   matchType,
-  homeTeam,
-  awayTeam,
+  homeTeam: homeRoster,
+  awayTeam: awayRoster,
   initialHomeScore,
   initialAwayScore,
   initialStatus,
@@ -78,6 +87,24 @@ export function MatchControlPanel({
   const [selectedAssist, setSelectedAssist] = useState('')
   const [loading, setLoading] = useState(false)
   const [actionError, setActionError] = useState('')
+  const [jerseys, setJerseys] = useState<Record<string, number | null>>(() =>
+    Object.fromEntries([...homeRoster.players, ...awayRoster.players].map((p) => [p.id, p.jersey]))
+  )
+
+  /** Plantel con el dorsal (del partido o permanente) antepuesto al nombre. */
+  function withJerseyLabels(team: SideRoster): SideRoster {
+    return {
+      ...team,
+      players: team.players.map((p) => ({
+        ...p,
+        label: jerseyLabel(p.label, effectiveJersey(jerseys[p.id], p.permanentJersey)),
+      })),
+    }
+  }
+  const homeTeam = withJerseyLabels(homeRoster)
+  const awayTeam = withJerseyLabels(awayRoster)
+  const rosterWithMatchJersey = (team: SideRoster) =>
+    team.players.map((p) => ({ ...p, jersey: jerseys[p.id] ?? null }))
 
   const activeTeam = selectedTeam === 'home' ? homeTeam : selectedTeam === 'away' ? awayTeam : null
   const detailMode = pendingEvent ? getDetailMode(pendingEvent) : null
@@ -289,6 +316,26 @@ export function MatchControlPanel({
           {homeTeam.name} vs {awayTeam.name}
         </p>
       </div>
+
+      {status === 'SCHEDULED' && !pendingEvent ? (
+        <section className="space-y-4 rounded-xl border border-kelme-border bg-kelme-surface p-4">
+          <div>
+            <h2 className="font-display text-lg font-bold">Dorsales del partido</h2>
+            <p className="text-sm text-kelme-gray-600">
+              Asigna el dorsal de cada jugador antes de iniciar el partido. Después queda fijo.
+            </p>
+          </div>
+          {[homeRoster, awayRoster].map((team) => (
+            <JerseyEditor
+              key={team.id}
+              matchId={matchId}
+              teamName={team.name}
+              players={rosterWithMatchJersey(team)}
+              onChange={(playerId, jersey) => setJerseys((prev) => ({ ...prev, [playerId]: jersey }))}
+            />
+          ))}
+        </section>
+      ) : null}
 
       {pendingEvent ? (
         <section className="space-y-4 rounded-xl border border-kelme-border bg-kelme-surface p-4">

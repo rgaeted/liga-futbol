@@ -60,6 +60,12 @@ export default async function RefereeMatchPage({
     ? kickoffTeamFromEvent(firstKickoffEvent, match)
     : null
 
+  const matchJerseys = await db.matchPlayerJersey.findMany({
+    where: { matchId: match.id },
+    select: { playerId: true, number: true },
+  })
+  const jerseyByPlayer = new Map(matchJerseys.map((j) => [j.playerId, j.number]))
+
   const { home, away } = matchSideNames(match)
   const teamMvps = buildMatchTeamMvps({
     matchId: match.id,
@@ -106,6 +112,8 @@ export default async function RefereeMatchPage({
           players: sideA.map((p) => ({
             id: p.playerId,
             label: playerDisplayName(p.player),
+            jersey: jerseyByPlayer.get(p.playerId) ?? null,
+            permanentJersey: p.player.jerseyNumber,
           })),
         }}
         awayTeam={{
@@ -114,6 +122,8 @@ export default async function RefereeMatchPage({
           players: sideB.map((p) => ({
             id: p.playerId,
             label: playerDisplayName(p.player),
+            jersey: jerseyByPlayer.get(p.playerId) ?? null,
+            permanentJersey: p.player.jerseyNumber,
           })),
         }}
         />
@@ -142,6 +152,8 @@ export default async function RefereeMatchPage({
           players: homePlayers.map((p) => ({
             id: p.id,
             label: playerDisplayName(p),
+            jersey: jerseyByPlayer.get(p.id) ?? null,
+            permanentJersey: p.jerseyNumber,
           })),
         }}
         awayTeam={{
@@ -150,6 +162,8 @@ export default async function RefereeMatchPage({
           players: awayPlayers.map((p) => ({
             id: p.id,
             label: playerDisplayName(p),
+            jersey: jerseyByPlayer.get(p.id) ?? null,
+            permanentJersey: p.jerseyNumber,
           })),
         }}
       />
