@@ -345,6 +345,7 @@ model Player {
   yellowCards            Int                   @default(0)
   redCards               Int                   @default(0)
   callUps                CallUp[]
+  matchJerseys           MatchPlayerJersey[]
   evaluations            PlayerEvaluation[]
   matchEvents            MatchEvent[]
   goalAssists            MatchEvent[]          @relation("GoalAssists")
@@ -561,6 +562,7 @@ model Match {
   events              MatchEvent[]
   callUps             CallUp[]
   friendlyPlayers     FriendlyMatchPlayer[]
+  playerJerseys       MatchPlayerJersey[]
   attendances         MatchAttendance[]
   formations          MatchFormation[]
   teamMvps            MatchTeamMvp[]
@@ -952,4 +954,21 @@ model NotificationDelivery {
 
   @@unique([outboxId, installationId])
   @@index([installationId, status])
+}
+
+/// Dorsal que un jugador usa en un partido concreto (lo asigna el árbitro antes del inicio).
+/// teamKey: id del equipo en liga, "A"/"B" en amistosos.
+model MatchPlayerJersey {
+  id        String   @id @default(cuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  teamKey   String
+  number    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([matchId, playerId])
+  @@unique([matchId, teamKey, number])
 }
