@@ -10,6 +10,7 @@ import { orgPath } from '@/lib/tenant-paths'
 import { playerDisplayName, PLAYER_PERSON_NAME_INCLUDE } from '@/lib/person-name'
 import { parseSlotLayout } from '@/lib/match-formations'
 import { friendlyPlayerPhotoUrl } from '@/lib/friendly-player-photo'
+import { effectiveJersey } from '@/lib/match-jerseys'
 
 function slotsFromCallUps(
   callUps: Array<{ playerId: string; slotKey: string | null }>
@@ -48,6 +49,12 @@ export default async function AdminMatchLineupPage({
     },
   })
   if (!match) notFound()
+
+  const matchJerseys = await db.matchPlayerJersey.findMany({
+    where: { matchId: match.id },
+    select: { playerId: true, number: true },
+  })
+  const jerseyByPlayer = new Map(matchJerseys.map((j) => [j.playerId, j.number]))
 
   const title = matchDisplayName(match)
   const sides = matchSideNames(match)
@@ -104,7 +111,7 @@ export default async function AdminMatchLineupPage({
                 .filter((c) => c.player.teamId === match.homeTeamId)
                 .map((c) => ({
                   id: c.playerId,
-                  label: `#${c.player.jerseyNumber ?? '—'} ${playerDisplayName(c.player)}${c.player.position ? ` (${c.player.position})` : ''}`,
+                  label: `#${effectiveJersey(jerseyByPlayer.get(c.playerId), c.player.jerseyNumber) ?? '—'} ${playerDisplayName(c.player)}${c.player.position ? ` (${c.player.position})` : ''}`,
                   primaryPosition: c.player.position,
                   photoUrl: c.player.person.photoMimeType
                     ? friendlyPlayerPhotoUrl(c.playerId)
@@ -131,7 +138,7 @@ export default async function AdminMatchLineupPage({
                 .filter((c) => c.player.teamId === match.awayTeamId)
                 .map((c) => ({
                   id: c.playerId,
-                  label: `#${c.player.jerseyNumber ?? '—'} ${playerDisplayName(c.player)}${c.player.position ? ` (${c.player.position})` : ''}`,
+                  label: `#${effectiveJersey(jerseyByPlayer.get(c.playerId), c.player.jerseyNumber) ?? '—'} ${playerDisplayName(c.player)}${c.player.position ? ` (${c.player.position})` : ''}`,
                   primaryPosition: c.player.position,
                   photoUrl: c.player.person.photoMimeType
                     ? friendlyPlayerPhotoUrl(c.playerId)
