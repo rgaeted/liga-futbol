@@ -60,10 +60,21 @@ function parseConfig(raw: Prisma.JsonValue | null): FixtureConfig {
   }
 }
 
-/** Temporada que contiene el fixture automático de la organización (la más reciente). */
+/**
+ * Temporada con el fixture automático (grupos y definiciones) de la organización, la más reciente.
+ * Solo cuenta la que usa las categorías de la Kelme Cup; las jornadas todos contra todos
+ * (por ejemplo la Liga Kelme) las resuelve `getPublicJornadas`.
+ */
 export async function findFixtureSeasonId(organizationId: string, client: Tx = db): Promise<string | null> {
   const match = await client.match.findFirst({
-    where: { organizationId, fixtureCode: { not: null }, seasonId: { not: null } },
+    where: {
+      organizationId,
+      fixtureCode: { not: null },
+      seasonId: { not: null },
+      seasonCategory: {
+        category: { OR: [{ name: { contains: '2019' } }, { name: { contains: '2017' } }] },
+      },
+    },
     orderBy: { createdAt: 'desc' },
     select: { seasonId: true },
   })

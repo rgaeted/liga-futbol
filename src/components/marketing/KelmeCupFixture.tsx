@@ -28,11 +28,14 @@ const CROSS_LABELS: Record<number, string> = { 1: 'Final', 2: '3.er puesto', 3: 
 
 const ALL = 'ALL'
 
-function categoryLabel(code: CategoryCode) {
+/** Partido de cualquier categoría: la Kelme Cup usa códigos fijos y las demás fechas el nombre libre. */
+export type CardMatch = Omit<FixtureViewMatch, 'category'> & { category: string }
+
+function categoryLabel(code: string) {
   return code.replace('-', '–')
 }
 
-function Chip({
+export function Chip({
   active,
   onClick,
   children,
@@ -57,7 +60,7 @@ function Chip({
   )
 }
 
-function FilterRow({ label, children }: { label: string; children: ReactNode }) {
+export function FilterRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="w-20 shrink-0 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#4d6790]">
@@ -69,9 +72,26 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
 }
 
 /** Cada categoría tiene su propio color para reconocerla de un vistazo. */
-const CATEGORY_THEME: Record<CategoryCode, { bar: string; badge: string; dot: string }> = {
+type CategoryTheme = { bar: string; badge: string; dot: string }
+
+const CATEGORY_THEME: Record<CategoryCode, CategoryTheme> = {
   '2017-2016': { bar: 'bg-[#1A7AE8]', badge: 'bg-[#e6f1fe] text-[#0B3D8F]', dot: 'bg-[#1A7AE8]' },
   '2019-2018': { bar: 'bg-[#f08a24]', badge: 'bg-[#fff0dd] text-[#9a4a05]', dot: 'bg-[#f08a24]' },
+}
+
+const EXTRA_CATEGORY_THEMES: CategoryTheme[] = [
+  { bar: 'bg-[#7a5af8]', badge: 'bg-[#efeaff] text-[#4a2fc2]', dot: 'bg-[#7a5af8]' },
+  { bar: 'bg-[#16a37f]', badge: 'bg-[#e1f6ef] text-[#0b6b53]', dot: 'bg-[#16a37f]' },
+  { bar: 'bg-[#d9485f]', badge: 'bg-[#fde8ec] text-[#9b2338]', dot: 'bg-[#d9485f]' },
+]
+
+/** Tema por categoría; las que no son de la Kelme Cup reciben uno estable según su nombre. */
+export function categoryTheme(code: string): CategoryTheme {
+  const known = CATEGORY_THEME[code as CategoryCode]
+  if (known) return known
+  let hash = 0
+  for (const char of code) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  return EXTRA_CATEGORY_THEMES[hash % EXTRA_CATEGORY_THEMES.length]!
 }
 
 /** Cada cancha tiene un color fijo para ubicarla de inmediato. */
@@ -82,9 +102,9 @@ const COURT_COLORS: Record<number, string> = {
   4: '#0e8fb3',
 }
 
-const courtColor = (court: number) => COURT_COLORS[court] ?? '#4d6790'
+export const courtColor = (court: number) => COURT_COLORS[court] ?? '#4d6790'
 
-function CourtPill({ court, sponsor }: { court: number; sponsor?: LandingSponsor }) {
+export function CourtPill({ court, sponsor }: { court: number; sponsor?: LandingSponsor }) {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-extrabold tracking-[0.08em] text-white"
@@ -192,13 +212,13 @@ function TeamRow({
   )
 }
 
-function MatchCard({
+export function MatchCard({
   match,
   courtSponsor,
   phaseSponsor,
   liveHref,
 }: {
-  match: FixtureViewMatch
+  match: CardMatch
   courtSponsor?: LandingSponsor
   phaseSponsor?: LandingSponsor
   liveHref?: string
@@ -208,7 +228,7 @@ function MatchCard({
   const hasPenalties = match.penaltyHome != null && match.penaltyAway != null
   const homeWon = match.status === 'FINAL' && match.homeGoals > match.awayGoals
   const awayWon = match.status === 'FINAL' && match.awayGoals > match.homeGoals
-  const theme = CATEGORY_THEME[match.category]
+  const theme = categoryTheme(match.category)
 
   return (
     <article
@@ -264,7 +284,11 @@ function MatchCard({
   )
 }
 
-function StandingsCard({ table }: { table: FixtureViewTable }) {
+export function StandingsCard({
+  table,
+}: {
+  table: Pick<FixtureViewTable, 'title' | 'rows' | 'definitive' | 'pendingTie'> & { key: string }
+}) {
   const showCross = table.key !== 'LEAGUE' && table.definitive
   return (
     <div className="rounded-2xl border border-[#1A7AE8]/20 bg-white p-4 shadow-[0_8px_20px_rgba(26,122,232,0.06)]">
@@ -330,8 +354,11 @@ export function KelmeCupFixture({
   sponsorsByTarget = {},
   exportHref,
   liveHrefBase,
+  dateLabel = 'Domingo 15 de noviembre',
 }: {
   view: FixtureView
+  /** Fecha que se muestra sobre el título, p. ej. «Domingo 15 de noviembre». */
+  dateLabel?: string
   /** Base de la página en vivo (p. ej. "/kelme/live"); cada partido enlaza a `${base}/${id}`. */
   liveHrefBase?: string
   /** Descarga del fixture en Excel; si falta, no se muestra el botón. */
@@ -380,7 +407,7 @@ export function KelmeCupFixture({
   return (
     <section id="fixture" className="scroll-mt-24 bg-[#f4f9ff] py-8 text-[#123a6b]">
       <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
-        <p className="border-l-4 border-[#4b9deb] pl-3 text-[13px] font-extrabold uppercase tracking-[0.19em] text-[#1A7AE8]">Domingo 15 de noviembre</p>
+        <p className="border-l-4 border-[#4b9deb] pl-3 text-[13px] font-extrabold uppercase tracking-[0.19em] text-[#1A7AE8]">{dateLabel}</p>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-[28px] font-bold uppercase tracking-[-0.03em] text-[#0B3D8F]">
             Fixture y resultados

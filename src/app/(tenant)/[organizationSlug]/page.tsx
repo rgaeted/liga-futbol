@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { OrgPublicLanding } from '@/components/marketing/OrgPublicLanding'
 import { OrgPublicLandingRefresh } from '@/components/marketing/OrgPublicLandingRefresh'
 import { getFixtureRosters } from '@/lib/kelme-fixture/rosters'
-import { getPublicFixtureView } from '@/lib/kelme-fixture/service'
+import { getPublicJornadas } from '@/lib/kelme-fixture/jornada'
 import { getLandingSponsorsBySlug } from '@/lib/sponsors/landing-query'
 import { KELME_SLUG } from '@/lib/org-brand'
 import { getOrgPublicLanding } from '@/lib/org-public-landing'
@@ -16,21 +16,21 @@ export default async function OrgLandingPage({
   params: Promise<{ organizationSlug: string }>
 }) {
   const { organizationSlug } = await params
-  const [data, panelHref, kelmeFixture, sponsors] = await Promise.all([
+  const [data, panelHref, kelmeJornadas, sponsors] = await Promise.all([
     getOrgPublicLanding(organizationSlug),
     resolveOrgLandingPanelHref(organizationSlug),
-    organizationSlug === KELME_SLUG ? getPublicFixtureView(organizationSlug) : Promise.resolve(null),
+    organizationSlug === KELME_SLUG ? getPublicJornadas(organizationSlug) : Promise.resolve([]),
     getLandingSponsorsBySlug(organizationSlug).catch(() => null),
   ])
   if (!data) notFound()
-  const kelmeRosters = kelmeFixture ? await getFixtureRosters(kelmeFixture.seasonId) : []
+  const kelmeRosters = kelmeJornadas[0] ? await getFixtureRosters(kelmeJornadas[0].seasonId) : []
 
   return (
     <OrgPublicLandingRefresh data={data}>
       <OrgPublicLanding
         data={data}
         panelHref={panelHref}
-        kelmeFixture={kelmeFixture}
+        kelmeJornadas={kelmeJornadas}
         kelmeRosters={kelmeRosters}
         sponsors={sponsors}
       />

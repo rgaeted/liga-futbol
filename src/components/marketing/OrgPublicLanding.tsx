@@ -5,7 +5,7 @@ import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
 import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { LosLunesResults } from '@/components/marketing/LosLunesResults'
 import { KelmeCupHomeHero } from '@/components/marketing/KelmeCupHomeHero'
-import { KelmeCupFixture } from '@/components/marketing/KelmeCupFixture'
+import { KelmeJornadas } from '@/components/marketing/KelmeJornadas'
 import { KelmeCupTeams } from '@/components/marketing/KelmeCupTeams'
 import type { TeamRoster } from '@/lib/kelme-fixture/rosters'
 import { KelmeCupInvite } from '@/components/marketing/KelmeCupInvite'
@@ -19,7 +19,7 @@ import { matchStatusLabel } from '@/lib/match-status-ui'
 import { SponsorCards } from '@/components/marketing/sponsors/SponsorCards'
 import { SponsorStrip } from '@/components/marketing/sponsors/SponsorStrip'
 import { SponsorViewBeacon } from '@/components/marketing/sponsors/SponsorViewBeacon'
-import type { FixtureView } from '@/lib/kelme-fixture/view'
+import type { PublicJornada } from '@/lib/kelme-fixture/jornada'
 import type { LandingSponsors } from '@/lib/sponsors/landing'
 import { formatLandingPerMatchRate,type OrgPublicLanding as OrgPublicLandingData } from '@/lib/org-public-landing'
 
@@ -131,13 +131,14 @@ function RankingCard({
 export function OrgPublicLanding({
   data,
   panelHref = null,
-  kelmeFixture = null,
+  kelmeJornadas = [],
   kelmeRosters = [],
   sponsors = null,
 }: {
   data: OrgPublicLandingData
   panelHref?: string | null
-  kelmeFixture?: FixtureView | null
+  /** Fechas del torneo de la Kelme, la más reciente primero. */
+  kelmeJornadas?: PublicJornada[]
   kelmeRosters?: TeamRoster[]
   sponsors?: LandingSponsors | null
 }) {
@@ -161,7 +162,7 @@ export function OrgPublicLanding({
   const isKelme = slug === KELME_SLUG
   const customLanding = isLosLunes || isKelme
   const fixtureSponsors =
-    sponsors && kelmeFixture ? (sponsors.byTargetBySeason[kelmeFixture.seasonId] ?? null) : null
+    sponsors && kelmeJornadas[0] ? (sponsors.byTargetBySeason[kelmeJornadas[0].seasonId] ?? null) : null
 
   return (
     <div
@@ -286,10 +287,10 @@ export function OrgPublicLanding({
       ) : null}
 
       <main>
-        {isKelme && kelmeFixture ? (
-          <KelmeCupFixture
-            view={kelmeFixture}
-            sponsorsByTarget={fixtureSponsors ?? {}}
+        {isKelme && kelmeJornadas.length > 0 ? (
+          <KelmeJornadas
+            jornadas={kelmeJornadas}
+            sponsorsBySeason={sponsors?.byTargetBySeason ?? {}}
             exportHref={`/api/public/fixture/${slug}/export`}
             liveHrefBase={`/${slug}/live`}
           />
@@ -332,7 +333,7 @@ export function OrgPublicLanding({
             </div>
             )}
 
-            {featured ? (
+            {featured && !(isKelme && featured.status === 'FINISHED') ? (
               isLosLunes ? (
                 <LosLunesMatchBoard featured={featured} slug={slug} />
               ) : isKelme ? (
@@ -697,7 +698,8 @@ export function OrgPublicLanding({
 
         <FriendlyAttendanceCards slug={slug} boards={data.attendances} light={isKelme} />
 
-        {results.length > 0 ? (
+        {/* En la Kelme los resultados de fechas anteriores viven en el selector de fecha del fixture. */}
+        {results.length > 0 && !isKelme ? (
           isLosLunes ? (
             <LosLunesResults results={results} slug={slug} />
           ) : isKelme ? (
