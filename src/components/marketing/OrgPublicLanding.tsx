@@ -6,6 +6,8 @@ import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { LosLunesResults } from '@/components/marketing/LosLunesResults'
 import { KelmeCupHomeHero } from '@/components/marketing/KelmeCupHomeHero'
 import { jornadaHeroSummary } from '@/lib/kelme-fixture/jornada-summary'
+import { TeamBadge } from '@/components/marketing/KelmeCupFixture'
+import type { LandingTeamBadge } from '@/lib/org-public-landing'
 import { KelmeJornadas } from '@/components/marketing/KelmeJornadas'
 import { KelmeCupTeams } from '@/components/marketing/KelmeCupTeams'
 import type { TeamRoster } from '@/lib/kelme-fixture/rosters'
@@ -53,7 +55,14 @@ function RankingCard({
   light = false,
 }: {
   title: string
-  rows: Array<{ name: string; value: number; display?: string; href?: string }>
+  rows: Array<{
+    name: string
+    value: number
+    display?: string
+    href?: string
+    /** Equipo del jugador: se muestra su escudo junto al nombre. */
+    team?: LandingTeamBadge | null
+  }>
   light?: boolean
 }) {
   if (rows.length === 0) return null
@@ -108,14 +117,22 @@ function RankingCard({
             >
               {index + 1}
             </span>
-            <span className={`font-ui text-sm font-bold ${light ? 'text-[#123a6b]' : ''}`}>
-              {row.href ? (
-                <Link href={row.href} className="hover:text-org-primary hover:underline">
-                  {row.name}
-                </Link>
-              ) : (
-                row.name
-              )}
+            <span className={`flex min-w-0 items-center gap-2.5 font-ui text-sm font-bold ${light ? 'text-[#123a6b]' : ''}`}>
+              {row.team ? (
+                <TeamBadge name={row.team.name} pending={false} color={row.team.color} crestUrl={row.team.crestUrl} />
+              ) : null}
+              <span className="min-w-0">
+                {row.href ? (
+                  <Link href={row.href} className="hover:text-org-primary hover:underline">
+                    {row.name}
+                  </Link>
+                ) : (
+                  row.name
+                )}
+                {row.team ? (
+                  <span className="block truncate text-[11px] font-semibold text-[#4d6790]">{row.team.name}</span>
+                ) : null}
+              </span>
             </span>
             <span
               className={`font-data text-lg font-black tabular-nums ${light ? 'text-[#0B3D8F]' : ''}`}
@@ -778,12 +795,12 @@ export function OrgPublicLanding({
                       <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
                         <RankingCard
                           title="⚽ Goleadores"
-                          rows={stats.scorers.map((row) => ({ name: row.name, value: row.goals }))}
+                          rows={stats.scorers.map((row) => ({ name: row.name, value: row.goals, team: row.team }))}
                           light
                         />
                         <RankingCard
                           title="🎯 Asistencias"
-                          rows={stats.assists.map((row) => ({ name: row.name, value: row.assists }))}
+                          rows={stats.assists.map((row) => ({ name: row.name, value: row.assists, team: row.team }))}
                           light
                         />
                       </div>

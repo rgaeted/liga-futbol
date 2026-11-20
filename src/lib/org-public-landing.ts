@@ -123,8 +123,8 @@ export type OrgPublicLanding = {
   /** Goleadores y asistentes por categoría, la que jugó más recientemente primero. */
   categoryStats: Array<{
     category: string
-    scorers: Array<{ playerId: string; name: string; goals: number }>
-    assists: Array<{ playerId: string; name: string; assists: number }>
+    scorers: Array<{ playerId: string; name: string; goals: number; team?: LandingTeamBadge | null }>
+    assists: Array<{ playerId: string; name: string; assists: number; team?: LandingTeamBadge | null }>
   }>
   goalsPerMatch: Array<{
     playerId: string
@@ -619,9 +619,9 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
           select: {
             type: true,
             playerId: true,
-            player: { include: PLAYER_PERSON_NAME_INCLUDE },
+            player: { include: { ...PLAYER_PERSON_NAME_INCLUDE, team: { select: TEAM_BADGE_SELECT } } },
             assistPlayerId: true,
-            assistPlayer: { include: PLAYER_PERSON_NAME_INCLUDE },
+            assistPlayer: { include: { ...PLAYER_PERSON_NAME_INCLUDE, team: { select: TEAM_BADGE_SELECT } } },
           },
         },
         friendlyPlayers: { select: { playerId: true } },
@@ -672,6 +672,8 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       playerName: event.player ? playerDisplayName(event.player) : null,
       assistPlayerId: event.assistPlayerId,
       assistName: event.assistPlayer ? playerDisplayName(event.assistPlayer) : null,
+      playerTeam: toTeamBadge(event.player?.team),
+      assistTeam: toTeamBadge(event.assistPlayer?.team),
     })),
   }))
   const goalEvents = matchStatRows.flatMap((match) => match.events)
@@ -757,6 +759,22 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
   }
 }
 
+/** Equipo de un jugador para mostrar su escudo (o su color si no tiene) junto al nombre. */
+export type LandingTeamBadge = { name: string; color: string | null; crestUrl: string | null }
+
+const TEAM_BADGE_SELECT = { id: true, name: true, color: true, crestMimeType: true, updatedAt: true } as const
+
+function toTeamBadge(
+  team: { id: string; name: string; color: string | null; crestMimeType: string | null; updatedAt: Date } | null | undefined,
+): LandingTeamBadge | null {
+  if (!team) return null
+  return {
+    name: team.name,
+    color: team.color,
+    crestUrl: team.crestMimeType ? teamCrestUrl(team.id, team.updatedAt) : null,
+  }
+}
+
 /** Goleadores y asistentes de cada categoría; las más recientes primero. Ignora partidos sin categoría. */
 export function tallyStatsByCategory(
   matches: Array<{
@@ -787,10 +805,15 @@ export function tallyStatsByCategory(
 }
 
 export function tallyRecentScorers(
-  events: Array<{ type: string; playerId: string | null; playerName: string | null }>,
+  events: Array<{
+    type: string
+    playerId: string | null
+    playerName: string | null
+    playerTeam?: LandingTeamBadge | null
+  }>,
   take = 5,
-): Array<{ playerId: string; name: string; goals: number }> {
-  const map = new Map<string, { playerId: string; name: string; goals: number }>()
+): Array<{ playerId: string; name: string; goals: number; team?: LandingTeamBadge | null }> {
+  const map = new Map<string, { playerId: string; name: string; goals: number; team?: LandingTeamBadge | null }>()
   for (const e of events) {
     if (!isScoringGoalEvent(e.type as EventType) || !e.playerId) continue
     const row = map.get(e.playerId) ?? {
@@ -799,6 +822,7 @@ export function tallyRecentScorers(
       goals: 0,
     }
     row.goals += 1
+    if (e.playerTeam) row.team = e.playerTeam
     if (e.playerName) row.name = e.playerName
     map.set(e.playerId, row)
   }
@@ -812,10 +836,11 @@ export function tallyRecentAssists(
     type: string
     assistPlayerId: string | null
     assistName: string | null
+    assistTeam?: LandingTeamBadge | null
   }>,
   take = 5,
-): Array<{ playerId: string; name: string; assists: number }> {
-  const map = new Map<string, { playerId: string; name: string; assists: number }>()
+): Array<{ playerId: string; name: string; assists: number; team?: LandingTeamBadge | null }> {
+  const map = new Map<string, { playerId: string; name: string; assists: number; team?: LandingTeamBadge | null }>()
   for (const e of events) {
     if (e.type !== 'GOAL' || !e.assistPlayerId) continue
     const row = map.get(e.assistPlayerId) ?? {
@@ -824,6 +849,7 @@ export function tallyRecentAssists(
       assists: 0,
     }
     row.assists += 1
+    if (e.assistTeam) row.team = e.assistTeam
     if (e.assistName) row.name = e.assistName
     map.set(e.assistPlayerId, row)
   }
@@ -841,6 +867,8 @@ export type LandingMatchStatRow = {
     playerName: string | null
     assistPlayerId: string | null
     assistName: string | null
+    playerTeam?: LandingTeamBadge | null
+    assistTeam?: LandingTeamBadge | null
   }>
 }
 

@@ -141,7 +141,7 @@ function resolveTeamColor(name: string, color?: string | null) {
 }
 
 /** Escudo del equipo; si no tiene, solo un círculo con su color. */
-function TeamBadge({
+export function TeamBadge({
   name,
   pending,
   color,
