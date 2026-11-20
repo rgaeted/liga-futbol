@@ -5,6 +5,7 @@ import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
 import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { LosLunesResults } from '@/components/marketing/LosLunesResults'
 import { KelmeCupHomeHero } from '@/components/marketing/KelmeCupHomeHero'
+import { jornadaHeroSummary } from '@/lib/kelme-fixture/jornada-summary'
 import { KelmeJornadas } from '@/components/marketing/KelmeJornadas'
 import { KelmeCupTeams } from '@/components/marketing/KelmeCupTeams'
 import type { TeamRoster } from '@/lib/kelme-fixture/rosters'
@@ -271,7 +272,12 @@ export function OrgPublicLanding({
         />
       ) : null}
       {isKelme ? (
-        <KelmeCupHomeHero homeHref={`/${slug}`} panelHref={panelHref} loginHref={loginHref} />
+        <KelmeCupHomeHero
+          homeHref={`/${slug}`}
+          panelHref={panelHref}
+          loginHref={loginHref}
+          jornada={jornadaHeroSummary(kelmeJornadas[0])}
+        />
       ) : null}
 
       {sponsors ? <SponsorStrip sponsors={sponsors} tone={isKelme ? 'kelme' : 'org'} /> : null}

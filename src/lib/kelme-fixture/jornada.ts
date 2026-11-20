@@ -2,6 +2,7 @@ import { MatchStatus } from '@prisma/client'
 import { db } from '@/lib/db'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 import { formatScheduleTimeLabel } from '@/lib/schedule-datetime'
+import { footballFormatLabel } from '@/lib/football-format'
 import { teamCrestUrl } from '@/lib/team-crest'
 import { calculateStandings } from './standings'
 import { categoryCodeFromName, getFixtureView } from './service'
@@ -23,6 +24,8 @@ export type JornadaTable = {
 export type JornadaView = {
   seasonId: string
   seasonName: string
+  /** «Fútbol 9», etc. */
+  formatLabel: string
   matches: JornadaMatch[]
   tables: JornadaTable[]
 }
@@ -50,7 +53,7 @@ export function jornadaDateLabel(date: Date): string {
 
 export async function loadJornadaView(seasonId: string): Promise<JornadaView> {
   const [season, seasonTeams, rows] = await Promise.all([
-    db.season.findUnique({ where: { id: seasonId }, select: { name: true } }),
+    db.season.findUnique({ where: { id: seasonId }, select: { name: true, footballFormat: true } }),
     db.seasonTeam.findMany({
       where: { seasonId },
       orderBy: { sortOrder: 'asc' },
@@ -142,7 +145,13 @@ export async function loadJornadaView(seasonId: string): Promise<JornadaView> {
     }
   })
 
-  return { seasonId, seasonName: season?.name ?? '', matches, tables }
+  return {
+    seasonId,
+    seasonName: season?.name ?? '',
+    formatLabel: season ? footballFormatLabel(season.footballFormat) : '',
+    matches,
+    tables,
+  }
 }
 
 /**

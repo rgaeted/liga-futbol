@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { KelmePawMark } from '@/components/marketing/KelmeCupBrush'
+import type { JornadaHeroSummary } from '@/lib/kelme-fixture/jornada-summary'
 import {
   KELME_CUP,
   KELME_CUP_HERO_PATH,
@@ -90,28 +91,58 @@ function UserIcon({ className }: { className?: string }) {
   )
 }
 
-const FACTS: ReadonlyArray<{ icon: ReactNode; lines: string[] }> = [
+type Fact = { icon: ReactNode; lines: string[] }
+type FormatItem = { icon: ReactNode; value?: string; label: string }
+
+const CUP_FACTS: ReadonlyArray<Fact> = [
   { icon: <CalendarIcon className="h-9 w-9" />, lines: [KELME_CUP.dateLabel] },
   { icon: <PinIcon className="h-9 w-9" />, lines: [KELME_CUP.venue] },
   { icon: <ClockIcon className="h-9 w-9" />, lines: [KELME_CUP.timeLabel] },
 ]
 
-const FORMAT: ReadonlyArray<{ icon: ReactNode; value?: string; label: string }> = [
+const CUP_FORMAT: ReadonlyArray<FormatItem> = [
   { icon: <TeamIcon className="h-9 w-9" />, value: '4', label: 'categorías' },
   { icon: <PitchIcon className="h-9 w-9" />, label: 'Fútbol 7' },
   { icon: <TeamIcon className="h-9 w-9" />, value: '4 equipos', label: 'por categoría' },
   { icon: <SwapIcon className="h-9 w-9" />, label: 'Cambios ilimitados' },
 ]
 
+/** Datos clave y formato de la próxima fecha (todos contra todos). */
+function jornadaFacts(summary: JornadaHeroSummary): { facts: Fact[]; format: FormatItem[] } {
+  return {
+    facts: [
+      { icon: <CalendarIcon className="h-9 w-9" />, lines: [summary.dateLabel] },
+      { icon: <PinIcon className="h-9 w-9" />, lines: [KELME_CUP.venue] },
+      { icon: <ClockIcon className="h-9 w-9" />, lines: [summary.timeLabel] },
+    ],
+    format: [
+      { icon: <TeamIcon className="h-9 w-9" />, value: String(summary.categories), label: 'categorías' },
+      { icon: <PitchIcon className="h-9 w-9" />, label: summary.formatLabel },
+      {
+        icon: <TeamIcon className="h-9 w-9" />,
+        value: `${summary.teamsPerCategory} equipos`,
+        label: 'por categoría',
+      },
+      { icon: <SwapIcon className="h-9 w-9" />, label: 'Todos contra todos' },
+    ],
+  }
+}
+
 export function KelmeCupHomeHero({
   homeHref,
   panelHref,
   loginHref,
+  jornada = null,
 }: {
   homeHref: string
   panelHref?: string | null
   loginHref: string
+  /** Próxima fecha; si falta, la cabecera muestra los datos generales de la Kelme Cup. */
+  jornada?: JornadaHeroSummary | null
 }) {
+  const { facts: FACTS, format: FORMAT } = jornada
+    ? jornadaFacts(jornada)
+    : { facts: CUP_FACTS, format: CUP_FORMAT }
   const ctaHref = panelHref ?? loginHref
   const ctaLabel = panelHref ? 'Ir al panel' : 'Ingresar'
 
