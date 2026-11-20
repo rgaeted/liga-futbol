@@ -125,6 +125,64 @@ const SCHEMES_F7 = {
   ],
 } as const satisfies Record<string, FormationSlot[]>
 
+const SCHEMES_F9 = {
+  '3-3-2': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB_L', label: 'DFC', row: 1, col: 0.25 },
+    { key: 'CB', label: 'DFC', row: 1, col: 0.5 },
+    { key: 'CB_R', label: 'DFC', row: 1, col: 0.75 },
+    { key: 'CM_L', label: 'MC', row: 2, col: 0.2 },
+    { key: 'CM', label: 'MCD', row: 2, col: 0.5 },
+    { key: 'CM_R', label: 'MC', row: 2, col: 0.8 },
+    { key: 'ST_L', label: 'DC', row: 3, col: 0.35 },
+    { key: 'ST_R', label: 'DC', row: 3, col: 0.65 },
+  ],
+  '3-2-3': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB_L', label: 'DFC', row: 1, col: 0.25 },
+    { key: 'CB', label: 'DFC', row: 1, col: 0.5 },
+    { key: 'CB_R', label: 'DFC', row: 1, col: 0.75 },
+    { key: 'CM_L', label: 'MC', row: 2, col: 0.35 },
+    { key: 'CM_R', label: 'MC', row: 2, col: 0.65 },
+    { key: 'LW', label: 'EI', row: 3, col: 0.15 },
+    { key: 'ST', label: 'DC', row: 3, col: 0.5 },
+    { key: 'RW', label: 'ED', row: 3, col: 0.85 },
+  ],
+  '2-4-2': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB_L', label: 'DFC', row: 1, col: 0.35 },
+    { key: 'CB_R', label: 'DFC', row: 1, col: 0.65 },
+    { key: 'LM', label: 'MI', row: 2, col: 0.12 },
+    { key: 'CM_L', label: 'MC', row: 2, col: 0.38 },
+    { key: 'CM_R', label: 'MC', row: 2, col: 0.62 },
+    { key: 'RM', label: 'MD', row: 2, col: 0.88 },
+    { key: 'ST_L', label: 'DC', row: 3, col: 0.35 },
+    { key: 'ST_R', label: 'DC', row: 3, col: 0.65 },
+  ],
+  '3-4-1': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'CB_L', label: 'DFC', row: 1, col: 0.25 },
+    { key: 'CB', label: 'DFC', row: 1, col: 0.5 },
+    { key: 'CB_R', label: 'DFC', row: 1, col: 0.75 },
+    { key: 'LM', label: 'MI', row: 2, col: 0.12 },
+    { key: 'CM_L', label: 'MC', row: 2, col: 0.38 },
+    { key: 'CM_R', label: 'MC', row: 2, col: 0.62 },
+    { key: 'RM', label: 'MD', row: 2, col: 0.88 },
+    { key: 'ST', label: 'DC', row: 3, col: 0.5 },
+  ],
+  '4-3-1': [
+    { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
+    { key: 'LB', label: 'LI', row: 1, col: 0.12 },
+    { key: 'CB_L', label: 'DFC', row: 1, col: 0.38 },
+    { key: 'CB_R', label: 'DFC', row: 1, col: 0.62 },
+    { key: 'RB', label: 'LD', row: 1, col: 0.88 },
+    { key: 'CM_L', label: 'MC', row: 2, col: 0.25 },
+    { key: 'CM', label: 'MCD', row: 2, col: 0.5 },
+    { key: 'CM_R', label: 'MC', row: 2, col: 0.75 },
+    { key: 'ST', label: 'DC', row: 3, col: 0.5 },
+  ],
+} as const satisfies Record<string, FormationSlot[]>
+
 const SCHEMES_F6 = {
   '2-2-1': [
     { key: 'GK', label: 'Arquero', row: 0, col: 0.5 },
@@ -202,6 +260,7 @@ const SCHEMES_F5 = {
 const SCHEMES_BY_FORMAT: Record<FootballFormat, Record<string, FormationSlot[]>> = {
   FUTBOL_11: SCHEMES_F11,
   FUTBOL_7: SCHEMES_F7,
+  FUTBOL_9: SCHEMES_F9,
   FUTBOL_6: SCHEMES_F6,
   FUTBOL_5: SCHEMES_F5,
 }
@@ -209,6 +268,7 @@ const SCHEMES_BY_FORMAT: Record<FootballFormat, Record<string, FormationSlot[]>>
 const DEFAULT_SCHEME: Record<FootballFormat, string> = {
   FUTBOL_11: '4-3-3',
   FUTBOL_7: '2-3-1',
+  FUTBOL_9: '3-3-2',
   FUTBOL_6: '2-2-1',
   FUTBOL_5: '1-2-1',
 }

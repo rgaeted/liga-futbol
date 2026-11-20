@@ -6,6 +6,7 @@ describe('football format helpers', () => {
     expect(footballFormatLabel('FUTBOL_11')).toBe('Fútbol 11')
     expect(footballFormatLabel('FUTBOL_7')).toBe('Fútbol 7')
     expect(footballFormatLabel('FUTBOL_6')).toBe('Fútbol 6')
+    expect(footballFormatLabel('FUTBOL_9')).toBe('Fútbol 9')
     expect(footballFormatLabel('FUTBOL_5')).toBe('Fútbol 5')
   })
 
@@ -20,6 +21,7 @@ describe('football format helpers', () => {
     expect(playersOnPitch('FUTBOL_5')).toBe(5)
     expect(playersOnPitch('FUTBOL_6')).toBe(6)
     expect(playersOnPitch('FUTBOL_7')).toBe(7)
+    expect(playersOnPitch('FUTBOL_9')).toBe(9)
     expect(playersOnPitch('FUTBOL_11')).toBe(11)
   })
 })

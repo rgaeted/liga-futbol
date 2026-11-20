@@ -1,11 +1,12 @@
 import type { FootballFormat } from '@prisma/client'
 
-export const FOOTBALL_FORMATS = ['FUTBOL_5', 'FUTBOL_6', 'FUTBOL_7', 'FUTBOL_11'] as const satisfies readonly FootballFormat[]
+export const FOOTBALL_FORMATS = ['FUTBOL_5', 'FUTBOL_6', 'FUTBOL_7', 'FUTBOL_9', 'FUTBOL_11'] as const satisfies readonly FootballFormat[]
 
 export const FOOTBALL_FORMAT_LABELS: Record<FootballFormat, string> = {
   FUTBOL_5: 'Fútbol 5',
   FUTBOL_6: 'Fútbol 6',
   FUTBOL_7: 'Fútbol 7',
+  FUTBOL_9: 'Fútbol 9',
   FUTBOL_11: 'Fútbol 11',
 }
 
@@ -22,6 +23,8 @@ export function minCallUpSize(format: FootballFormat): number {
       return 6
     case 'FUTBOL_7':
       return 7
+    case 'FUTBOL_9':
+      return 9
     case 'FUTBOL_11':
       return 7
     default:
@@ -37,6 +40,8 @@ export function playersOnPitch(format: FootballFormat): number {
       return 6
     case 'FUTBOL_7':
       return 7
+    case 'FUTBOL_9':
+      return 9
     case 'FUTBOL_11':
       return 11
     default:

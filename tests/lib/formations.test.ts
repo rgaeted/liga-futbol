@@ -65,3 +65,12 @@ describe('formations catalog', () => {
     expect(result.ok).toBe(true)
   })
 })
+
+describe('fútbol 9', () => {
+  it('todos los esquemas tienen 9 posiciones', () => {
+    for (const scheme of getFormationSchemes('FUTBOL_9')) {
+      expect(getFormationSlots(scheme, 'FUTBOL_9')).toHaveLength(9)
+    }
+    expect(isValidScheme(getDefaultScheme('FUTBOL_9'), 'FUTBOL_9')).toBe(true)
+  })
+})
