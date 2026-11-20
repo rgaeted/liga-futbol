@@ -451,7 +451,7 @@ export function OrgPublicLanding({
 
             {!isKelme && (scorers[0] || assists[0]) || form ? (
               <div className="mb-8 mt-3.5 grid grid-cols-3 gap-3 max-sm:grid-cols-1">
-                {scorers[0] ? (
+                {!isKelme && scorers[0] ? (
                   <div
                     className={
                       isKelme
@@ -472,7 +472,7 @@ export function OrgPublicLanding({
                     </div>
                   </div>
                 ) : null}
-                {assists[0] ? (
+                {!isKelme && assists[0] ? (
                   <div
                     className={
                       isKelme
