@@ -120,6 +120,12 @@ export type OrgPublicLanding = {
     name: string
     assists: number
   }>
+  /** Goleadores y asistentes por categoría, la que jugó más recientemente primero. */
+  categoryStats: Array<{
+    category: string
+    scorers: Array<{ playerId: string; name: string; goals: number }>
+    assists: Array<{ playerId: string; name: string; assists: number }>
+  }>
   goalsPerMatch: Array<{
     playerId: string
     name: string
@@ -606,6 +612,8 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       take: 40,
       select: {
         id: true,
+        scheduledAt: true,
+        seasonCategory: { select: { category: { select: { name: true } } } },
         events: {
           where: { type: { in: [...SCORING_GOAL_EVENT_TYPES] } },
           select: {
@@ -667,6 +675,13 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
     })),
   }))
   const goalEvents = matchStatRows.flatMap((match) => match.events)
+  const categoryStats = tallyStatsByCategory(
+    scorerMatches.map((match, index) => ({
+      category: match.seasonCategory?.category.name ?? null,
+      scheduledAt: match.scheduledAt,
+      events: matchStatRows[index]!.events,
+    })),
+  )
 
   const resultCards = results.map(toResultMatch)
   const featuredId = liveMatches[0]?.id ?? results[0]?.id ?? null
@@ -696,6 +711,7 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       : null,
     scorers: tallyRecentScorers(goalEvents),
     assists: tallyRecentAssists(goalEvents),
+    categoryStats,
     goalsPerMatch: tallyRecentPerMatchRates(matchStatRows, 'goals').map((row) => ({
       playerId: row.playerId,
       name: row.name,
@@ -739,6 +755,35 @@ export async function getOrgPublicLanding(slug: string): Promise<OrgPublicLandin
       heroImages.map((image) => image.storagePath),
     ),
   }
+}
+
+/** Goleadores y asistentes de cada categoría; las más recientes primero. Ignora partidos sin categoría. */
+export function tallyStatsByCategory(
+  matches: Array<{
+    category: string | null
+    scheduledAt: Date
+    events: LandingMatchStatRow['events']
+  }>,
+  take = 5,
+): OrgPublicLanding['categoryStats'] {
+  const byCategory = new Map<string, { lastAt: number; events: LandingMatchStatRow['events'] }>()
+  for (const match of matches) {
+    if (!match.category) continue
+    const entry = byCategory.get(match.category) ?? { lastAt: 0, events: [] }
+    entry.lastAt = Math.max(entry.lastAt, match.scheduledAt.getTime())
+    entry.events.push(...match.events)
+    byCategory.set(match.category, entry)
+  }
+  return [...byCategory.entries()]
+    .map(([category, entry]) => ({
+      category,
+      lastAt: entry.lastAt,
+      scorers: tallyRecentScorers(entry.events, take),
+      assists: tallyRecentAssists(entry.events, take),
+    }))
+    .filter((row) => row.scorers.length > 0 || row.assists.length > 0)
+    .sort((a, b) => b.lastAt - a.lastAt || a.category.localeCompare(b.category, 'es'))
+    .map(({ category, scorers, assists }) => ({ category, scorers, assists }))
 }
 
 export function tallyRecentScorers(

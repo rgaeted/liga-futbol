@@ -143,12 +143,13 @@ export function OrgPublicLanding({
   kelmeRosters?: TeamRoster[]
   sponsors?: LandingSponsors | null
 }) {
-  const { organization, featured, nextMatch, results, form, scorers, assists, goalsPerMatch, assistsPerMatch, awards } = data
+  const { organization, featured, nextMatch, results, form, scorers, assists, categoryStats, goalsPerMatch, assistsPerMatch, awards } = data
   const slug = organization.slug
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/${slug}`)}`
   const year = new Date().getFullYear()
+  const isKelmeStats = slug === KELME_SLUG
   const hasStats =
-    scorers.length > 0 ||
+    (isKelmeStats ? categoryStats.length > 0 : scorers.length > 0) ||
     assists.length > 0 ||
     goalsPerMatch.length > 0 ||
     assistsPerMatch.length > 0
@@ -448,7 +449,7 @@ export function OrgPublicLanding({
               )
             ) : null}
 
-            {scorers[0] || assists[0] || form ? (
+            {!isKelme && (scorers[0] || assists[0]) || form ? (
               <div className="mb-8 mt-3.5 grid grid-cols-3 gap-3 max-sm:grid-cols-1">
                 {scorers[0] ? (
                   <div
@@ -757,7 +758,7 @@ export function OrgPublicLanding({
                     isKelme ? 'text-[#1A7AE8]' : 'text-[#9ca59f]'
                   }`}
                 >
-                  Estadísticas · Últimos 30 días
+                  Estadísticas · Últimos 30 días{isKelme ? ' · Por categoría' : ''}
                 </p>
                 <h2
                   className={`mt-1 font-display text-[28px] font-semibold uppercase tracking-[-0.035em] ${
@@ -767,6 +768,29 @@ export function OrgPublicLanding({
                   Los que están on fire
                 </h2>
               </div>
+              {isKelme ? (
+                <div className="space-y-7">
+                  {categoryStats.map((stats) => (
+                    <div key={stats.category}>
+                      <h3 className="mb-3 text-[13px] font-extrabold uppercase tracking-[0.12em] text-[#4d6790]">
+                        Categoría {stats.category.replace('-', '–')}
+                      </h3>
+                      <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
+                        <RankingCard
+                          title="⚽ Goleadores"
+                          rows={stats.scorers.map((row) => ({ name: row.name, value: row.goals }))}
+                          light
+                        />
+                        <RankingCard
+                          title="🎯 Asistencias"
+                          rows={stats.assists.map((row) => ({ name: row.name, value: row.assists }))}
+                          light
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
                 <RankingCard
                   title="⚽ Goleadores"
@@ -809,6 +833,7 @@ export function OrgPublicLanding({
                   </>
                 ) : null}
               </div>
+              )}
             </div>
           </section>
         ) : null}
