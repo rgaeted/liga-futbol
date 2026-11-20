@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Carga la jornada del domingo 22-11-2026 de la Liga Kelme (2 categorías, 8 equipos, 12 partidos,
+ * Carga la jornada del domingo 22-11-2026 de la Liga Kelme (2 categorías, 8 equipos, 12 partidos, pausa de 5 min,
  * Fútbol 9) en la organización `kelme`. Idempotente: reutiliza categorías/equipos por nombre y
  * nunca pisa partidos ya creados (identidad = fixtureCode P01–P12 dentro de la temporada).
  *
@@ -38,16 +38,16 @@ const TEAMS: Record<string, { name: string; category: Cat }> = {
 const MATCHES: [string, Cat, string, 1 | 2, string, string][] = [
   ['P01', '2015-2014', '09:00', 1, 'UE-1514', 'DIN-1514'],
   ['P02', '2015-2014', '09:00', 2, 'PAL-1514', 'SPV-1514'],
-  ['P03', '2013-2012', '09:45', 1, 'UE-1312', 'FV-1312'],
-  ['P04', '2013-2012', '09:45', 2, 'PAL-1312', 'TUY-1312'],
-  ['P05', '2015-2014', '10:30', 1, 'UE-1514', 'SPV-1514'],
-  ['P06', '2015-2014', '10:30', 2, 'PAL-1514', 'DIN-1514'],
-  ['P07', '2013-2012', '11:15', 1, 'UE-1312', 'TUY-1312'],
-  ['P08', '2013-2012', '11:15', 2, 'PAL-1312', 'FV-1312'],
-  ['P09', '2015-2014', '12:00', 1, 'UE-1514', 'PAL-1514'],
-  ['P10', '2015-2014', '12:00', 2, 'DIN-1514', 'SPV-1514'],
-  ['P11', '2013-2012', '12:45', 1, 'UE-1312', 'PAL-1312'],
-  ['P12', '2013-2012', '12:45', 2, 'FV-1312', 'TUY-1312'],
+  ['P03', '2013-2012', '09:40', 1, 'UE-1312', 'FV-1312'],
+  ['P04', '2013-2012', '09:40', 2, 'PAL-1312', 'TUY-1312'],
+  ['P05', '2015-2014', '10:20', 1, 'UE-1514', 'SPV-1514'],
+  ['P06', '2015-2014', '10:20', 2, 'PAL-1514', 'DIN-1514'],
+  ['P07', '2013-2012', '11:00', 1, 'UE-1312', 'TUY-1312'],
+  ['P08', '2013-2012', '11:00', 2, 'PAL-1312', 'FV-1312'],
+  ['P09', '2015-2014', '11:40', 1, 'UE-1514', 'PAL-1514'],
+  ['P10', '2015-2014', '11:40', 2, 'DIN-1514', 'SPV-1514'],
+  ['P11', '2013-2012', '12:20', 1, 'UE-1312', 'PAL-1312'],
+  ['P12', '2013-2012', '12:20', 2, 'FV-1312', 'TUY-1312'],
 ]
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
