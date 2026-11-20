@@ -30,11 +30,14 @@ function JornadaFixture({
   view,
   dateLabel,
   liveHrefBase,
+  exportHref,
   sponsorsByTarget,
 }: {
   view: JornadaView
   dateLabel: string
   liveHrefBase?: string
+  /** Descarga de esta fecha en Excel; si falta, no se muestra el botón. */
+  exportHref?: string
   sponsorsByTarget: Record<string, LandingSponsor>
 }) {
   const [category, setCategory] = useState<string>(ALL)
@@ -59,9 +62,21 @@ function JornadaFixture({
         <p className="border-l-4 border-[#4b9deb] pl-3 text-[13px] font-extrabold uppercase tracking-[0.19em] text-[#1A7AE8]">
           {dateLabel}
         </p>
-        <h2 className="mt-1 font-display text-[28px] font-bold uppercase tracking-[-0.03em] text-[#0B3D8F]">
-          Fixture y resultados
-        </h2>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-[28px] font-bold uppercase tracking-[-0.03em] text-[#0B3D8F]">
+            Fixture y resultados
+          </h2>
+          {exportHref ? (
+            <a
+              href={exportHref}
+              download
+              className="inline-flex items-center gap-2 rounded-lg border border-[#1A7AE8]/40 bg-white px-4 py-2 text-[13px] font-extrabold uppercase tracking-[0.06em] text-[#0B3D8F] transition hover:border-[#1A7AE8] hover:bg-[#e6f1fe]"
+            >
+              <span aria-hidden>↓</span>
+              Exportar a Excel
+            </a>
+          ) : null}
+        </div>
 
         <div className="mt-5 space-y-2.5 rounded-2xl border border-[#1A7AE8]/20 bg-white p-4">
           <FilterRow label="Categoría">
@@ -171,6 +186,7 @@ export function KelmeJornadas({
   if (!selected) return null
 
   const sponsorsByTarget = sponsorsBySeason[selected.seasonId] ?? {}
+  const selectedExportHref = exportHref ? `${exportHref}?season=${selected.seasonId}` : undefined
 
   return (
     <>
@@ -213,7 +229,7 @@ export function KelmeJornadas({
           view={selected.view}
           dateLabel={selected.dateLabel}
           sponsorsByTarget={sponsorsByTarget}
-          exportHref={exportHref}
+          exportHref={selectedExportHref}
           liveHrefBase={liveHrefBase}
         />
       ) : (
@@ -223,6 +239,7 @@ export function KelmeJornadas({
           dateLabel={selected.dateLabel}
           sponsorsByTarget={sponsorsByTarget}
           liveHrefBase={liveHrefBase}
+          exportHref={selectedExportHref}
         />
       )}
     </>

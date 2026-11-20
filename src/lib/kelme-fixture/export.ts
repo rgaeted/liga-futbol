@@ -1,5 +1,12 @@
 import type { FixtureStatus } from './types'
-import type { FixtureView } from './view'
+import type { FixtureViewMatch, FixtureViewRow } from './view'
+
+/** Lo mínimo que exporta la planilla: sirve tanto para la Kelme Cup como para jornadas todos contra todos. */
+export type ExportableFixture = {
+  seasonName: string
+  matches: Array<Omit<FixtureViewMatch, 'category'> & { category: string }>
+  tables: Array<{ title: string; rows: FixtureViewRow[] }>
+}
 
 type Cell = string | number
 export type ExportSheet = { header: string[]; rows: Cell[][] }
@@ -17,7 +24,7 @@ const MATCH_HEADER = [
 const STANDINGS_HEADER = ['Tabla', '#', 'Equipo', 'PJ', 'PG', 'PE', 'PP', 'GF', 'GC', 'DG', 'PTS']
 
 /** Datos del fixture listos para volcar a una planilla: partidos y tablas de posiciones. */
-export function fixtureExportSheets(view: FixtureView): { matches: ExportSheet; standings: ExportSheet } {
+export function fixtureExportSheets(view: ExportableFixture): { matches: ExportSheet; standings: ExportSheet } {
   const matches: Cell[][] = view.matches.map((match) => {
     const showScore = match.status === 'FINAL' || match.status === 'IN_PROGRESS'
     const penalties =
@@ -48,16 +55,17 @@ export function fixtureExportSheets(view: FixtureView): { matches: ExportSheet; 
   }
 }
 
-export function fixtureExportFileName(organizationSlug: string): string {
+export function fixtureExportFileName(organizationSlug: string, suffix?: string): string {
   const safe = organizationSlug
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-  return `fixture-${safe || 'liga'}.xlsx`
+  const tail = suffix ? `-${suffix.replace(/[^a-z0-9-]+/gi, '')}` : ''
+  return `fixture-${safe || 'liga'}${tail}.xlsx`
 }
 
 /** Archivo .xlsx con las hojas "Partidos" y "Posiciones". */
-export async function fixtureWorkbookBuffer(view: FixtureView): Promise<Buffer> {
+export async function fixtureWorkbookBuffer(view: ExportableFixture): Promise<Buffer> {
   const { default: ExcelJS } = await import('exceljs')
   const { matches, standings } = fixtureExportSheets(view)
   const workbook = new ExcelJS.Workbook()
