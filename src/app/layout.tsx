@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/components/providers'
 import {
   anton,
@@ -45,6 +46,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   )
