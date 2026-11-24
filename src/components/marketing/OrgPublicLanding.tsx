@@ -5,6 +5,7 @@ import { LosLunesHomeHero } from '@/components/marketing/LosLunesHomeHero'
 import { LosLunesMatchBoard } from '@/components/marketing/LosLunesMatchBoard'
 import { LosLunesResults } from '@/components/marketing/LosLunesResults'
 import { KelmeCupHomeHero } from '@/components/marketing/KelmeCupHomeHero'
+import { LeParkHomeHero } from '@/components/marketing/LeParkHomeHero'
 import { jornadaHeroSummary } from '@/lib/kelme-fixture/jornada-summary'
 import { TeamBadge } from '@/components/marketing/KelmeCupFixture'
 import type { LandingTeamBadge } from '@/lib/org-public-landing'
@@ -163,7 +164,8 @@ export function OrgPublicLanding({
   const { organization, featured, nextMatch, results, form, scorers, assists, categoryStats, goalsPerMatch, assistsPerMatch, awards } = data
   const slug = organization.slug
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/${slug}`)}`
-  const year = new Date().getFullYear()
+  const now = new Date()
+  const year = now.getFullYear()
   const isKelmeStats = slug === KELME_SLUG
   const hasStats =
     (isKelmeStats ? categoryStats.length > 0 : scorers.length > 0) ||
@@ -179,7 +181,8 @@ export function OrgPublicLanding({
     data.attendances.length === 0
   const isLosLunes = slug === LOSLUNES_SLUG
   const isKelme = slug === KELME_SLUG
-  const customLanding = isLosLunes || isKelme
+  const isLePark = slug === 'liga-le-park'
+  const customLanding = isLosLunes || isKelme || isLePark
   const fixtureSponsors =
     sponsors && kelmeJornadas[0] ? (sponsors.byTargetBySeason[kelmeJornadas[0].seasonId] ?? null) : null
 
@@ -190,7 +193,9 @@ export function OrgPublicLanding({
           ? 'kelme-type min-h-screen bg-[#f4f9ff] text-[#123a6b]'
           : isLosLunes
             ? 'min-h-screen bg-black text-[#f4f5f2]'
-            : 'min-h-screen bg-[#0b0d0c] text-[#f4f5f2] [background:radial-gradient(circle_at_50%_-10%,color-mix(in_srgb,var(--org-primary)_7%,transparent),transparent_28%),#0b0d0c]'
+            : isLePark
+              ? 'min-h-screen bg-[#100e0b] text-[#f8f3e8] [--org-primary:#ecc477]'
+              : 'min-h-screen bg-[#0b0d0c] text-[#f4f5f2] [background:radial-gradient(circle_at_50%_-10%,color-mix(in_srgb,var(--org-primary)_7%,transparent),transparent_28%),#0b0d0c]'
       }
     >
       {customLanding ? null : (
@@ -297,6 +302,15 @@ export function OrgPublicLanding({
           jornada={jornadaHeroSummary(kelmeJornadas[0])}
         />
       ) : null}
+      {isLePark ? (
+        <LeParkHomeHero
+          logoUrl={organization.logoUrl}
+          panelHref={panelHref}
+          loginHref={loginHref}
+          hasStats={hasStats}
+          today={now}
+        />
+      ) : null}
 
       {sponsors ? <SponsorStrip sponsors={sponsors} tone={isKelme ? 'kelme' : 'org'} /> : null}
       {sponsors ? (
@@ -322,7 +336,7 @@ export function OrgPublicLanding({
         {isKelme ? <KelmeCupTeams teams={kelmeRosters} /> : null}
         {sponsors && isKelme ? <SponsorCards sponsors={sponsors} tone="kelme" /> : null}
         {isKelme ? <KelmeCupInvite /> : null}
-        <section className={customLanding ? 'pb-7 pt-8' : 'pb-7 pt-[54px] max-sm:pt-8'}>
+        <section id={isLePark ? 'partidos' : undefined} className={customLanding ? 'pb-7 pt-8' : 'pb-7 pt-[54px] max-sm:pt-8'}>
           <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
             {customLanding ? null : (
             <div className="mb-[18px] flex items-end justify-between gap-6 max-md:flex-col max-md:items-start">
